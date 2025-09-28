@@ -10,5 +10,8 @@
     ],
     "reportMissingImports": true,
     "reportMissingTypeStubs": false,
-    "pythonVersion": "3.11"
+    "pythonVersion": "3.11",
+    "pythonPath": "E:/Code/Python/venvs/weatherbot/Scripts/python.exe",
+    "venvPath": "E:/Code/Python/venvs",
+    "venv": "weatherbot"
 }
