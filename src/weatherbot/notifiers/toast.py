@@ -3,7 +3,6 @@
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 class ToastNotifier:
     """Windows toast notification handler."""
 
-    def __init__(self, icon_path: Optional[Path] = None) -> None:
+    def __init__(self, icon_path: Path | None = None) -> None:
         """Initialize toast notifier.
 
         Args:
@@ -20,7 +19,7 @@ class ToastNotifier:
         self.icon_path = icon_path
         self._toast_lib = self._get_toast_library()
 
-    def _get_toast_library(self) -> Optional[object]:
+    def _get_toast_library(self) -> object | None:
         """Get the best available toast notification library.
 
         Returns:

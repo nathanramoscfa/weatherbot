@@ -4,30 +4,29 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import requests
 
-from .alert_levels import AlertLevel, AlertInfo
+from .alert_levels import AlertInfo, AlertLevel
 from .config import WeatherbotConfig
 
 logger = logging.getLogger(__name__)
 
 
-def get_location_name(latitude: float, longitude: float, openai_api_key: Optional[str] = None) -> str:
+def get_location_name(latitude: float, longitude: float, openai_api_key: str | None = None) -> str:
     """Get location name from coordinates using multiple strategies.
-    
+
     Args:
         latitude: Latitude coordinate
         longitude: Longitude coordinate
         openai_api_key: Optional OpenAI API key for AI-powered location naming
-        
+
     Returns:
         Location name string
     """
     try:
         # Use OpenStreetMap Nominatim for reverse geocoding
-        url = f"https://nominatim.openstreetmap.org/reverse"
+        url = "https://nominatim.openstreetmap.org/reverse"
         params = {
             'lat': latitude,
             'lon': longitude,
@@ -36,42 +35,42 @@ def get_location_name(latitude: float, longitude: float, openai_api_key: Optiona
             'zoom': 10
         }
         headers = {'User-Agent': 'weatherbot/1.0'}
-        
+
         response = requests.get(url, params=params, headers=headers, timeout=10)
         if response.status_code == 200:
             data = response.json()
             address = data.get('address', {})
-            
+
             # Build location name from components
             city = address.get('city') or address.get('town') or address.get('village')
             county = address.get('county')
             state = address.get('state') or address.get('province')
             country = address.get('country')
-            
+
             # Handle different location granularities
             if city and state:
                 return f"{city}, {state}"
-            elif county and state:
+            if county and state:
                 # If we have county but no city, use county name
                 # Remove "County" suffix if present for cleaner display
                 county_clean = county.replace(" County", "").replace(" Parish", "")
                 return f"{county_clean}, {state}"
-            elif city and country:
+            if city and country:
                 return f"{city}, {country}"
-            elif state and country:
+            if state and country:
                 return f"{state}, {country}"
-            elif country:
+            if country:
                 return country
-                
+
     except Exception as e:
         logger.debug(f"Reverse geocoding failed: {e}")
-    
+
     # Strategy 2: AI-powered location naming (if API key available)
     if openai_api_key:
         try:
             import openai
             client = openai.OpenAI(api_key=openai_api_key)
-            
+
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",  # Fast, low-cost model
                 messages=[
@@ -83,15 +82,15 @@ def get_location_name(latitude: float, longitude: float, openai_api_key: Optiona
                 max_tokens=50,
                 temperature=0
             )
-            
+
             ai_location = response.choices[0].message.content.strip()
             if ai_location and len(ai_location) < 100:  # Sanity check
                 logger.info(f"AI location naming: {ai_location}")
                 return ai_location
-                
+
         except Exception as e:
             logger.debug(f"AI location naming failed: {e}")
-    
+
     # Strategy 3: Generic coordinate-based fallback
     return f"Location {latitude:.4f}°N, {longitude:.4f}°W"
 
@@ -104,10 +103,10 @@ def generate_html_report(
     message: str,
     config: WeatherbotConfig,
     location_name: str,
-    storm_cone_data: Optional[list] = None,
+    storm_cone_data: list | None = None,
 ) -> str:
     """Generate comprehensive HTML report.
-    
+
     Args:
         alert_level: Numeric alert level
         alert_enum: Alert level enum
@@ -117,25 +116,25 @@ def generate_html_report(
         config: Configuration
         location_name: Dynamic location name
         storm_cone_data: Optional list of individual storm cone data with URLs and metadata
-        
+
     Returns:
         Path to generated HTML file
     """
     import base64
-    
+
     # Create reports directory
     reports_dir = Path("reports")
     reports_dir.mkdir(exist_ok=True)
-    
+
     # Generate filename with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"hurricane_threat_analysis_{timestamp}.html"
     filepath = reports_dir / filename
-    
+
     # Check if coordinates are outside NOAA coverage
     coverage_result = config.validate_coverage()
     is_outside_coverage = coverage_result.get("is_outside", False)
-    
+
     if is_outside_coverage:
         # Generate AI-only report for out-of-coverage locations
         logger.info("Generating AI-only HTML report for out-of-coverage location")
@@ -151,13 +150,13 @@ def generate_html_report(
     else:
         # Generate full NOAA report for in-coverage locations
         logger.info("Generating full NOAA HTML report for in-coverage location")
-        
+
         # Determine the correct basin and get appropriate map URLs
         basin = coverage_result.get("basin", "atlantic")
         basin_urls = _get_basin_urls(basin)
         map_url = basin_urls["7day"]
         basin_display = basin_urls["display_name"]
-        
+
         # Download NOAA map image for the correct basin
         map_image_b64 = None
         try:
@@ -166,7 +165,7 @@ def generate_html_report(
                 map_image_b64 = base64.b64encode(response.content).decode('utf-8')
         except Exception as e:
             logger.warning(f"Failed to download NOAA {basin_display} map: {e}")
-        
+
         # Download individual storm cone images
         storm_cone_images = []
         logger.info(f"Processing {len(storm_cone_data) if storm_cone_data else 0} storm cone data entries for HTML report")
@@ -174,7 +173,7 @@ def generate_html_report(
             logger.info(f"Storm cone data: {storm_cone_data}")
         else:
             logger.warning("No storm cone data provided to HTML report generation")
-        
+
         if storm_cone_data:
             for i, storm_data in enumerate(storm_cone_data):
                 try:
@@ -194,17 +193,17 @@ def generate_html_report(
                             logger.info(f"Downloaded cone image for {storm_data.get('name', f'Storm {i + 1}')}")
                 except Exception as e:
                     logger.warning(f"Failed to download cone image for {storm_data.get('name', f'Storm {i + 1}')}: {e}")
-        
+
         # Get alert level color
         level_colors = {
             1: "#4CAF50",  # Green
-            2: "#FF9800",  # Orange  
+            2: "#FF9800",  # Orange
             3: "#FF5722",  # Deep Orange
             4: "#F44336",  # Red
             5: "#B71C1C"   # Dark Red
         }
         alert_color = level_colors.get(alert_level, "#757575")
-        
+
         # Generate HTML content using full template
         html_content = _get_html_template(
             alert_level=alert_level,
@@ -220,20 +219,20 @@ def generate_html_report(
             basin_display=basin_display,
             map_url=map_url
         )
-    
+
     # Write to file
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(html_content)
-    
+
     return str(filepath)
 
 
 def _get_basin_urls(basin: str) -> dict:
     """Get basin-specific URLs and display names.
-    
+
     Args:
         basin: Basin name ('atlantic', 'eastern_pacific', 'central_pacific')
-        
+
     Returns:
         Dictionary with URLs and display name for the basin
     """
@@ -246,7 +245,7 @@ def _get_basin_urls(basin: str) -> dict:
         },
         "eastern_pacific": {
             "7day": "https://www.nhc.noaa.gov/xgtwo/two_epac_7d0.png",
-            "2day": "https://www.nhc.noaa.gov/xgtwo/two_epac_2d0.png", 
+            "2day": "https://www.nhc.noaa.gov/xgtwo/two_epac_2d0.png",
             "text": "https://www.nhc.noaa.gov/gtwo.php?basin=epac&fdays=7",
             "display_name": "Eastern Pacific"
         },
@@ -257,7 +256,7 @@ def _get_basin_urls(basin: str) -> dict:
             "display_name": "Central Pacific"
         }
     }
-    
+
     return basin_configs.get(basin, basin_configs["atlantic"])
 
 
@@ -269,14 +268,14 @@ def _get_html_template(
     config: WeatherbotConfig,
     title: str,
     message: str,
-    map_image_b64: Optional[str],
+    map_image_b64: str | None,
     storm_cone_images: list,
     timestamp: str,
     basin_display: str = "Atlantic",
     map_url: str = "https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png"
 ) -> str:
     """Generate HTML template with provided data.
-    
+
     Args:
         alert_level: Numeric alert level
         alert_info: Alert information
@@ -287,7 +286,7 @@ def _get_html_template(
         message: Alert message
         map_image_b64: Base64 encoded map image
         timestamp: Report timestamp
-        
+
     Returns:
         Complete HTML content
     """
@@ -403,42 +402,42 @@ def _get_html_template(
             <strong>Coordinates:</strong> {config.home_lat:.4f}°N, {config.home_lon:.4f}°W<br>
             <strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
         </div>
-        
+
         <div class="content">
             <div class="section">
                 <h2>{alert_info.icon} Current Alert Status</h2>
                 <h3>Alert Level {alert_level}: {alert_info.title_prefix}</h3>
                 <p><strong>Situation:</strong> {title.replace('**', '')}</p>
             </div>
-            
+
             <div class="section">
                 <h2>📊 Official NOAA Hurricane Map</h2>
                 <p><em>7-Day {basin_display} Tropical Weather Outlook</em></p>
                 <div class="map-container">"""
-    
+
     if map_image_b64:
         html_content += f'<img src="data:image/png;base64,{map_image_b64}" alt="NOAA 7-Day {basin_display} Tropical Weather Outlook">'
     else:
         html_content += f'<img src="{map_url}" alt="NOAA 7-Day {basin_display} Tropical Weather Outlook">'
-    
+
     html_content += f"""
                 </div>
                 <p><em>Source: <a href="{map_url}" target="_blank">National Hurricane Center</a></em></p>
             </div>"""
-    
+
     # Add individual storm cone images if available
     if storm_cone_images:
-        html_content += f"""
-            
+        html_content += """
+
             <div class="section">
                 <h2>🌀 Individual Storm Forecast Cones</h2>
                 <p><em>Detailed forecast cones from individual storm tracking pages</em></p>"""
-        
+
         for storm_image in storm_cone_images:
             storm_name = storm_image.get('name', f"Storm {storm_image['index']}")
             storm_id = storm_image.get('storm_id', '')
             page_url = storm_image.get('page_url', '')
-            
+
             html_content += f"""
                 <div class="map-container">
                     <h3>🌀 {storm_name}</h3>
@@ -447,35 +446,33 @@ def _get_html_template(
                     <p><em>Cone Image Source: <a href="{storm_image['url']}" target="_blank">Direct PNG Link</a></em></p>
                     {f'<p><em>Storm Page: <a href="{page_url}" target="_blank">NHC Individual Storm Page</a></em></p>' if page_url else ''}
                 </div>"""
-        
+
         html_content += """
             </div>"""
-    
-    html_content += f"""
-            
+
+    html_content += """
+
             <div class="section">
                 <h2>📋 Detailed Threat Assessment</h2>"""
-    
+
     # Parse and format the detailed assessment
     clean_message = message.replace("**", "").strip()
     sections = clean_message.split('\n')
-    
+
     html_content += "<ul>\n"
-    
+
     for line in sections:
         line = line.strip()
         if not line:
             continue
-        
+
         # Remove bullet point prefixes
-        if line.startswith('• '):
+        if line.startswith(('• ', '- ')):
             line = line[2:].strip()
-        elif line.startswith('- '):
-            line = line[2:].strip()
-        
+
         # Check if this is a section header (ends with colon and contains key phrases)
-        if (line.endswith(':') and 
-            ('Affecting the Area' in line or 'Analysis' in line or 'Watches/Warnings' in line or 
+        if (line.endswith(':') and
+            ('Affecting the Area' in line or 'Analysis' in line or 'Watches/Warnings' in line or
              'Actions Based on' in line or 'Next Steps' in line or 'Guidance' in line or 'Details' in line)):
             # Close previous list and start new section
             html_content += "</ul>\n"
@@ -483,18 +480,18 @@ def _get_html_template(
         else:
             # Regular bullet point
             html_content += f"<li>{line}</li>\n"
-    
+
     html_content += "</ul>\n"
-    
+
     html_content += f"""
             </div>
-            
+
             <div class="actions-box">
                 <h3>🚨 Immediate Actions Required</h3>
                 <h4>Alert Level {alert_level} Actions:</h4>
                 <div>{alert_info.guidance.replace(chr(10), '<br>')}</div>
             </div>
-            
+
             <div class="section">
                 <h2>📞 Emergency Contacts & Resources</h2>
                 <h3>Official Weather Services</h3>
@@ -503,14 +500,14 @@ def _get_html_template(
                     <li><strong>Local Weather Service:</strong> Monitor local radio and TV</li>
                     <li><strong>Emergency Management:</strong> Follow local authorities</li>
                 </ul>
-                
+
                 <h3>Transportation</h3>
                 <ul>
                     <li><strong>Primary Airport:</strong> Monitor flight status</li>
                     <li><strong>Airlines:</strong> Check available routes to safe destinations</li>
                     <li><strong>Ground Transportation:</strong> Pre-arrange airport transportation</li>
                 </ul>
-                
+
                 <h3>Evacuation Destinations</h3>
                 <ul>
                     <li><strong>Nearest Major City:</strong> Primary evacuation destination</li>
@@ -518,7 +515,7 @@ def _get_html_template(
                     <li><strong>Inland Areas:</strong> Away from coastal storm surge</li>
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>⚠️ 5-Level Storm Alert System</h2>
                 <table>
@@ -566,7 +563,7 @@ def _get_html_template(
                     </tr>
                 </table>
             </div>
-            
+
             <div class="section">
                 <h2>📍 Location Information</h2>
                 <p><strong>{location_name}</strong></p>
@@ -578,7 +575,7 @@ def _get_html_template(
                 </ul>
             </div>
         </div>
-        
+
         <div class="footer">
             <p><em>This report was generated automatically by Weatherbot AI using official National Hurricane Center data.<br>
             Always follow official emergency management guidance and evacuation orders.</em></p>
@@ -587,7 +584,7 @@ def _get_html_template(
     </div>
 </body>
 </html>"""
-    
+
     return html_content
 
 
@@ -601,7 +598,7 @@ def _get_ai_only_html_template(
     timestamp: str
 ) -> str:
     """Generate AI-only HTML template for out-of-coverage locations.
-    
+
     Args:
         alert_level: Numeric alert level
         alert_info: Alert information
@@ -610,20 +607,20 @@ def _get_ai_only_html_template(
         title: Alert title
         message: Alert message
         timestamp: Report timestamp
-        
+
     Returns:
         Complete HTML content for AI-only report
     """
     # Get alert level color
     level_colors = {
         1: "#4CAF50",  # Green
-        2: "#FF9800",  # Orange  
+        2: "#FF9800",  # Orange
         3: "#FF5722",  # Deep Orange
         4: "#F44336",  # Red
         5: "#B71C1C"   # Dark Red
     }
     alert_color = level_colors.get(alert_level, "#757575")
-    
+
     # Generate HTML content
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -740,45 +737,43 @@ def _get_ai_only_html_template(
             <strong>Coordinates:</strong> {config.home_lat:.4f}°N, {config.home_lon:.4f}°W<br>
             <strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
         </div>
-        
+
         <div class="content">
             <div class="coverage-notice">
                 <h3>⚠️ Coverage Notice</h3>
                 <p><strong>This location is outside NOAA coverage areas.</strong> This analysis is based on AI web search of local meteorological services and weather data sources. For the most accurate and up-to-date information, please consult your local meteorological service or national weather agency.</p>
             </div>
-            
+
             <div class="section">
                 <h2>{alert_info.icon} Current Alert Status</h2>
                 <h3>Alert Level {alert_level}: {alert_info.title_prefix}</h3>
                 <p><strong>Situation:</strong> {title.replace('**', '')}</p>
             </div>
-            
+
             <div class="ai-analysis">
                 <h2>🤖 AI Weather Analysis</h2>
                 <p><em>Based on web search of local weather services and meteorological data</em></p>
                 <div class="section">
                     <h3>📋 Detailed Assessment</h3>"""
-    
+
     # Parse and format the detailed assessment
     clean_message = message.replace("**", "").strip()
     sections = clean_message.split('\n')
-    
+
     html_content += "<ul>\n"
-    
+
     for line in sections:
         line = line.strip()
         if not line:
             continue
-        
+
         # Remove bullet point prefixes
-        if line.startswith('• '):
+        if line.startswith(('• ', '- ')):
             line = line[2:].strip()
-        elif line.startswith('- '):
-            line = line[2:].strip()
-        
+
         # Check if this is a section header (ends with colon and contains key phrases)
-        if (line.endswith(':') and 
-            ('Affecting the Area' in line or 'Analysis' in line or 'Warnings' in line or 
+        if (line.endswith(':') and
+            ('Affecting the Area' in line or 'Analysis' in line or 'Warnings' in line or
              'Actions Based on' in line or 'Next Steps' in line or 'Guidance' in line or 'Details' in line or
              'Status' in line or 'Assessment' in line or 'Timeline' in line or 'Sources' in line)):
             # Close previous list and start new section
@@ -787,19 +782,19 @@ def _get_ai_only_html_template(
         else:
             # Regular bullet point
             html_content += f"<li>{line}</li>\n"
-    
+
     html_content += "</ul>\n"
-    
+
     html_content += f"""
                 </div>
             </div>
-            
+
             <div class="actions-box">
                 <h3>🚨 Immediate Actions Required</h3>
                 <h4>Alert Level {alert_level} Actions:</h4>
                 <div>{alert_info.guidance.replace(chr(10), '<br>')}</div>
             </div>
-            
+
             <div class="data-source">
                 <h3>📊 Data Sources & Limitations</h3>
                 <ul>
@@ -810,7 +805,7 @@ def _get_ai_only_html_template(
                     <li><strong>Recommendation:</strong> Always verify with local weather services</li>
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>🌍 Regional Weather Services</h2>
                 <p><em>Recommended local weather information sources for your region:</em></p>
@@ -821,7 +816,7 @@ def _get_ai_only_html_template(
                     <li><strong>Emergency Services:</strong> Local emergency management and civil defense</li>
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>⚠️ 5-Level Weather Alert System</h2>
                 <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
@@ -869,7 +864,7 @@ def _get_ai_only_html_template(
                     </tr>
                 </table>
             </div>
-            
+
             <div class="section">
                 <h2>📍 Location Information</h2>
                 <p><strong>{location_name}</strong></p>
@@ -880,13 +875,13 @@ def _get_ai_only_html_template(
                     <li><strong>Emergency Planning:</strong> Consult local emergency management services</li>
                 </ul>
             </div>
-            
+
             <div class="warning">
                 <h3>⚠️ Important Disclaimer</h3>
                 <p>This analysis is generated using AI web search and may not reflect the most current weather conditions. Always consult official local meteorological services and emergency management authorities for the most accurate and up-to-date weather information and safety guidance.</p>
             </div>
         </div>
-        
+
         <div class="footer">
             <p><em>This report was generated automatically by Weatherbot AI using web search data.<br>
             This location is outside NOAA coverage areas. Always follow official local weather guidance.</em></p>
@@ -895,5 +890,5 @@ def _get_ai_only_html_template(
     </div>
 </body>
 </html>"""
-    
+
     return html_content

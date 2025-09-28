@@ -2,8 +2,6 @@
 """Central alerting coordination for Weatherbot."""
 
 import logging
-from pathlib import Path
-from typing import Optional
 
 from .config import WeatherbotConfig
 from .notifiers.toast import ToastNotifier
@@ -32,8 +30,8 @@ class AlertManager:
         title: str,
         message: str,
         duration: int = 15,
-        cone_geometries: Optional[list] = None,
-        storm_info: Optional[list] = None,
+        cone_geometries: list | None = None,
+        storm_info: list | None = None,
     ) -> None:
         """Raise an alert using configured notification methods.
 

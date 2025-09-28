@@ -3,8 +3,6 @@
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
-from urllib.parse import quote
 
 import requests
 from pydantic import BaseModel, Field
@@ -25,7 +23,7 @@ REQUEST_TIMEOUT = 30
 
 # Target hurricane and tropical storm events
 HURRICANE_EVENTS = [
-    "Hurricane Watch", 
+    "Hurricane Watch",
     "Hurricane Warning",
     "Tropical Storm Watch",
     "Tropical Storm Warning"
@@ -42,15 +40,15 @@ class NWSAlert(BaseModel):
     certainty: str = Field(description="Alert certainty")
     headline: str = Field(description="Alert headline")
     description: str = Field(description="Alert description")
-    effective: Optional[datetime] = Field(
+    effective: datetime | None = Field(
         default=None,
         description="Effective time",
     )
-    expires: Optional[datetime] = Field(
+    expires: datetime | None = Field(
         default=None,
         description="Expiration time",
     )
-    areas: List[str] = Field(
+    areas: list[str] = Field(
         default_factory=list,
         description="Affected areas",
     )
@@ -75,14 +73,13 @@ class NWSAlert(BaseModel):
         """
         if self.event == "Hurricane Warning":
             return "🛑🛑 WARNING"
-        elif self.event == "Hurricane Watch":
+        if self.event == "Hurricane Watch":
             return "🛑 WATCH"
-        elif self.event == "Tropical Storm Warning":
+        if self.event == "Tropical Storm Warning":
             return "🚨 WARNING"
-        elif self.event == "Tropical Storm Watch":
+        if self.event == "Tropical Storm Watch":
             return "⚠️ WATCH"
-        else:
-            return "⚠️ ALERT"
+        return "⚠️ ALERT"
 
 
 class NWSClient:
@@ -105,7 +102,7 @@ class NWSClient:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=10),
     )
-    def _make_request(self, url: str, params: Optional[Dict] = None) -> Dict:
+    def _make_request(self, url: str, params: dict | None = None) -> dict:
         """Make HTTP request with retry logic.
 
         Args:
@@ -127,8 +124,8 @@ class NWSClient:
         self,
         latitude: float,
         longitude: float,
-        events: Optional[List[str]] = None,
-    ) -> List[NWSAlert]:
+        events: list[str] | None = None,
+    ) -> list[NWSAlert]:
         """Fetch active alerts for a specific point.
 
         Args:
@@ -174,7 +171,7 @@ class NWSClient:
             return []
 
 
-    def _parse_alert_feature(self, feature: Dict) -> Optional[NWSAlert]:
+    def _parse_alert_feature(self, feature: dict) -> NWSAlert | None:
         """Parse a GeoJSON feature into an NWS alert.
 
         Args:
@@ -226,7 +223,7 @@ class NWSClient:
             logger.error(f"Failed to parse alert feature: {e}")
             return None
 
-    def _parse_timestamp(self, timestamp_str: Optional[str]) -> Optional[datetime]:
+    def _parse_timestamp(self, timestamp_str: str | None) -> datetime | None:
         """Parse ISO timestamp string.
 
         Args:
@@ -255,7 +252,7 @@ class NWSClient:
             return None
 
 
-def get_hurricane_alerts(latitude: float, longitude: float) -> List[NWSAlert]:
+def get_hurricane_alerts(latitude: float, longitude: float) -> list[NWSAlert]:
     """Get hurricane and tropical storm alerts for a specific point.
 
     Args:

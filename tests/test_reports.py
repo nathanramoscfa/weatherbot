@@ -1,11 +1,10 @@
 # tests/test_reports.py
 """Tests for report generation."""
 
-import pytest
 from unittest.mock import Mock, patch
 
-from weatherbot.reports import get_location_name, generate_html_report
-from weatherbot.alert_levels import AlertLevel, AlertInfo
+from weatherbot.alert_levels import AlertInfo, AlertLevel
+from weatherbot.reports import generate_html_report, get_location_name
 
 
 class TestGetLocationName:
@@ -26,9 +25,9 @@ class TestGetLocationName:
             }
         }
         mock_get.return_value = mock_response
-        
+
         result = get_location_name(25.7617, -80.1918)
-        
+
         assert result == "Miami, Florida"
         mock_get.assert_called_once()
 
@@ -45,9 +44,9 @@ class TestGetLocationName:
             }
         }
         mock_get.return_value = mock_response
-        
+
         result = get_location_name(25.7617, -80.1918)
-        
+
         assert result == "Miami, Florida"
 
     @patch('weatherbot.reports.requests.get')
@@ -57,9 +56,9 @@ class TestGetLocationName:
         mock_response.status_code = 200
         mock_response.json.return_value = {}
         mock_get.return_value = mock_response
-        
+
         result = get_location_name(25.7617, -80.1918)
-        
+
         assert result == "Location 25.7617°N, -80.1918°W"
 
     @patch('weatherbot.reports.requests.get')
@@ -68,18 +67,18 @@ class TestGetLocationName:
         mock_response = Mock()
         mock_response.status_code = 500
         mock_get.return_value = mock_response
-        
+
         result = get_location_name(25.7617, -80.1918)
-        
+
         assert result == "Location 25.7617°N, -80.1918°W"
 
     @patch('weatherbot.reports.requests.get')
     def test_get_location_name_request_exception(self, mock_get) -> None:
         """Test location name when request raises exception."""
         mock_get.side_effect = Exception("Network error")
-        
+
         result = get_location_name(25.7617, -80.1918)
-        
+
         assert result == "Location 25.7617°N, -80.1918°W"
 
 
@@ -97,12 +96,12 @@ class TestGenerateHtmlReport:
             title_prefix="TROPICAL STORM THREAT",
             guidance="Tropical storm conditions possible within 48-72 hours."
         )
-        
+
         config = Mock()
         config.home_lat = 25.7617
         config.home_lon = -80.1918
         config.openai_api_key = None
-        
+
         result = generate_html_report(
             alert_level=3,
             alert_enum=AlertLevel.TROPICAL_STORM_THREAT,
@@ -112,7 +111,7 @@ class TestGenerateHtmlReport:
             config=config,
             location_name="Miami, FL"
         )
-        
+
         assert isinstance(result, str)
         assert result.endswith(".html")
         assert "hurricane_threat_analysis" in result
@@ -127,12 +126,12 @@ class TestGenerateHtmlReport:
             title_prefix="ALL CLEAR",
             guidance="No active weather disturbances threatening your location."
         )
-        
+
         config = Mock()
         config.home_lat = 25.7617
         config.home_lon = -80.1918
         config.openai_api_key = None
-        
+
         result = generate_html_report(
             alert_level=0,
             alert_enum=AlertLevel.ALL_CLEAR,
@@ -142,7 +141,7 @@ class TestGenerateHtmlReport:
             config=config,
             location_name="Miami, FL"
         )
-        
+
         assert isinstance(result, str)
         assert result.endswith(".html")
         assert "hurricane_threat_analysis" in result
@@ -157,17 +156,17 @@ class TestGenerateHtmlReport:
             title_prefix="HURRICANE WARNING",
             guidance="Hurricane conditions expected within 36 hours."
         )
-        
+
         config = Mock()
         config.home_lat = 25.7617
         config.home_lon = -80.1918
         config.openai_api_key = None
-        
+
         # Mock storm cone data
         storm_cone_data = [
             {"coordinates": [[-80.0, 25.0], [-79.0, 26.0], [-78.0, 25.5]]}
         ]
-        
+
         result = generate_html_report(
             alert_level=5,
             alert_enum=AlertLevel.HURRICANE_WARNING,
@@ -178,7 +177,7 @@ class TestGenerateHtmlReport:
             location_name="Miami, FL",
             storm_cone_data=storm_cone_data
         )
-        
+
         assert isinstance(result, str)
         assert result.endswith(".html")
         assert "hurricane_threat_analysis" in result

@@ -1,17 +1,17 @@
 # tests/test_atcf_client_comprehensive.py
 """Comprehensive tests for ATCF client module."""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime, timezone
 import requests
 
 from weatherbot.atcf_client import (
-    ATCFClient,
-    get_atcf_invest_positions,
     ATCF_BASE,
     ATCF_BTK,
     INVEST_FILE_RE,
+    ATCFClient,
+    get_atcf_invest_positions,
 )
 
 
@@ -21,14 +21,14 @@ class TestATCFClient:
     def test_init_default(self):
         """Test default initialization."""
         client = ATCFClient()
-        
+
         assert client.timeout == 30
         assert client.session is not None
 
     def test_init_custom_timeout(self):
         """Test initialization with custom timeout."""
         client = ATCFClient(timeout=60)
-        
+
         assert client.timeout == 60
 
     @patch('weatherbot.atcf_client.requests.Session.get')
@@ -38,10 +38,10 @@ class TestATCFClient:
         mock_response.text = "ATCF data content"
         mock_response.raise_for_status.return_value = None
         mock_get.return_value = mock_response
-        
+
         client = ATCFClient()
         result = client._make_request("https://test.url")
-        
+
         assert result == "ATCF data content"
         mock_get.assert_called_once()
 
@@ -53,19 +53,19 @@ class TestATCFClient:
         mock_response.text = "ATCF data content"
         mock_response.raise_for_status.return_value = None
         mock_get.return_value = mock_response
-        
+
         client = ATCFClient()
-        
+
         # Clear cache first
         from weatherbot.cache import api_cache
         api_cache.clear()
-        
+
         # First call should make request
         result1 = client._make_request("https://test.url")
-        
+
         # Second call should use cache
         result2 = client._make_request("https://test.url")
-        
+
         assert result1 == result2
         assert mock_get.call_count == 1  # Only called once
 
@@ -75,9 +75,9 @@ class TestATCFClient:
         """Test HTTP request exception handling with retry exhaustion."""
         mock_cache.get.return_value = None  # No cached data
         mock_get.side_effect = requests.RequestException("Network error")
-        
+
         client = ATCFClient()
-        
+
         # The retry mechanism will eventually raise a RetryError
         from tenacity import RetryError
         with pytest.raises(RetryError):
@@ -97,10 +97,10 @@ class TestATCFClient:
         </html>
         '''
         mock_request.return_value = mock_html
-        
+
         client = ATCFClient()
         result = client.get_invest_files()
-        
+
         assert len(result) == 3
         assert any("bal932023.dat" in url for url in result)
         assert any("bal942023.dat" in url for url in result)
@@ -118,20 +118,20 @@ class TestATCFClient:
         </html>
         '''
         mock_request.return_value = mock_html
-        
+
         client = ATCFClient()
         result = client.get_invest_files()
-        
+
         assert result == []
 
     @patch.object(ATCFClient, '_make_request')
     def test_get_invest_files_exception(self, mock_request):
         """Test invest files retrieval exception handling."""
         mock_request.side_effect = Exception("Request error")
-        
+
         client = ATCFClient()
         result = client.get_invest_files()
-        
+
         assert result == []
 
     @patch.object(ATCFClient, '_make_request')
@@ -140,10 +140,10 @@ class TestATCFClient:
         """Test successful ATCF file parsing."""
         mock_request.return_value = "ATCF file content"
         mock_parse.return_value = [{"lat": 23.5, "lon": -59.2}]
-        
+
         client = ATCFClient()
         result = client.parse_atcf_file("https://test.url/bal932023.dat")
-        
+
         assert result == [{"lat": 23.5, "lon": -59.2}]
         mock_request.assert_called_once_with("https://test.url/bal932023.dat")
         mock_parse.assert_called_once_with("ATCF file content", "https://test.url/bal932023.dat")
@@ -152,10 +152,10 @@ class TestATCFClient:
     def test_parse_atcf_file_exception(self, mock_request):
         """Test ATCF file parsing exception handling."""
         mock_request.side_effect = Exception("Parse error")
-        
+
         client = ATCFClient()
         result = client.parse_atcf_file("https://test.url/bal932023.dat")
-        
+
         assert result == []
 
     def test_parse_atcf_text_success(self):
@@ -164,10 +164,10 @@ class TestATCFClient:
         AL, 93, 2023092912,   , BEST,   0, 235N,  597W,  25, 1008, DB,   0,    ,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    L,   0,    ,   0,   0,     INVEST, D, 0,    ,    0,    0,    0,    0, genesis-num, 001,
         AL, 93, 2023092918,   , BEST,   0, 240N,  595W,  30, 1006, DB,   0,    ,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    L,   0,    ,   0,   0,     INVEST, D, 0,    ,    0,    0,    0,    0, genesis-num, 002,
         """
-        
+
         client = ATCFClient()
         result = client._parse_atcf_text(atcf_text, "test_url")
-        
+
         assert len(result) == 2
         assert result[0]["lat"] == 23.5
         assert result[0]["lon"] == -59.7
@@ -183,7 +183,7 @@ class TestATCFClient:
         """Test ATCF text parsing with empty content."""
         client = ATCFClient()
         result = client._parse_atcf_text("", "test_url")
-        
+
         assert result == []
 
     def test_parse_atcf_text_comments_only(self):
@@ -192,76 +192,76 @@ class TestATCFClient:
         # This is a comment
         # Another comment
         """
-        
+
         client = ATCFClient()
         result = client._parse_atcf_text(atcf_text, "test_url")
-        
+
         assert result == []
 
     def test_parse_atcf_text_insufficient_fields(self):
         """Test ATCF text parsing with insufficient fields."""
         atcf_text = "AL, 93, 2023092912"  # Not enough fields
-        
+
         client = ATCFClient()
         result = client._parse_atcf_text(atcf_text, "test_url")
-        
+
         assert result == []
 
     def test_parse_atcf_text_invalid_coordinates(self):
         """Test ATCF text parsing with invalid coordinates."""
         atcf_text = "AL, 93, 2023092912,   , BEST,   0, XXXN,  XXXW,  25, 1008, DB,   0,    ,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    L,   0,    ,   0,   0,     INVEST, D, 0,    ,    0,    0,    0,    0, genesis-num, 001,"
-        
+
         client = ATCFClient()
         result = client._parse_atcf_text(atcf_text, "test_url")
-        
+
         assert result == []
 
     def test_parse_coordinate_north_positive(self):
         """Test coordinate parsing for north positive."""
         client = ATCFClient()
-        
+
         result = client._atcf_coord_to_float("235N")
         assert result == 23.5
 
     def test_parse_coordinate_south_negative(self):
         """Test coordinate parsing for south negative."""
         client = ATCFClient()
-        
+
         result = client._atcf_coord_to_float("235S")
         assert result == -23.5
 
     def test_parse_coordinate_east_positive(self):
         """Test coordinate parsing for east positive."""
         client = ATCFClient()
-        
+
         result = client._atcf_coord_to_float("1200E")
         assert result == 120.0
 
     def test_parse_coordinate_west_negative(self):
         """Test coordinate parsing for west negative."""
         client = ATCFClient()
-        
+
         result = client._atcf_coord_to_float("597W")
         assert result == -59.7
 
     def test_parse_coordinate_invalid(self):
         """Test coordinate parsing with invalid format."""
         client = ATCFClient()
-        
+
         result = client._atcf_coord_to_float("INVALID")
         assert result is None
 
     def test_parse_coordinate_empty(self):
         """Test coordinate parsing with empty string."""
         client = ATCFClient()
-        
+
         result = client._atcf_coord_to_float("")
         assert result is None
 
     def test_atcf_coord_to_float_missing_value(self):
         """Test coordinate parsing for missing value (-999)."""
         client = ATCFClient()
-        
+
         result = client._atcf_coord_to_float("-999")
         assert result is None
 
@@ -273,15 +273,15 @@ class TestATCFClient:
             "https://test.url/bal932023.dat",
             "https://test.url/bal942023.dat"
         ]
-        
+
         mock_parse.side_effect = [
             [{"invest_id": "AL93", "lat": 23.5, "lon": -59.7, "timestamp": "2023-09-29T12:00:00Z", "tau": 0}],
             [{"invest_id": "AL94", "lat": 25.0, "lon": -80.0, "timestamp": "2023-09-29T18:00:00Z", "tau": 0}]
         ]
-        
+
         client = ATCFClient()
         result = client.get_current_invest_positions()
-        
+
         assert len(result) == 2
         assert "AL93" in result
         assert result["AL93"] == (23.5, -59.7)
@@ -292,10 +292,10 @@ class TestATCFClient:
     def test_get_all_invest_positions_no_files(self, mock_get_files):
         """Test invest positions retrieval with no files."""
         mock_get_files.return_value = []
-        
+
         client = ATCFClient()
         result = client.get_current_invest_positions()
-        
+
         assert result == {}
 
     @patch.object(ATCFClient, 'get_invest_files')
@@ -304,10 +304,10 @@ class TestATCFClient:
         """Test invest positions retrieval with empty tracks."""
         mock_get_files.return_value = ["https://test.url/bal932023.dat"]
         mock_parse.return_value = []
-        
+
         client = ATCFClient()
         result = client.get_current_invest_positions()
-        
+
         assert result == {}
 
 
@@ -323,7 +323,7 @@ class TestInvestFileRegex:
             "bal952023.dat",
             "bal992023.dat"
         ]
-        
+
         for filename in valid_files:
             assert INVEST_FILE_RE.search(filename) is not None
 
@@ -335,7 +335,7 @@ class TestInvestFileRegex:
             "bcp962023.dat",
             "BCP992023.DAT"
         ]
-        
+
         for filename in valid_files:
             assert INVEST_FILE_RE.search(filename) is not None
 
@@ -350,7 +350,7 @@ class TestInvestFileRegex:
             "other_file.dat", # Completely different
             "bal93.dat"       # Missing year
         ]
-        
+
         for filename in invalid_files:
             assert INVEST_FILE_RE.search(filename) is None
 
@@ -366,9 +366,9 @@ class TestGetAtcfInvestPositions:
             "AL93": (23.5, -59.7)
         }
         mock_client_class.return_value = mock_client
-        
+
         result = get_atcf_invest_positions()
-        
+
         assert len(result) == 1
         assert "AL93" in result
         assert result["AL93"] == (23.5, -59.7)
@@ -379,9 +379,9 @@ class TestGetAtcfInvestPositions:
         mock_client = Mock()
         mock_client.get_current_invest_positions.return_value = {}
         mock_client_class.return_value = mock_client
-        
+
         result = get_atcf_invest_positions()
-        
+
         assert result == {}
 
     @patch('weatherbot.atcf_client.ATCFClient')
@@ -390,7 +390,7 @@ class TestGetAtcfInvestPositions:
         mock_client = Mock()
         mock_client.get_current_invest_positions.side_effect = Exception("ATCF error")
         mock_client_class.return_value = mock_client
-        
+
         with pytest.raises(Exception, match="ATCF error"):
             get_atcf_invest_positions()
 
@@ -429,52 +429,51 @@ class TestIntegration:
         </html>
         '''
         directory_response.raise_for_status.return_value = None
-        
+
         # Mock ATCF file content
         atcf_content_93 = """
         AL, 93, 2023092912,   , BEST,   0, 235N,  597W,  25, 1008, DB,   0,    ,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    L,   0,    ,   0,   0,     INVEST, D, 0,    ,    0,    0,    0,    0, genesis-num, 001,
         AL, 93, 2023092918,   , BEST,   0, 240N,  595W,  30, 1006, DB,   0,    ,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    L,   0,    ,   0,   0,     INVEST, D, 0,    ,    0,    0,    0,    0, genesis-num, 002,
         """
-        
+
         atcf_content_94 = """
         AL, 94, 2023092912,   , BEST,   0, 258N,  741W,  20, 1010, DB,   0,    ,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    L,   0,    ,   0,   0,     INVEST, D, 0,    ,    0,    0,    0,    0, genesis-num, 001,
         """
-        
+
         file_response_93 = Mock()
         file_response_93.text = atcf_content_93
         file_response_93.raise_for_status.return_value = None
-        
+
         file_response_94 = Mock()
         file_response_94.text = atcf_content_94
         file_response_94.raise_for_status.return_value = None
-        
+
         # Configure mock to return different responses based on URL
         def mock_get_side_effect(url, **kwargs):
             if url.endswith("btk/"):  # Directory listing
                 return directory_response
-            elif "bal932023.dat" in url:
+            if "bal932023.dat" in url:
                 return file_response_93
-            elif "bal942023.dat" in url:
+            if "bal942023.dat" in url:
                 return file_response_94
-            else:
-                raise requests.RequestException(f"Unknown URL: {url}")
-        
+            raise requests.RequestException(f"Unknown URL: {url}")
+
         mock_get.side_effect = mock_get_side_effect
-        
+
         # Clear cache to ensure fresh requests
         from weatherbot.cache import api_cache
         api_cache.clear()
-        
+
         # Run the full workflow
         result = get_atcf_invest_positions()
-        
+
         # Verify results
         assert len(result) == 2
-        
+
         # Check AL93 data (latest position from the ATCF data)
         assert "AL93" in result
         assert result["AL93"] == (24.0, -59.5)  # Latest position
-        
+
         # Check AL94 data
         assert "AL94" in result
         assert result["AL94"] == (25.8, -74.1)
@@ -493,20 +492,20 @@ class TestIntegration:
         '''
         directory_response.raise_for_status.return_value = None
         mock_get.return_value = directory_response
-        
+
         # Clear cache
         from weatherbot.cache import api_cache
         api_cache.clear()
-        
+
         result = get_atcf_invest_positions()
-        
+
         assert result == {}
 
     @patch('weatherbot.atcf_client.requests.Session.get')
     def test_full_workflow_network_error(self, mock_get):
         """Test full workflow with network error."""
         mock_get.side_effect = requests.RequestException("Network error")
-        
+
         result = get_atcf_invest_positions()
-        
+
         assert result == {}

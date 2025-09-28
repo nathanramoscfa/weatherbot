@@ -3,7 +3,6 @@
 
 import logging
 import re
-from typing import Dict, List, Optional, Tuple
 
 import requests
 from openai import OpenAI
@@ -14,9 +13,9 @@ logger = logging.getLogger(__name__)
 class AIStormEnhancer:
     """AI-powered storm data enhancement using OpenAI."""
 
-    def __init__(self, api_key: Optional[str] = None) -> None:
+    def __init__(self, api_key: str | None = None) -> None:
         """Initialize AI enhancer.
-        
+
         Args:
             api_key: OpenAI API key (will try env var if not provided)
         """
@@ -28,9 +27,9 @@ class AIStormEnhancer:
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenAI client: {e}")
 
-    def get_disturbance_positions(self) -> List[Dict[str, any]]:
+    def get_disturbance_positions(self) -> list[dict[str, any]]:
         """Get current disturbance positions using AI web search.
-        
+
         Returns:
             List of disturbance data with positions
         """
@@ -41,12 +40,12 @@ class AIStormEnhancer:
         try:
             # Use AI to perform web search for current storm positions
             positions = self._ai_web_search_storm_positions()
-            
+
             if not positions:
                 # Fallback to NHC text analysis
                 nhc_text = self._fetch_nhc_text_outlook()
                 positions = self._extract_positions_with_ai(nhc_text)
-            
+
             return positions
 
         except Exception as e:
@@ -55,7 +54,7 @@ class AIStormEnhancer:
 
     def _fetch_nhc_text_outlook(self) -> str:
         """Fetch the latest NHC text outlook.
-        
+
         Returns:
             NHC text outlook content
         """
@@ -65,36 +64,35 @@ class AIStormEnhancer:
             headers = {
                 "User-Agent": "weatherbot (alerts@example.com)"
             }
-            
+
             response = requests.get(url, headers=headers, timeout=30)
             response.raise_for_status()
-            
+
             # Extract the text outlook section
             text = response.text
-            
+
             # Look for the tropical weather outlook text
             start_marker = "Tropical Weather Outlook"
             end_marker = "Forecaster"
-            
+
             start_idx = text.find(start_marker)
             if start_idx != -1:
                 end_idx = text.find(end_marker, start_idx)
                 if end_idx != -1:
-                    outlook_text = text[start_idx:end_idx + 20]
-                    return outlook_text
-            
+                    return text[start_idx:end_idx + 20]
+
             return text[:5000]  # Return first 5000 chars as fallback
 
         except Exception as e:
             logger.error(f"Failed to fetch NHC text outlook: {e}")
             return ""
 
-    def _extract_positions_with_ai(self, nhc_text: str) -> List[Dict[str, any]]:
+    def _extract_positions_with_ai(self, nhc_text: str) -> list[dict[str, any]]:
         """Extract disturbance positions using AI.
-        
+
         Args:
             nhc_text: NHC text outlook
-            
+
         Returns:
             List of disturbance positions
         """
@@ -133,7 +131,7 @@ class AIStormEnhancer:
             )
 
             result_text = response.choices[0].message.content
-            
+
             # Extract JSON from response
             import json
             json_match = re.search(r'\[.*\]', result_text, re.DOTALL)
@@ -141,16 +139,16 @@ class AIStormEnhancer:
                 positions = json.loads(json_match.group())
                 logger.info(f"AI extracted {len(positions)} storm positions")
                 return positions
-            
+
             return []
 
         except Exception as e:
             logger.error(f"AI position extraction failed: {e}")
             return []
 
-    def _ai_web_search_storm_positions(self) -> List[Dict[str, any]]:
+    def _ai_web_search_storm_positions(self) -> list[dict[str, any]]:
         """Use AI to perform web search for current storm positions.
-        
+
         Returns:
             List of storm positions from web search
         """
@@ -174,7 +172,7 @@ class AIStormEnhancer:
 
             result_text = response.choices[0].message.content
             logger.debug(f"AI web search result: {result_text}")
-            
+
             # Extract JSON from response
             import json
             json_match = re.search(r'\[.*\]', result_text, re.DOTALL)
@@ -182,7 +180,7 @@ class AIStormEnhancer:
                 positions = json.loads(json_match.group())
                 logger.info(f"AI web search found {len(positions)} storm positions")
                 return positions
-            
+
             return []
 
         except Exception as e:
@@ -192,18 +190,18 @@ class AIStormEnhancer:
     def generate_smart_alert(
         self,
         alert_level: int,
-        storm_names: List[str],
-        storm_details: List[Dict],
+        storm_names: list[str],
+        storm_details: list[dict],
         location: str,
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """Generate intelligent alert content using AI.
-        
+
         Args:
             alert_level: Alert level (2-6)
             storm_names: List of affecting storm names
             storm_details: Detailed storm information
             location: Location name
-            
+
         Returns:
             Tuple of (title, message)
         """
@@ -213,38 +211,28 @@ class AIStormEnhancer:
 
         try:
             # Define evacuation plan context
-            evacuation_context = f"""
-            Location: {location} (assess local geography for evacuation requirements)
-            
-            Evacuation Plan by Alert Level:
-            - Level 2 (Disturbance Watch): Be aware, review evacuation plan, check supplies
-            - Level 3 (Tropical Storm): Buy supplies, prepare to hunker down or evacuate
-            - Level 4 (Hurricane Prepare): Pack essentials, arrange safe transportation, prepare to leave
-            - Level 5 (Hurricane Watch): Final preparations, confirm evacuation transport
-            - Level 6 (Hurricane Warning): EVACUATE NOW - use available transport to reach safe locations immediately
-            """
 
             storm_info = "\n".join([
-                f"- {name}: {details}" for name, details in zip(storm_names, storm_details)
+                f"- {name}: {details}" for name, details in zip(storm_names, storm_details, strict=False)
             ])
 
             prompt = f"""
             Create alert for {location}, Level {alert_level}:
-            
+
             Storms: {', '.join(storm_names)}
             Details: {storm_info[:500]}
-            
+
             Evacuation levels:
             L2: Monitor, check supplies
             L3: Buy supplies, hunker down prep
             L4: Pack bag, book flight
             L5: Final prep, confirm transport
             L6: EVACUATE NOW to mainland
-            
+
             Generate:
             TITLE: Level {alert_level} alert title
             MESSAGE: Threat assessment + Level {alert_level} actions + storm details + timeline
-            
+
             Keep under 400 words, focus on actionable location-specific evacuation guidance.
             """
 
@@ -256,14 +244,14 @@ class AIStormEnhancer:
             )
 
             result = response.choices[0].message.content
-            
+
             # Parse title and message
             title_match = re.search(r'TITLE:\s*(.+)', result)
             message_match = re.search(r'MESSAGE:\s*(.+)', result, re.DOTALL)
-            
+
             title = title_match.group(1).strip() if title_match else f"Level {alert_level} Alert"
             message = message_match.group(1).strip() if message_match else result
-            
+
             logger.info("Generated AI-powered alert content")
             return title, message
 
@@ -271,9 +259,9 @@ class AIStormEnhancer:
             logger.error(f"AI alert generation failed: {e}")
             return f"Level {alert_level} Alert", "Monitor weather conditions and follow evacuation guidance."
 
-    def _get_positions_from_web_search(self) -> List[Dict[str, any]]:
+    def _get_positions_from_web_search(self) -> list[dict[str, any]]:
         """Fallback method to get positions from web search.
-        
+
         Returns:
             List of disturbance positions from web search
         """
@@ -288,7 +276,7 @@ class AIStormEnhancer:
                 "description": "750 miles east of Leeward Islands"
             },
             {
-                "name": "AL94", 
+                "name": "AL94",
                 "latitude": 25.8,
                 "longitude": -74.1,
                 "type": "Tropical Disturbance",
@@ -296,24 +284,24 @@ class AIStormEnhancer:
                 "description": "Regional disturbance area"
             }
         ]
-        
+
         logger.info("Using fallback disturbance positions from NHC text analysis")
         return fallback_positions
 
 
-def enhance_storm_positions_with_ai(cones: List, api_key: Optional[str] = None) -> List:
+def enhance_storm_positions_with_ai(cones: list, api_key: str | None = None) -> list:
     """Enhance storm positions using AI analysis.
-    
+
     Args:
         cones: List of storm cones
         api_key: OpenAI API key
-        
+
     Returns:
         Enhanced cones with AI-derived positions
     """
     enhancer = AIStormEnhancer(api_key)
     ai_positions = enhancer.get_disturbance_positions()
-    
+
     # Match AI positions to existing cones
     for cone in cones:
         if not cone.current_position and "disturbance" in cone.storm_name.lower():
@@ -328,5 +316,5 @@ def enhance_storm_positions_with_ai(cones: List, api_key: Optional[str] = None) 
                         cone.advisory_num = ai_pos["probability"]
                     logger.info(f"Enhanced {cone.storm_name} with AI position: {cone.current_position}")
                     break
-    
+
     return cones

@@ -6,7 +6,6 @@ import tempfile
 import threading
 import webbrowser
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 import folium
 from folium import plugins
@@ -30,16 +29,16 @@ class WeatherMapGUI:
         """
         self.home_lat = home_lat
         self.home_lon = home_lon
-        self._map_file: Optional[Path] = None
+        self._map_file: Path | None = None
 
     def show_weather_map(
         self,
         alert_level: str,
         alert_title: str,
         alert_message: str,
-        cone_geometries: Optional[List] = None,
-        storm_info: Optional[List] = None,
-        auto_dismiss_seconds: Optional[int] = None,
+        cone_geometries: list | None = None,
+        storm_info: list | None = None,
+        auto_dismiss_seconds: int | None = None,
     ) -> None:
         """Show interactive weather map with alert information.
 
@@ -81,8 +80,8 @@ class WeatherMapGUI:
         alert_level: str,
         alert_title: str,
         alert_message: str,
-        cone_geometries: Optional[List] = None,
-        storm_info: Optional[List] = None,
+        cone_geometries: list | None = None,
+        storm_info: list | None = None,
     ) -> folium.Map:
         """Create the interactive weather map.
 
@@ -100,7 +99,7 @@ class WeatherMapGUI:
         # Center between home location and Atlantic hurricane region
         atlantic_center_lat = (self.home_lat + 35.0) / 2  # Midpoint to Atlantic
         atlantic_center_lon = (self.home_lon - 20.0) / 2  # Shift east to Atlantic
-        
+
         weather_map = folium.Map(
             location=[atlantic_center_lat, atlantic_center_lon],
             zoom_start=5,  # Zoom in one increment as requested
@@ -116,7 +115,7 @@ class WeatherMapGUI:
             overlay=False,
             control=True,
         ).add_to(weather_map)
-        
+
         # Add weather radar overlay
         folium.TileLayer(
             tiles="https://mapservices.weather.noaa.gov/tropical/rest/services/"
@@ -164,8 +163,8 @@ class WeatherMapGUI:
     def _add_hurricane_cones(
         self,
         weather_map: folium.Map,
-        cone_geometries: List,
-        storm_info: Optional[List] = None,
+        cone_geometries: list,
+        storm_info: list | None = None,
     ) -> None:
         """Add hurricane forecast cones to the map.
 
@@ -187,12 +186,12 @@ class WeatherMapGUI:
                     storm_name = "Unknown Storm"
                     storm_details = ""
                     tooltip_text = ""
-                    
+
                     if storm_info and i < len(storm_info):
                         storm = storm_info[i]
                         storm_name = storm.storm_name or storm.storm_id or f"Storm {i+1}"
                         storm_details = storm.get_storm_info_html()
-                        
+
                         # Build detailed tooltip
                         tooltip_parts = [storm_name]
                         if storm.storm_type:
@@ -206,7 +205,7 @@ class WeatherMapGUI:
                     cone_color = "orange" if is_development else "red"
                     cone_icon = "🌪️" if is_development else "🌀"
                     cone_type = "Development Area" if is_development else "Forecast Cone"
-                    
+
                     # Add cone polygon with enhanced information
                     folium.Polygon(
                         locations=folium_coords,
@@ -227,7 +226,7 @@ class WeatherMapGUI:
     def _add_storm_positions(
         self,
         weather_map: folium.Map,
-        storm_info: Optional[List] = None,
+        storm_info: list | None = None,
     ) -> None:
         """Add current storm position markers to the map.
 
@@ -250,7 +249,7 @@ class WeatherMapGUI:
                 except Exception as e:
                     logger.debug(f"Failed to get centroid for {storm.storm_name}: {e}")
                     continue
-            
+
             if not position:
                 continue
 
@@ -258,18 +257,18 @@ class WeatherMapGUI:
                 lat, lon = position
                 storm_name = storm.storm_name or "Unknown Storm"
                 storm_type = storm.storm_type or "Unknown"
-                
+
                 # Create custom HTML icon based on storm type (like NHC map)
                 if "hurricane" in storm_type.lower() or storm_type.upper() == "HU":
                     # Hurricane icon - red circle with H
-                    icon_html = f"""
+                    icon_html = """
                     <div style="
-                        width: 24px; height: 24px; 
-                        background-color: #FF0000; 
+                        width: 24px; height: 24px;
+                        background-color: #FF0000;
                         border: 2px solid #FFFFFF;
-                        border-radius: 50%; 
-                        display: flex; 
-                        align-items: center; 
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
                         justify-content: center;
                         font-weight: bold;
                         color: white;
@@ -278,17 +277,17 @@ class WeatherMapGUI:
                     ">H</div>
                     """
                     icon = folium.DivIcon(html=icon_html, icon_size=(24, 24), icon_anchor=(12, 12))
-                    
+
                 elif "tropical storm" in storm_type.lower() or "storm" in storm_type.lower() or storm_type.upper() == "TS":
                     # Tropical Storm icon - orange circle with S
-                    icon_html = f"""
+                    icon_html = """
                     <div style="
-                        width: 20px; height: 20px; 
-                        background-color: #FF8C00; 
+                        width: 20px; height: 20px;
+                        background-color: #FF8C00;
                         border: 2px solid #FFFFFF;
-                        border-radius: 50%; 
-                        display: flex; 
-                        align-items: center; 
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
                         justify-content: center;
                         font-weight: bold;
                         color: white;
@@ -297,15 +296,15 @@ class WeatherMapGUI:
                     ">S</div>
                     """
                     icon = folium.DivIcon(html=icon_html, icon_size=(20, 20), icon_anchor=(10, 10))
-                    
+
                 else:
                     # Disturbance icon - red X like NHC map
-                    icon_html = f"""
+                    icon_html = """
                     <div style="
-                        width: 20px; height: 20px; 
-                        background-color: transparent; 
-                        display: flex; 
-                        align-items: center; 
+                        width: 20px; height: 20px;
+                        background-color: transparent;
+                        display: flex;
+                        align-items: center;
                         justify-content: center;
                         font-weight: bold;
                         color: #FF0000;
@@ -346,7 +345,7 @@ class WeatherMapGUI:
         """
         # Get alert level info for better styling
         from ..alert_levels import AlertLevel, get_alert_info
-        
+
         # Determine alert level enum from string
         alert_level_enum = AlertLevel.ALL_CLEAR
         if "LEVEL_1" in alert_level.upper():
@@ -359,19 +358,19 @@ class WeatherMapGUI:
             alert_level_enum = AlertLevel.TROPICAL_STORM_WARNING_HURRICANE_WATCH_EVACUATION
         elif "LEVEL_5" in alert_level.upper():
             alert_level_enum = AlertLevel.HURRICANE_WARNING
-        
+
         alert_info = get_alert_info(alert_level_enum)
-        
+
         # Create HTML for alert panel with improved styling
         alert_html = f"""
-        <div style="position: fixed; 
+        <div style="position: fixed;
                     top: 10px; left: 10px; width: 380px; height: auto;
                     background-color: white; border: 3px solid {alert_info.color};
                     border-radius: 12px; padding: 15px; z-index: 9999;
                     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
                     font-family: 'Segoe UI', Arial, sans-serif;">
-            <div style="background-color: white; color: black; 
-                        padding: 8px; margin: -15px -15px 15px -15px; 
+            <div style="background-color: white; color: black;
+                        padding: 8px; margin: -15px -15px 15px -15px;
                         border-radius: 9px 9px 0 0; font-weight: bold;
                         font-size: 16px; border-bottom: 2px solid {alert_info.color};">
                 {alert_info.icon} WEATHERBOT ALERT
@@ -382,7 +381,7 @@ class WeatherMapGUI:
             <div style="margin: 0 0 12px 0; font-size: 13px; line-height: 1.5; color: #333;">
                 {alert_message.replace(chr(10), '<br>')}
             </div>
-            <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee; 
+            <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #eee;
                         font-size: 11px; color: #666;">
                 <strong>Your Location:</strong> {self.home_lat:.4f}°N, {self.home_lon:.4f}°W
             </div>
@@ -420,7 +419,7 @@ class WeatherMapGUI:
         """
         color_map = {
             "WARNING": "red",
-            "WATCH": "orange", 
+            "WATCH": "orange",
             "CONE": "lightgreen",
             "INFO": "blue",
         }

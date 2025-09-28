@@ -149,7 +149,7 @@ def test_miami_dade_polygon_loading() -> None:
         assert isinstance(polygon, Polygon)
 
         # Miami should be inside Miami-Dade county bounds
-        miami_point = Point(-80.1918, 25.7617)
+        Point(-80.1918, 25.7617)
         # Note: The simplified polygon might not contain the exact point,
         # but it should at least be a valid polygon
         assert polygon.is_valid

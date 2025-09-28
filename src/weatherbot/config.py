@@ -2,7 +2,6 @@
 """Configuration management for Weatherbot."""
 
 from pathlib import Path
-from typing import Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -29,7 +28,7 @@ class WeatherbotConfig(BaseSettings):
         default=False,
         description="Use county-level intersection instead of point-only",
     )
-    county_geojson_path: Optional[str] = Field(
+    county_geojson_path: str | None = Field(
         default=None,
         description="Path to county GeoJSON file",
     )
@@ -45,9 +44,9 @@ class WeatherbotConfig(BaseSettings):
         default=0,
         description="Cooldown period between duplicate alerts (0 = no cooldown)",
     )
-    
+
     # AI enhancement
-    openai_api_key: Optional[str] = Field(
+    openai_api_key: str | None = Field(
         default=None,
         description="OpenAI API key for enhanced storm analysis",
     )
@@ -76,7 +75,7 @@ class WeatherbotConfig(BaseSettings):
 
     def validate_coverage(self) -> dict:
         """Validate coordinate coverage for NOAA data sources.
-        
+
         Returns:
             Coverage validation results
         """

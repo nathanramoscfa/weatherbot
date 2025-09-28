@@ -2,7 +2,6 @@
 """Coordinate coverage validation for NOAA data sources."""
 
 import logging
-from typing import Dict, List, Optional, Tuple
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -11,14 +10,14 @@ logger = logging.getLogger(__name__)
 class CoverageStatus(Enum):
     """Coverage status for coordinates."""
     COVERED = "covered"
-    MARGINAL = "marginal" 
+    MARGINAL = "marginal"
     OUTSIDE = "outside"
     UNKNOWN = "unknown"
 
 
 class CoverageValidator:
     """Validates if coordinates are within NOAA coverage areas."""
-    
+
     # NOAA/NHC Atlantic Basin boundaries (approximate)
     ATLANTIC_BASIN_BOUNDS = {
         "min_lat": 0.0,
@@ -26,7 +25,7 @@ class CoverageValidator:
         "min_lon": -100.0,  # Western boundary
         "max_lon": 0.0,     # Eastern boundary (prime meridian)
     }
-    
+
     # NOAA/NHC Eastern Pacific Basin boundaries
     EASTERN_PACIFIC_BASIN_BOUNDS = {
         "min_lat": 0.0,
@@ -34,7 +33,7 @@ class CoverageValidator:
         "min_lon": -180.0,  # Western boundary (International Date Line)
         "max_lon": -100.0,  # Eastern boundary (Mexico/Central America)
     }
-    
+
     # NOAA/NHC Central Pacific Basin boundaries
     CENTRAL_PACIFIC_BASIN_BOUNDS = {
         "min_lat": 0.0,
@@ -42,7 +41,7 @@ class CoverageValidator:
         "min_lon": -180.0,  # Western boundary (International Date Line)
         "max_lon": -140.0,  # Eastern boundary (140°W)
     }
-    
+
     # NWS coverage area (US and territories)
     NWS_BOUNDS = {
         "min_lat": 15.0,    # Southern US territories
@@ -50,7 +49,7 @@ class CoverageValidator:
         "min_lon": -180.0,  # Western Alaska
         "max_lon": -65.0,   # Eastern US
     }
-    
+
     # Caribbean and Gulf of Mexico (high priority for hurricanes)
     CARIBBEAN_BOUNDS = {
         "min_lat": 10.0,
@@ -58,55 +57,55 @@ class CoverageValidator:
         "min_lon": -90.0,
         "max_lon": -60.0,
     }
-    
+
     def __init__(self):
         """Initialize coverage validator."""
         self.warnings = []
         self.errors = []
-    
+
     def validate_coordinates(
-        self, 
-        latitude: float, 
+        self,
+        latitude: float,
         longitude: float
-    ) -> Dict[str, any]:
+    ) -> dict[str, any]:
         """Validate coordinates against NOAA coverage areas.
-        
+
         Args:
             latitude: Latitude in decimal degrees
             longitude: Longitude in decimal degrees
-            
+
         Returns:
             Dictionary with validation results
         """
         self.warnings = []
         self.errors = []
-        
+
         # Basic coordinate validation
         if not (-90 <= latitude <= 90):
             self.errors.append(f"Invalid latitude: {latitude}")
             return self._create_result(CoverageStatus.UNKNOWN)
-        
+
         if not (-180 <= longitude <= 180):
             self.errors.append(f"Invalid longitude: {longitude}")
             return self._create_result(CoverageStatus.UNKNOWN)
-        
+
         # Determine which NHC basin the location falls into
         basin = self._determine_nhc_basin(latitude, longitude)
-        
+
         # Check NHC coverage for the appropriate basin
         nhc_status = self._check_nhc_coverage(latitude, longitude, basin)
-        
+
         # Check NWS coverage
         nws_status = self._check_nws_coverage(latitude, longitude)
-        
+
         # Check Caribbean priority area
         caribbean_status = self._check_caribbean_coverage(latitude, longitude)
-        
+
         # Determine overall status
         overall_status = self._determine_overall_status(
             nhc_status, nws_status, caribbean_status
         )
-        
+
         return self._create_result(
             overall_status,
             nhc_status=nhc_status,
@@ -114,14 +113,14 @@ class CoverageValidator:
             caribbean_status=caribbean_status,
             basin=basin
         )
-    
+
     def _determine_nhc_basin(self, lat: float, lon: float) -> str:
         """Determine which NHC basin a location falls into.
-        
+
         Args:
             lat: Latitude
             lon: Longitude
-            
+
         Returns:
             Basin name: 'atlantic', 'eastern_pacific', 'central_pacific', or 'none'
         """
@@ -129,27 +128,27 @@ class CoverageValidator:
         if (self.ATLANTIC_BASIN_BOUNDS["min_lat"] <= lat <= self.ATLANTIC_BASIN_BOUNDS["max_lat"] and
             self.ATLANTIC_BASIN_BOUNDS["min_lon"] <= lon <= self.ATLANTIC_BASIN_BOUNDS["max_lon"]):
             return "atlantic"
-        
+
         # Check Central Pacific Basin first (more specific: 0°N to 60°N, 180°W to 140°W)
         if (self.CENTRAL_PACIFIC_BASIN_BOUNDS["min_lat"] <= lat <= self.CENTRAL_PACIFIC_BASIN_BOUNDS["max_lat"] and
             self.CENTRAL_PACIFIC_BASIN_BOUNDS["min_lon"] <= lon <= self.CENTRAL_PACIFIC_BASIN_BOUNDS["max_lon"]):
             return "central_pacific"
-        
+
         # Check Eastern Pacific Basin (0°N to 60°N, 180°W to 100°W)
         if (self.EASTERN_PACIFIC_BASIN_BOUNDS["min_lat"] <= lat <= self.EASTERN_PACIFIC_BASIN_BOUNDS["max_lat"] and
             self.EASTERN_PACIFIC_BASIN_BOUNDS["min_lon"] <= lon <= self.EASTERN_PACIFIC_BASIN_BOUNDS["max_lon"]):
             return "eastern_pacific"
-        
+
         return "none"
-    
+
     def _check_nhc_coverage(self, lat: float, lon: float, basin: str) -> CoverageStatus:
         """Check NHC coverage for the appropriate basin.
-        
+
         Args:
             lat: Latitude
             lon: Longitude
             basin: Basin name ('atlantic', 'eastern_pacific', 'central_pacific', 'none')
-            
+
         Returns:
             Coverage status for NHC
         """
@@ -159,7 +158,7 @@ class CoverageValidator:
                 "No hurricane forecast data available."
             )
             return CoverageStatus.OUTSIDE
-        
+
         # Get the appropriate bounds for the basin
         if basin == "atlantic":
             bounds = self.ATLANTIC_BASIN_BOUNDS
@@ -172,15 +171,15 @@ class CoverageValidator:
             basin_name = "Central Pacific"
         else:
             return CoverageStatus.OUTSIDE
-        
+
         if (bounds["min_lat"] <= lat <= bounds["max_lat"] and
             bounds["min_lon"] <= lon <= bounds["max_lon"]):
             return CoverageStatus.COVERED
-        
+
         # Check if close to boundaries (marginal coverage)
         lat_margin = 5.0
         lon_margin = 10.0
-        
+
         if (bounds["min_lat"] - lat_margin <= lat <= bounds["max_lat"] + lat_margin and
             bounds["min_lon"] - lon_margin <= lon <= bounds["max_lon"] + lon_margin):
             self.warnings.append(
@@ -188,29 +187,29 @@ class CoverageValidator:
                 "Hurricane forecasts may be less accurate."
             )
             return CoverageStatus.MARGINAL
-        
+
         self.warnings.append(
             f"Location ({lat:.4f}, {lon:.4f}) is outside NHC {basin_name} Basin. "
             "No hurricane forecast data available."
         )
         return CoverageStatus.OUTSIDE
-    
+
     def _check_nws_coverage(self, lat: float, lon: float) -> CoverageStatus:
         """Check NWS coverage.
-        
+
         Args:
             lat: Latitude
             lon: Longitude
-            
+
         Returns:
             Coverage status for NWS
         """
         bounds = self.NWS_BOUNDS
-        
+
         if (bounds["min_lat"] <= lat <= bounds["max_lat"] and
             bounds["min_lon"] <= lon <= bounds["max_lon"]):
             return CoverageStatus.COVERED
-        
+
         # Check if in US territories or close to US
         if (10.0 <= lat <= 20.0 and -180.0 <= lon <= -65.0):
             self.warnings.append(
@@ -218,78 +217,75 @@ class CoverageValidator:
                 "NWS alerts may be available."
             )
             return CoverageStatus.MARGINAL
-        
+
         self.warnings.append(
             f"Location ({lat:.4f}, {lon:.4f}) is outside NWS coverage area. "
             "No official weather alerts available."
         )
         return CoverageStatus.OUTSIDE
-    
+
     def _check_caribbean_coverage(self, lat: float, lon: float) -> CoverageStatus:
         """Check Caribbean/Gulf coverage (high hurricane risk area).
-        
+
         Args:
             lat: Latitude
             lon: Longitude
-            
+
         Returns:
             Coverage status for Caribbean
         """
         bounds = self.CARIBBEAN_BOUNDS
-        
+
         if (bounds["min_lat"] <= lat <= bounds["max_lat"] and
             bounds["min_lon"] <= lon <= bounds["max_lon"]):
             return CoverageStatus.COVERED
-        
+
         return CoverageStatus.OUTSIDE
-    
+
     def _determine_overall_status(
-        self, 
+        self,
         nhc_status: CoverageStatus,
         nws_status: CoverageStatus,
         caribbean_status: CoverageStatus
     ) -> CoverageStatus:
         """Determine overall coverage status.
-        
+
         Args:
             nhc_status: NHC coverage status
             nws_status: NWS coverage status
             caribbean_status: Caribbean coverage status
-            
+
         Returns:
             Overall coverage status
         """
         # If any service is covered, overall is at least marginal
-        if (nhc_status == CoverageStatus.COVERED or 
-            nws_status == CoverageStatus.COVERED or
-            caribbean_status == CoverageStatus.COVERED):
+        if (CoverageStatus.COVERED in (nhc_status, nws_status, caribbean_status)):
             return CoverageStatus.COVERED
-        
+
         # If any service is marginal, overall is marginal
-        if (nhc_status == CoverageStatus.MARGINAL or 
-            nws_status == CoverageStatus.MARGINAL):
+        if (CoverageStatus.MARGINAL in (nhc_status, nws_status)):
             return CoverageStatus.MARGINAL
-        
+
         # Otherwise outside coverage
         return CoverageStatus.OUTSIDE
-    
+
     def _create_result(
-        self, 
+        self,
         status: CoverageStatus,
-        nhc_status: Optional[CoverageStatus] = None,
-        nws_status: Optional[CoverageStatus] = None,
-        caribbean_status: Optional[CoverageStatus] = None,
-        basin: Optional[str] = None
-    ) -> Dict[str, any]:
+        nhc_status: CoverageStatus | None = None,
+        nws_status: CoverageStatus | None = None,
+        caribbean_status: CoverageStatus | None = None,
+        basin: str | None = None
+    ) -> dict[str, any]:
         """Create validation result dictionary.
-        
+
         Args:
             status: Overall coverage status
             nhc_status: NHC coverage status
             nws_status: NWS coverage status
             caribbean_status: Caribbean coverage status
             basin: NHC basin name
-            
+
         Returns:
             Validation result dictionary
         """
@@ -305,26 +301,26 @@ class CoverageValidator:
             "is_marginal": status == CoverageStatus.MARGINAL,
             "is_outside": status == CoverageStatus.OUTSIDE,
         }
-    
+
     def get_coverage_recommendations(
-        self, 
-        latitude: float, 
+        self,
+        latitude: float,
         longitude: float
-    ) -> List[str]:
+    ) -> list[str]:
         """Get recommendations for out-of-coverage coordinates.
-        
+
         Args:
             latitude: Latitude
             longitude: Longitude
-            
+
         Returns:
             List of recommendations
         """
         recommendations = []
-        
+
         # Determine which basin the location is in
         basin = self._determine_nhc_basin(latitude, longitude)
-        
+
         if basin == "none":
             recommendations.extend([
                 "This location is outside all NOAA hurricane basins.",
@@ -346,11 +342,11 @@ class CoverageValidator:
             # Location is in a basin, provide basin-specific info
             basin_names = {
                 "atlantic": "Atlantic",
-                "eastern_pacific": "Eastern Pacific", 
+                "eastern_pacific": "Eastern Pacific",
                 "central_pacific": "Central Pacific"
             }
             recommendations.append(f"Location is in the {basin_names.get(basin, 'Unknown')} Basin.")
-        
+
         # Check if in NWS coverage
         if not self._is_in_nws_coverage(latitude, longitude):
             recommendations.extend([
@@ -362,7 +358,7 @@ class CoverageValidator:
                 "  • Hawaii: 18°N to 22°N, 154°W to 162°W",
                 "  • Puerto Rico: 17°N to 18°N, 65°W to 68°W"
             ])
-        
+
         # Suggest alternative coordinates for each basin
         if recommendations:
             recommendations.extend([
@@ -371,7 +367,7 @@ class CoverageValidator:
                 "",
                 "Atlantic Basin:",
                 "  • Miami, FL: 25.7617°N, 80.1918°W",
-                "  • New Orleans, LA: 29.9511°N, 90.0715°W", 
+                "  • New Orleans, LA: 29.9511°N, 90.0715°W",
                 "  • San Juan, PR: 18.2208°N, 66.5901°W",
                 "  • Houston, TX: 29.7604°N, 95.3698°W",
                 "",
@@ -384,15 +380,15 @@ class CoverageValidator:
                 "  • Honolulu, HI: 21.3099°N, 157.8581°W",
                 "  • Hilo, HI: 19.7297°N, 155.0900°W"
             ])
-        
+
         return recommendations
-    
+
     def _is_in_atlantic_basin(self, lat: float, lon: float) -> bool:
         """Check if coordinates are in Atlantic Basin."""
         bounds = self.ATLANTIC_BASIN_BOUNDS
         return (bounds["min_lat"] <= lat <= bounds["max_lat"] and
                 bounds["min_lon"] <= lon <= bounds["max_lon"])
-    
+
     def _is_in_nws_coverage(self, lat: float, lon: float) -> bool:
         """Check if coordinates are in NWS coverage."""
         bounds = self.NWS_BOUNDS
@@ -400,13 +396,13 @@ class CoverageValidator:
                 bounds["min_lon"] <= lon <= bounds["max_lon"])
 
 
-def validate_coordinate_coverage(latitude: float, longitude: float) -> Dict[str, any]:
+def validate_coordinate_coverage(latitude: float, longitude: float) -> dict[str, any]:
     """Validate coordinate coverage for NOAA data sources.
-    
+
     Args:
         latitude: Latitude in decimal degrees
         longitude: Longitude in decimal degrees
-        
+
     Returns:
         Validation result dictionary
     """

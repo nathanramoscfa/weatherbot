@@ -4,7 +4,6 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Tuple
 
 from shapely.geometry import Point, Polygon, shape
 from shapely.geometry.base import BaseGeometry
@@ -50,7 +49,7 @@ def load_county_polygon(geojson_path: Path) -> Polygon:
         raise
 
 
-def point_in_any(polygons: List[BaseGeometry], point: Tuple[float, float]) -> bool:
+def point_in_any(polygons: list[BaseGeometry], point: tuple[float, float]) -> bool:
     """Check if a point intersects any polygon.
 
     Args:
@@ -77,7 +76,7 @@ def point_in_any(polygons: List[BaseGeometry], point: Tuple[float, float]) -> bo
 
 
 def polygon_intersects_any(
-    polygons: List[BaseGeometry],
+    polygons: list[BaseGeometry],
     target_polygon: Polygon,
 ) -> bool:
     """Check if target polygon intersects any of the given polygons.

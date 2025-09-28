@@ -1,12 +1,11 @@
 # tests/test_alert_levels.py
 """Alert levels tests for weatherbot."""
 
-import pytest
 
 from weatherbot.alert_levels import (
+    ALERT_DEFINITIONS,
     AlertInfo,
     AlertLevel,
-    ALERT_DEFINITIONS,
     format_alert_message,
     get_alert_info,
     get_alert_level,
@@ -46,7 +45,7 @@ class TestAlertInfo:
             title_prefix="ALL CLEAR",
             guidance="No active disturbances."
         )
-        
+
         assert info.level == AlertLevel.ALL_CLEAR
         assert info.icon == "✅"
         assert info.color == "#4CAF50"
@@ -271,7 +270,7 @@ class TestGetAlertInfo:
     def test_all_clear_info(self) -> None:
         """Test all clear alert info."""
         info = get_alert_info(AlertLevel.ALL_CLEAR, "Miami")
-        
+
         assert info.level == AlertLevel.ALL_CLEAR
         assert "Miami" in info.guidance
         assert "No active weather disturbances" in info.guidance
@@ -279,7 +278,7 @@ class TestGetAlertInfo:
     def test_tropical_storm_threat_info(self) -> None:
         """Test tropical storm threat alert info."""
         info = get_alert_info(AlertLevel.TROPICAL_STORM_THREAT, "Miami")
-        
+
         assert info.level == AlertLevel.TROPICAL_STORM_THREAT
         assert "Miami" in info.guidance
         assert "5–7 days" in info.guidance
@@ -287,7 +286,7 @@ class TestGetAlertInfo:
     def test_tropical_storm_watch_info(self) -> None:
         """Test tropical storm watch alert info."""
         info = get_alert_info(AlertLevel.TROPICAL_STORM_WATCH_HURRICANE_THREAT, "Miami")
-        
+
         assert info.level == AlertLevel.TROPICAL_STORM_WATCH_HURRICANE_THREAT
         assert "Miami" in info.guidance
         assert "3–5 days" in info.guidance
@@ -295,7 +294,7 @@ class TestGetAlertInfo:
     def test_tropical_storm_warning_info(self) -> None:
         """Test tropical storm warning alert info."""
         info = get_alert_info(AlertLevel.TROPICAL_STORM_WARNING_HURRICANE_WATCH_EVACUATION, "Miami")
-        
+
         assert info.level == AlertLevel.TROPICAL_STORM_WARNING_HURRICANE_WATCH_EVACUATION
         assert "Miami" in info.guidance
         assert "36h" in info.guidance
@@ -303,7 +302,7 @@ class TestGetAlertInfo:
     def test_hurricane_warning_info(self) -> None:
         """Test hurricane warning alert info."""
         info = get_alert_info(AlertLevel.HURRICANE_WARNING, "Miami")
-        
+
         assert info.level == AlertLevel.HURRICANE_WARNING
         assert "Miami" in info.guidance
         assert "36h" in info.guidance
@@ -311,7 +310,7 @@ class TestGetAlertInfo:
     def test_default_location(self) -> None:
         """Test default location name."""
         info = get_alert_info(AlertLevel.ALL_CLEAR)
-        
+
         assert "your location" in info.guidance
 
 
@@ -325,7 +324,7 @@ class TestFormatAlertMessage:
             [],
             "Miami"
         )
-        
+
         assert "ALL CLEAR" in title
         assert "your location" in message  # Uses default location name
         assert "No active weather disturbances" in message
@@ -338,7 +337,7 @@ class TestFormatAlertMessage:
             "Miami",
             ["Category 3 Hurricane", "Winds: 120 mph"]
         )
-        
+
         assert "TROPICAL STORM THREAT" in title
         assert "your location" in message  # Uses default location name
         # When storm_details are provided, storm names are not included in message
@@ -353,7 +352,7 @@ class TestFormatAlertMessage:
             ["Hurricane Ian"],
             "Miami"
         )
-        
+
         assert "TROPICAL STORM THREAT" in title
         assert "your location" in message  # Uses default location name
         assert "Hurricane Ian" in message
@@ -366,19 +365,19 @@ class TestFormatAlertMessage:
             [],
             "Miami"
         )
-        
+
         assert "TROPICAL STORM THREAT" in title
         assert "your location" in message  # Uses default location name
         assert "Affecting System(s): Active System" in message
 
     def test_multiple_storms(self) -> None:
         """Test message with multiple storms."""
-        title, message = format_alert_message(
+        _title, message = format_alert_message(
             AlertLevel.TROPICAL_STORM_THREAT,
             ["Hurricane Ian", "Tropical Storm Jose"],
             "Miami"
         )
-        
+
         assert "Hurricane Ian" in message
         assert "Tropical Storm Jose" in message
         assert "Hurricane Ian, Tropical Storm Jose" in message

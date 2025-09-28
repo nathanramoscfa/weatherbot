@@ -3,9 +3,9 @@
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 class WeatherbotState(BaseModel):
     """Persistent state for Weatherbot."""
 
-    last_cone_advisories: Dict[str, str] = Field(
+    last_cone_advisories: dict[str, str] = Field(
         default_factory=dict,
         description="Last advisory number per storm ID",
     )
-    last_alert_ids: List[str] = Field(
+    last_alert_ids: list[str] = Field(
         default_factory=list,
         description="Previously processed alert CAP IDs",
     )
@@ -28,7 +28,7 @@ class WeatherbotState(BaseModel):
         description="Whether location was in cone on last check",
     )
     updated: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="Last update timestamp",
     )
 
@@ -64,7 +64,7 @@ class WeatherbotState(BaseModel):
             advisory_num: Advisory number
         """
         self.last_cone_advisories[storm_id] = advisory_num
-        self.updated = datetime.now(timezone.utc)
+        self.updated = datetime.now(UTC)
 
     def add_alert_id(self, alert_id: str) -> None:
         """Add a processed alert ID.
@@ -77,7 +77,7 @@ class WeatherbotState(BaseModel):
             # Keep only last 100 alert IDs to prevent unbounded growth
             if len(self.last_alert_ids) > 100:
                 self.last_alert_ids = self.last_alert_ids[-100:]
-            self.updated = datetime.now(timezone.utc)
+            self.updated = datetime.now(UTC)
 
     def set_in_cone_status(self, in_cone: bool) -> None:
         """Update the in-cone status.
@@ -86,7 +86,7 @@ class WeatherbotState(BaseModel):
             in_cone: Whether location is currently in a cone
         """
         self.was_in_cone = in_cone
-        self.updated = datetime.now(timezone.utc)
+        self.updated = datetime.now(UTC)
 
 
 class StateManager:
@@ -146,7 +146,7 @@ class StateManager:
         except Exception as e:
             logger.error(f"Failed to clear state file {self.state_file}: {e}")
 
-    def show_state(self) -> Dict[str, Any]:
+    def show_state(self) -> dict[str, Any]:
         """Get current state as dictionary for display.
 
         Returns:

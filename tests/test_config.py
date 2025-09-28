@@ -2,7 +2,6 @@
 """Configuration tests for weatherbot."""
 
 import os
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -34,17 +33,17 @@ class TestWeatherbotConfig:
         # Valid latitudes
         config = WeatherbotConfig(home_lat=0, home_lon=0)
         assert config.home_lat == 0
-        
+
         config = WeatherbotConfig(home_lat=90, home_lon=0)
         assert config.home_lat == 90
-        
+
         config = WeatherbotConfig(home_lat=-90, home_lon=0)
         assert config.home_lat == -90
 
         # Invalid latitudes
         with pytest.raises(ValidationError, match="Latitude must be between"):
             WeatherbotConfig(home_lat=91, home_lon=0)
-            
+
         with pytest.raises(ValidationError, match="Latitude must be between"):
             WeatherbotConfig(home_lat=-91, home_lon=0)
 
@@ -53,17 +52,17 @@ class TestWeatherbotConfig:
         # Valid longitudes
         config = WeatherbotConfig(home_lat=0, home_lon=0)
         assert config.home_lon == 0
-        
+
         config = WeatherbotConfig(home_lat=0, home_lon=180)
         assert config.home_lon == 180
-        
+
         config = WeatherbotConfig(home_lat=0, home_lon=-180)
         assert config.home_lon == -180
 
         # Invalid longitudes
         with pytest.raises(ValidationError, match="Longitude must be between"):
             WeatherbotConfig(home_lat=0, home_lon=181)
-            
+
         with pytest.raises(ValidationError, match="Longitude must be between"):
             WeatherbotConfig(home_lat=0, home_lon=-181)
 
@@ -87,16 +86,16 @@ class TestWeatherbotConfig:
         """Test optional path validation."""
         # Valid paths
         config = WeatherbotConfig(
-            home_lat=0, 
-            home_lon=0, 
+            home_lat=0,
+            home_lon=0,
             county_geojson_path="/path/to/file.geojson"
         )
         assert config.county_geojson_path == "/path/to/file.geojson"
 
         # Empty strings become None
         config = WeatherbotConfig(
-            home_lat=0, 
-            home_lon=0, 
+            home_lat=0,
+            home_lon=0,
             county_geojson_path=""
         )
         assert config.county_geojson_path is None
@@ -105,8 +104,8 @@ class TestWeatherbotConfig:
         """Test county GeoJSON path resolution."""
         # Custom path
         config = WeatherbotConfig(
-            home_lat=0, 
-            home_lon=0, 
+            home_lat=0,
+            home_lon=0,
             county_geojson_path="/custom/path.geojson"
         )
         assert config.get_county_geojson_path() == Path("/custom/path.geojson")
@@ -127,10 +126,10 @@ class TestWeatherbotConfig:
     def test_validate_coverage(self, mock_validate) -> None:
         """Test coverage validation."""
         mock_validate.return_value = {"status": "covered"}
-        
+
         config = WeatherbotConfig(home_lat=25.7617, home_lon=-80.1918)
         result = config.validate_coverage()
-        
+
         assert result == {"status": "covered"}
         mock_validate.assert_called_once_with(25.7617, -80.1918)
 

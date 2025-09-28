@@ -7,15 +7,15 @@ import pytest
 def test_package_imports() -> None:
     """Test that all main modules can be imported."""
     import weatherbot
-    import weatherbot.config
-    import weatherbot.logging_setup
-    import weatherbot.state
-    import weatherbot.geometry
-    import weatherbot.nhc
-    import weatherbot.nws
     import weatherbot.alerting
     import weatherbot.cli
+    import weatherbot.config
+    import weatherbot.geometry
+    import weatherbot.logging_setup
+    import weatherbot.nhc
     import weatherbot.notifiers.toast
+    import weatherbot.nws
+    import weatherbot.state
 
     assert weatherbot.__version__
 
@@ -23,6 +23,7 @@ def test_package_imports() -> None:
 def test_config_loading() -> None:
     """Test configuration loading with environment variables."""
     import os
+
     from weatherbot.config import WeatherbotConfig
 
     # Set test environment variables
@@ -71,7 +72,7 @@ def test_state_management() -> None:
 
 def test_geometry_helpers() -> None:
     """Test basic geometry operations."""
-    from weatherbot.geometry import validate_coordinates, create_point
+    from weatherbot.geometry import create_point, validate_coordinates
 
     # Test coordinate validation
     validate_coordinates(-80.1918, 25.7617)  # Should not raise

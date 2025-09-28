@@ -4,12 +4,11 @@
 import logging
 import logging.handlers
 from pathlib import Path
-from typing import Optional
 
 
 def setup_logging(
     log_level: str = "INFO",
-    log_file: Optional[Path] = None,
+    log_file: Path | None = None,
     console: bool = True,
 ) -> None:
     """Configure logging with rotating file handler and console output.

@@ -2,12 +2,11 @@
 """Alert level definitions and evacuation guidance."""
 
 from enum import Enum
-from typing import Dict, Tuple
 
 
 class AlertLevel(Enum):
     """5-Level Storm Alert System with evacuation guidance."""
-    
+
     ALL_CLEAR = 1
     TROPICAL_STORM_THREAT = 2
     TROPICAL_STORM_WATCH_HURRICANE_THREAT = 3
@@ -17,7 +16,7 @@ class AlertLevel(Enum):
 
 class AlertInfo:
     """Alert information and guidance."""
-    
+
     def __init__(
         self,
         level: AlertLevel,
@@ -28,7 +27,7 @@ class AlertInfo:
         guidance: str,
     ) -> None:
         """Initialize alert info.
-        
+
         Args:
             level: Alert level
             icon: Alert icon emoji
@@ -46,7 +45,7 @@ class AlertInfo:
 
 
 # Alert level definitions
-ALERT_DEFINITIONS: Dict[AlertLevel, AlertInfo] = {
+ALERT_DEFINITIONS: dict[AlertLevel, AlertInfo] = {
     AlertLevel.ALL_CLEAR: AlertInfo(
         level=AlertLevel.ALL_CLEAR,
         icon="✅",
@@ -55,7 +54,7 @@ ALERT_DEFINITIONS: Dict[AlertLevel, AlertInfo] = {
         title_prefix="ALL CLEAR",
         guidance="No active disturbances threatening South Florida. Normal activities. No prep needed.",
     ),
-    
+
     AlertLevel.TROPICAL_STORM_THREAT: AlertInfo(
         level=AlertLevel.TROPICAL_STORM_THREAT,
         icon="🌪️",
@@ -70,7 +69,7 @@ ALERT_DEFINITIONS: Dict[AlertLevel, AlertInfo] = {
             "• No immediate action required"
         ),
     ),
-    
+
     AlertLevel.TROPICAL_STORM_WATCH_HURRICANE_THREAT: AlertInfo(
         level=AlertLevel.TROPICAL_STORM_WATCH_HURRICANE_THREAT,
         icon="🛑",
@@ -86,7 +85,7 @@ ALERT_DEFINITIONS: Dict[AlertLevel, AlertInfo] = {
             "• Check building notices"
         ),
     ),
-    
+
     AlertLevel.TROPICAL_STORM_WARNING_HURRICANE_WATCH_EVACUATION: AlertInfo(
         level=AlertLevel.TROPICAL_STORM_WARNING_HURRICANE_WATCH_EVACUATION,
         icon="🚨",
@@ -101,7 +100,7 @@ ALERT_DEFINITIONS: Dict[AlertLevel, AlertInfo] = {
             "• Assume access routes may soon be compromised"
         ),
     ),
-    
+
     AlertLevel.HURRICANE_WARNING: AlertInfo(
         level=AlertLevel.HURRICANE_WARNING,
         icon="🌀",
@@ -131,7 +130,7 @@ def get_alert_level(
     days_until_impact: int = 7,
 ) -> AlertLevel:
     """Determine alert level based on current conditions using 5-level system.
-    
+
     Args:
         in_disturbance_cone: Location is in a disturbance development area
         in_hurricane_cone: Location is in a hurricane forecast cone
@@ -142,47 +141,47 @@ def get_alert_level(
         has_evacuation_order: Evacuation order is in effect
         storm_type: Type of storm (hurricane, tropical storm, disturbance)
         days_until_impact: Days until potential impact
-        
+
     Returns:
         Appropriate alert level (1-5)
     """
     # Level 5: Hurricane Warning (highest priority)
     if has_hurricane_warning:
         return AlertLevel.HURRICANE_WARNING
-    
+
     # Level 4: Tropical Storm Warning OR Hurricane Watch OR Evacuation Order
-    if (has_tropical_storm_warning or has_hurricane_watch or 
+    if (has_tropical_storm_warning or has_hurricane_watch or
         has_evacuation_order):
         return AlertLevel.TROPICAL_STORM_WARNING_HURRICANE_WATCH_EVACUATION
-    
+
     # Level 3: Tropical Storm Watch OR Hurricane threat within 3-5 days
-    if (has_tropical_storm_watch or 
+    if (has_tropical_storm_watch or
         (in_hurricane_cone and days_until_impact <= 5) or
         ("hurricane" in storm_type.lower() and days_until_impact <= 5)):
         return AlertLevel.TROPICAL_STORM_WATCH_HURRICANE_THREAT
-    
+
     # Level 2: Disturbance/Depression with potential impact within 5-7 days
-    if (in_disturbance_cone or 
+    if (in_disturbance_cone or
         ("disturbance" in storm_type.lower() and days_until_impact <= 7) or
         ("depression" in storm_type.lower() and days_until_impact <= 7)):
         return AlertLevel.TROPICAL_STORM_THREAT
-    
+
     # Level 1: All clear
     return AlertLevel.ALL_CLEAR
 
 
 def get_alert_info(level: AlertLevel, location_name: str = "your location") -> AlertInfo:
     """Get alert information for a given level.
-    
+
     Args:
         level: Alert level
         location_name: Name of the location for personalized guidance
-        
+
     Returns:
         Alert information
     """
     base_info = ALERT_DEFINITIONS[level]
-    
+
     # Create location-specific guidance
     if level == AlertLevel.ALL_CLEAR:
         guidance = f"No active weather disturbances threatening {location_name}. Normal activities. No immediate preparation needed."
@@ -224,7 +223,7 @@ def get_alert_info(level: AlertLevel, location_name: str = "your location") -> A
         )
     else:
         guidance = base_info.guidance
-    
+
     # Create new AlertInfo with location-specific guidance
     return AlertInfo(
         level=base_info.level,
@@ -240,38 +239,38 @@ def format_alert_message(
     level: AlertLevel,
     storm_names: list,
     location_name: str = "your location",
-    storm_details: list = None,
-) -> Tuple[str, str]:
+    storm_details: list | None = None,
+) -> tuple[str, str]:
     """Format alert title and message for a given level.
-    
+
     Args:
         level: Alert level
         storm_names: List of affecting storm names
         location_name: Name of the location
         storm_details: List of storm detail strings
-        
+
     Returns:
         Tuple of (title, message)
     """
     alert_info = get_alert_info(level)
-    
+
     if level == AlertLevel.ALL_CLEAR:
         title = f"{alert_info.icon} {alert_info.title_prefix}"
         message = alert_info.guidance
     else:
         storms_text = ", ".join(storm_names) if storm_names else "Active System"
         title = f"{alert_info.icon} {alert_info.title_prefix}"
-        
+
         # Build detailed message
         message_parts = [alert_info.guidance]
-        
+
         if storm_details:
             message_parts.append("\n--- STORM DETAILS ---")
             for detail in storm_details:
                 message_parts.append(detail)
         else:
             message_parts.append(f"\nAffecting System(s): {storms_text}")
-    
+
         message = "\n".join(message_parts)
-    
+
     return title, message

@@ -1,13 +1,12 @@
 # tests/test_ai_map_analyzer.py
 """Tests for AI-powered map analysis module."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from weatherbot.ai_map_analyzer import (
+    NOAA_MAP_URLS,
     AIMapAnalyzer,
     analyze_hurricane_threat_with_ai,
-    NOAA_MAP_URLS,
 )
 
 
@@ -19,9 +18,9 @@ class TestAIMapAnalyzer:
         with patch('weatherbot.ai_map_analyzer.OpenAI') as mock_openai:
             mock_client = Mock()
             mock_openai.return_value = mock_client
-            
+
             analyzer = AIMapAnalyzer("test-api-key")
-            
+
             mock_openai.assert_called_once_with(api_key="test-api-key")
             assert analyzer.client == mock_client
 
@@ -39,18 +38,18 @@ class TestAIMapAnalyzer:
             mock_response.choices = [mock_choice]
             mock_client.chat.completions.create.return_value = mock_response
             mock_openai.return_value = mock_client
-            
+
             analyzer = AIMapAnalyzer("test-key")
-            
+
             with patch.object(analyzer, '_get_nhc_text_context') as mock_context:
                 mock_context.return_value = "NHC context"
-                
+
                 alert_level, title, message = analyzer.analyze_threat_for_location(
                     latitude=25.0,
                     longitude=-80.0,
                     location_name="Miami, FL"
                 )
-                
+
                 assert alert_level == 2
                 assert "Tropical Storm Threat" in title
                 assert "tropical storm development" in message
@@ -69,27 +68,27 @@ class TestAIMapAnalyzer:
             mock_response.choices = [mock_choice]
             mock_client.chat.completions.create.return_value = mock_response
             mock_openai.return_value = mock_client
-            
+
             analyzer = AIMapAnalyzer("test-key")
-            
+
             geometric_results = {
                 "is_in_any_cone": True,
                 "nws_alerts": [],
                 "storm_threats": []
             }
-            
+
             with patch.object(analyzer, '_get_nhc_text_context') as mock_context:
                 with patch.object(analyzer, '_format_geometric_context') as mock_format:
                     mock_context.return_value = "NHC context"
                     mock_format.return_value = "Geometric context"
-                    
-                    alert_level, title, message = analyzer.analyze_threat_for_location(
+
+                    alert_level, title, _message = analyzer.analyze_threat_for_location(
                         latitude=25.0,
                         longitude=-80.0,
                         location_name="Miami, FL",
                         geometric_results=geometric_results
                     )
-                    
+
                     assert alert_level == 3
                     assert "Hurricane Watch" in title
 
@@ -107,31 +106,31 @@ class TestAIMapAnalyzer:
             mock_response.choices = [mock_choice]
             mock_client.chat.completions.create.return_value = mock_response
             mock_openai.return_value = mock_client
-            
+
             analyzer = AIMapAnalyzer("test-key")
-            
+
             # Mock NWS alert
             mock_alert = Mock()
             mock_alert.event = "Hurricane Warning"
-            
+
             geometric_results = {
                 "is_in_any_cone": False,  # Not in cone
                 "nws_alerts": [mock_alert],  # But has NWS alert
                 "storm_threats": []
             }
-            
+
             with patch.object(analyzer, '_get_nhc_text_context') as mock_context:
                 with patch.object(analyzer, '_format_geometric_context') as mock_format:
                     mock_context.return_value = "NHC context"
                     mock_format.return_value = "Geometric context"
-                    
-                    alert_level, title, message = analyzer.analyze_threat_for_location(
+
+                    alert_level, title, _message = analyzer.analyze_threat_for_location(
                         latitude=25.0,
                         longitude=-80.0,
                         location_name="Miami, FL",
                         geometric_results=geometric_results
                     )
-                    
+
                     # Should not be overridden because NWS alerts take precedence
                     assert alert_level == 4
                     assert "Hurricane Warning" in title
@@ -150,27 +149,27 @@ class TestAIMapAnalyzer:
             mock_response.choices = [mock_choice]
             mock_client.chat.completions.create.return_value = mock_response
             mock_openai.return_value = mock_client
-            
+
             analyzer = AIMapAnalyzer("test-key")
-            
+
             geometric_results = {
                 "is_in_any_cone": False,  # Not in cone
                 "nws_alerts": [],  # No NWS alerts
                 "storm_threats": []
             }
-            
+
             with patch.object(analyzer, '_get_nhc_text_context') as mock_context:
                 with patch.object(analyzer, '_format_geometric_context') as mock_format:
                     mock_context.return_value = "NHC context"
                     mock_format.return_value = "Geometric context"
-                    
-                    alert_level, title, message = analyzer.analyze_threat_for_location(
+
+                    alert_level, title, _message = analyzer.analyze_threat_for_location(
                         latitude=25.0,
                         longitude=-80.0,
                         location_name="Miami, FL",
                         geometric_results=geometric_results
                     )
-                    
+
                     # Should be overridden to Level 1
                     assert alert_level == 1
                     assert "All Clear" in title
@@ -189,19 +188,19 @@ class TestAIMapAnalyzer:
             mock_response.choices = [mock_choice]
             mock_client.chat.completions.create.return_value = mock_response
             mock_openai.return_value = mock_client
-            
+
             analyzer = AIMapAnalyzer("test-key")
-            
+
             with patch.object(analyzer, '_get_nhc_text_context') as mock_context:
                 mock_context.return_value = "Pacific NHC context"
-                
-                alert_level, title, message = analyzer.analyze_threat_for_location(
+
+                alert_level, title, _message = analyzer.analyze_threat_for_location(
                     latitude=20.0,
                     longitude=-110.0,
                     location_name="Cabo San Lucas",
                     basin="eastern_pacific"
                 )
-                
+
                 assert alert_level == 2
                 assert "Pacific Storm Threat" in title
 
@@ -211,15 +210,15 @@ class TestAIMapAnalyzer:
             mock_client = Mock()
             mock_client.chat.completions.create.side_effect = Exception("API error")
             mock_openai.return_value = mock_client
-            
+
             analyzer = AIMapAnalyzer("test-key")
-            
+
             alert_level, title, message = analyzer.analyze_threat_for_location(
                 latitude=25.0,
                 longitude=-80.0,
                 location_name="Miami, FL"
             )
-            
+
             assert alert_level == 1
             assert title == "System Error"
             assert "Unable to analyze hurricane threat" in message
@@ -237,10 +236,10 @@ class TestAIMapAnalyzer:
         """
         mock_response.raise_for_status.return_value = None
         mock_get.return_value = mock_response
-        
+
         analyzer = AIMapAnalyzer("test-key")
         result = analyzer._get_nhc_text_context()
-        
+
         assert "ACTIVE SYSTEMS:" in result
         assert "Hurricane Test" in result
 
@@ -251,7 +250,7 @@ class TestAIMapAnalyzer:
         mock_response = Mock()
         mock_response.text = "Active Systems: Test"
         mock_response.raise_for_status.return_value = None
-        
+
         # Mock CurrentStorms.json request
         mock_storms_response = Mock()
         mock_storms_response.status_code = 200
@@ -266,12 +265,12 @@ class TestAIMapAnalyzer:
                 }
             ]
         }
-        
+
         mock_get.side_effect = [mock_response, mock_storms_response]
-        
+
         analyzer = AIMapAnalyzer("test-key")
         result = analyzer._get_nhc_text_context()
-        
+
         assert "DETAILED STORM INFO:" in result
         assert "Hurricane Test: Hurricane, Category 2, NW at 15 mph" in result
 
@@ -279,10 +278,10 @@ class TestAIMapAnalyzer:
     def test_get_nhc_text_context_exception(self, mock_get):
         """Test NHC context exception handling."""
         mock_get.side_effect = Exception("Network error")
-        
+
         analyzer = AIMapAnalyzer("test-key")
         result = analyzer._get_nhc_text_context()
-        
+
         assert "NHC context unavailable" in result
 
     def test_parse_ai_response_complete(self):
@@ -293,10 +292,10 @@ class TestAIMapAnalyzer:
         MESSAGE: Hurricane conditions are possible within 48 hours.
         Take immediate preparations.
         """
-        
+
         analyzer = AIMapAnalyzer("test-key")
         alert_level, title, message = analyzer._parse_ai_response(response)
-        
+
         assert alert_level == 3
         assert title == "Hurricane Watch Issued"
         assert "Hurricane conditions are possible" in message
@@ -304,10 +303,10 @@ class TestAIMapAnalyzer:
     def test_parse_ai_response_minimal(self):
         """Test parsing minimal AI response."""
         response = "ALERT_LEVEL: 2"
-        
+
         analyzer = AIMapAnalyzer("test-key")
         alert_level, title, message = analyzer._parse_ai_response(response)
-        
+
         assert alert_level == 2
         assert title == "Level 2 Alert"
         assert message == "ALERT_LEVEL: 2"
@@ -315,10 +314,10 @@ class TestAIMapAnalyzer:
     def test_parse_ai_response_no_level(self):
         """Test parsing response without alert level."""
         response = "Some random response without level"
-        
+
         analyzer = AIMapAnalyzer("test-key")
         alert_level, title, message = analyzer._parse_ai_response(response)
-        
+
         assert alert_level == 1
         assert title == "Level 1 Alert"
         assert message == "Some random response without level"
@@ -331,10 +330,10 @@ class TestAIMapAnalyzer:
         MESSAGE: Hurricane conditions ```possible``` within **48 hours**.
         ```
         """
-        
+
         analyzer = AIMapAnalyzer("test-key")
         alert_level, title, message = analyzer._parse_ai_response(response)
-        
+
         assert alert_level == 2
         assert title == "Hurricane Threat"
         assert "Hurricane conditions possible within 48 hours." in message
@@ -346,16 +345,16 @@ class TestAIMapAnalyzer:
         mock_alert_level = Mock()
         mock_alert_level.name = "TROPICAL_STORM_THREAT"
         mock_alert_level.value = 2
-        
+
         mock_threat = Mock()
         mock_threat.cone.storm_name = "Hurricane Test"
         mock_threat.category.value = "Category 2"
         mock_threat.distance_km = 150.0
         mock_threat.confidence = 0.85
-        
+
         mock_nws_alert = Mock()
         mock_nws_alert.event = "Hurricane Watch"
-        
+
         geometric_results = {
             "alert_level": mock_alert_level,
             "is_in_any_cone": True,
@@ -363,10 +362,10 @@ class TestAIMapAnalyzer:
             "nws_alerts": [mock_nws_alert],
             "total_storms_analyzed": 3
         }
-        
+
         analyzer = AIMapAnalyzer("test-key")
         result = analyzer._format_geometric_context(geometric_results)
-        
+
         assert "PRECISE GEOMETRIC ANALYSIS RESULTS:" in result
         assert "Geometric Alert Level: TROPICAL_STORM_THREAT (Level 2)" in result
         assert "Location in any forecast cone: True" in result
@@ -382,10 +381,10 @@ class TestAIMapAnalyzer:
             "storm_threats": [],
             "total_storms_analyzed": 2
         }
-        
+
         analyzer = AIMapAnalyzer("test-key")
         result = analyzer._format_geometric_context(geometric_results)
-        
+
         assert "Location in any forecast cone: False" in result
         assert "Do NOT claim the location is 'within the forecast cone'" in result
         assert "CRITICAL: Do NOT claim" in result
@@ -394,17 +393,17 @@ class TestAIMapAnalyzer:
         """Test formatting context with NWS alerts."""
         mock_nws_alert = Mock()
         mock_nws_alert.event = "Hurricane Warning"
-        
+
         geometric_results = {
             "is_in_any_cone": True,
             "nws_alerts": [mock_nws_alert],
             "storm_threats": [],
             "total_storms_analyzed": 1
         }
-        
+
         analyzer = AIMapAnalyzer("test-key")
         result = analyzer._format_geometric_context(geometric_results)
-        
+
         assert "NWS ALERTS PRESENT" in result
         assert "OFFICIAL WARNINGS TAKE ABSOLUTE PRECEDENCE" in result
         assert "Do NOT override official NWS alerts" in result
@@ -413,14 +412,14 @@ class TestAIMapAnalyzer:
         """Test formatting empty geometric context."""
         analyzer = AIMapAnalyzer("test-key")
         result = analyzer._format_geometric_context({})
-        
+
         assert result == ""
 
     def test_format_geometric_context_none(self):
         """Test formatting None geometric context."""
         analyzer = AIMapAnalyzer("test-key")
         result = analyzer._format_geometric_context(None)
-        
+
         assert result == ""
 
 
@@ -435,14 +434,14 @@ class TestAnalyzeHurricaneThreatWithAI:
                 3, "Hurricane Watch", "Hurricane conditions possible"
             )
             mock_analyzer_class.return_value = mock_analyzer
-            
+
             result = analyze_hurricane_threat_with_ai(
                 latitude=25.0,
                 longitude=-80.0,
                 location_name="Miami, FL",
                 api_key="test-key"
             )
-            
+
             assert result == (3, "Hurricane Watch", "Hurricane conditions possible")
             mock_analyzer.analyze_threat_for_location.assert_called_once_with(
                 25.0, -80.0, "Miami, FL", "atlantic", None
@@ -456,9 +455,9 @@ class TestAnalyzeHurricaneThreatWithAI:
                 2, "Tropical Storm Threat", "Storm developing"
             )
             mock_analyzer_class.return_value = mock_analyzer
-            
+
             geometric_results = {"is_in_any_cone": True}
-            
+
             result = analyze_hurricane_threat_with_ai(
                 latitude=25.0,
                 longitude=-80.0,
@@ -467,7 +466,7 @@ class TestAnalyzeHurricaneThreatWithAI:
                 basin="eastern_pacific",
                 geometric_results=geometric_results
             )
-            
+
             assert result == (2, "Tropical Storm Threat", "Storm developing")
             mock_analyzer.analyze_threat_for_location.assert_called_once_with(
                 25.0, -80.0, "Miami, FL", "eastern_pacific", geometric_results
@@ -482,8 +481,8 @@ class TestNOAAMapURLs:
         assert "atlantic" in NOAA_MAP_URLS
         assert "eastern_pacific" in NOAA_MAP_URLS
         assert "central_pacific" in NOAA_MAP_URLS
-        
-        for basin, urls in NOAA_MAP_URLS.items():
+
+        for _basin, urls in NOAA_MAP_URLS.items():
             assert "7day" in urls
             assert "2day" in urls
             assert "text" in urls

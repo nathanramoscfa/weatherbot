@@ -2,8 +2,7 @@
 """AI-powered web search fallback for locations outside NOAA coverage."""
 
 import logging
-from typing import Dict, List, Optional, Tuple
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from openai import OpenAI
 
@@ -15,7 +14,7 @@ class AIWebSearchAnalyzer:
 
     def __init__(self, api_key: str) -> None:
         """Initialize AI web search analyzer.
-        
+
         Args:
             api_key: OpenAI API key
         """
@@ -26,31 +25,31 @@ class AIWebSearchAnalyzer:
         latitude: float,
         longitude: float,
         location_name: str,
-    ) -> Tuple[int, str, str]:
+    ) -> tuple[int, str, str]:
         """Analyze weather threat using AI web search for out-of-coverage locations.
-        
+
         Args:
             latitude: Location latitude
             longitude: Location longitude
             location_name: Human-readable location name
-            
+
         Returns:
             Tuple of (alert_level, title, detailed_message)
         """
         try:
             logger.info(f"Starting AI web search analysis for {location_name}")
-            
+
             # Create comprehensive search queries for the location
             search_queries = self._create_search_queries(location_name, latitude, longitude)
-            
+
             # Perform web searches
             search_results = self._perform_web_searches(search_queries)
-            
+
             # Analyze results with AI
             analysis_prompt = self._create_analysis_prompt(
                 location_name, latitude, longitude, search_results
             )
-            
+
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
@@ -69,10 +68,10 @@ class AIWebSearchAnalyzer:
 
             result = response.choices[0].message.content
             logger.info("AI web search analysis completed successfully")
-            
+
             # Parse the response
             alert_level, title, message = self._parse_ai_response(result)
-            
+
             return alert_level, title, message
 
         except Exception as e:
@@ -81,57 +80,57 @@ class AIWebSearchAnalyzer:
             return self._create_fallback_analysis(location_name, latitude, longitude, str(e))
 
     def _create_search_queries(
-        self, 
-        location_name: str, 
-        latitude: float, 
+        self,
+        location_name: str,
+        latitude: float,
         longitude: float
-    ) -> List[str]:
+    ) -> list[str]:
         """Create comprehensive search queries for weather information.
-        
+
         Args:
             location_name: Location name
             latitude: Latitude
             longitude: Longitude
-            
+
         Returns:
             List of search queries
         """
         queries = []
-        
+
         # Current weather alerts
         queries.append(f'"{location_name}" weather alerts warnings today')
         queries.append(f'"{location_name}" tropical storm hurricane warning')
         queries.append(f'"{location_name}" severe weather alert')
-        
+
         # Regional weather services
         queries.append(f'"{location_name}" meteorological service weather forecast')
         queries.append(f'"{location_name}" national weather service alerts')
-        
+
         # Storm tracking
         queries.append(f'"{location_name}" tropical cyclone tracking')
         queries.append(f'"{location_name}" storm forecast path')
-        
+
         # Emergency information
         queries.append(f'"{location_name}" emergency weather evacuation')
         queries.append(f'"{location_name}" disaster preparedness weather')
-        
+
         # Regional weather patterns
         queries.append(f'"{location_name}" monsoon season weather')
         queries.append(f'"{location_name}" typhoon cyclone weather')
-        
+
         return queries
 
-    def _perform_web_searches(self, queries: List[str]) -> Dict[str, str]:
+    def _perform_web_searches(self, queries: list[str]) -> dict[str, str]:
         """Perform web searches and collect results.
-        
+
         Args:
             queries: List of search queries
-            
+
         Returns:
             Dictionary of query -> search results
         """
         search_results = {}
-        
+
         for query in queries[:5]:  # Limit to 5 queries to avoid rate limits
             try:
                 # Use OpenAI's web search capability
@@ -141,19 +140,19 @@ class AIWebSearchAnalyzer:
                     logger.debug(f"Search successful for: {query[:50]}...")
                 else:
                     logger.debug(f"No results for: {query[:50]}...")
-                    
+
             except Exception as e:
                 logger.warning(f"Search failed for '{query[:50]}...': {e}")
                 continue
-        
+
         return search_results
 
-    def _search_web(self, query: str) -> Optional[str]:
+    def _search_web(self, query: str) -> str | None:
         """Perform a single web search using AI knowledge.
-        
+
         Args:
             query: Search query
-            
+
         Returns:
             Search results or None
         """
@@ -174,10 +173,10 @@ class AIWebSearchAnalyzer:
                 max_tokens=400,
                 temperature=0.1,
             )
-            
+
             result = response.choices[0].message.content
             return result if result and len(result.strip()) > 20 else None
-            
+
         except Exception as e:
             logger.debug(f"Web search failed for '{query}': {e}")
             return None
@@ -187,21 +186,21 @@ class AIWebSearchAnalyzer:
         location_name: str,
         latitude: float,
         longitude: float,
-        search_results: Dict[str, str],
+        search_results: dict[str, str],
     ) -> str:
         """Create analysis prompt for AI.
-        
+
         Args:
             location_name: Location name
             latitude: Latitude
             longitude: Longitude
             search_results: Web search results
-            
+
         Returns:
             Analysis prompt
         """
-        current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        
+        current_time = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+
         # Format search results
         results_text = ""
         if search_results:
@@ -210,13 +209,13 @@ class AIWebSearchAnalyzer:
                 results_text += f"\nQuery: {query}\nResult: {result}\n"
         else:
             results_text = "No web search results available."
-        
-        prompt = f"""
+
+        return f"""
         You are a professional meteorologist analyzing weather conditions for {location_name} at coordinates {latitude:.4f}°N, {longitude:.4f}°W using web search data.
 
         LOCATION: {location_name} ({latitude:.4f}°N, {longitude:.4f}°W)
         ANALYSIS TIME: {current_time}
-        
+
         {results_text}
 
         ASSESSMENT TASK:
@@ -256,68 +255,67 @@ class AIWebSearchAnalyzer:
         - Always recommend checking local meteorological services
         - Be conservative in threat assessment when data is limited
         """
-        
-        return prompt
 
-    def _parse_ai_response(self, response: str) -> Tuple[int, str, str]:
+
+    def _parse_ai_response(self, response: str) -> tuple[int, str, str]:
         """Parse AI response into components.
-        
+
         Args:
             response: AI response text
-            
+
         Returns:
             Tuple of (alert_level, title, message)
         """
         import re
-        
+
         # Extract alert level
         level_match = re.search(r'ALERT_LEVEL:\s*(\d+)', response)
         alert_level = int(level_match.group(1)) if level_match else 1
-        
+
         # Extract title
         title_match = re.search(r'TITLE:\s*(.+?)(?=\n|MESSAGE:|$)', response, re.DOTALL)
         title = title_match.group(1).strip() if title_match else f"Level {alert_level} Weather Alert"
-        
+
         # Clean up markdown from title
         title = title.replace("**", "").replace("```", "").strip()
-        
+
         # Extract message
         message_match = re.search(r'MESSAGE:\s*(.+)', response, re.DOTALL)
         message = message_match.group(1).strip() if message_match else response
-        
+
         # Clean up the message
         message = re.sub(r'\n+', '\n', message)  # Remove extra newlines
         message = message.replace("```", "").replace("**", "").strip()
-        
+
         # Add disclaimer about data source
         if not message.endswith('.'):
             message += '.'
-        
-        message += f"\n\n⚠️ NOTE: This analysis is based on web search data as the location is outside NOAA coverage areas. For the most accurate forecasts, consult local meteorological services."
-        
+
+        message += "\n\n⚠️ NOTE: This analysis is based on web search data as the location is outside NOAA coverage areas. For the most accurate forecasts, consult local meteorological services."
+
         return alert_level, title, message
 
     def _create_fallback_analysis(
-        self, 
-        location_name: str, 
-        latitude: float, 
-        longitude: float, 
+        self,
+        location_name: str,
+        latitude: float,
+        longitude: float,
         error_message: str
-    ) -> Tuple[int, str, str]:
+    ) -> tuple[int, str, str]:
         """Create a fallback analysis when web search fails.
-        
+
         Args:
             location_name: Location name
             latitude: Latitude
             longitude: Longitude
             error_message: Error message from failed analysis
-            
+
         Returns:
             Tuple of (alert_level, title, message)
         """
         # Determine if location is in a region prone to tropical cyclones
         is_tropical_region = self._is_tropical_cyclone_region(latitude, longitude)
-        
+
         if is_tropical_region:
             alert_level = 2  # Weather Watch - potential for tropical weather
             title = "Weather Monitoring Required"
@@ -344,36 +342,33 @@ class AIWebSearchAnalyzer:
                 f"Limitations: Real-time weather data unavailable. Consult local meteorological services for current conditions.\n"
                 f"Error Details: {error_message}"
             )
-        
+
         return alert_level, title, message
 
     def _is_tropical_cyclone_region(self, latitude: float, longitude: float) -> bool:
         """Check if location is in a region prone to tropical cyclones.
-        
+
         Args:
             latitude: Latitude
             longitude: Longitude
-            
+
         Returns:
             True if in tropical cyclone region
         """
         # Atlantic/Caribbean/Gulf
         if (0 <= latitude <= 60 and -100 <= longitude <= 0):
             return True
-        
+
         # Pacific (Eastern)
         if (0 <= latitude <= 60 and -180 <= longitude <= -100):
             return True
-        
+
         # Indian Ocean
         if (-30 <= latitude <= 30 and 40 <= longitude <= 100):
             return True
-        
+
         # Western Pacific
-        if (0 <= latitude <= 60 and 100 <= longitude <= 180):
-            return True
-        
-        return False
+        return bool(0 <= latitude <= 60 and 100 <= longitude <= 180)
 
 
 def analyze_weather_threat_web_search(
@@ -381,15 +376,15 @@ def analyze_weather_threat_web_search(
     longitude: float,
     location_name: str,
     api_key: str,
-) -> Tuple[int, str, str]:
+) -> tuple[int, str, str]:
     """Analyze weather threat using AI web search for out-of-coverage locations.
-    
+
     Args:
         latitude: Location latitude
         longitude: Location longitude
         location_name: Location name
         api_key: OpenAI API key
-        
+
     Returns:
         Tuple of (alert_level, title, message)
     """

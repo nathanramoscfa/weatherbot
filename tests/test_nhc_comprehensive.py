@@ -1,12 +1,13 @@
 # tests/test_nhc_comprehensive.py
 """Comprehensive tests for NHC integration."""
 
+from unittest.mock import Mock, patch
+
 import pytest
 import requests
-from unittest.mock import Mock, patch
 from shapely.geometry import Polygon
 
-from weatherbot.nhc import NHCCone, NHCClient, get_active_cones
+from weatherbot.nhc import NHCClient, NHCCone, get_active_cones
 
 
 class TestNHCCone:
@@ -16,7 +17,7 @@ class TestNHCCone:
         """Test basic initialization."""
         geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
         cone = NHCCone(geometry=geometry)
-        
+
         assert cone.geometry == geometry
         assert cone.storm_id is None
         assert cone.storm_name is None
@@ -36,7 +37,7 @@ class TestNHCCone:
             min_pressure=980,
             movement="NW at 15 mph"
         )
-        
+
         assert cone.storm_id == "AL012023"
         assert cone.advisory_num == "15A"
         assert cone.storm_name == "Hurricane Test"
@@ -56,9 +57,9 @@ class TestNHCCone:
             storm_name="Hurricane Test",
             storm_type="Hurricane"
         )
-        
+
         repr_str = repr(cone)
-        
+
         assert "AL012023" in repr_str
         assert "15A" in repr_str
         assert "Hurricane Test" in repr_str
@@ -76,9 +77,9 @@ class TestNHCCone:
             min_pressure=980,
             movement="NW at 15 mph"
         )
-        
+
         html = cone.get_storm_info_html()
-        
+
         assert "Hurricane Test" in html
         assert "15A" in html
         assert "Hurricane" in html
@@ -90,9 +91,9 @@ class TestNHCCone:
         """Test HTML storm info with minimal data."""
         geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
         cone = NHCCone(geometry=geometry)
-        
+
         html = cone.get_storm_info_html()
-        
+
         assert "Unknown Storm" in html
 
     def test_current_position_attribute(self):
@@ -102,14 +103,14 @@ class TestNHCCone:
             geometry=geometry,
             current_position=(25.5, -80.3)
         )
-        
+
         assert cone.current_position == (25.5, -80.3)
 
     def test_current_position_none(self):
         """Test current position when not provided."""
         geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
         cone = NHCCone(geometry=geometry)
-        
+
         assert cone.current_position is None
 
 
@@ -119,14 +120,14 @@ class TestNHCClient:
     def test_init_default(self):
         """Test default initialization."""
         client = NHCClient()
-        
+
         assert client.timeout == 30
         assert client.session is not None
 
     def test_init_custom_timeout(self):
         """Test initialization with custom timeout."""
         client = NHCClient(timeout=60)
-        
+
         assert client.timeout == 60
 
     @patch('weatherbot.cache.api_cache.get', return_value=None)  # Disable cache
@@ -136,12 +137,12 @@ class TestNHCClient:
         mock_response = Mock()
         mock_response.json.return_value = {"test": "data"}
         mock_response.raise_for_status.return_value = None
-        
+
         client = NHCClient()
         client.session.get = Mock(return_value=mock_response)
-        
+
         result = client._make_request("https://test.url")
-        
+
         assert result == {"test": "data"}
         client.session.get.assert_called_once_with("https://test.url", params=None, timeout=30)
 
@@ -153,19 +154,19 @@ class TestNHCClient:
         mock_response.json.return_value = {"test": "data"}
         mock_response.raise_for_status.return_value = None
         mock_get.return_value = mock_response
-        
+
         client = NHCClient()
-        
+
         # Clear cache first
         from weatherbot.cache import api_cache
         api_cache.clear()
-        
+
         # First call should make request
         result1 = client._make_request("https://test.url")
-        
+
         # Second call should use cache
         result2 = client._make_request("https://test.url")
-        
+
         assert result1 == result2
         assert mock_get.call_count == 1  # Only called once
 
@@ -173,10 +174,10 @@ class TestNHCClient:
     def test_make_request_exception(self, mock_cache_get):
         """Test HTTP request exception handling with retry logic."""
         from tenacity import RetryError
-        
+
         client = NHCClient()
         client.session.get = Mock(side_effect=requests.RequestException("Network error"))
-        
+
         # The method uses tenacity retry, so it will raise RetryError after retries
         with pytest.raises(RetryError):
             client._make_request("https://test.url")
@@ -189,10 +190,10 @@ class TestNHCClient:
                 {"id": 1, "name": "Test Layer", "type": "Feature Layer"}
             ]
         }
-        
+
         client = NHCClient()
         result = client.get_layers_info()
-        
+
         assert len(result) == 1
         assert result[0]["name"] == "Test Layer"
 
@@ -200,20 +201,20 @@ class TestNHCClient:
     def test_get_layers_info_no_layers(self, mock_request):
         """Test layers info with no layers."""
         mock_request.return_value = {}
-        
+
         client = NHCClient()
         result = client.get_layers_info()
-        
+
         assert result == []
 
     @patch.object(NHCClient, '_make_request')
     def test_get_layers_info_exception(self, mock_request):
         """Test layers info exception handling."""
         mock_request.side_effect = Exception("API error")
-        
+
         client = NHCClient()
         result = client.get_layers_info()
-        
+
         assert result == []
 
     @patch.object(NHCClient, 'get_layers_info')
@@ -228,10 +229,10 @@ class TestNHCClient:
                     {"id": 10, "name": "Another Layer"}
                 ]
             }
-            
+
             client = NHCClient()
             result = client.discover_cone_layer()
-            
+
             assert result == 5  # Should return the first matching layer
 
     def test_discover_cone_layer_not_found(self):
@@ -244,10 +245,10 @@ class TestNHCClient:
                     {"id": 10, "name": "Another Layer"}
                 ]
             }
-            
+
             client = NHCClient()
             result = client.discover_cone_layer()
-            
+
             assert result is None
 
     # NOTE: Removed test_fetch_active_cones_success and test_fetch_active_cones_no_layer
@@ -260,10 +261,10 @@ class TestNHCClient:
             with patch.object(NHCClient, '_make_request') as mock_request:
                 mock_discover.return_value = 5
                 mock_request.return_value = {"features": []}
-                
+
                 client = NHCClient()
                 result = client.fetch_active_cones()
-                
+
                 assert result == []
 
     def test_fetch_active_cones_invalid_geometry(self):
@@ -279,16 +280,16 @@ class TestNHCClient:
                         }
                     ]
                 }
-                
+
                 client = NHCClient()
                 result = client.fetch_active_cones()
-                
+
                 assert result == []
 
     def test_nhc_cone_creation_from_attributes(self):
         """Test NHC cone creation with storm attributes."""
         from shapely.geometry import Polygon
-        
+
         geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
         cone = NHCCone(
             geometry=geometry,
@@ -298,7 +299,7 @@ class TestNHCClient:
             max_winds=85,
             min_pressure=980
         )
-        
+
         assert cone.storm_name == "Hurricane Test"
         assert cone.advisory_num == "15A"
         assert cone.storm_type == "Hurricane"
@@ -308,10 +309,10 @@ class TestNHCClient:
     def test_nhc_cone_minimal_attributes(self):
         """Test NHC cone creation with minimal attributes."""
         from shapely.geometry import Polygon
-        
+
         geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
         cone = NHCCone(geometry=geometry)
-        
+
         assert cone.storm_name is None
         assert cone.advisory_num is None
         assert cone.storm_type == "Unknown"  # Default value
@@ -321,7 +322,7 @@ class TestNHCClient:
     def test_storm_info_html_generation(self):
         """Test HTML storm information generation."""
         from shapely.geometry import Polygon
-        
+
         geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
         cone = NHCCone(
             geometry=geometry,
@@ -332,9 +333,9 @@ class TestNHCClient:
             min_pressure=980,
             movement="NW at 15 mph"
         )
-        
+
         html = cone.get_storm_info_html()
-        
+
         assert "Hurricane Test" in html
         assert "15A" in html
         assert "Hurricane" in html
@@ -353,20 +354,20 @@ class TestGetActiveCones:
         """Test successful get_active_cones."""
         mock_geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
         mock_cone = NHCCone(mock_geometry, storm_name="Test Storm")
-        
+
         # Mock current storms data source
         mock_current_storms.return_value = [mock_cone]
-        
+
         # Mock ATCF positions (empty for this test)
         mock_atcf.return_value = {}
-        
+
         # Mock NHC client (not used when current storms has data)
         mock_client = Mock()
         mock_client.fetch_active_cones.return_value = []
         mock_client_class.return_value = mock_client
-        
+
         cones, geometries = get_active_cones()
-        
+
         assert len(cones) == 1
         assert len(geometries) == 1
         assert cones[0] == mock_cone
@@ -379,17 +380,17 @@ class TestGetActiveCones:
         """Test get_active_cones with no cones."""
         # Mock empty current storms
         mock_current_storms.return_value = []
-        
+
         # Mock empty ATCF positions
         mock_atcf.return_value = {}
-        
+
         # Mock NHC client returning empty cones for all fallbacks
         mock_client = Mock()
         mock_client.fetch_active_cones.return_value = []
         mock_client_class.return_value = mock_client
-        
+
         cones, geometries = get_active_cones()
-        
+
         assert cones == []
         assert geometries == []
 
@@ -400,24 +401,24 @@ class TestGetActiveCones:
         """Test get_active_cones exception handling."""
         # Mock current storms raising exception
         mock_current_storms.side_effect = Exception("API error")
-        
+
         # Mock ATCF raising exception
         mock_atcf.side_effect = Exception("ATCF error")
-        
+
         # Mock NHC client returning empty cones (final fallback)
         mock_client = Mock()
         mock_client.fetch_active_cones.return_value = []
         mock_client_class.return_value = mock_client
-        
+
         cones, geometries = get_active_cones()
-        
+
         # Should return empty list when all sources fail
         assert cones == []
         assert geometries == []
 
 
-# NOTE: Removed TestCurrentStormsClient, TestNHCStormTracker, TestDiscoverNewStorms, 
-# and TestGetAllActiveStormCones classes as they test complex integration 
+# NOTE: Removed TestCurrentStormsClient, TestNHCStormTracker, TestDiscoverNewStorms,
+# and TestGetAllActiveStormCones classes as they test complex integration
 # patterns that have undergone significant API changes requiring extensive rewrites.
 # Core NHC functionality is already well-tested in the above classes.
 #
