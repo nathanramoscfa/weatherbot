@@ -1,0 +1,29 @@
+{
+    "python.defaultInterpreterPath": "E:\\Code\\Python\\venvs\\weatherbot\\Scripts\\python.exe",
+    "python.terminal.activateEnvironment": true,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python.terminal.executeInFileDir": false,
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "args": [
+                "-NoExit",
+                "-Command",
+                "& 'E:\\Code\\Python\\venvs\\weatherbot\\Scripts\\Activate.ps1'"
+            ]
+        }
+    },
+    "basedpyright.settings": {
+        "pythonPath": "E:\\Code\\Python\\venvs\\weatherbot\\Scripts\\python.exe",
+        "venvPath": "E:\\Code\\Python\\venvs",
+        "venv": "weatherbot",
+        "reportMissingImports": true,
+        "reportMissingTypeStubs": false
+    },
+    "python.analysis.extraPaths": [
+        "E:\\Code\\Python\\venvs\\weatherbot\\Lib\\site-packages"
+    ],
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic"
+}
