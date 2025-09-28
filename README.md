@@ -34,8 +34,13 @@ Weatherbot is a comprehensive hurricane monitoring and alerting system designed 
 
 2. **Create and activate a virtual environment**:
    ```bash
-   python -m venv E:\Code\Python\venvs\weatherbot
-   E:\Code\Python\venvs\weatherbot\Scripts\activate  # Windows
+   # Windows
+   python -m venv venv
+   venv\Scripts\activate
+   
+   # Linux/macOS
+   python -m venv venv
+   source venv/bin/activate
    ```
 
 3. **Install the package**:

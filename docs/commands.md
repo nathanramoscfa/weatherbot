@@ -352,8 +352,8 @@ Windows batch script for automation:
 
 ```batch
 @echo off
-cd /d "E:\Code\Python\weatherbot"
-call "E:\Code\Python\venvs\weatherbot\Scripts\activate.bat"
+cd /d "%~dp0"
+call "venv\Scripts\activate.bat"
 weatherbot run --once
 if %errorlevel% neq 0 (
     echo Weatherbot failed with error %errorlevel%

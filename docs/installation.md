@@ -30,8 +30,8 @@ This guide covers the complete installation process for Weatherbot.
 2. **Create virtual environment**:
    ```bash
    # Windows
-   python -m venv E:\Code\Python\venvs\weatherbot
-   E:\Code\Python\venvs\weatherbot\Scripts\activate
+   python -m venv venv
+   venv\Scripts\activate
 
    # Linux/macOS
    python -m venv venv

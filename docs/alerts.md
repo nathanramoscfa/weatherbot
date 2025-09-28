@@ -538,7 +538,7 @@ $ErrorActionPreference = "Stop"
 
 try {
     # Activate virtual environment
-    & "E:\Code\Python\venvs\weatherbot\Scripts\Activate.ps1"
+    & ".\venv\Scripts\Activate.ps1"
     
     # Run weatherbot
     weatherbot run --once
