@@ -213,4 +213,5 @@ $RECYCLE.BIN/
 state/state.json
 logs/*.log
 cache/*.json
+reports/*.html
 src/weatherbot.egg-info/
