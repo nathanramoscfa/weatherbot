@@ -28,7 +28,7 @@ Weatherbot is a comprehensive hurricane monitoring and alerting system designed 
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/nathanramoscfa/weatherbot.git
    cd weatherbot
    ```
 

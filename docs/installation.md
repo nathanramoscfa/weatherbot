@@ -23,7 +23,7 @@ This guide covers the complete installation process for Weatherbot.
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/nathanramoscfa/weatherbot.git
    cd weatherbot
    ```
 
@@ -54,7 +54,7 @@ For contributors and developers:
 
 1. **Clone and setup**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/nathanramoscfa/weatherbot.git
    cd weatherbot
    python -m venv venv
    source venv/bin/activate  # Windows: venv\Scripts\activate

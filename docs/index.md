@@ -44,7 +44,7 @@ Weatherbot is a comprehensive hurricane monitoring and alerting system designed 
 
 ### 1. Installation
 ```bash
-git clone <repository-url>
+git clone https://github.com/nathanramoscfa/weatherbot.git
 cd weatherbot
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
