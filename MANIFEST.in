@@ -1,0 +1,9 @@
+# E:\Code\Python\weatherbot\MANIFEST.in
+include README.md
+include LICENSE
+include pyproject.toml
+include env.example
+recursive-include src/weatherbot/data *.geojson
+recursive-include src/weatherbot/icons *.png *.ico *.svg
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

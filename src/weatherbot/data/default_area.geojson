@@ -1,0 +1,22 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Default Coverage Area",
+        "country": "Default"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-77.7, 24.8],
+          [-77.7, 25.3],
+          [-77.0, 25.3],
+          [-77.0, 24.8],
+          [-77.7, 24.8]
+        ]]
+      }
+    }
+  ]
+}
