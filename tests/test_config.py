@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
+from pydantic_core import ValidationError as CoreValidationError
 
 from weatherbot.config import WeatherbotConfig, load_config
 
@@ -154,21 +155,23 @@ class TestLoadConfig:
             os.environ.pop("HOME_LON", None)
             os.environ.pop("TOAST_ENABLED", None)
 
-    def test_load_config_missing_required(self) -> None:
-        """Test loading config with missing required fields."""
-        # Clear environment variables
+    def test_load_config_from_env_file(self) -> None:
+        """Test loading config from .env file when env vars are missing."""
+        # Clear environment variables but keep .env file
         env_vars_to_clear = ["HOME_LAT", "HOME_LON"]
         original_values = {}
         for var in env_vars_to_clear:
             original_values[var] = os.environ.pop(var, None)
 
         try:
-            # Config should load with default values when env vars are missing
+            # Config should load successfully from .env file
             config = load_config()
-            # The config might have other env vars set, so just check it loads successfully
             assert config is not None
             assert hasattr(config, 'home_lat')
             assert hasattr(config, 'home_lon')
+            # Verify it loaded values from .env file
+            assert config.home_lat is not None
+            assert config.home_lon is not None
         finally:
             # Restore environment variables
             for var, value in original_values.items():
