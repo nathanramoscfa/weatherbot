@@ -2,8 +2,14 @@
 include README.md
 include LICENSE
 include pyproject.toml
+include CHANGELOG.md
+include CONTRIBUTING.md
 include env.example
 recursive-include src/weatherbot/data *.geojson
-recursive-include src/weatherbot/icons *.png *.ico *.svg
+recursive-include src/weatherbot/icons *.png *.ico *.svg *.md
+recursive-include src/weatherbot *.py
+include src/weatherbot/py.typed
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
+recursive-exclude * .DS_Store
+recursive-exclude * Thumbs.db
