@@ -3,6 +3,7 @@
 
 import logging
 from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ class CoverageValidator:
         "max_lon": -60.0,
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize coverage validator."""
         self.warnings = []
         self.errors = []
@@ -67,7 +68,7 @@ class CoverageValidator:
         self,
         latitude: float,
         longitude: float
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """Validate coordinates against NOAA coverage areas.
 
         Args:
@@ -276,7 +277,7 @@ class CoverageValidator:
         nws_status: CoverageStatus | None = None,
         caribbean_status: CoverageStatus | None = None,
         basin: str | None = None
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """Create validation result dictionary.
 
         Args:

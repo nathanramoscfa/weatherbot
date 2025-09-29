@@ -3,6 +3,7 @@
 
 import logging
 import re
+from typing import Any, Optional
 
 import requests
 from openai import OpenAI
@@ -27,7 +28,7 @@ class AIStormEnhancer:
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenAI client: {e}")
 
-    def get_disturbance_positions(self) -> list[dict[str, any]]:
+    def get_disturbance_positions(self) -> list[dict[str, Any]]:
         """Get current disturbance positions using AI web search.
 
         Returns:
@@ -87,7 +88,7 @@ class AIStormEnhancer:
             logger.error(f"Failed to fetch NHC text outlook: {e}")
             return ""
 
-    def _extract_positions_with_ai(self, nhc_text: str) -> list[dict[str, any]]:
+    def _extract_positions_with_ai(self, nhc_text: str) -> list[dict[str, Any]]:
         """Extract disturbance positions using AI.
 
         Args:
@@ -146,7 +147,7 @@ class AIStormEnhancer:
             logger.error(f"AI position extraction failed: {e}")
             return []
 
-    def _ai_web_search_storm_positions(self) -> list[dict[str, any]]:
+    def _ai_web_search_storm_positions(self) -> list[dict[str, Any]]:
         """Use AI to perform web search for current storm positions.
 
         Returns:
@@ -259,7 +260,7 @@ class AIStormEnhancer:
             logger.error(f"AI alert generation failed: {e}")
             return f"Level {alert_level} Alert", "Monitor weather conditions and follow evacuation guidance."
 
-    def _get_positions_from_web_search(self) -> list[dict[str, any]]:
+    def _get_positions_from_web_search(self) -> list[dict[str, Any]]:
         """Fallback method to get positions from web search.
 
         Returns:

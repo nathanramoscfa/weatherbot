@@ -2,6 +2,7 @@
 """Configuration management for Weatherbot."""
 
 from pathlib import Path
+from typing import Any
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -93,7 +94,7 @@ class WeatherbotConfig(BaseSettings):
 
     @field_validator("county_geojson_path", mode="before")
     @classmethod
-    def validate_optional_paths(cls, v):
+    def validate_optional_paths(cls, v: Any) -> Any:
         """Convert empty strings to None for optional path fields."""
         if v == "":
             return None

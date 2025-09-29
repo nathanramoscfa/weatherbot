@@ -1371,7 +1371,7 @@ def _get_storm_cone_data_for_report(config: WeatherbotConfig) -> list[dict]:
             # Apply distance filtering
             from math import asin, cos, radians, sin, sqrt
 
-            def haversine_distance(lat1, lon1, lat2, lon2):
+            def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
                 lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
                 dlat = lat2 - lat1
                 dlon = lon2 - lon1
