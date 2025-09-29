@@ -3,7 +3,7 @@
 
 import logging
 import re
-from typing import Any, Optional
+from typing import Any
 
 import requests
 from openai import OpenAI
