@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
-from pydantic_core import ValidationError as CoreValidationError
 
 from weatherbot.config import WeatherbotConfig, load_config
 
