@@ -38,6 +38,25 @@ class TestCLIApp:
     def setup_method(self):
         """Set up test fixtures."""
         self.runner = CliRunner()
+        # Set up required environment variables for CI
+        import os
+        self._original_home_lat = os.environ.get("HOME_LAT")
+        self._original_home_lon = os.environ.get("HOME_LON")
+        os.environ.setdefault("HOME_LAT", "25.0")
+        os.environ.setdefault("HOME_LON", "-80.0")
+    
+    def teardown_method(self):
+        """Clean up test fixtures."""
+        import os
+        # Restore original environment variables
+        if self._original_home_lat is None:
+            os.environ.pop("HOME_LAT", None)
+        else:
+            os.environ["HOME_LAT"] = self._original_home_lat
+        if self._original_home_lon is None:
+            os.environ.pop("HOME_LON", None)
+        else:
+            os.environ["HOME_LON"] = self._original_home_lon
 
     @patch('weatherbot.cli.load_config')
     @patch('weatherbot.cli.setup_logging')

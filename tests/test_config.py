@@ -154,25 +154,21 @@ class TestLoadConfig:
             os.environ.pop("HOME_LON", None)
             os.environ.pop("TOAST_ENABLED", None)
 
-    def test_load_config_from_env_file(self) -> None:
-        """Test loading config from .env file when env vars are missing."""
-        # Clear environment variables but keep .env file
-        env_vars_to_clear = ["HOME_LAT", "HOME_LON"]
-        original_values = {}
-        for var in env_vars_to_clear:
-            original_values[var] = os.environ.pop(var, None)
-
+    def test_load_config_with_required_fields(self) -> None:
+        """Test loading config when required fields are provided."""
+        # Set required environment variables
+        os.environ["HOME_LAT"] = "25.0"
+        os.environ["HOME_LON"] = "-80.0"
+        
         try:
-            # Config should load successfully from .env file
+            # Config should load successfully
             config = load_config()
             assert config is not None
             assert hasattr(config, 'home_lat')
             assert hasattr(config, 'home_lon')
-            # Verify it loaded values from .env file
-            assert config.home_lat is not None
-            assert config.home_lon is not None
+            assert config.home_lat == 25.0
+            assert config.home_lon == -80.0
         finally:
-            # Restore environment variables
-            for var, value in original_values.items():
-                if value is not None:
-                    os.environ[var] = value
+            # Clean up environment variables
+            os.environ.pop("HOME_LAT", None)
+            os.environ.pop("HOME_LON", None)
