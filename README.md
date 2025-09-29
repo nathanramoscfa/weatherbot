@@ -2,6 +2,25 @@
 
 A local hurricane alert system with NHC cone tracking, NWS alerts, and AI-powered threat analysis.
 
+## ⚠️ IMPORTANT DISCLAIMER
+
+**THIS SOFTWARE IS PROVIDED FOR INFORMATIONAL PURPOSES ONLY AND SHOULD NOT BE USED AS THE SOLE SOURCE FOR LIFE-SAFETY DECISIONS.**
+
+- **NOT AN OFFICIAL SOURCE**: Weatherbot is not affiliated with or endorsed by NOAA, NHC, NWS, or any official weather service
+- **NO WARRANTY**: This software is provided "AS IS" without warranty of any kind, express or implied
+- **AI LIMITATIONS**: AI-powered analysis may produce incorrect assessments and should never replace official meteorological guidance
+- **USER RESPONSIBILITY**: Users must independently verify all weather information through official sources
+- **EMERGENCY GUIDANCE**: Always follow official evacuation orders and emergency guidance from local authorities
+- **NO LIABILITY**: The authors and contributors assume no responsibility for decisions made based on this software
+
+**For official weather information and emergency guidance, always consult:**
+- National Hurricane Center (nhc.noaa.gov)
+- National Weather Service (weather.gov)
+- Local emergency management authorities
+- Official evacuation orders and emergency broadcasts
+
+**📋 FULL LEGAL DISCLAIMER**: See [DISCLAIMER.md](DISCLAIMER.md) for complete liability terms and conditions.
+
 ## Overview
 
 Weatherbot is a comprehensive hurricane monitoring and alerting system designed to provide real-time notifications for tropical weather threats. It combines data from the National Hurricane Center (NHC) forecast cones, National Weather Service (NWS) alerts, and optional AI-powered analysis of official NOAA weather maps to deliver precise, location-specific threat assessments.
@@ -273,9 +292,20 @@ Use `weatherbot check-coverage` to validate your coordinates before running the 
 - **NOAA Maps**: Official tropical weather outlook imagery
 - **CurrentStorms.json**: Active storm position data
 
-## License
+## License and Liability
 
 MIT License - see [LICENSE](LICENSE) file for details.
+
+### Additional Liability Disclaimer
+
+**WEATHERBOT IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND.** The MIT License includes important liability limitations, but we want to emphasize:
+
+- **NO WARRANTIES**: No express or implied warranties regarding accuracy, reliability, or fitness for any particular purpose
+- **NO LIABILITY**: Authors and contributors shall not be liable for any damages arising from use of this software
+- **WEATHER RISKS**: Weather prediction and alerting involves inherent uncertainties and risks
+- **USER ASSUMES RISK**: Users assume all risks associated with relying on this software for weather-related decisions
+
+**CRITICAL**: This software may produce false positives, false negatives, or incorrect threat assessments. Never rely solely on Weatherbot for life-safety decisions.
 
 ## Contributing
 

@@ -56,6 +56,11 @@ def run(
 ) -> None:
     """Run the main weatherbot monitoring cycle."""
     try:
+        # Show disclaimer on first run
+        console.print("⚠️  [bold red]DISCLAIMER[/bold red]: Weatherbot is for informational purposes only. "
+                     "Always verify with official sources. See DISCLAIMER.md for full terms.", 
+                     style="yellow")
+        
         # Load configuration
         config = load_config()
 
@@ -96,6 +101,8 @@ def run(
 def test_alert() -> None:
     """Test notification systems (toast)."""
     try:
+        console.print("⚠️  [bold red]DISCLAIMER[/bold red]: For informational purposes only. "
+                     "See DISCLAIMER.md for full terms.", style="yellow")
         console.print("🧪 Testing Weatherbot notification systems...")
 
         # Load configuration
@@ -185,6 +192,9 @@ def show_map(
 def ai_analysis() -> None:
     """Get AI analysis of current hurricane threat from official NOAA map or web search fallback."""
     try:
+        console.print("⚠️  [bold red]AI DISCLAIMER[/bold red]: AI analysis may be incorrect. "
+                     "Never rely solely on AI for emergency decisions. See DISCLAIMER.md", 
+                     style="yellow")
         console.print("[AI] Analyzing weather threats with AI...")
 
         # Load configuration

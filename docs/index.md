@@ -2,6 +2,35 @@
 
 Welcome to the complete documentation for Weatherbot - a local hurricane alert system with NHC cone tracking, NWS alerts, and AI-powered threat analysis.
 
+## ⚠️ CRITICAL SAFETY DISCLAIMER
+
+**READ THIS BEFORE USING WEATHERBOT**
+
+**THIS SOFTWARE IS FOR INFORMATIONAL PURPOSES ONLY AND MUST NOT BE USED AS THE SOLE SOURCE FOR LIFE-SAFETY DECISIONS.**
+
+### Key Limitations and Risks
+
+- **🚫 NOT OFFICIAL**: Weatherbot is not an official weather service and is not endorsed by NOAA, NHC, or NWS
+- **🤖 AI UNCERTAINTY**: AI analysis may produce incorrect threat assessments, false positives, or false negatives
+- **⚡ TECHNICAL FAILURES**: Software bugs, network issues, or data source problems may cause missed alerts or incorrect information
+- **🕐 TIMING DELAYS**: Information may be delayed compared to official sources during rapidly changing conditions
+- **🎯 ACCURACY LIMITS**: Geographic precision and alert level determinations may be inaccurate
+
+### Your Responsibilities
+
+- **✅ VERIFY INDEPENDENTLY**: Always cross-check information with official sources
+- **📻 MONITOR OFFICIAL SOURCES**: Continuously monitor NHC, NWS, and local emergency management
+- **🚨 FOLLOW EVACUATION ORDERS**: Always comply with official evacuation orders regardless of Weatherbot's assessment
+- **⚖️ ASSUME ALL RISK**: You assume full responsibility for decisions made using this software
+
+### Official Sources (Use These for Life-Safety Decisions)
+- **National Hurricane Center**: [nhc.noaa.gov](https://nhc.noaa.gov)
+- **National Weather Service**: [weather.gov](https://weather.gov)
+- **Local Emergency Management**: Your county/city emergency services
+- **Emergency Broadcasts**: NOAA Weather Radio, Emergency Alert System
+
+**📋 COMPLETE LEGAL TERMS**: Review the full [Legal Disclaimer](../DISCLAIMER.md) for comprehensive liability information.
+
 ## Quick Navigation
 
 ### 🚀 Getting Started
@@ -290,8 +319,28 @@ Weatherbot is released under the MIT License, allowing:
 - **National Weather Service**: Official government alerts
 - **OpenAI**: Commercial API service (requires subscription)
 
-### Disclaimer
-Weatherbot is a supplementary tool and should not be the sole source for emergency decisions. Always follow official emergency guidance and evacuation orders from local authorities.
+### Legal Disclaimer and Liability Limitations
+
+**WEATHERBOT IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.**
+
+#### No Warranties
+- No warranty of merchantability, fitness for a particular purpose, or non-infringement
+- No guarantee of accuracy, completeness, or timeliness of weather information
+- No assurance that the software will be error-free or uninterrupted
+
+#### Limitation of Liability
+- Authors and contributors shall not be liable for any direct, indirect, incidental, special, or consequential damages
+- This includes but is not limited to: property damage, personal injury, loss of life, business interruption, or lost profits
+- Liability limitations apply even if advised of the possibility of such damages
+- Some jurisdictions may not allow limitation of liability for personal injury or death
+
+#### Indemnification
+By using Weatherbot, you agree to indemnify and hold harmless the authors and contributors from any claims, damages, or expenses arising from your use of the software.
+
+#### Governing Law
+This disclaimer is governed by the laws of the jurisdiction where the software is developed and distributed.
+
+**REMEMBER**: Weather emergencies can be life-threatening. This software is a supplementary tool only and should never be the sole source for emergency decisions. Always follow official emergency guidance and evacuation orders from local authorities.
 
 ---
 

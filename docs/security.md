@@ -460,12 +460,59 @@ echo "Security check complete."
 - **Maintainers**: maintainers@weatherbot.org
 - **CVE Reporting**: security-advisories@github.com
 
-## Compliance and Standards
+## Legal and Liability Considerations
 
-### Security Standards
+### Weather Alert System Liability
+
+**CRITICAL**: Weatherbot deals with potentially life-threatening weather information. Special legal considerations apply:
+
+#### Liability Risks
+- **False Negatives**: Missing a hurricane threat could lead to injury/death claims
+- **False Positives**: Unnecessary evacuations could result in economic damage claims  
+- **AI Errors**: Incorrect AI assessments may be blamed for poor decisions
+- **Technical Failures**: System downtime during emergencies could be seen as negligence
+- **Timing Issues**: Delayed alerts might be considered inadequate warning
+
+#### Legal Protection Measures
+1. **Prominent Disclaimers**: Clear warnings that software is not official source
+2. **MIT License**: "AS IS" provision limits warranty obligations
+3. **User Agreement**: Users assume responsibility for verification
+4. **Official Source References**: Direct users to authoritative weather services
+5. **No Emergency Service Claims**: Never claim to replace official emergency systems
+
+#### Recommended Legal Language
+
+**For all user-facing documentation:**
+```
+⚠️ DISCLAIMER: This software is for informational purposes only. 
+Not affiliated with NOAA/NHC/NWS. Always verify with official sources. 
+Users assume all risks. No warranty provided.
+```
+
+**For API/Developer documentation:**
+```
+LEGAL NOTICE: Developers integrating this software must include 
+appropriate disclaimers and direct users to official weather sources. 
+Integration does not transfer liability protection.
+```
+
+#### Jurisdictional Considerations
+- **US Federal**: NOAA/NWS have exclusive authority for official weather warnings
+- **State Laws**: Some states have specific liability rules for emergency information
+- **International**: Different countries have varying standards for weather services
+- **Maritime/Aviation**: Special regulations may apply for transportation-related use
+
+### Compliance and Standards
+
+#### Security Standards
 - **OWASP Top 10**: Address common web application vulnerabilities
 - **CWE/SANS Top 25**: Focus on most dangerous software errors
 - **NIST Cybersecurity Framework**: Follow industry best practices
+
+#### Weather Service Standards
+- **WMO Standards**: World Meteorological Organization guidelines for weather information
+- **NWS Directives**: National Weather Service operational procedures
+- **Emergency Management**: FEMA and local emergency management protocols
 
 ### Compliance Checklist
 - [ ] Input validation implemented
