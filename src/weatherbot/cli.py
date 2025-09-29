@@ -1390,11 +1390,26 @@ def _get_storm_cone_data_for_report(config: WeatherbotConfig) -> list[dict]:
                     lon = page.get('longitude')
 
                     if lat is not None and lon is not None:
-                        distance = haversine_distance(config.home_lat, config.home_lon, lat, lon)
+                        try:
+                            lat_float = float(lat)
+                            lon_float = float(lon)
+                            distance = haversine_distance(
+                                config.home_lat, config.home_lon, lat_float, lon_float
+                            )
+                        except (ValueError, TypeError):
+                            # If conversion fails, include the storm (safer approach)
+                            logger.warning(
+                                f"Could not convert coordinates for "
+                                f"{page.get('storm_name')}: lat={lat}, lon={lon}"
+                            )
+                            continue
                         # Use 3000km threshold for HTML report
                         if distance > 3000:
                             include_storm = False
-                            logger.info(f"Excluding {page.get('storm_name')} from HTML report: {distance:.0f}km away")
+                            logger.info(
+                                f"Excluding {page.get('storm_name')} from HTML "
+                                f"report: {distance:.0f}km away"
+                            )
 
                     if include_storm:
                         storm_cone_data.append({
