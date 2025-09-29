@@ -55,7 +55,7 @@ class CurrentStormsClient:
             JSON response data
         """
         import hashlib
-        cache_key = hashlib.md5(url.encode()).hexdigest()
+        cache_key = hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()
 
         # Try cache first
         cached_data = api_cache.get(cache_key)

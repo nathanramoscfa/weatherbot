@@ -67,7 +67,7 @@ class ATCFClient:
             Response text
         """
         import hashlib
-        cache_key = f"atcf_{hashlib.md5(url.encode()).hexdigest()}"
+        cache_key = f"atcf_{hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()}"
 
         # Try cache first (shorter TTL for ATCF data - updates more frequently)
         cached_data = api_cache.get(cache_key)

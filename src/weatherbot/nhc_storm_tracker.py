@@ -117,7 +117,7 @@ class NHCStormTracker:
         """
         try:
             import hashlib
-            cache_key = hashlib.md5(CURRENT_STORMS_JSON.encode()).hexdigest()
+            cache_key = hashlib.md5(CURRENT_STORMS_JSON.encode(), usedforsecurity=False).hexdigest()
 
             # Try cache first
             cached_data = api_cache.get(cache_key)

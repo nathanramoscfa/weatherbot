@@ -59,7 +59,8 @@ class WeatherMapGUI:
             )
 
             # Save to temporary file
-            self._map_file = Path(tempfile.mktemp(suffix=".html"))
+            with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmp:
+                self._map_file = Path(tmp.name)
             weather_map.save(str(self._map_file))
 
             # Open in browser

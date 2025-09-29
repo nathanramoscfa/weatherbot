@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -40,16 +40,16 @@ jobs:
         bandit -r src/weatherbot
     
     - name: Check dependencies for vulnerabilities
-      run: |
-        safety check --json --output safety-report.json || true
-        safety check
+      uses: pyupio/safety-action@v1
+      with:
+        api-key: ${{ secrets.SAFETY_API_KEY }}
     
     - name: Test with pytest
       run: |
         pytest tests/ --cov=weatherbot --cov-report=xml
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: unittests

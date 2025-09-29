@@ -140,7 +140,7 @@ class NHCClient:
             requests.RequestException: On HTTP errors
         """
         # Create cache key from URL and params
-        cache_key = hashlib.md5(f"{url}_{params}".encode()).hexdigest()
+        cache_key = hashlib.md5(f"{url}_{params}".encode(), usedforsecurity=False).hexdigest()
 
         # Try cache first
         cached_data = api_cache.get(cache_key)
