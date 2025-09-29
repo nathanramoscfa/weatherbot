@@ -44,7 +44,7 @@ class TestCLIApp:
         self._original_home_lon = os.environ.get("HOME_LON")
         os.environ.setdefault("HOME_LAT", "25.0")
         os.environ.setdefault("HOME_LON", "-80.0")
-    
+
     def teardown_method(self):
         """Clean up test fixtures."""
         import os

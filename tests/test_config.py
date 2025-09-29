@@ -159,7 +159,7 @@ class TestLoadConfig:
         # Set required environment variables
         os.environ["HOME_LAT"] = "25.0"
         os.environ["HOME_LON"] = "-80.0"
-        
+
         try:
             # Config should load successfully
             config = load_config()
