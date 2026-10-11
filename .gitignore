@@ -215,3 +215,6 @@ logs/*.log
 cache/*.json
 reports/*.html
 src/weatherbot.egg-info/
+# roadmodel planning kit: the operator context is personal; every kit export
+# copies it from ~/.config/roadmodel/user-context.md. Never commit it.
+planning/user-context.md
