@@ -104,9 +104,12 @@ calls, which carry a cap.
   GitHub-hosted Windows runners for Python 3.11 and 3.12.
 - The package is published to PyPI as `weatherbot` 1.0.0 and the
   repository is public under the MIT license with a `DISCLAIMER.md`.
-- `cache/` still holds 38 real responses from the NHC map services and
-  the ATCF invest files recorded during the September–October 2025
-  storms, and `reports/` holds outlook graphics of specific dates.
+- `reports/` (untracked) still holds six v1 reports from September and
+  October 2025 that embed NHC's seven-day Atlantic outlook map of their
+  dates. The 38 responses `cache/` held from those storms were deleted
+  on 2026-10-11, when the v1 test suite ran from the repository root
+  (two v1 tests clear the working-directory cache); see "Changes from
+  the brief".
 
 ### Gaps blocking the second draft
 
@@ -140,10 +143,21 @@ These gaps drive the phase ordering below.
   Phase 1 renames it so the step lifecycle and every `/roadmap-*`
   command, which name `main`, apply without translation. Until that
   step merges, `master` is the ledger.
+- **The v1 cache responses are lost.** The brief's §1 lists the 38
+  responses in `cache/` as fixtures to harvest. They were deleted on
+  2026-10-11, before any harvest, when the planning session ran the v1
+  test suite from the repository root. Phase 1 harvests the outlook
+  maps embedded in the surviving v1 reports and records every source's
+  fixtures live instead (`phase01-roadmap.md`, "Design rationale").
+- **The Eastern Pacific outlook graphics are `two_pac_*`.** The brief's
+  §5 names them `two_epac_{2d0,7d0}.png`, which NHC answers with 404
+  (checked 2026-10-11); the working names are `two_atl_*`, `two_pac_*`,
+  and `two_cpac_*`.
 
 Everything else in the brief applies unchanged: the decisions D1–D10,
-the data sources, the ladder semantics, the AI role and model, the
-notification policy, and the success criteria.
+the data sources (with the graphic names above), the ladder semantics,
+the AI role and model, the notification policy, and the success
+criteria.
 
 ---
 
@@ -223,18 +237,18 @@ the weekly Claude pool reads exhausted when the session opens.
 #### 1.1 Freeze v1 and clean the tree
 - Tag the last v1 commit `v1.0.0` and note in `CHANGELOG.md` that v1 is
   retired and remains installable from PyPI.
-- Commit the removal of the 21 generated report files still tracked
-  under `reports/` (already deleted in the working tree) and of build
-  artifacts; keep `LICENSE`, `DISCLAIMER.md`, and the git history.
+- The 21 generated report files v1 tracked under `reports/` were
+  removed in PR #1, and no build artifact is tracked; `LICENSE`,
+  `DISCLAIMER.md`, and the git history stay.
 - Rename the default branch to `main` (local, remote, GitHub default),
   enable branch protection (required checks, linear history, no force
   push), and `delete_branch_on_merge`.
 
 #### 1.2 Scaffold the uv project
 - `pyproject.toml` for `weatherbot` 2.0.0.dev0: `src/` layout, Python
-  3.13, uv-managed `.venv` seeded with pip, dependency groups `dev` and
-  `planning` (roadmodel), committed `uv.lock`, `.python-version` 3.13
-  tracked.
+  3.13, uv-managed `.venv` with pip (carried by the `planning` group so
+  `uv sync` keeps it), dependency groups `dev` and `planning`
+  (roadmodel), committed `uv.lock`, `.python-version` 3.13 tracked.
 - Package skeleton `weatherbot/{sources,engine,services,cli,web}` with
   an `import-linter` contract that forbids `engine` from importing the
   other layers; `weatherbot --version` prints the version.
@@ -245,7 +259,12 @@ the weekly Claude pool reads exhausted when the session opens.
   ruff and pyright.
 - CI on GitHub-hosted `ubuntu-latest` and `windows-latest`, Python
   3.13, every action pinned to a commit SHA, minimal `permissions:`,
-  the same gate re-run, Dependabot for pip, npm, and actions.
+  the same gate re-run, Dependabot for uv and GitHub Actions (npm joins
+  with `frontend/` in Phase 5, since an ecosystem with no manifest fails
+  every run).
+- Delete v1's code, tests, docs, scripts, and packaging in the scaffold
+  itself: the v2 package and v1 cannot share `src/weatherbot` and one
+  `pyproject.toml`, and v1 stays readable at the `v1.0.0` tag.
 - Switch the roadmodel kit's environment: add roadmodel to the
   `planning` group, verify `.venv\Scripts\python -m pip` works for the
   updater, and replace the project's line in
@@ -266,9 +285,9 @@ the weekly Claude pool reads exhausted when the session opens.
   public landmark coordinates, and writes
   `tests/fixtures/recorded/<source>/<yyyy-mm-dd>/` with a manifest
   (URL, fetched-at, SHA-256, HTTP headers that matter).
-- Harvest the 38 v1 `cache/` responses and the outlook graphics from
-  `reports/` into the same layout before `src/weatherbot` v1 code is
-  deleted; then delete v1 code, tests, and docs that describe it.
+- Harvest the seven-day outlook maps embedded in the six surviving v1
+  reports into the same layout, plus any of the lost `cache/` responses
+  the operator restores from a backup (see "Changes from the brief").
 
 #### 1.4 Replay corpus
 - `scripts/fetch_replay_corpus.py`: downloads the per-advisory forecast
@@ -276,8 +295,8 @@ the weekly Claude pool reads exhausted when the session opens.
   Ian 2022 (AL092022), and Milton 2024 (AL142024) from the NHC GIS
   archive into a git-ignored cache with checksums, and converts each
   advisory to GeoJSON.
-- Commit a size-budgeted subset (budget TBD, set in this phase) for
-  golden tests; CI restores the rest from a cache keyed by checksum.
+- Commit a size-budgeted subset (10 MiB, set in `phase01-roadmap.md`)
+  for golden tests; CI restores the rest from a cache keyed by checksum.
 
 **Acceptance criteria**
 - `uv sync` on a fresh clone, then `uv run weatherbot --version`, prints
@@ -287,8 +306,9 @@ the weekly Claude pool reads exhausted when the session opens.
 - `git tag` lists `v1.0.0`; `git ls-files src/weatherbot` lists only v2
   skeleton files; the default branch is `main` with protection enabled.
 - `tests/fixtures/recorded/` contains at least one manifest-verified
-  capture of every source in `docs/DATA_SOURCES.md`, including the 38
-  harvested v1 responses, and a contract test loads each one.
+  capture of every source `docs/DATA_SOURCES.md` marks as needing one,
+  including the outlook maps harvested from the v1 reports, and a
+  contract test loads each one.
 - The replay corpus script fetches all four storms with matching
   checksums, and the committed subset is under its size budget.
 - `planning/` is current and the roadmodel updater's dry run shows this
@@ -607,6 +627,8 @@ backup, per `roadmodel score`.
   server proxied to FastAPI.
 - Frontend tests with Vitest and Testing Library; a Playwright smoke
   that loads the dashboard against replay data.
+- Dependabot gains the `npm` ecosystem for `frontend/` (Phase 1 left it
+  out until a manifest exists).
 
 **Acceptance criteria**
 - On a machine without Node, `pip install` of the built wheel then
@@ -1227,7 +1249,7 @@ issue on `main`. It has four checks; all must be clean:
 
 | Check                | What it catches                                   | Tooling in this project                                        |
 |----------------------|---------------------------------------------------|----------------------------------------------------------------|
-| Secret / personal-data scan | Committed credentials, tokens, keys, the operator's coordinates | `gitleaks`; `scripts/check_personal_data.py`, which reads a git-ignored local denylist of the operator's values and, in CI, a generic pattern set |
+| Secret / personal-data scan | Committed credentials, tokens, keys, the operator's coordinates | `gitleaks`; `scripts/check_personal_data.py`, which reads a local denylist of the operator's values kept outside the repository and, in CI, a generic pattern set |
 | SAST (static analysis) | Injection, unsafe deserialization, weak crypto, path traversal | `bandit` for Python; `eslint-plugin-security` for TypeScript from Phase 5 |
 | Dependency audit     | Known-vulnerable, yanked, or typo-squatted deps   | `pip-audit` over `uv.lock`; `npm audit --audit-level=high` from Phase 5; Dependabot weekly |
 | Sensitive-data review| Coordinates in logs, secrets in the client bundle, over-broad binds, missing redaction | Diff review against the data-classification table above       |
@@ -1382,7 +1404,7 @@ fire once (or a synthetic failure was injected to prove they do). Phases
 | Windows toast libraries churn                                        | One channel interface with a tested fallback; the library is a one-line swap                       |
 | Claude cost spikes during an active storm                            | Sonnet 5.5, prompt caching, a daily cap with a kill switch, the ledger in the UI                    |
 | Personal data leaks into the public repository                      | The personal-data check in the gate and CI, public-landmark coordinates in every example and test  |
-| The claude.ai Max weekly pool is exhausted when a session opens     | Every Settings table names GPT-6 Astra on Codex as the funded backup; sessions switch rather than wait |
+| The claude.ai Max weekly pool is exhausted when a session opens     | Every Settings table names a funded backup from another provider (GPT on Codex for a Claude pick, Claude on Claude Code for a GPT pick); sessions switch rather than wait |
 | Scope creep in Phase 7                                               | Each feature is its own step with its own PR; anything new goes to an issue for a later version    |
 | The frontend build becomes a maintenance burden                      | A single lock file, Dependabot, the build in CI on every PR, no server-side rendering               |
 | Replay corpus size strains the repository                            | A size budget set in Phase 1, a checksum-verified download script, CI cache for the rest           |
