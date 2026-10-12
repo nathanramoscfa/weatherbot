@@ -20,8 +20,9 @@ a register with no recorder.
 The phase lands in 7 layers:
 
 1. **Freeze v1 and move to `main`** — prove that PyPI's `weatherbot`
-   1.0.0 was built from commit `45623a1` by diffing the published sdist
-   against `git archive`, tag that commit `v1.0.0`, and record v1's
+   1.0.0 matches commit `5de67aa` by comparing the published sdist
+   against `git archive` (the approved `setup.cfg` formatting exception
+   is recorded in Step 1), tag that commit `v1.0.0`, and record v1's
    retirement in `CHANGELOG.md`; rename `master` to `main` on GitHub and
    locally; make merges squash-only with `delete_branch_on_merge`; and
    protect `main` (pull request required, linear history, no force pushes
@@ -610,9 +611,10 @@ Worktree rule permits no concurrent steps.
 
 > **Goal:** Preserve version 1 exactly as PyPI published it and put the
 > repository on the branch and rules every later step assumes. Prove that
-> PyPI's `weatherbot` 1.0.0 was built from `45623a1` by downloading the
+> PyPI's `weatherbot` 1.0.0 matches `5de67aa` by downloading the
 > published sdist (checksum-verified against PyPI's digest, never
-> installed) and diffing it against `git archive 45623a1`, then create the
+> installed) and comparing it against `git archive 5de67aa`, allowing
+> only the approved `setup.cfg` formatting difference, then create the
 > annotated tag `v1.0.0` on that commit and push it; add the v1 retirement
 > note to `CHANGELOG.md` and correct the 1.0.0 date to 2025-09-29; rename
 > `master` to `main` through GitHub's branch-rename API and in the local
