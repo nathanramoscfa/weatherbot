@@ -3140,8 +3140,18 @@ new per phase-boundary hygiene.
       shared query parameters; the User-Agent; the per-basin
       table; the text-product decision.
     - The gate's rule R3 checks every fixture manifest's
-      `url` against `scripts/public_landmarks.toml`;
-      pre-commit's `check-added-large-files` caps a file at
+      `url` against `scripts/public_landmarks.toml`. It
+      finds coordinates only in an NWS `/points/{lat},{lon}`
+      path, a `point` parameter, and `lat`/`lon` (or
+      `latitude`/`longitude`) parameters
+      (`request_coordinates` in
+      `scripts/check_personal_data.py`); if the recorder
+      sends a coordinate any other way (an ArcGIS point
+      `geometry`, say), extend that function and its tests
+      in this step's PR. R1 scans `.gz` captures
+      decompressed. A manifest is `manifest.json` or
+      `*-manifest.json` under `tests/fixtures/`.
+      Pre-commit's `check-added-large-files` caps a file at
       5120 KB; `.gitattributes` marks `tests/fixtures/**`
       `-text` and the whitespace hooks skip that tree, so a
       payload keeps its exact bytes on every platform.
@@ -4323,7 +4333,12 @@ phase-boundary hygiene.
       - `--security`: static checks + gitleaks (when
         installed; CI installs it), bandit, `audit_deps.py`,
         and `check_personal_data.py --all` (with `--ci` when
-        the `CI` variable is set) and `--self-test`.
+        the `CI` variable is set) and `--self-test`. Run
+        gitleaks over history (`gitleaks git --redact`, clean
+        because `.gitleaksignore` lists the two placeholder
+        keys in version 1's history), never `gitleaks dir .`,
+        which also reads the untracked `.venv` and v1 data
+        (151 hits on 2026-10-12).
       - `--all`: static + py + corpus + security.
       - `--post`: static checks + the V1-V7 matrix: the suites
         above; `gh` readbacks when `gh` is signed in (default
