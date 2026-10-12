@@ -1,67 +1,33 @@
+# pyproject.toml
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.12.15,<0.13"]
+build-backend = "uv_build"
 
 [project]
 name = "weatherbot"
-version = "1.0.0"
-description = "Local hurricane alert system with NHC cone tracking, NWS alerts, and AI-powered threat analysis"
-authors = [{name = "Nathan Ramos", email = "nathanramoscfa@gmail.com"}]
-maintainers = [{name = "Nathan Ramos", email = "nathanramoscfa@gmail.com"}]
+version = "2.0.0.dev0"
+description = "A personal hurricane-threat monitor built on official NHC and NWS products; informational only, never a substitute for official guidance."
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.11"
+license-files = ["LICENSE"]
+authors = [{ name = "Nathan Ramos", email = "nathanramoscfa@gmail.com" }]
+maintainers = [{ name = "Nathan Ramos", email = "nathanramoscfa@gmail.com" }]
+requires-python = ">=3.13"
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
     "Intended Audience :: End Users/Desktop",
-    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
-    "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Communications",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Atmospheric Science",
-    "Topic :: Home Automation",
-    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
-    "Environment :: Console",
-    "Natural Language :: English",
+    "Typing :: Typed",
 ]
-keywords = ["weather", "hurricane", "alerts", "notifications", "NHC", "NWS", "weatherbot", "AI", "NOAA", "tropical-storms", "emergency-alerts"]
-
-dependencies = [
-    "typer>=0.9.0",
-    "pydantic>=2.0.0",
-    "pydantic-settings>=2.0.0",
-    "requests>=2.31.0",
-    "shapely>=2.0.0",
-    "python-dotenv>=1.0.0",
-    "tenacity>=8.2.0",
-    "win11toast>=0.34",
-    "rich>=13.0.0",
-    "folium>=0.15.0",
-    "pillow>=10.0.0",
-    "matplotlib>=3.7.0",
-    "tkintermapview>=1.29",
-    "openai>=1.0.0",
-    "pandas>=2.0.0",
-    "beautifulsoup4>=4.12.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.4.0",
-    "pytest-cov>=4.0.0",
-    "black>=23.0.0",
-    "ruff>=0.1.0",
-    "pre-commit>=3.4.0",
-    "mypy>=1.5.0",
-    "bandit>=1.7.0",
-    "safety>=2.0.0",
-    "types-requests>=2.31.0",
-    "types-shapely>=2.0.0",
-]
+keywords = ["hurricane", "NHC", "NWS", "NOAA", "weather", "tropical-cyclone"]
+dependencies = ["typer>=0.27.3"]
 
 [project.scripts]
 weatherbot = "weatherbot.cli:app"
@@ -69,52 +35,100 @@ weatherbot = "weatherbot.cli:app"
 [project.urls]
 Homepage = "https://github.com/nathanramoscfa/weatherbot"
 Repository = "https://github.com/nathanramoscfa/weatherbot.git"
-Documentation = "https://github.com/nathanramoscfa/weatherbot/blob/master/README.md"
+Documentation = "https://github.com/nathanramoscfa/weatherbot/blob/main/README.md"
 "Bug Tracker" = "https://github.com/nathanramoscfa/weatherbot/issues"
-Changelog = "https://github.com/nathanramoscfa/weatherbot/blob/master/CHANGELOG.md"
+Changelog = "https://github.com/nathanramoscfa/weatherbot/blob/main/CHANGELOG.md"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.uv.build-backend]
+# The disclaimer ships in the sdist beside the README that links to it.
+source-include = ["DISCLAIMER.md"]
 
-[tool.setuptools.package-data]
-weatherbot = ["data/*", "icons/*"]
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "import-linter>=2.15",
+    "pyright>=1.1.414",
+    "pytest>=9.1.1",
+    "pytest-socket>=0.8.1",
+    "respx>=0.23.1",
+    "ruff>=0.17.0",
+]
+# roadmodel is the planning tool behind docs/roadmap/ (ROADMAP.md and
+# phaseNN-roadmap.md); it is not an application dependency. pip is here
+# because the roadmodel updater upgrades roadmodel with `.venv`'s
+# `python -m pip`, and a uv-created environment has no pip of its own; as
+# a group member it survives `uv sync`.
+planning = [
+    "pip>=26.2.1",
+    "roadmodel>=0.2.80",
+]
 
-[tool.black]
-line-length = 80
-target-version = ['py311']
+[tool.uv]
+default-groups = ["dev", "planning"]
 
 [tool.ruff]
-line-length = 80
-target-version = "py311"
+target-version = "py313"
+line-length = 100
+src = ["src", "tests", "scripts"]
+# planning/ is the roadmodel kit export, rewritten by the updater; it is not project code.
+extend-exclude = ["planning"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "ICN", "PIE", "T20", "RET", "SIM", "ARG", "PTH", "PL", "RUF"]
-ignore = ["S101", "PLR0913", "PLR2004"]
+select = ["ALL"]
+ignore = [
+    "COM812", # conflicts with `ruff format` (missing trailing comma)
+    "ISC001", # conflicts with `ruff format` (implicit string concatenation)
+    "CPY001", # no per-file copyright notice: line 1 is the repo-relative path comment and LICENSE is the notice
+]
 
-[tool.mypy]
-python_version = "3.11"
-warn_return_any = false
-warn_unused_configs = true
-disallow_untyped_defs = false
-ignore_missing_imports = true
-show_error_codes = true
-disable_error_code = ["union-attr", "arg-type", "assignment", "attr-defined", "return-value", "call-arg", "var-annotated", "valid-type", "dict-item", "type-var"]
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101", # pytest tests are written with bare assert
+    "D103", # a test function's name states what it checks; a docstring would repeat it
+]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+include = ["src", "tests", "scripts"]
+venvPath = "."
+venv = ".venv"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = [
-    "--strict-markers",
-    "--strict-config",
-    "--verbose",
-]
+# `--allow-hosts`, not `--disable-socket`: asyncio on Windows opens a loopback
+# socket pair that `--disable-socket` would block. Selecting `-m live` does
+# not lift the guard, so every `live` test also carries pytest-socket's
+# `enable_socket` marker.
+addopts = "-ra --strict-markers --strict-config --allow-hosts=127.0.0.1,::1 -m 'not live and not corpus'"
+filterwarnings = ["error"]
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
+    "live: calls real services; run deliberately with `-m live`",
+    "corpus: needs the replay-corpus cache (scripts/fetch_replay_corpus.py)",
 ]
 
-[tool.bandit]
-exclude_dirs = ["tests", "build", "dist"]
-skips = ["B101", "B601"]  # Skip assert_used and shell_injection_subprocess
+[tool.importlinter]
+root_package = "weatherbot"
+
+[[tool.importlinter.contracts]]
+name = "The engine imports no other layer"
+type = "forbidden"
+source_modules = ["weatherbot.engine"]
+forbidden_modules = [
+    "weatherbot.sources",
+    "weatherbot.services",
+    "weatherbot.cli",
+    "weatherbot.web",
+]
+
+[[tool.importlinter.contracts]]
+name = "Layers import downward only"
+type = "layers"
+layers = [
+    "weatherbot.cli | weatherbot.web",
+    "weatherbot.services",
+    "weatherbot.sources | weatherbot.engine",
+]

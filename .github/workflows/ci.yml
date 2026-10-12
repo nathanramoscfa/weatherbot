@@ -1,65 +1,178 @@
-name: CI
+# .github/workflows/ci.yml
+# Continuous integration for weatherbot 2. The repository is public, so every
+# job runs on GitHub-hosted runners; never point this workflow at a
+# self-hosted runner. The aggregate `gate` job is the single required status
+# check on `main`.
+#
+# Trust boundary rules (docs/roadmap/ROADMAP.md, "Per-step security gate"):
+#   - every third-party action is pinned to a full commit SHA;
+#   - the workflow declares least-privilege `permissions:`;
+#   - no repository secret is exposed to pull-request-triggered runs, and the
+#     workflow never uses `pull_request_target`.
+name: ci
 
 on:
   push:
-    branches: [ master, main, develop ]
+    branches: [main]
   pull_request:
-    branches: [ master, main, develop ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Fail any uv command that would change uv.lock instead of silently
+  # re-resolving it.
+  UV_LOCKED: "1"
+  UV_LINK_MODE: copy
 
 jobs:
-  test:
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
-
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
-    
-    - name: Lint with ruff
-      run: |
-        ruff check src/ tests/ --ignore E501,PLC0415,ARG001,ARG002,ARG005,RUF001,RUF059,SIM117,S108,PTH123,F841,PLW2901,S324,S112,B904,PLR0912,PLR0915,PLR0911,SIM102,RUF012,E722,S110,S306,PLR0917,ICN001
-    
-    - name: Type check with mypy
-      run: |
-        mypy src/weatherbot
-    
-    - name: Security scan with bandit
-      run: |
-        echo "Running bandit security scan..."
-        # Generate JSON report (ignore exit code for low-severity issues)
-        bandit -r src/weatherbot -f json -o bandit-report.json --severity-level medium || true
-        # Run bandit with console output (only fail on medium/high severity)
-        bandit -r src/weatherbot --severity-level medium || echo "Bandit scan completed (only low-severity issues found)"
-    
-    - name: Check dependencies for vulnerabilities
-      env:
-        SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
-      run: |
-        echo "Running dependency vulnerability scan with Safety CLI..."
-        # Use the modern safety scan command with API key authentication
-        safety scan --save-as json safety-report.json || echo "Safety JSON report generation completed"
-        echo "Checking for dependency vulnerabilities..."
-        safety scan --output screen || echo "Safety scan completed (no critical vulnerabilities found)"
-    
-    - name: Test with pytest
-      run: |
-        pytest tests/ --cov=weatherbot --cov-report=xml
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install (locked)
+        run: uv sync --locked
+
+      - name: Ruff lint
+        run: uv run ruff check
+
+      - name: Ruff format
+        run: uv run ruff format --check
+
+      - name: Import contracts
+        run: uv run lint-imports
+
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install (locked)
+        run: uv sync --locked
+
+      - name: Pyright (strict)
+        run: uv run pyright
+
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install (locked)
+        run: uv sync --locked
+
+      - name: Pytest
+        run: uv run pytest
+
+  package:
+    name: package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Build the sdist and the wheel
+        run: uv build
+
+      - name: The sdist carries the disclaimer
+        run: |
+          shopt -s nullglob
+          sdists=(dist/*.tar.gz)
+          test "${#sdists[@]}" -eq 1
+          tar -tzf "${sdists[0]}" | grep -E '/DISCLAIMER\.md$'
+
+      - name: Install the wheel into a fresh environment and run it
+        run: |
+          shopt -s nullglob
+          wheels=(dist/*.whl)
+          test "${#wheels[@]}" -eq 1
+          smoke="$RUNNER_TEMP/smoke"
+          uv venv "$smoke"
+          if [ "$RUNNER_OS" = "Windows" ]; then bindir="$smoke/Scripts"; else bindir="$smoke/bin"; fi
+          uv pip install --python "$smoke" "${wheels[0]}"
+          expected="$(uv version --short | tr -d '\r')"
+          actual="$("$bindir/weatherbot" --version | tr -d '\r')"
+          echo "project version: $expected"
+          echo "installed weatherbot --version: $actual"
+          test "$expected" = "$actual"
+
+  gate:
+    name: gate
+    if: ${{ always() }}
+    needs: [lint, typecheck, test, package]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every job to succeed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+          EXPECTED_JOBS: "4"
+        run: |
+          set -eu
+          count=0
+          for result in $RESULTS; do
+            count=$((count + 1))
+            if [ "$result" != "success" ]; then
+              echo "A required job finished as: $result"
+              exit 1
+            fi
+          done
+          if [ "$count" -ne "$EXPECTED_JOBS" ]; then
+            echo "Expected $EXPECTED_JOBS job results, saw $count"
+            exit 1
+          fi
+          echo "All $count jobs succeeded"
