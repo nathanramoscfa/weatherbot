@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Version 1 is retired; it remains installable with
+  `pip install weatherbot==1.0.0`, and its source is preserved at the
+  `v1.0.0` tag. Version 2 is a from-scratch rewrite specified in
+  [the v2 brief](docs/brief/weatherbot-v2-brief.md).
+
+## [1.0.0] - 2025-09-29
+
 ### Added
 - Comprehensive documentation suite
 - API reference documentation
@@ -33,8 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 1 Dependency vulnerability (outdated pip)
 - **CI/CD Security**: Automated security scanning on every commit
 - **Security Documentation**: Comprehensive security guidelines added
-
-## [1.0.0] - 2024-01-15
 
 ### Added
 - Initial release of Weatherbot

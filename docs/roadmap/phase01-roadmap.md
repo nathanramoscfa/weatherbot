@@ -968,6 +968,14 @@ Medium work. The conversation is new per phase-boundary hygiene.
       `README.md`, `LICENSE`, `DISCLAIMER.md`,
       `MANIFEST.in`), ignoring generated metadata (`PKG-INFO`,
       `*.egg-info/`, `setup.cfg`'s `[egg_info]` tag block).
+      The operator approved on 2026-10-12 comparing `setup.cfg`
+      by parsed section/key/value equality after removing that
+      block: setuptools reserialized its indentation and
+      whitespace. Every other compared file must match bytes.
+      The verified release source is
+      `5de67aa1ad7883243af65d4f4f713d78ce02f791`, the parent of
+      `45623a1`; the latter's CLI whitespace cleanup is absent
+      from the sdist. Tag the verified parent, not `45623a1`.
       Never `pip download` or `pip install` the sdist:
       building its metadata would run its code. If a
       non-generated file differs, compare the neighbouring
@@ -1083,7 +1091,9 @@ Medium work. The conversation is new per phase-boundary hygiene.
 
 - The PR body records the sdist comparison: PyPI's SHA-256 digest
   verified, and no non-generated file differs between
-  `weatherbot-1.0.0.tar.gz` and the tagged commit.
+  `weatherbot-1.0.0.tar.gz` and the tagged commit, allowing only the
+  operator-approved `setup.cfg` serialization difference described in
+  this step's task (parsed configuration values must match).
 - `git ls-remote --tags origin` lists `v1.0.0` as an annotated tag that
   peels to `45623a17ef3c6c3f96395f35ad211c7054c5cbbb`, or to the commit
   the comparison proved, named in the PR body.

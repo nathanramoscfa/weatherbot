@@ -6,7 +6,7 @@ web app that decide a five-level threat for named locations from official
 National Hurricane Center (NHC) and National Weather Service (NWS)
 products, notify on change, keep history, and use Claude to explain the
 situation in plain language. Version 2 is a from-scratch rewrite planned
-in October 2026. Until the Phase 1 scaffold lands, the code on `master`
+in October 2026. Until the Phase 1 scaffold lands, the code on `main`
 is version 1: reference material and a source of recorded fixtures, never
 a base to extend.
 
@@ -51,7 +51,7 @@ a base to extend.
   data.
 - **CI runs on GitHub-hosted runners.** The repository is public; never
   point a workflow at a self-hosted runner.
-- **One step, one session, one branch, one PR.** The roadmap on `master`
+- **One step, one session, one branch, one PR.** The roadmap on `main`
   is the ledger; a step's own PR flips its Status line. Conventional
   Commits on every commit.
 - **Disclaimer on every assessment surface.** Weatherbot is informational
