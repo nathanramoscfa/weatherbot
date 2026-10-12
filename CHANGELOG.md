@@ -7,11 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The version 2 scaffold (2.0.0.dev0): a uv project on Python 3.13 with a
+  `uv_build` backend and a committed `uv.lock`; the `src/weatherbot/`
+  package skeleton with the `sources`, `engine`, `services`, `cli`, and
+  `web` layers and a `weatherbot --version` command; import-linter layer
+  contracts and a test that bans I/O libraries from the engine; strict ruff
+  and pyright; pytest with a network guard and a temporary working
+  directory for every test; and a CI workflow on Ubuntu and Windows whose
+  aggregate `gate` job is the required check on `main`.
+
 ### Changed
 - Version 1 is retired; it remains installable with
   `pip install weatherbot==1.0.0`, and its source is preserved at the
   `v1.0.0` tag. Version 2 is a from-scratch rewrite specified in
   [the v2 brief](docs/brief/weatherbot-v2-brief.md).
+- `README.md`, `CONTRIBUTING.md`, and `AGENTS.md` describe version 2.
+
+### Removed
+- Version 1's code, tests, documentation, scripts, and packaging
+  (setuptools metadata, Makefile, and v1's CI workflow, including its
+  Safety scan and the `SAFETY_API_KEY` secret). The v1 default coverage
+  polygon and `env.example` leave the tree with them.
 
 ## [1.0.0] - 2025-09-29
 

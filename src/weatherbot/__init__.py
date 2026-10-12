@@ -1,6 +1,11 @@
 # src/weatherbot/__init__.py
-"""Weatherbot: Local hurricane alert system."""
+"""Weatherbot: a personal hurricane-threat monitor built on official NHC and NWS products.
 
-__version__ = "1.0.0"
-__author__ = "Weather Alert System"
-__email__ = "alerts@example.com"
+Weatherbot is informational only and is never a substitute for official guidance.
+"""
+
+from importlib.metadata import version
+
+__version__ = version("weatherbot")
+
+__all__ = ["__version__"]

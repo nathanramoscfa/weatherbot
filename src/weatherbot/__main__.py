@@ -1,7 +1,7 @@
 # src/weatherbot/__main__.py
-"""CLI entry point for Weatherbot."""
+"""Run the command-line interface with ``python -m weatherbot``."""
 
-from .cli import app
+from weatherbot.cli import app
 
 if __name__ == "__main__":
-    app()
+    app(prog_name="weatherbot")

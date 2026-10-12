@@ -1,131 +1,64 @@
-# E:\Code\Python\weatherbot\CONTRIBUTING.md
 # Contributing to Weatherbot
 
-Thank you for your interest in contributing to Weatherbot! This document
-provides guidelines and information for contributors.
+Weatherbot is a personal hurricane-threat monitor and a public repository.
+Version 2 is being built phase by phase from
+[the project roadmap](docs/roadmap/ROADMAP.md); read
+[AGENTS.md](AGENTS.md) for the rules that apply to every change, whether a
+person or an AI coding agent makes it.
 
-## Development Setup
+## Setup
 
-1. **Fork and clone the repository**:
-   ```bash
-   git clone https://github.com/nathanramoscfa/weatherbot.git
-   cd weatherbot
-   ```
+Weatherbot uses [uv](https://docs.astral.sh/uv/) and Python 3.13.
 
-2. **Create a virtual environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install development dependencies**:
-   ```bash
-   pip install -e .[dev]
-   ```
-
-4. **Install pre-commit hooks**:
-   ```bash
-   pre-commit install
-   ```
-
-## Code Style
-
-This project follows PEP 8 and uses several tools to maintain code quality:
-
-- **Black**: Code formatting
-- **Ruff**: Linting and import sorting
-- **MyPy**: Type checking
-- **Pre-commit**: Automated checks
-
-### Running Quality Checks
-
-```bash
-# Format code
-black src/ tests/
-
-# Lint code
-ruff check src/ tests/
-
-# Type check
-mypy src/weatherbot
-
-# Run all checks
-make format
-make lint
+```sh
+git clone https://github.com/nathanramoscfa/weatherbot.git
+cd weatherbot
+uv sync                      # creates .venv from uv.lock (and installs Python 3.13 if needed)
+uv run weatherbot --version  # prints 2.0.0.dev0
 ```
 
-## Testing
+`uv sync` installs the `dev` and `planning` dependency groups by default.
+The `planning` group holds roadmodel, the tool behind `docs/roadmap/`; it is
+not an application dependency.
 
-### Running Tests
+## The checks
 
-```bash
-# Run all tests
-pytest
+Run these before every commit; CI runs them on Ubuntu and Windows and rolls
+them into the required `gate` check.
 
-# Run with coverage
-pytest --cov=weatherbot
-
-# Run specific test file
-pytest tests/test_specific.py
+```sh
+uv run ruff check          # lint, every rule family selected
+uv run ruff format --check # formatting (use `uv run ruff format` to fix)
+uv run pyright             # strict type checking
+uv run lint-imports        # layer contracts (see AGENTS.md)
+uv run pytest              # tests: no network, each in a temporary directory
 ```
 
-### Writing Tests
+The test suite blocks all network access except loopback, and every test
+runs in a temporary working directory, so a test can never read or write the
+repository through a relative path. A test that must reach a real service is
+marked `live`, also carries `@pytest.mark.enable_socket`, and runs only on
+request with `pytest -m live`.
 
-- Place tests in the `tests/` directory
-- Use descriptive test names starting with `test_`
-- Follow the AAA pattern: Arrange, Act, Assert
-- Use fixtures for common setup
+A pre-commit hook with the project's security gate (secret scan, personal
+data check, static analysis, dependency audit) arrives in Phase 1 Step 3.
+Until then, run `gitleaks git --pre-commit --staged --redact` before each
+commit. Never commit credentials, tokens, or anyone's real coordinates:
+examples use public landmarks.
 
-## Pull Request Process
+## One step, one branch, one pull request
 
-1. **Create a feature branch**:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+Work follows the phase roadmaps in `docs/roadmap/`:
 
-2. **Make your changes** following the coding standards
+1. Cut a branch from an up-to-date `main`: `feature/phase01-step2-uv-scaffold`
+   names the step it implements.
+2. Commit with [Conventional Commits](https://www.conventionalcommits.org/)
+   (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, ...).
+3. Open a pull request against `main`. `main` is protected: it takes
+   squash merges only, through a pull request, once the required checks pass.
+4. One step per pull request; never bundle two.
 
-3. **Add tests** for new functionality
+## Reporting issues
 
-4. **Update documentation** if needed
-
-5. **Run all checks**:
-   ```bash
-   make test
-   make lint
-   make format
-   ```
-
-6. **Commit your changes**:
-   ```bash
-   git add .
-   git commit -m "Add: brief description of changes"
-   ```
-
-7. **Push and create a pull request**
-
-## Commit Message Format
-
-Use conventional commit format:
-
-- `feat:` New features
-- `fix:` Bug fixes
-- `docs:` Documentation changes
-- `style:` Code style changes
-- `refactor:` Code refactoring
-- `test:` Test additions/changes
-- `chore:` Maintenance tasks
-
-## Reporting Issues
-
-When reporting issues, please include:
-
-- Python version
-- Operating system
-- Steps to reproduce
-- Expected vs actual behavior
-- Error messages/logs
-
-## Code of Conduct
-
-Please be respectful and constructive in all interactions.
+Include your Python version, operating system, the steps to reproduce, and
+the expected and actual behavior. Do not include real locations or API keys.

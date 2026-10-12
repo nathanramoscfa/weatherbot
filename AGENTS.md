@@ -6,9 +6,10 @@ web app that decide a five-level threat for named locations from official
 National Hurricane Center (NHC) and National Weather Service (NWS)
 products, notify on change, keep history, and use Claude to explain the
 situation in plain language. Version 2 is a from-scratch rewrite planned
-in October 2026. Until the Phase 1 scaffold lands, the code on `main`
-is version 1: reference material and a source of recorded fixtures, never
-a base to extend.
+in October 2026. Version 1 is retired and readable only at the `v1.0.0`
+tag: reference material and a source of recorded fixtures, never a base
+to extend. `main` holds the version 2 scaffold (Python 3.13, uv), which
+later phases fill in.
 
 ## Where the plan lives
 
@@ -26,15 +27,58 @@ a base to extend.
   model for a step, run `planning/model-selector.txt` yourself against
   `planning/user-context.md`; do not call an external API or MCP tool
   (`planning/HOW-TO-USE.md`, "you are the engine"). `planning/user-
-  context.md` is personal and git-ignored. The roadmodel updater
-  (`/roadmodel-upgrade`, run daily on the maintainer's machine) keeps the
-  kit current. Until Phase 1 creates the project's own `.venv`, the
-  updater upgrades roadmodel in the registered external environment named
-  by the project's line in `~/.config/roadmodel/projects.txt`; Phase 1
-  moves roadmodel into a `planning` dependency group in `.venv` and drops
-  that override. A step that finds a kit refresh uncommitted commits it
-  first, on its own, as `chore(planning): refresh the roadmodel kit to
-  <version>`.
+  context.md` is personal and git-ignored. roadmodel lives in the
+  `planning` dependency group in `.venv`. The roadmodel updater
+  (`/roadmodel-upgrade`, run daily on the maintainer's machine) upgrades
+  it there with pip and re-exports `planning/`, but `uv sync` and every
+  `uv run` put `.venv` back on the release `uv.lock` pins. So a step that
+  finds a kit refresh uncommitted commits it first, on its own, together
+  with the matching lock bump (`uv lock --upgrade-package
+  roadmodel==<release>`), as `chore(planning): refresh the roadmodel kit
+  to <release>`, taking the release from the latest `[weatherbot] <old> ->
+  <new>` line of `~/.config/roadmodel/update.log` rather than from a
+  `roadmodel` on `PATH`, which is a separate install.
+
+## Layers and commands
+
+One package, `src/weatherbot/`, with five layers (brief §6). Each layer's
+`__init__.py` states its rule; `import-linter` contracts in
+`pyproject.toml` and `tests/test_architecture.py` enforce them.
+
+- `sources/` — async HTTP clients, one per official feed. Sources fetch,
+  validate, and return typed models with provenance; they never interpret.
+- `engine/` — pure functions from a snapshot and a location to an
+  assessment. The engine imports nothing from the other layers and no I/O
+  library (HTTP, sockets, databases, web frameworks, the Anthropic SDK, or
+  schedulers); it is deterministic and tested with recorded and replayed
+  data.
+- `services/` — time, state, and side effects: scheduling, change
+  detection, notification, persistence, and the Claude integration.
+- `cli/` — Typer commands over the services.
+- `web/` — the FastAPI app over the same services.
+
+Imports run downward only: `cli` and `web` may import `services`;
+`services` may import `sources` and `engine`; `sources` and `engine` are
+independent siblings and import neither each other nor anything above. The
+typed domain models that sources and the engine share get their own
+package, `weatherbot.models`, which Phase 2 creates and adds to the
+contracts as the lowest layer.
+
+```sh
+uv sync                      # create .venv from the lock (dev and planning groups)
+uv run weatherbot --version  # prints the version
+uv run ruff check            # lint (select = ALL; every ignore states its reason)
+uv run ruff format --check   # formatting
+uv run pyright               # strict type checking
+uv run lint-imports          # layer contracts
+uv run pytest                # tests: loopback-only sockets, temporary working directory
+```
+
+Tests that call real services carry `@pytest.mark.live` and
+`@pytest.mark.enable_socket` and run only with `pytest -m live`. Never run
+anything from the repository root that writes through a relative path;
+the test suite's working-directory guard exists because that is how
+version 1's recorded responses were lost.
 
 ## Rules that apply to every step
 
