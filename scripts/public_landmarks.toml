@@ -1,0 +1,21 @@
+# scripts/public_landmarks.toml
+# The public landmarks every request, test, document, and example may use in
+# place of a real location. scripts/check_personal_data.py allows a coordinate
+# only when it equals one of these to three decimals (rules R2 and R3), so
+# anything else that looks like a coordinate fails the security gate.
+#
+# Each entry: `name`; `lat` and `lon` to four decimals, the centroid
+# OpenStreetMap's Nominatim reports for the object, read 2026-10-12; and
+# `source`, the OpenStreetMap object the coordinates were read from.
+
+[landmarks.miami-dade]
+name = "Miami-Dade County Hall (Stephen P. Clark Government Center), 111 NW 1st Street, Miami"
+lat = 25.7757
+lon = -80.1966
+source = "https://www.openstreetmap.org/relation/21170654"
+
+[landmarks.nassau]
+name = "Parliament Square, Nassau, New Providence"
+lat = 25.0778
+lon = -77.3405
+source = "https://www.openstreetmap.org/relation/14900727"
