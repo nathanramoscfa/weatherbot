@@ -140,9 +140,9 @@ These gaps drive the phase ordering below.
   corpus, and their tests need a home and a test runner, and v1's tree
   cannot host them without extending v1.
 - **Default branch renamed to `main`.** The brief's D9 keeps `master`.
-  Phase 1 renames it so the step lifecycle and every `/roadmap-*`
-  command, which name `main`, apply without translation. Until that
-  step merges, `master` is the ledger.
+  Phase 1 Step 1 renamed it on 2026-10-12 so the step lifecycle and every
+  `/roadmap-*` command, which name `main`, apply without translation.
+  Before that rename, `master` was the ledger.
 - **The v1 cache responses are lost.** The brief's §1 lists the 38
   responses in `cache/` as fixtures to harvest. They were deleted on
   2026-10-11, before any harvest, when the planning session ran the v1
@@ -203,7 +203,7 @@ optional LAN mode in Phase 8 is the only widening, and it is gated.
 
 ### Phase 1 — Foundation and discovery
 
-**Status:** Not started
+**Status:** In progress — phase01-roadmap.md
 
 **Goal:** Replace v1 with a green, strictly gated uv project on Python
 3.13 whose tests already replay real NOAA payloads, with v1 preserved
@@ -905,10 +905,9 @@ Phase 1 ──▶ Phase 2 ──▶ Phase 3 ──▶ Phase 4 ──▶ Phase 5 
 
 #### Branching model
 
-`main` is the single source of truth (renamed from `master` in Phase
-1.1; until that step merges, read `master` wherever this document says
-`main`). All work happens on short-lived branches (≤ 1 week) that merge
-into `main` via pull request. `main` must always be:
+`main` is the single source of truth (renamed from `master` in Phase 1
+Step 1 on 2026-10-12). All work happens on short-lived branches (≤ 1 week)
+that merge into `main` via pull request. `main` must always be:
 
 - Green on CI.
 - Installable: `uv sync` and `uv run weatherbot --version` succeed on a
@@ -1460,7 +1459,7 @@ The following are deliberately deferred to a future version:
 
 | Phase | Description                                   | Complexity | Status      |
 |-------|-----------------------------------------------|------------|-------------|
-| 1     | Foundation and discovery                      | Medium     | Not started |
+| 1     | Foundation and discovery                      | Medium     | In progress |
 | 2     | Sources and persistence                       | Medium     | Not started |
 | 3     | Threat engine                                 | High       | Not started |
 | 4     | Monitoring and notifications                  | Medium     | Not started |
