@@ -23,8 +23,9 @@ not an application dependency.
 
 ## The checks
 
-Run these before every commit; CI runs them on Ubuntu and Windows and rolls
-them into the required `gate` check.
+The pre-commit hook runs these before every commit (see "Security gate"
+below); CI runs them on Ubuntu and Windows and rolls them into the required
+`gate` check.
 
 ```sh
 uv run ruff check          # lint, every rule family selected
@@ -40,11 +41,66 @@ repository through a relative path. A test that must reach a real service is
 marked `live`, also carries `@pytest.mark.enable_socket`, and runs only on
 request with `pytest -m live`.
 
-A pre-commit hook with the project's security gate (secret scan, personal
-data check, static analysis, dependency audit) arrives in Phase 1 Step 3.
-Until then, run `gitleaks git --pre-commit --staged --redact` before each
-commit. Never commit credentials, tokens, or anyone's real coordinates:
-examples use public landmarks.
+## Security gate
+
+Every commit passes the project's fail-closed security gate
+([the roadmap](docs/roadmap/ROADMAP.md), "Per-step security gate"). The
+pre-commit hook runs it before each commit, and CI's `security` job runs it
+again inside the required `gate` check, so a skipped hook cannot land a
+finding on `main`. Any finding blocks the commit.
+
+| Check | What it catches | Before each commit (pre-commit) | In CI (`security` job) |
+| --- | --- | --- | --- |
+| Secret scan | Credentials, keys, tokens | gitleaks on the staged changes | gitleaks over the pull request's or the push's commits, redacted |
+| Personal-data check | Your own values from the denylist, any coordinate that is not a public landmark, a tracked `.env` file | `scripts/check_personal_data.py` on the staged files, with your denylist | `check_personal_data.py --all --ci` and `--self-test --ci` (CI has no denylist) |
+| SAST | Injection, unsafe deserialization, weak crypto, path traversal | bandit over `src` and `scripts` | The same |
+| Dependency audit | Known-vulnerable or yanked packages | `scripts/audit_deps.py` (pip-audit `--strict` over `uv.lock`) when `uv.lock` or `pyproject.toml` changes | On every run |
+
+The hook also runs ruff, ruff format, pyright, the import contracts, and
+hygiene checks: trailing whitespace, final newlines, YAML and TOML syntax,
+merge-conflict markers, private keys, files over 5 MB, and no commit on
+`main`.
+
+### Set up once per clone
+
+```sh
+uv run pre-commit install                                          # run the gate before every commit
+uv run python scripts/check_personal_data.py --init-from-env .env  # create your denylist; prints a count only
+uv run python scripts/check_personal_data.py --self-test           # prove every rule fires
+uv run pre-commit run --all-files                                  # run the whole gate by hand
+```
+
+The personal-data check reads a denylist of your own values (your
+coordinates, and anything else you add) kept outside the repository, so every
+worktree shares it and no commit can carry it:
+`%APPDATA%\weatherbot\personal-denylist.txt` on Windows,
+`${XDG_CONFIG_HOME:-~/.config}/weatherbot/personal-denylist.txt` elsewhere, or
+the path in `WEATHERBOT_DENYLIST`. `--init-from-env` reads `HOME_LAT` and
+`HOME_LON` from a dotenv file and writes the pair at two to six decimals in
+both orders, plus the values as written; `--add` appends one more value read
+from standard input without echoing it. Without a denylist the hook fails
+closed and prints these instructions. Never paste a denylist value into an
+issue, a pull request, or an AI conversation.
+
+Coordinates in tracked files, requests, fixtures, and examples must be the
+public landmarks in `scripts/public_landmarks.toml` (Miami-Dade County Hall
+and Parliament Square, Nassau). Any other coordinate fails the check. The
+NOAA payload trees, `tests/fixtures/recorded/` and `tests/fixtures/replay/`,
+are exempt from the general coordinate rule because storm geometry is full
+of coordinates, but the denylist still covers them and every recorded
+request URL must use a landmark. The checker's output names the file, the
+line, and the rule, never the matched text.
+
+Hook repositories are pinned to full commit SHAs. Refresh them with
+`uv run pre-commit autoupdate --freeze` (Dependabot proposes the same
+updates weekly), and keep gitleaks at the version CI downloads (see the
+comment in `.pre-commit-config.yaml`).
+
+### Bypassing the hook
+
+`git commit --no-verify` skips the hook. Use it only in a genuine emergency,
+and record every use in the pull request body with its justification. CI
+re-runs the gate regardless, so a bypassed finding still blocks the merge.
 
 ## One step, one branch, one pull request
 

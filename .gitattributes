@@ -1,0 +1,6 @@
+# .gitattributes
+# NOAA payloads under tests/fixtures/ must keep the exact bytes NOAA sent
+# (Step 5's contract tests compare each file's SHA-256), so Git never
+# converts their line endings, on any platform or checkout. There is
+# deliberately no global `* text=auto eol=lf`: it would rewrite the payloads.
+tests/fixtures/** -text

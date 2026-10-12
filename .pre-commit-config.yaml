@@ -1,0 +1,102 @@
+# .pre-commit-config.yaml
+# The fail-closed local security gate (docs/roadmap/ROADMAP.md, "Per-step
+# security gate"), run before every commit: the secret scan (gitleaks), the
+# personal-data check, SAST (bandit), and the dependency audit (pip-audit),
+# with ruff, ruff format, pyright, the import contracts, and the hygiene
+# hooks. CI (.github/workflows/ci.yml: jobs `lint`, `typecheck`, and
+# `security`) re-runs the same checks, so a skipped hook cannot land an issue
+# on `main`. CONTRIBUTING.md, "Security gate", is the guide.
+#
+#   uv run pre-commit install             # once per clone
+#   uv run pre-commit run --all-files     # every check, on every file
+#
+# Each hook repository is pinned to a full commit SHA, its version in the
+# trailing comment. Refresh with `uv run pre-commit autoupdate --freeze`;
+# Dependabot's `pre-commit` ecosystem proposes the same updates weekly. Local
+# hooks run through `uv run`, so they use the versions uv.lock pins.
+#
+# tests/fixtures/ holds NOAA payloads that must stay byte-exact (Step 5's
+# contract tests compare each file's SHA-256 with the bytes NOAA sent), so
+# the whitespace and end-of-file fixers skip that tree and .gitattributes
+# marks it -text. The read-only hooks (gitleaks, detect-private-key,
+# check-added-large-files, and the personal-data check) still cover it.
+minimum_pre_commit_version: "4.0.0"
+default_stages: [pre-commit]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+        exclude: ^tests/fixtures/
+      - id: end-of-file-fixer
+        exclude: ^tests/fixtures/
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: [--maxkb=5120]
+      - id: no-commit-to-branch
+        args: [--branch, main]
+
+  # v8.30.1, the version CI downloads, is pinned by hand: its tag sits off
+  # gitleaks' default branch, so `autoupdate` would settle on v8.30.0.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e  # frozen: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: personal-data
+        name: personal-data check (staged files; never prints a match)
+        entry: uv run python scripts/check_personal_data.py
+        language: system
+
+      - id: bandit
+        name: bandit (SAST over src and scripts)
+        entry: uv run bandit -c pyproject.toml -q -r src scripts
+        language: system
+        types_or: [python, toml]
+        pass_filenames: false
+        require_serial: true
+
+      - id: pip-audit
+        name: pip-audit --strict over uv.lock
+        entry: uv run python scripts/audit_deps.py
+        language: system
+        files: ^(uv\.lock|pyproject\.toml)$
+        pass_filenames: false
+        require_serial: true
+
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+
+      - id: ruff-format
+        name: ruff format --check
+        entry: uv run ruff format --check --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+
+      - id: pyright
+        name: pyright (strict)
+        entry: uv run pyright
+        language: system
+        types_or: [python, pyi, toml]
+        pass_filenames: false
+        require_serial: true
+
+      - id: lint-imports
+        name: import contracts (lint-imports)
+        entry: uv run lint-imports
+        language: system
+        types_or: [python, toml]
+        pass_filenames: false
+        require_serial: true

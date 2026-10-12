@@ -45,8 +45,11 @@ source-include = ["DISCLAIMER.md"]
 
 [dependency-groups]
 dev = [
+    "bandit>=1.9.4",
     "httpx>=0.28.1",
     "import-linter>=2.15",
+    "pip-audit>=2.10.1",
+    "pre-commit>=4.6.2",
     "pyright>=1.1.414",
     "pytest>=9.1.1",
     "pytest-socket>=0.8.1",
@@ -88,17 +91,32 @@ convention = "google"
 "tests/**" = [
     "S101", # pytest tests are written with bare assert
     "D103", # a test function's name states what it checks; a docstring would repeat it
+    "INP001", # pytest collects tests by path from the rootdir; test directories are not packages
+]
+"scripts/**" = [
+    "T201", # the development scripts are command-line programs; printing is their interface
 ]
 
 [tool.pyright]
 typeCheckingMode = "strict"
 pythonVersion = "3.13"
 include = ["src", "tests", "scripts"]
+# tests/scripts/ import the development scripts as top-level modules.
+extraPaths = ["scripts"]
 venvPath = "."
 venv = ".venv"
 
+[tool.bandit]
+# SAST covers the package and the development scripts: the pre-commit hook and
+# CI both run `bandit -c pyproject.toml -r src scripts` (bandit takes its
+# targets from the command line only). Tests are out of scope by path, never
+# by skipping a rule globally; ruff's flake8-bandit rules (S) still cover them.
+exclude_dirs = ["tests", ".venv", ".worktrees"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# tests/scripts/ import the development scripts as top-level modules.
+pythonpath = ["scripts"]
 # `--allow-hosts`, not `--disable-socket`: asyncio on Windows opens a loopback
 # socket pair that `--disable-socket` would block. Selecting `-m live` does
 # not lift the guard, so every `live` test also carries pytest-socket's

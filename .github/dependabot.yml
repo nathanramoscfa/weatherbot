@@ -1,0 +1,37 @@
+# .github/dependabot.yml
+# Weekly dependency update pull requests: Python (uv.lock), the SHA-pinned
+# GitHub Actions, and the SHA-pinned pre-commit hook repositories. Minor and
+# patch updates are grouped into one pull request per ecosystem; major
+# updates arrive one by one. npm joins when frontend/ exists (Phase 5): an
+# entry with no manifest fails every run.
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      python-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      pre-commit-minor-and-patch:
+        update-types: [minor, patch]

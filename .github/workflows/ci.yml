@@ -150,17 +150,100 @@ jobs:
           echo "installed weatherbot --version: $actual"
           test "$expected" = "$actual"
 
+  # The CI half of the security gate (docs/roadmap/ROADMAP.md, "Per-step
+  # security gate"): the same four checks the pre-commit hook runs, so a
+  # skipped hook cannot land an issue on `main`. gitleaks runs first; every
+  # later step carries `if: '!cancelled()'`, so one run reports every finding
+  # instead of stopping at the first. No secret is used.
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      # SHA-256 of gitleaks_8.30.1_linux_x64.tar.gz, from the release's
+      # gitleaks_8.30.1_checksums.txt.
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - name: Check out (full history for the secret scan)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install gitleaks (pinned release, checksum verified)
+        run: |
+          set -euo pipefail
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output "$RUNNER_TEMP/$archive" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${archive}"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/$archive" | sha256sum --check --strict -
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/gitleaks" gitleaks
+          echo "$RUNNER_TEMP/gitleaks" >> "$GITHUB_PATH"
+
+      # A pull request scans its own commits; a push scans the pushed range,
+      # or, when the range is unknown, the full history (.gitleaksignore
+      # lists the verified placeholders in version 1's history).
+      - name: Secret scan (gitleaks, redacted)
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            range="$PR_BASE..$PR_HEAD"
+          elif [ -n "$PUSH_BEFORE" ] && git cat-file -e "$PUSH_BEFORE^{commit}" 2>/dev/null; then
+            range="$PUSH_BEFORE..$HEAD_SHA"
+          else
+            range="$HEAD_SHA"
+          fi
+          echo "gitleaks: scanning $range"
+          gitleaks git --redact --verbose --no-banner --exit-code 1 --log-opts="$range" .
+
+      - name: Set up uv
+        if: '!cancelled()'
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install (locked)
+        if: '!cancelled()'
+        run: uv sync --locked
+
+      - name: SAST (bandit over src and scripts)
+        if: '!cancelled()'
+        run: uv run bandit -c pyproject.toml -r src scripts
+
+      - name: Dependency audit (pip-audit --strict over uv.lock)
+        if: '!cancelled()'
+        run: uv run python scripts/audit_deps.py
+
+      - name: Personal-data check (every tracked file)
+        if: '!cancelled()'
+        run: uv run python scripts/check_personal_data.py --all --ci
+
+      - name: Personal-data self-test
+        if: '!cancelled()'
+        run: uv run python scripts/check_personal_data.py --self-test --ci
+
+  # GitHub gives every job in `needs` a result, so requiring each to be
+  # `success` (not failure, cancelled, or skipped) covers every job; a new job
+  # joins the gate by joining this list.
   gate:
     name: gate
     if: ${{ always() }}
-    needs: [lint, typecheck, test, package]
+    needs: [lint, typecheck, test, package, security]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Require every job to succeed
         env:
           RESULTS: ${{ join(needs.*.result, ' ') }}
-          EXPECTED_JOBS: "4"
         run: |
           set -eu
           count=0
@@ -171,8 +254,8 @@ jobs:
               exit 1
             fi
           done
-          if [ "$count" -ne "$EXPECTED_JOBS" ]; then
-            echo "Expected $EXPECTED_JOBS job results, saw $count"
+          if [ "$count" -eq 0 ]; then
+            echo "No job results to check"
             exit 1
           fi
           echo "All $count jobs succeeded"

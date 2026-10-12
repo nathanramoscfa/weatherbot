@@ -1,0 +1,9 @@
+# .gitleaksignore
+# History findings verified not to be secrets. Each entry is a gitleaks
+# fingerprint (commit:file:rule:line) and carries no value.
+#
+# Version 1 documentation (deleted in Phase 1 Step 2) showed two
+# sequential-digit placeholder OpenAI keys; checked 2026-10-12, they are
+# examples, not credentials.
+fa25462651541546ffd62eb4a336733461f9215b:docs/ai-integration.md:generic-api-key:72
+fa25462651541546ffd62eb4a336733461f9215b:docs/troubleshooting.md:generic-api-key:215
