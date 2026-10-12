@@ -153,11 +153,17 @@ These gaps drive the phase ordering below.
   §5 names them `two_epac_{2d0,7d0}.png`, which NHC answers with 404
   (checked 2026-10-11); the working names are `two_atl_*`, `two_pac_*`,
   and `two_cpac_*`.
+- **Text products come from the NWS API.** The brief's §5 reads the TCP
+  and TWO through NHC's `text/refresh/…` pages. Phase 1 Step 4 compared
+  one live product of each on 2026-10-12. The NWS API's `/products` JSON
+  carries the same text, line for line, with a structured issuance time,
+  so v2 reads it there and scrapes no HTML (`docs/DATA_SOURCES.md`, "Text
+  products").
 
 Everything else in the brief applies unchanged: the decisions D1–D10,
-the data sources (with the graphic names above), the ladder semantics,
-the AI role and model, the notification policy, and the success
-criteria.
+the data sources (with the graphic names and the text-product path
+above), the ladder semantics, the AI role and model, the notification
+policy, and the success criteria.
 
 ---
 
