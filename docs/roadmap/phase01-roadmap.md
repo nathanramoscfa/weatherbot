@@ -1754,9 +1754,9 @@ The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 3 — Security gate
+## Step 3 — Security gate ✅
 
-**Status:** Not started
+**Status:** Complete — PR #7 (2026-10-12)
 
 > **Goal:** Wire the per-step security gate (project roadmap §5) so it
 > runs before every commit and again in CI: `.pre-commit-config.yaml` with
@@ -4628,7 +4628,7 @@ any workflow above maps directly to the corresponding row below.
 | ---- | ------------------------ | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Freeze v1, `main`        | GPT-6.1 Sol              | Codex        | Intelligence Med    | --       | New  | Complete — PR #3 |
 | 2    | uv scaffold              | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #4 |
-| 3    | Security gate            | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Not started |
+| 3    | Security gate            | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #7 |
 | 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 5    | Fixture recorder         | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Not started |
 | 6    | Replay corpus            | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
