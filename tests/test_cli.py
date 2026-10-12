@@ -1,6 +1,7 @@
 # tests/test_cli.py
 """Tests for the ``weatherbot`` command-line entry point."""
 
+import re
 import subprocess
 import sys
 from importlib.metadata import version
@@ -11,6 +12,8 @@ import weatherbot
 from weatherbot.cli import app
 
 EXPECTED_VERSION = "2.0.0.dev0"
+
+ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
 
 
 def test_version_matches_the_project_version() -> None:
@@ -29,7 +32,8 @@ def test_help_works() -> None:
     result = CliRunner().invoke(app, ["--help"])
 
     assert result.exit_code == 0
-    assert "--version" in result.stdout
+    # Rich styles the help text when the runner forces color (GitHub Actions does).
+    assert "--version" in ANSI_ESCAPE.sub("", result.stdout)
 
 
 def test_module_entry_point_prints_the_version() -> None:
