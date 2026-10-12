@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and pyright; pytest with a network guard and a temporary working
   directory for every test; and a CI workflow on Ubuntu and Windows whose
   aggregate `gate` job is the required check on `main`.
+- `docs/DATA_SOURCES.md`, the data-source register, verified live on
+  2026-10-12: a stable id, endpoint, format, fixture class, cadence, and
+  terms for every source in the brief's §5; every ArcGIS layer by name,
+  with its fields and the query parameters shared by the fixture recorder
+  and the source clients; the per-basin answer on arrival-time,
+  probabilistic-wind, and surge layers; the NWS, text-product, graphic,
+  RSS, archive, overlay, and geocoding endpoints with their etiquette; the
+  project User-Agent; and the sources version 2 does not use.
 
 ### Changed
 - Version 1 is retired; it remains installable with
