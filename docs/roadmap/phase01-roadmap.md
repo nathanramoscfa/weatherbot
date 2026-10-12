@@ -1131,9 +1131,9 @@ Medium work. The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 2 — uv scaffold replaces v1
+## Step 2 — uv scaffold replaces v1 ✅
 
-**Status:** Not started
+**Status:** Complete — PR #4 (2026-10-12)
 
 > **Goal:** Replace version 1's tree with the version 2 chassis every
 > later phase extends: a `uv_build` `pyproject.toml` for `weatherbot`
@@ -4612,7 +4612,7 @@ any workflow above maps directly to the corresponding row below.
 | Step | Scope                    | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ------------------------ | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Freeze v1, `main`        | GPT-6.1 Sol              | Codex        | Intelligence Med    | --       | New  | Complete — PR #3 |
-| 2    | uv scaffold              | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Not started |
+| 2    | uv scaffold              | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #4 |
 | 3    | Security gate            | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 5    | Fixture recorder         | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Not started |
