@@ -1,6 +1,6 @@
 # Phase 1 Roadmap — Foundation and discovery
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -604,9 +604,9 @@ Worktree rule permits no concurrent steps.
 
 ---
 
-## Step 1 — Freeze v1 and move to `main`
+## Step 1 — Freeze v1 and move to `main` ✅
 
-**Status:** Not started
+**Status:** Complete — PR #3 (2026-10-12)
 
 > **Goal:** Preserve version 1 exactly as PyPI published it and put the
 > repository on the branch and rules every later step assumes. Prove that
@@ -633,11 +633,14 @@ documentation only.
 
 | Setting      | Value                                  |
 | ------------ | -------------------------------------- |
-| Model        | GPT-6 Sol                              |
+| Model        | GPT-6.1 Sol                            |
 | Backup       | Sonnet 5.5 — Claude Code · Effort High |
 | Platform     | Codex                                  |
 | Intelligence | Medium                                 |
 | Conversation | **New**                                |
+
+> Settings updated 2026-10-12: was GPT-6 Sol · Medium.
+> Ran GPT-6.1 Sol · Medium, the newer version in the same model line.
 
 **Model rationale:** Ordered repository operations through `git`, `gh`,
 and the GitHub REST API, with two short documentation edits, are agentic
@@ -4606,7 +4609,7 @@ any workflow above maps directly to the corresponding row below.
 
 | Step | Scope                    | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ------------------------ | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Freeze v1, `main`        | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
+| 1    | Freeze v1, `main`        | GPT-6.1 Sol              | Codex        | Intelligence Med    | --       | New  | Complete — PR #3 |
 | 2    | uv scaffold              | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Not started |
 | 3    | Security gate            | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Not started |
 | 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Not started |

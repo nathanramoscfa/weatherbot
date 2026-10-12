@@ -203,7 +203,7 @@ optional LAN mode in Phase 8 is the only widening, and it is gated.
 
 ### Phase 1 — Foundation and discovery
 
-**Status:** Not started
+**Status:** In progress — phase01-roadmap.md
 
 **Goal:** Replace v1 with a green, strictly gated uv project on Python
 3.13 whose tests already replay real NOAA payloads, with v1 preserved
@@ -1459,7 +1459,7 @@ The following are deliberately deferred to a future version:
 
 | Phase | Description                                   | Complexity | Status      |
 |-------|-----------------------------------------------|------------|-------------|
-| 1     | Foundation and discovery                      | Medium     | Not started |
+| 1     | Foundation and discovery                      | Medium     | In progress |
 | 2     | Sources and persistence                       | Medium     | Not started |
 | 3     | Threat engine                                 | High       | Not started |
 | 4     | Monitoring and notifications                  | Medium     | Not started |
