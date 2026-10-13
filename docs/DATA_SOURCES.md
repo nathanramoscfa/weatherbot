@@ -62,6 +62,35 @@ personal email address into a public repository and a public package
 - The per-basin answers below are a snapshot of one day. A basin marked
   open is answered on the first day it has an active storm.
 
+## Recorded fixtures
+
+`scripts/record_fixtures.py` stores what each `required` source answered in
+`tests/fixtures/recorded/<source-id>/<yyyy-mm-dd>/`. The date is the recording
+machine's local date, and the times inside are UTC. One `manifest.json` per
+directory lists every file with its URL, status, time, SHA-256, size, and the
+response headers on an allowlist (never `set-cookie`).
+`tests/fixtures/recorded/NOTICE.md` states the third-party terms.
+
+- **Bytes.** `sha256` and `bytes` describe the payload as received. A payload
+  over 1 MiB is stored gzip-compressed, so the file has a `.gz` suffix. A
+  manifest's `content-length` header is the length NOAA put on the wire,
+  which is the compressed length when the response was compressed.
+- **ArcGIS services.** Every service records its catalog (`catalog.json`) and
+  its layer schemas (`layers.json`). The two NHC tropical services, the
+  breakpoint service, and the peak-surge service then record one GeoJSON query
+  per feature layer with the shared parameters above. A storm-slot layer is
+  recorded only for an active slot, and a `Footprint_*` layer is recorded as a
+  count. `StormSurgeRisk` records its catalog only.
+- **Text products.** For every active storm slot, the NWS API's TCP list and
+  its newest product; for each basin, the TWO list and its newest product.
+- **Documented errors.** The Nassau landmark's `/points` response (404) and
+  `alerts/active?point=` response (400) are recorded with their status and
+  `application/problem+json` body.
+- **Harvested files.** `nhc-outlook-graphics/2025-*` holds the seven-day
+  Atlantic maps that the version 1 reports embedded. The folder is the
+  report's local date, and `fetched_at` is the report's local time (EDT)
+  converted to UTC.
+
 ## Register
 
 | Source id | Brief §5 source | Endpoint | Format | Fixture | Cadence | Terms | Verified |

@@ -3703,7 +3703,14 @@ conversation is new per phase-boundary hygiene.
     - `scripts/record_fixtures.py` holds the HTTP client
       settings (User-Agent, timeouts, retries) and the gzip
       writer (`mtime=0`); `tests/contract/test_fixture_budget.py`
-      enforces the recorded budget.
+      enforces the recorded budget. Step 5's names to reuse:
+      `USER_AGENT`, `REQUEST_TIMEOUT`, `Fetcher` (with `Pacer`:
+      per-host spacing, retries, backoff), `stored_form` (gzip
+      above `GZIP_THRESHOLD_BYTES`), and `RecorderError`. The
+      budget test lists its roots in `BUDGETED_ROOTS` (add
+      `tests/fixtures/replay/` there, with its own 10 MiB cap);
+      `tests/contract/fixture_support.py` holds the readers the
+      contract tests share.
     - Archive files are immutable, so their checksums are
       stable once recorded; the archive is public and keyless,
       and polite use means serial requests with the project
