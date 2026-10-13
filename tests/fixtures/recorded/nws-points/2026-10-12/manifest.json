@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "source": "nws-points",
+  "recorded_at": "2026-10-13T01:08:59Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "points-miami-dade.json",
+      "url": "https://api.weather.gov/points/25.7757,-80.1966",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:58Z",
+      "sha256": "773eb08ce4b75b47a850dcdafc030d7d93cc05ec527fbcce2e3e828ed4f05952",
+      "bytes": 3920,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=73871, s-maxage=86400",
+        "content-length": "1006",
+        "content-type": "application/geo+json",
+        "date": "Tue, 13 Oct 2026 01:08:50 GMT",
+        "expires": "Tue, 13 Oct 2026 21:40:01 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "points-nassau.json",
+      "url": "https://api.weather.gov/points/25.0778,-77.3405",
+      "status": 404,
+      "fetched_at": "2026-10-13T01:08:59Z",
+      "sha256": "cc2b5cf58b349c98e647390f647390ff13212f1973a528456fe932140590f0b2",
+      "bytes": 306,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "private, max-age=86400",
+        "content-length": "306",
+        "content-type": "application/problem+json",
+        "date": "Tue, 13 Oct 2026 01:08:52 GMT",
+        "expires": "Wed, 14 Oct 2026 01:08:52 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    }
+  ]
+}

@@ -1,0 +1,452 @@
+{
+  "schema": 1,
+  "source": "nhc-map-tropical-weather",
+  "recorded_at": "2026-10-13T01:08:28Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "catalog.json",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer?f=json",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:16Z",
+      "sha256": "43ee2427cad86661be3fcca3dad9796fef675e1bfb2573d1689dbbdb74fe227c",
+      "bytes": 92075,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-type": "application/json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:08 GMT",
+        "etag": "\"76173cb1\""
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "layers.json.gz",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/layers?f=json",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:16Z",
+      "sha256": "5e7fafe5f039428bf892bfeb40bc9e312030dfeac92e817b90cd830af27aef32",
+      "bytes": 2343337,
+      "stored_as": "gzip",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-type": "application/json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:09 GMT",
+        "etag": "\"fd9aba9c\""
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "query-two-day-current-location.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/1/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:17Z",
+      "sha256": "93ecdbe82d5514979e70354a75441840fa8ea30ee434fe85de309340c154cd5f",
+      "bytes": 650,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "283",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:09 GMT",
+        "etag": "\"b133ae82\""
+      },
+      "origin": "live",
+      "notes": "layer 'Two-Day: Current Location', id 1"
+    },
+    {
+      "file": "query-seven-day-current-location.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/2/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:17Z",
+      "sha256": "93ecdbe82d5514979e70354a75441840fa8ea30ee434fe85de309340c154cd5f",
+      "bytes": 650,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "283",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:10 GMT",
+        "etag": "\"b133ae82\""
+      },
+      "origin": "live",
+      "notes": "layer 'Seven-Day: Current Location', id 2"
+    },
+    {
+      "file": "query-seven-day-development-motion.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/398/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:18Z",
+      "sha256": "ed778c73ea51338d6576fb5992b189f2b94d9f3d5e199f46c1af520d6b0b3e6c",
+      "bytes": 42,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "58",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:10 GMT",
+        "etag": "\"b5731b5a\""
+      },
+      "origin": "live",
+      "notes": "layer 'Seven-Day: Development Motion', id 398"
+    },
+    {
+      "file": "query-seven-day-potential-development-region.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/3/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:18Z",
+      "sha256": "879cce2770c428a1ca8d6a201f6b52cf2625541511409c1f2e647e1bf8aceb06",
+      "bytes": 13304,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "5287",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:11 GMT",
+        "etag": "\"542f40cc\""
+      },
+      "origin": "live",
+      "notes": "layer 'Seven-Day: Potential Development Region', id 3"
+    },
+    {
+      "file": "query-probabilistic-winds-34-kts.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/395/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:19Z",
+      "sha256": "d5cbb3f3dd83fa34ab13539f78bdabb7591706b3c32a12b1bd955f43c35e567c",
+      "bytes": 568089,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:11 GMT",
+        "etag": "\"c755bcf\""
+      },
+      "origin": "live",
+      "notes": "layer 'Probabilistic Winds 34 kts', id 395"
+    },
+    {
+      "file": "query-probabilistic-winds-50-kts.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/396/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:19Z",
+      "sha256": "cd12cf82af97ffbea5f164903e0dd7ea44fb5ff288cb6dd99deea7b6dae878c9",
+      "bytes": 364557,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:12 GMT",
+        "etag": "\"3612b54a\""
+      },
+      "origin": "live",
+      "notes": "layer 'Probabilistic Winds 50 kts', id 396"
+    },
+    {
+      "file": "query-probabilistic-winds-64-kts.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/397/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:20Z",
+      "sha256": "992a4a53271878f3c0678fa667950d53848cbf87c6dec06a724deece7aff7a67",
+      "bytes": 196620,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:12 GMT",
+        "etag": "\"59eead1\""
+      },
+      "origin": "live",
+      "notes": "layer 'Probabilistic Winds 64 kts', id 397"
+    },
+    {
+      "file": "query-ep5-forecast-points.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/240/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:20Z",
+      "sha256": "f0c94e09e25e24a564f8cc358d2814f4fc2bb57efec2963288dced5b4fb408ae",
+      "bytes": 5215,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "765",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:13 GMT",
+        "etag": "\"b65db2ee\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Forecast Points', id 240"
+    },
+    {
+      "file": "query-ep5-forecast-track.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/241/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:21Z",
+      "sha256": "ce92e6c5f3bb2812b5cdc99d36c325cfe1f9ef1b6eda50f1b657d4b090b8ad60",
+      "bytes": 548,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "350",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:13 GMT",
+        "etag": "\"7737faac\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Forecast Track', id 241"
+    },
+    {
+      "file": "query-ep5-forecast-cone.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/242/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:21Z",
+      "sha256": "de269452f48eedde4b61e40c49248d6b1715984189419aaedeb73b846a9ba8cf",
+      "bytes": 19863,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "7029",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:14 GMT",
+        "etag": "\"c794d932\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Forecast Cone', id 242"
+    },
+    {
+      "file": "query-ep5-watch-warning.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/243/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:22Z",
+      "sha256": "601f1ce8cbce7a7e561667221e3a38e01690bcc5c9e626a52c8e4497740a92bc",
+      "bytes": 1035,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "431",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:14 GMT",
+        "etag": "\"99d93e23\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Watch-Warning', id 243"
+    },
+    {
+      "file": "query-ep5-past-points.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/245/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:22Z",
+      "sha256": "b7c2117701e9c51f74ee05f4b46fc143a0f9197123014e83ee66ce2381033fc5",
+      "bytes": 13843,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "1273",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:15 GMT",
+        "etag": "\"a98762e5\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Past Points', id 245"
+    },
+    {
+      "file": "query-ep5-past-track.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/246/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:23Z",
+      "sha256": "e8ba5b6a62bfa1b300efb9a52cf73add694e86165a63858beff366c8bd796936",
+      "bytes": 3242,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "649",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:15 GMT",
+        "etag": "\"b1c691b7\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Past Track', id 246"
+    },
+    {
+      "file": "query-ep5-past-cumulative-wind-swath.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/247/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:23Z",
+      "sha256": "a4d2051e9f3602230a3faa59baea8891ff2b3ba88537aca31ee57aac12ead102",
+      "bytes": 29171,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "4695",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:16 GMT",
+        "etag": "\"a53f1823\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Past Cumulative Wind Swath', id 247"
+    },
+    {
+      "file": "query-ep5-past-wind-radii.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/248/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:24Z",
+      "sha256": "bb0309a784f58fc9d782e9e2c90e919c0286fce48c5ca71a646e1e13013c8818",
+      "bytes": 411821,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:16 GMT",
+        "etag": "\"10e3e562\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Past Wind Radii', id 248"
+    },
+    {
+      "file": "query-ep5-forecast-wind-radii.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/250/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:24Z",
+      "sha256": "3e73789faaa2b220dcfc4de977693e3de511a2622143a165f7b9d34219ac41bc",
+      "bytes": 169745,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:17 GMT",
+        "etag": "\"56c5b07e\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Forecast Wind Radii', id 250"
+    },
+    {
+      "file": "query-ep5-advisory-wind-field.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/251/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:25Z",
+      "sha256": "f56dd1109df8272134867ab3c3fc18c839166f1b120623c95d7ccbd2d3a7eec2",
+      "bytes": 25072,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "7955",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:17 GMT",
+        "etag": "\"2b1718de\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Advisory Wind Field', id 251"
+    },
+    {
+      "file": "query-ep5-earliest-reasonable-arrival-time.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/253/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:25Z",
+      "sha256": "44e9d4533637f54a23a2c318e566eb47f3f7fbaa0a142edb3ae6470a954ad6dd",
+      "bytes": 19761,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "6175",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:18 GMT",
+        "etag": "\"3d2ba06\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Earliest Reasonable Arrival Time', id 253"
+    },
+    {
+      "file": "query-ep5-most-likely-arrival-time.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/254/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:26Z",
+      "sha256": "c0780aa588d87e7fc501c6db789f5b8075e0fd65978cf1fb137fd3b2a8774b32",
+      "bytes": 19428,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "6098",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:18 GMT",
+        "etag": "\"49ddd035\""
+      },
+      "origin": "live",
+      "notes": "layer 'EP5 Most Likely Arrival Time', id 254"
+    },
+    {
+      "file": "query-boundary-inun-ep5.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/257/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:26Z",
+      "sha256": "ed778c73ea51338d6576fb5992b189f2b94d9f3d5e199f46c1af520d6b0b3e6c",
+      "bytes": 42,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "58",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:19 GMT",
+        "etag": "\"b5731b5a\""
+      },
+      "origin": "live",
+      "notes": "layer 'Boundary_Inun_EP5', id 257"
+    },
+    {
+      "file": "count-footprint-inun-ep5.json",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/258/query?where=1%3D1&returnCountOnly=true&f=json",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:27Z",
+      "sha256": "618de7d9f46f3f697d827a1b6d84974760d5deda62e4e592adaa3c646602a94c",
+      "bytes": 11,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "31",
+        "content-type": "application/json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:19 GMT",
+        "etag": "\"53cf146c\""
+      },
+      "origin": "live",
+      "notes": "layer 'Footprint_Inun_EP5', id 258"
+    },
+    {
+      "file": "query-boundary-tmask-ep5.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/261/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:27Z",
+      "sha256": "ed778c73ea51338d6576fb5992b189f2b94d9f3d5e199f46c1af520d6b0b3e6c",
+      "bytes": 42,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "58",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:20 GMT",
+        "etag": "\"b5731b5a\""
+      },
+      "origin": "live",
+      "notes": "layer 'Boundary_TMask_EP5', id 261"
+    },
+    {
+      "file": "count-footprint-tmask-ep5.json",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer/262/query?where=1%3D1&returnCountOnly=true&f=json",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:28Z",
+      "sha256": "618de7d9f46f3f697d827a1b6d84974760d5deda62e4e592adaa3c646602a94c",
+      "bytes": 11,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "31",
+        "content-type": "application/json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:20 GMT",
+        "etag": "\"53cf146c\""
+      },
+      "origin": "live",
+      "notes": "layer 'Footprint_TMask_EP5', id 262"
+    }
+  ]
+}

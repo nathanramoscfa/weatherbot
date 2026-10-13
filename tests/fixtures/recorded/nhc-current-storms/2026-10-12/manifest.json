@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "source": "nhc-current-storms",
+  "recorded_at": "2026-10-13T01:08:16Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "CurrentStorms.json",
+      "url": "https://www.nhc.noaa.gov/CurrentStorms.json",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:16Z",
+      "sha256": "531314b555a36ca596ea4bc0c41fdb6921210d46fde2fcc79f4935771ca459b9",
+      "bytes": 4955,
+      "stored_as": "raw",
+      "headers": {
+        "age": "98",
+        "cache-control": "max-age=300",
+        "content-length": "4955",
+        "content-type": "application/json",
+        "date": "Tue, 13 Oct 2026 01:06:31 GMT",
+        "etag": "\"135b-65dad376277ad\"",
+        "expires": "Tue, 13 Oct 2026 01:11:30 GMT",
+        "last-modified": "Mon, 12 Oct 2026 23:40:00 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    }
+  ]
+}

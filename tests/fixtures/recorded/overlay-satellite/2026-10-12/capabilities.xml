@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?><WMS_Capabilities version="1.3.0" updateSequence="2336" xmlns="http://www.opengis.net/wms" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wms https://nowcoast.noaa.gov/geoserver/observations/schemas/wms/1.3.0/capabilities_1_3_0.xsd">
+  <Service>
+    <Name>WMS</Name>
+    <Title>Geostationary Satellite Imagery</Title>
+    <Abstract>This nowCOAST map service provides maps depicting satellite imagery for the visible, water vapor, shortwave infrared, longwave infrared, and snow/ice near infrared spectral bands, providing continuous weather imagery and monitoring of meteorological and space environment data across North America. Source data includes NOAA/NESDIS Global Mosaic of Geostationary Satellite Imagery (GMGSI) products and NOAA/NASA Geostationary Operational Environmental Satellites (GOES), GOES-EAST and GOES-WEST products. GMGSI composites data from five geostationary satellites, Himawari-9, GOES-18, GOES-19, Meteosat-9 and Meteosat-10, providing a global coverage from 60N to 60S, and the spatial resolution is approximately 3 km. GOES visible composite images have a horizontal resolution of 0.5 km, GOES shortwave infrared, longwave infrared, and water vapor composite images are approximately 2 km and snow/ice composite images are approximately 1 km. The visible imagery indicates cloud cover and ice and snow cover. The shortwave, or mid-infrared, indicates cloud cover and fog at night. The longwave, or thermal infrared, depicts cloud cover and land/sea temperature patterns. The water vapor imagery indicates the amount of water vapor contained in the mid to upper levels of the troposphere, with the darker grays indicating drier air and brighter grays/whites indicating more saturated air. The nowCOAST map service is updated with new GOES-EAST and GOES-WEST composite images every 5 minutes, and GMGSI global composite images are updated hourly.</Abstract>
+    <KeywordList>
+      <Keyword>WMS</Keyword>
+      <Keyword>GeoServer</Keyword>
+      <Keyword>nowCOAST</Keyword>
+      <Keyword>GOES</Keyword>
+      <Keyword>observations</Keyword>
+      <Keyword>satellite</Keyword>
+      <Keyword>visible</Keyword>
+      <Keyword>shortwave</Keyword>
+      <Keyword>longwave</Keyword>
+      <Keyword>water vapor</Keyword>
+      <Keyword>snow</Keyword>
+      <Keyword>ice</Keyword>
+      <Keyword>NESDIS</Keyword>
+      <Keyword>GMGSI</Keyword>
+      <Keyword>NOAA</Keyword>
+      <Keyword>NASA</Keyword>
+      <Keyword>Weather Satellites</Keyword>
+      <Keyword>present weather</Keyword>
+      <Keyword>Environmental Satellites</Keyword>
+    </KeywordList>
+    <OnlineResource xlink:type="simple" xlink:href="https://nowcoast.noaa.gov"/>
+    <ContactInformation>
+      <ContactPersonPrimary>
+        <ContactPerson/>
+        <ContactOrganization/>
+      </ContactPersonPrimary>
+      <ContactPosition/>
+      <ContactAddress>
+        <AddressType/>
+        <Address/>
+        <City/>
+        <StateOrProvince/>
+        <PostCode/>
+        <Country/>
+      </ContactAddress>
+      <ContactVoiceTelephone/>
+      <ContactFacsimileTelephone/>
+      <ContactElectronicMailAddress/>
+    </ContactInformation>
+    <Fees>NONE</Fees>
+    <AccessConstraints>NONE</AccessConstraints>
+  </Service>
+  <Capability>
+    <Request>
+      <GetCapabilities>
+        <Format>text/xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?SERVICE=WMS&amp;"/>
+            </Get>
+            <Post>
+              <OnlineResource xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?SERVICE=WMS&amp;"/>
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetCapabilities>
+      <GetMap>
+        <Format>image/png</Format>
+        <Format>application/atom+xml</Format>
+        <Format>application/json;type=utfgrid</Format>
+        <Format>application/pdf</Format>
+        <Format>application/rss+xml</Format>
+        <Format>application/vnd.google-earth.kml+xml</Format>
+        <Format>application/vnd.google-earth.kml+xml;mode=networklink</Format>
+        <Format>application/vnd.google-earth.kmz</Format>
+        <Format>image/geotiff</Format>
+        <Format>image/geotiff8</Format>
+        <Format>image/gif</Format>
+        <Format>image/jpeg</Format>
+        <Format>image/png; mode=8bit</Format>
+        <Format>image/svg+xml</Format>
+        <Format>image/tiff</Format>
+        <Format>image/tiff8</Format>
+        <Format>image/vnd.jpeg-png</Format>
+        <Format>image/vnd.jpeg-png8</Format>
+        <Format>text/html; subtype=openlayers</Format>
+        <Format>text/html; subtype=openlayers2</Format>
+        <Format>text/html; subtype=openlayers3</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?SERVICE=WMS&amp;"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+      </GetMap>
+      <GetFeatureInfo>
+        <Format>text/plain</Format>
+        <Format>application/vnd.ogc.gml</Format>
+        <Format>text/xml</Format>
+        <Format>application/vnd.ogc.gml/3.1.1</Format>
+        <Format>text/xml; subtype=gml/3.1.1</Format>
+        <Format>text/html</Format>
+        <Format>application/json</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?SERVICE=WMS&amp;"/>
+            </Get>
+          </HTTP>
+        </DCPType>
+      </GetFeatureInfo>
+    </Request>
+    <Exception>
+      <Format>XML</Format>
+      <Format>INIMAGE</Format>
+      <Format>BLANK</Format>
+      <Format>JSON</Format>
+    </Exception>
+    <Layer>
+      <Title>Geostationary Satellite Imagery</Title>
+      <Abstract>This nowCOAST map service provides maps depicting satellite imagery for the visible, water vapor, shortwave infrared, longwave infrared, and snow/ice near infrared spectral bands, providing continuous weather imagery and monitoring of meteorological and space environment data across North America. Source data includes NOAA/NESDIS Global Mosaic of Geostationary Satellite Imagery (GMGSI) products and NOAA/NASA Geostationary Operational Environmental Satellites (GOES), GOES-EAST and GOES-WEST products. GMGSI composites data from five geostationary satellites, Himawari-9, GOES-18, GOES-19, Meteosat-9 and Meteosat-10, providing a global coverage from 60N to 60S, and the spatial resolution is approximately 3 km. GOES visible composite images have a horizontal resolution of 0.5 km, GOES shortwave infrared, longwave infrared, and water vapor composite images are approximately 2 km and snow/ice composite images are approximately 1 km. The visible imagery indicates cloud cover and ice and snow cover. The shortwave, or mid-infrared, indicates cloud cover and fog at night. The longwave, or thermal infrared, depicts cloud cover and land/sea temperature patterns. The water vapor imagery indicates the amount of water vapor contained in the mid to upper levels of the troposphere, with the darker grays indicating drier air and brighter grays/whites indicating more saturated air. The nowCOAST map service is updated with new GOES-EAST and GOES-WEST composite images every 5 minutes, and GMGSI global composite images are updated hourly.</Abstract>
+      <!--Limited list of EPSG projections:-->
+      <CRS>EPSG:3857</CRS>
+      <CRS>EPSG:4326</CRS>
+      <CRS>CRS:84</CRS>
+      <EX_GeographicBoundingBox>
+        <westBoundLongitude>-179.99994344357404</westBoundLongitude>
+        <eastBoundLongitude>179.95499090311822</eastBoundLongitude>
+        <southBoundLatitude>-72.74472336303444</southBoundLatitude>
+        <northBoundLatitude>72.73681640625001</northBoundLatitude>
+      </EX_GeographicBoundingBox>
+      <BoundingBox CRS="CRS:84" minx="-179.99994344357404" miny="-72.74472336303444" maxx="179.95499090311822" maxy="72.73681640625001"/>
+      <Layer queryable="1" opaque="0">
+        <Name>global_longwave_imagery_mosaic</Name>
+        <Title>Global Satellite Longwave Imagery</Title>
+        <Abstract>The NOAA/NESDIS Global Mosaic of Geostationary Satellite Imagery (GMGSI) longwave, thermal infrared band (~12.0 μm), has an hourly update frequency, approximately 3 km spatial resolution, the data latency is two to three hours and depicts cloud cover and land/sea temperature patterns. The channel is used in many baseline products, such as Fire Detection, Volcanic Ash Detection, and Derived Motion Wind Vector.</Abstract>
+        <KeywordList>
+          <Keyword>observations</Keyword>
+          <Keyword>time-enabled</Keyword>
+          <Keyword>GMGSI</Keyword>
+          <Keyword>satellite</Keyword>
+          <Keyword>longwave</Keyword>
+          <Keyword>cloud cover</Keyword>
+          <Keyword>infrared</Keyword>
+          <Keyword>thermal</Keyword>
+          <Keyword>global</Keyword>
+          <Keyword>Weather Satellites</Keyword>
+          <Keyword>present weather</Keyword>
+        </KeywordList>
+        <CRS>EPSG:3857</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-179.99994344357404</westBoundLongitude>
+          <eastBoundLongitude>179.95499090311822</eastBoundLongitude>
+          <southBoundLatitude>-72.74472336303444</southBoundLatitude>
+          <northBoundLatitude>72.73681640625001</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-179.99994344357404" miny="-72.74472336303444" maxx="179.95499090311822" maxy="72.73681640625001"/>
+        <BoundingBox CRS="EPSG:3857" minx="-2.0037502046956703E7" miny="-1.2026983336708374E7" maxx="2.0032497953043297E7" maxy="1.2024016663291626E7"/>
+        <Dimension name="time" default="2026-10-13T00:00:00Z" units="ISO8601" nearestValue="1">2026-10-12T19:00:00.000Z,2026-10-12T20:00:00.000Z,2026-10-12T21:00:00.000Z,2026-10-12T22:00:00.000Z,2026-10-12T23:00:00.000Z,2026-10-13T00:00:00.000Z</Dimension>
+        <Style>
+          <Name>reflectance</Name>
+          <Title>Reflectance</Title>
+          <LegendURL width="20" height="20">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?service=WMS&amp;version=1.3.0&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=global_longwave_imagery_mosaic"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1" opaque="0">
+        <Name>global_shortwave_imagery_mosaic</Name>
+        <Title>Global Satellite Shortwave Imagery</Title>
+        <Abstract>The NOAA/NESDIS Global Mosaic of Geostationary Satellite Imagery (GMGSI) shortwave, mid-infrared band (~3.8 μm), has an hourly update frequency, approximately 3 km spatial resolution, and can be used to identify fog and low clouds at night, identify fire hot spots, detect volcanic ash, estimate sea-surface temperatures, and discriminate between ice crystal sizes during the day. Low-level atmospheric vector winds can be estimated with this band, and the band can be used to study urban heat islands.</Abstract>
+        <KeywordList>
+          <Keyword>observations</Keyword>
+          <Keyword>time-enabled</Keyword>
+          <Keyword>GMGSI</Keyword>
+          <Keyword>satellite</Keyword>
+          <Keyword>shortwave</Keyword>
+          <Keyword>fog</Keyword>
+          <Keyword>global</Keyword>
+          <Keyword>infrared</Keyword>
+          <Keyword>Weather Satellites</Keyword>
+          <Keyword>present weather</Keyword>
+        </KeywordList>
+        <CRS>EPSG:3857</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-179.99994344357404</westBoundLongitude>
+          <eastBoundLongitude>179.95499090311822</eastBoundLongitude>
+          <southBoundLatitude>-72.74472336303444</southBoundLatitude>
+          <northBoundLatitude>72.73681640625001</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-179.99994344357404" miny="-72.74472336303444" maxx="179.95499090311822" maxy="72.73681640625001"/>
+        <BoundingBox CRS="EPSG:3857" minx="-2.0037502046956703E7" miny="-1.2026983336708374E7" maxx="2.0032497953043297E7" maxy="1.2024016663291626E7"/>
+        <Dimension name="time" default="2026-10-13T00:00:00Z" units="ISO8601" nearestValue="1">2026-10-12T19:00:00.000Z,2026-10-12T20:00:00.000Z,2026-10-12T21:00:00.000Z,2026-10-12T22:00:00.000Z,2026-10-12T23:00:00.000Z,2026-10-13T00:00:00.000Z</Dimension>
+        <Style>
+          <Name>reflectance</Name>
+          <Title>Reflectance</Title>
+          <LegendURL width="20" height="20">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?service=WMS&amp;version=1.3.0&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=global_shortwave_imagery_mosaic"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1" opaque="0">
+        <Name>global_visible_imagery_mosaic</Name>
+        <Title>Global Satellite Visible Imagery</Title>
+        <Abstract>The NOAA/NESDIS Global Mosaic of Geostationary Satellite Imagery (GMGSI) visible band (~0.6 μm), has an hourly update frequency, approximately 3 km spatial resolution, the data latency is two to three hours, and provides detection and analysis of clouds and weather systems during daytime. Half-kilometer resolution allows detection of boundaries and small clouds, especially useful in mesoscale sectors for rapidly changing phenomena.</Abstract>
+        <KeywordList>
+          <Keyword>observations</Keyword>
+          <Keyword>time-enabled</Keyword>
+          <Keyword>GMGSI</Keyword>
+          <Keyword>Satellite</Keyword>
+          <Keyword>visible</Keyword>
+          <Keyword>global</Keyword>
+          <Keyword>Weather Satellites</Keyword>
+          <Keyword>present weather</Keyword>
+        </KeywordList>
+        <CRS>EPSG:3857</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-179.99994344357404</westBoundLongitude>
+          <eastBoundLongitude>179.95499090311822</eastBoundLongitude>
+          <southBoundLatitude>-72.74472336303444</southBoundLatitude>
+          <northBoundLatitude>72.73681640625001</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-179.99994344357404" miny="-72.74472336303444" maxx="179.95499090311822" maxy="72.73681640625001"/>
+        <BoundingBox CRS="EPSG:3857" minx="-2.0037502046956703E7" miny="-1.2026983336708374E7" maxx="2.0032497953043297E7" maxy="1.2024016663291626E7"/>
+        <Dimension name="time" default="2026-10-13T00:00:00Z" units="ISO8601" nearestValue="1">2026-10-12T19:00:00.000Z,2026-10-12T20:00:00.000Z,2026-10-12T21:00:00.000Z,2026-10-12T22:00:00.000Z,2026-10-12T23:00:00.000Z,2026-10-13T00:00:00.000Z</Dimension>
+        <Style>
+          <Name>reflectance</Name>
+          <Title>Reflectance</Title>
+          <LegendURL width="20" height="20">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?service=WMS&amp;version=1.3.0&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=global_visible_imagery_mosaic"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1" opaque="0">
+        <Name>global_water_vapor_imagery_mosaic</Name>
+        <Title>Global Satellite Water Vapor Imagery</Title>
+        <Abstract>The NOAA/NESDIS Global Mosaic of Geostationary Satellite Imagery (GMGSI) water vapor band (~6.7 µm), has an hourly update frequency, approximately 3 km spatial resolution, the data latency is two to three hours, and indicates the amount of water vapor contained in the mid to upper levels of the troposphere, with the darker grays indicating drier air and the brighter grays/whites indicating more saturated air. The upper-level water vapor band is used for tracking upper-tropospheric winds, identifying jet streams, forecasting hurricane track and mid-latitude storm motion, monitoring severe weather potential, estimating upper/mid-level moisture and identifying regions where the potential for turbulence exists.</Abstract>
+        <KeywordList>
+          <Keyword>observations</Keyword>
+          <Keyword>time-enabled</Keyword>
+          <Keyword>GMGSI</Keyword>
+          <Keyword>satellite</Keyword>
+          <Keyword>water vapor</Keyword>
+          <Keyword>global</Keyword>
+          <Keyword>infrared</Keyword>
+          <Keyword>Weather Satellites</Keyword>
+          <Keyword>present weather</Keyword>
+        </KeywordList>
+        <CRS>EPSG:3857</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-179.99994344357404</westBoundLongitude>
+          <eastBoundLongitude>179.95499090311822</eastBoundLongitude>
+          <southBoundLatitude>-72.74472336303444</southBoundLatitude>
+          <northBoundLatitude>72.73681640625001</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-179.99994344357404" miny="-72.74472336303444" maxx="179.95499090311822" maxy="72.73681640625001"/>
+        <BoundingBox CRS="EPSG:3857" minx="-2.0037502046956703E7" miny="-1.2026983336708374E7" maxx="2.0032497953043297E7" maxy="1.2024016663291626E7"/>
+        <Dimension name="time" default="2026-10-13T00:00:00Z" units="ISO8601" nearestValue="1">2026-10-12T19:00:00.000Z,2026-10-12T20:00:00.000Z,2026-10-12T21:00:00.000Z,2026-10-12T22:00:00.000Z,2026-10-12T23:00:00.000Z,2026-10-13T00:00:00.000Z</Dimension>
+        <Style>
+          <Name>reflectance</Name>
+          <Title>Reflectance</Title>
+          <LegendURL width="20" height="20">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?service=WMS&amp;version=1.3.0&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=global_water_vapor_imagery_mosaic"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1" opaque="0">
+        <Name>goes_longwave_imagery</Name>
+        <Title>GOES East &amp; West Satellite Longwave Imagery</Title>
+        <Abstract>NOAA/NASA Geostationary Operational Environmental Satellites (GOES) Longwave Infrared Band 14 (11.2 μm), has a 5 min update frequency and a 2 km spatial resolution. Data from the 11.2 μm channel is used in many Baseline Products, such as Fire Detection, Volcanic Ash Detection, Derived Motion Wind Vectors, Legacy Atmospheric Profiles including Precipitable Water, Cloud Top Properties, Aerosol Detection and Land Surface Temperature. This composite longwave imagery contains GOES-19 (East) and GOES-18 (West) from GOES Advanced Baseline Imager (ABI) Level 1b (L1b), L1b products are calibrated and, where applicable, geographically corrected.</Abstract>
+        <KeywordList>
+          <Keyword>observations</Keyword>
+          <Keyword>time-enabled</Keyword>
+          <Keyword>GOES</Keyword>
+          <Keyword>satellite</Keyword>
+          <Keyword>longwave</Keyword>
+          <Keyword>IR</Keyword>
+          <Keyword>GOES-19</Keyword>
+          <Keyword>GOES-18</Keyword>
+          <Keyword>GOES-EAST</Keyword>
+          <Keyword>GOES-WEST</Keyword>
+          <Keyword>infrared</Keyword>
+          <Keyword>Band 14</Keyword>
+          <Keyword>Weather Satellites</Keyword>
+          <Keyword>present weather</Keyword>
+          <Keyword>ABI</Keyword>
+          <Keyword>L1b</Keyword>
+        </KeywordList>
+        <CRS>EPSG:3857</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-179.50264534993195</westBoundLongitude>
+          <eastBoundLongitude>-50.74952459605097</eastBoundLongitude>
+          <southBoundLatitude>10.910578706055357</southBoundLatitude>
+          <northBoundLatitude>50.55317923122151</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-179.50264534993195" miny="10.910578706055357" maxx="-50.74952459605097" maxy="50.55317923122151"/>
+        <BoundingBox CRS="EPSG:3857" minx="-1.99821430764E7" miny="1221967.6905265786" maxx="-5649411.236033106" maxy="6542633.663146"/>
+        <Dimension name="time" default="2026-10-13T01:03:00Z" units="ISO8601" nearestValue="1">2026-10-12T18:03:00.000Z,2026-10-12T18:08:00.000Z,2026-10-12T18:13:00.000Z,2026-10-12T18:18:00.000Z,2026-10-12T18:23:00.000Z,2026-10-12T18:28:00.000Z,2026-10-12T18:33:00.000Z,2026-10-12T18:38:00.000Z,2026-10-12T18:43:00.000Z,2026-10-12T18:48:00.000Z,2026-10-12T18:53:00.000Z,2026-10-12T18:58:00.000Z,2026-10-12T19:13:00.000Z,2026-10-12T19:18:00.000Z,2026-10-12T19:23:00.000Z,2026-10-12T19:28:00.000Z,2026-10-12T19:33:00.000Z,2026-10-12T19:38:00.000Z,2026-10-12T19:43:00.000Z,2026-10-12T19:48:00.000Z,2026-10-12T19:53:00.000Z,2026-10-12T19:58:00.000Z,2026-10-12T20:03:00.000Z,2026-10-12T20:08:00.000Z,2026-10-12T20:13:00.000Z,2026-10-12T20:18:00.000Z,2026-10-12T20:23:00.000Z,2026-10-12T20:28:00.000Z,2026-10-12T20:33:00.000Z,2026-10-12T20:38:00.000Z,2026-10-12T20:43:00.000Z,2026-10-12T20:48:00.000Z,2026-10-12T20:53:00.000Z,2026-10-12T20:58:00.000Z,2026-10-12T21:03:00.000Z,2026-10-12T21:08:00.000Z,2026-10-12T21:13:00.000Z,2026-10-12T21:18:00.000Z,2026-10-12T21:23:00.000Z,2026-10-12T21:28:00.000Z,2026-10-12T21:33:00.000Z,2026-10-12T21:38:00.000Z,2026-10-12T21:43:00.000Z,2026-10-12T21:48:00.000Z,2026-10-12T21:53:00.000Z,2026-10-12T21:58:00.000Z,2026-10-12T22:03:00.000Z,2026-10-12T22:08:00.000Z,2026-10-12T22:13:00.000Z,2026-10-12T22:18:00.000Z,2026-10-12T22:23:00.000Z,2026-10-12T22:28:00.000Z,2026-10-12T22:33:00.000Z,2026-10-12T22:38:00.000Z,2026-10-12T22:43:00.000Z,2026-10-12T22:48:00.000Z,2026-10-12T22:53:00.000Z,2026-10-12T22:58:00.000Z,2026-10-12T23:03:00.000Z,2026-10-12T23:08:00.000Z,2026-10-12T23:13:00.000Z,2026-10-12T23:18:00.000Z,2026-10-12T23:23:00.000Z,2026-10-12T23:28:00.000Z,2026-10-12T23:33:00.000Z,2026-10-12T23:38:00.000Z,2026-10-12T23:43:00.000Z,2026-10-12T23:48:00.000Z,2026-10-12T23:53:00.000Z,2026-10-12T23:58:00.000Z,2026-10-13T00:03:00.000Z,2026-10-13T00:08:00.000Z,2026-10-13T00:13:00.000Z,2026-10-13T00:18:00.000Z,2026-10-13T00:23:00.000Z,2026-10-13T00:28:00.000Z,2026-10-13T00:33:00.000Z,2026-10-13T00:38:00.000Z,2026-10-13T00:43:00.000Z,2026-10-13T00:48:00.000Z,2026-10-13T00:53:00.000Z,2026-10-13T00:58:00.000Z,2026-10-13T01:03:00.000Z</Dimension>
+        <Style>
+          <Name>goes-lir</Name>
+          <Title>GOES Longwave</Title>
+          <LegendURL width="46" height="62">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?service=WMS&amp;version=1.3.0&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=goes_longwave_imagery"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1" opaque="0">
+        <Name>goes_shortwave_imagery</Name>
+        <Title>GOES East &amp; West Satellite Shortwave Imagery</Title>
+        <Abstract>NOAA/NASA Geostationary Operational Environmental Satellites (GOES) Shortwave Band 7 (3.9 μm), has a 5 min update frequency, 2 km spatial resolution, and can be used to identify fog and low clouds at night, identify fire hot spots, detect volcanic ash, estimate sea-surface temperatures, and discriminate between ice crystal sizes during the day. Low-level atmospheric vector winds can be estimated with this band, and the band can be used to study urban heat islands. The 3.9 μm is unique among ABI bands because it senses both emitted terrestrial radiation as well as significant reflected solar radiation during the day. This composite shortwave imagery contains GOES-19 (East) and GOES-18 (West) from GOES Advanced Baseline Imager (ABI) Level 1b (L1b), L1b products are calibrated and, where applicable, geographically corrected.</Abstract>
+        <KeywordList>
+          <Keyword>observations</Keyword>
+          <Keyword>time-enabled</Keyword>
+          <Keyword>GOES</Keyword>
+          <Keyword>satellite</Keyword>
+          <Keyword>shortwave</Keyword>
+          <Keyword>IR</Keyword>
+          <Keyword>GOES-19</Keyword>
+          <Keyword>GOES-18</Keyword>
+          <Keyword>GOES-EAST</Keyword>
+          <Keyword>GOES-WEST</Keyword>
+          <Keyword>infrared</Keyword>
+          <Keyword>Band 7</Keyword>
+          <Keyword>Weather Satellites</Keyword>
+          <Keyword>present weather</Keyword>
+          <Keyword>ABI</Keyword>
+          <Keyword>L1b</Keyword>
+        </KeywordList>
+        <CRS>EPSG:3857</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-179.50264534993195</westBoundLongitude>
+          <eastBoundLongitude>-50.74952459605097</eastBoundLongitude>
+          <southBoundLatitude>10.910578706055357</southBoundLatitude>
+          <northBoundLatitude>50.55317923122151</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-179.50264534993195" miny="10.910578706055357" maxx="-50.74952459605097" maxy="50.55317923122151"/>
+        <BoundingBox CRS="EPSG:3857" minx="-1.99821430764E7" miny="1221967.6905265786" maxx="-5649411.236033106" maxy="6542633.663146"/>
+        <Dimension name="time" default="2026-10-13T01:03:00Z" units="ISO8601" nearestValue="1">2026-10-12T18:03:00.000Z,2026-10-12T18:08:00.000Z,2026-10-12T18:13:00.000Z,2026-10-12T18:18:00.000Z,2026-10-12T18:23:00.000Z,2026-10-12T18:28:00.000Z,2026-10-12T18:33:00.000Z,2026-10-12T18:38:00.000Z,2026-10-12T18:43:00.000Z,2026-10-12T18:48:00.000Z,2026-10-12T18:53:00.000Z,2026-10-12T18:58:00.000Z,2026-10-12T19:13:00.000Z,2026-10-12T19:18:00.000Z,2026-10-12T19:23:00.000Z,2026-10-12T19:28:00.000Z,2026-10-12T19:33:00.000Z,2026-10-12T19:38:00.000Z,2026-10-12T19:43:00.000Z,2026-10-12T19:48:00.000Z,2026-10-12T19:53:00.000Z,2026-10-12T19:58:00.000Z,2026-10-12T20:03:00.000Z,2026-10-12T20:08:00.000Z,2026-10-12T20:13:00.000Z,2026-10-12T20:18:00.000Z,2026-10-12T20:23:00.000Z,2026-10-12T20:28:00.000Z,2026-10-12T20:33:00.000Z,2026-10-12T20:38:00.000Z,2026-10-12T20:43:00.000Z,2026-10-12T20:48:00.000Z,2026-10-12T20:53:00.000Z,2026-10-12T20:58:00.000Z,2026-10-12T21:03:00.000Z,2026-10-12T21:08:00.000Z,2026-10-12T21:13:00.000Z,2026-10-12T21:18:00.000Z,2026-10-12T21:23:00.000Z,2026-10-12T21:28:00.000Z,2026-10-12T21:33:00.000Z,2026-10-12T21:38:00.000Z,2026-10-12T21:43:00.000Z,2026-10-12T21:48:00.000Z,2026-10-12T21:53:00.000Z,2026-10-12T21:58:00.000Z,2026-10-12T22:03:00.000Z,2026-10-12T22:08:00.000Z,2026-10-12T22:13:00.000Z,2026-10-12T22:18:00.000Z,2026-10-12T22:23:00.000Z,2026-10-12T22:28:00.000Z,2026-10-12T22:33:00.000Z,2026-10-12T22:38:00.000Z,2026-10-12T22:43:00.000Z,2026-10-12T22:48:00.000Z,2026-10-12T22:53:00.000Z,2026-10-12T22:58:00.000Z,2026-10-12T23:03:00.000Z,2026-10-12T23:08:00.000Z,2026-10-12T23:13:00.000Z,2026-10-12T23:18:00.000Z,2026-10-12T23:23:00.000Z,2026-10-12T23:28:00.000Z,2026-10-12T23:33:00.000Z,2026-10-12T23:38:00.000Z,2026-10-12T23:43:00.000Z,2026-10-12T23:48:00.000Z,2026-10-12T23:53:00.000Z,2026-10-12T23:58:00.000Z,2026-10-13T00:03:00.000Z,2026-10-13T00:08:00.000Z,2026-10-13T00:13:00.000Z,2026-10-13T00:18:00.000Z,2026-10-13T00:23:00.000Z,2026-10-13T00:28:00.000Z,2026-10-13T00:33:00.000Z,2026-10-13T00:38:00.000Z,2026-10-13T00:43:00.000Z,2026-10-13T00:48:00.000Z,2026-10-13T00:53:00.000Z,2026-10-13T00:58:00.000Z,2026-10-13T01:03:00.000Z</Dimension>
+        <Style>
+          <Name>goes-sir</Name>
+          <Title>GOES Shortwave</Title>
+          <LegendURL width="46" height="62">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?service=WMS&amp;version=1.3.0&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=goes_shortwave_imagery"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1" opaque="0">
+        <Name>goes_snow_ice_imagery</Name>
+        <Title>GOES East &amp; West Satellite Snow/Ice Imagery</Title>
+        <Abstract>NOAA/NASA Geostationary Operational Environmental Satellites (GOES) Snow/Ice Band 5 (1.61 μm), has a 5 min update frequency, 1 km spatial resolution, and takes advantage of the difference between the refraction components of water and ice at 1.61 μm. Liquid water clouds are bright in this channel; ice clouds are darker because ice absorbs (rather than reflects) radiation at 1.61 μm. Thus you can infer cloud phase: compare at right the darker region of the cirrus anvil to the more reflective water-based cumulus clouds to the right of the storm. Land/water contrast is great at 1.61 μm (lakes are readily apparent in the image) and shadows can be particularly striking. Fires can also be detected at night using this band. This composite snow/ice imagery contains GOES-19 (East) and GOES-18 (West) from GOES Advanced Baseline Imager (ABI) Level 1b (L1b), L1b products are calibrated and, where applicable, geographically corrected.</Abstract>
+        <KeywordList>
+          <Keyword>observations</Keyword>
+          <Keyword>time-enabled</Keyword>
+          <Keyword>GOES</Keyword>
+          <Keyword>satellite</Keyword>
+          <Keyword>snow</Keyword>
+          <Keyword>ice</Keyword>
+          <Keyword>GOES-19</Keyword>
+          <Keyword>GOES-18</Keyword>
+          <Keyword>GOES-EAST</Keyword>
+          <Keyword>GOES-WEST</Keyword>
+          <Keyword>near-infrared</Keyword>
+          <Keyword>Band 5</Keyword>
+          <Keyword>Weather Satellites</Keyword>
+          <Keyword>present weather</Keyword>
+          <Keyword>ABI</Keyword>
+          <Keyword>L1b</Keyword>
+        </KeywordList>
+        <CRS>EPSG:3857</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-179.50264534993195</westBoundLongitude>
+          <eastBoundLongitude>-50.74052339913027</eastBoundLongitude>
+          <southBoundLatitude>10.910578706055357</southBoundLatitude>
+          <northBoundLatitude>50.55317923122151</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-179.50264534993195" miny="10.910578706055357" maxx="-50.74052339913027" maxy="50.55317923122151"/>
+        <BoundingBox CRS="EPSG:3857" minx="-1.99821430764E7" miny="1221967.6905265786" maxx="-5648409.227375364" maxy="6542633.663146"/>
+        <Dimension name="time" default="2026-10-13T01:03:00Z" units="ISO8601" nearestValue="1">2026-10-12T18:03:00.000Z,2026-10-12T18:08:00.000Z,2026-10-12T18:13:00.000Z,2026-10-12T18:18:00.000Z,2026-10-12T18:23:00.000Z,2026-10-12T18:28:00.000Z,2026-10-12T18:33:00.000Z,2026-10-12T18:38:00.000Z,2026-10-12T18:43:00.000Z,2026-10-12T18:48:00.000Z,2026-10-12T18:53:00.000Z,2026-10-12T18:58:00.000Z,2026-10-12T19:13:00.000Z,2026-10-12T19:18:00.000Z,2026-10-12T19:23:00.000Z,2026-10-12T19:28:00.000Z,2026-10-12T19:33:00.000Z,2026-10-12T19:38:00.000Z,2026-10-12T19:43:00.000Z,2026-10-12T19:48:00.000Z,2026-10-12T19:53:00.000Z,2026-10-12T19:58:00.000Z,2026-10-12T20:03:00.000Z,2026-10-12T20:08:00.000Z,2026-10-12T20:13:00.000Z,2026-10-12T20:18:00.000Z,2026-10-12T20:23:00.000Z,2026-10-12T20:28:00.000Z,2026-10-12T20:33:00.000Z,2026-10-12T20:38:00.000Z,2026-10-12T20:43:00.000Z,2026-10-12T20:48:00.000Z,2026-10-12T20:53:00.000Z,2026-10-12T20:58:00.000Z,2026-10-12T21:03:00.000Z,2026-10-12T21:08:00.000Z,2026-10-12T21:13:00.000Z,2026-10-12T21:18:00.000Z,2026-10-12T21:23:00.000Z,2026-10-12T21:28:00.000Z,2026-10-12T21:33:00.000Z,2026-10-12T21:38:00.000Z,2026-10-12T21:43:00.000Z,2026-10-12T21:48:00.000Z,2026-10-12T21:53:00.000Z,2026-10-12T21:58:00.000Z,2026-10-12T22:03:00.000Z,2026-10-12T22:08:00.000Z,2026-10-12T22:13:00.000Z,2026-10-12T22:18:00.000Z,2026-10-12T22:23:00.000Z,2026-10-12T22:28:00.000Z,2026-10-12T22:33:00.000Z,2026-10-12T22:38:00.000Z,2026-10-12T22:43:00.000Z,2026-10-12T22:48:00.000Z,2026-10-12T22:53:00.000Z,2026-10-12T22:58:00.000Z,2026-10-12T23:03:00.000Z,2026-10-12T23:08:00.000Z,2026-10-12T23:13:00.000Z,2026-10-12T23:18:00.000Z,2026-10-12T23:23:00.000Z,2026-10-12T23:28:00.000Z,2026-10-12T23:33:00.000Z,2026-10-12T23:38:00.000Z,2026-10-12T23:43:00.000Z,2026-10-12T23:48:00.000Z,2026-10-12T23:53:00.000Z,2026-10-12T23:58:00.000Z,2026-10-13T00:03:00.000Z,2026-10-13T00:08:00.000Z,2026-10-13T00:13:00.000Z,2026-10-13T00:18:00.000Z,2026-10-13T00:23:00.000Z,2026-10-13T00:28:00.000Z,2026-10-13T00:33:00.000Z,2026-10-13T00:38:00.000Z,2026-10-13T00:43:00.000Z,2026-10-13T00:48:00.000Z,2026-10-13T00:53:00.000Z,2026-10-13T00:58:00.000Z,2026-10-13T01:03:00.000Z</Dimension>
+        <Style>
+          <Name>goes-snow</Name>
+          <Title>GOES Snow and Ice</Title>
+          <LegendURL width="46" height="62">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?service=WMS&amp;version=1.3.0&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=goes_snow_ice_imagery"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1" opaque="0">
+        <Name>goes_visible_imagery</Name>
+        <Title>GOES East &amp; West Satellite Visible Imagery</Title>
+        <Abstract>NOAA/NASA Geostationary Operational Environmental Satellites (GOES) Visible Band 2 (0.64 μm), has a 5 min update frequency, 0.5 km spatial resolution, and provides detection and analysis of clouds and weather systems during daytime. Half-kilometer resolution allows detection of boundaries and small clouds, especially useful in mesoscale sectors for rapidly changing phenomena. Limitation Pixel reflectance in this band can exceed 100% over thick clouds for a large solar zenith angle because of contributions to reflectance from scattering within the cloud. This composite visible imagery contains GOES-19 (East) and GOES-18 (West) from GOES Advanced Baseline Imager (ABI) Level 1b (L1b), L1b products are calibrated and, where applicable, geographically corrected.</Abstract>
+        <KeywordList>
+          <Keyword>observations</Keyword>
+          <Keyword>time-enabled</Keyword>
+          <Keyword>GOES</Keyword>
+          <Keyword>satellite</Keyword>
+          <Keyword>visible</Keyword>
+          <Keyword>GOES-19</Keyword>
+          <Keyword>GOES-18</Keyword>
+          <Keyword>GOES-EAST</Keyword>
+          <Keyword>GOES-WEST</Keyword>
+          <Keyword>Weather Satellites</Keyword>
+          <Keyword>present weather</Keyword>
+          <Keyword>ABI</Keyword>
+          <Keyword>L1b</Keyword>
+        </KeywordList>
+        <CRS>EPSG:3857</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-179.50264534993195</westBoundLongitude>
+          <eastBoundLongitude>-50.73602280066991</eastBoundLongitude>
+          <southBoundLatitude>10.910578706055357</southBoundLatitude>
+          <northBoundLatitude>50.55317923122151</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-179.50264534993195" miny="10.910578706055357" maxx="-50.73602280066991" maxy="50.55317923122151"/>
+        <BoundingBox CRS="EPSG:3857" minx="-1.99821430764E7" miny="1221967.6905265786" maxx="-5647908.223046491" maxy="6542633.663146"/>
+        <Dimension name="time" default="2026-10-13T01:03:00Z" units="ISO8601" nearestValue="1">2026-10-12T18:03:00.000Z,2026-10-12T18:08:00.000Z,2026-10-12T18:13:00.000Z,2026-10-12T18:18:00.000Z,2026-10-12T18:23:00.000Z,2026-10-12T18:28:00.000Z,2026-10-12T18:33:00.000Z,2026-10-12T18:38:00.000Z,2026-10-12T18:43:00.000Z,2026-10-12T18:48:00.000Z,2026-10-12T18:53:00.000Z,2026-10-12T18:58:00.000Z,2026-10-12T19:13:00.000Z,2026-10-12T19:18:00.000Z,2026-10-12T19:23:00.000Z,2026-10-12T19:28:00.000Z,2026-10-12T19:33:00.000Z,2026-10-12T19:38:00.000Z,2026-10-12T19:43:00.000Z,2026-10-12T19:48:00.000Z,2026-10-12T19:53:00.000Z,2026-10-12T19:58:00.000Z,2026-10-12T20:03:00.000Z,2026-10-12T20:08:00.000Z,2026-10-12T20:13:00.000Z,2026-10-12T20:18:00.000Z,2026-10-12T20:23:00.000Z,2026-10-12T20:28:00.000Z,2026-10-12T20:33:00.000Z,2026-10-12T20:38:00.000Z,2026-10-12T20:43:00.000Z,2026-10-12T20:48:00.000Z,2026-10-12T20:53:00.000Z,2026-10-12T20:58:00.000Z,2026-10-12T21:03:00.000Z,2026-10-12T21:08:00.000Z,2026-10-12T21:13:00.000Z,2026-10-12T21:18:00.000Z,2026-10-12T21:23:00.000Z,2026-10-12T21:28:00.000Z,2026-10-12T21:33:00.000Z,2026-10-12T21:38:00.000Z,2026-10-12T21:43:00.000Z,2026-10-12T21:48:00.000Z,2026-10-12T21:53:00.000Z,2026-10-12T21:58:00.000Z,2026-10-12T22:03:00.000Z,2026-10-12T22:08:00.000Z,2026-10-12T22:13:00.000Z,2026-10-12T22:18:00.000Z,2026-10-12T22:23:00.000Z,2026-10-12T22:28:00.000Z,2026-10-12T22:33:00.000Z,2026-10-12T22:38:00.000Z,2026-10-12T22:43:00.000Z,2026-10-12T22:48:00.000Z,2026-10-12T22:53:00.000Z,2026-10-12T22:58:00.000Z,2026-10-12T23:03:00.000Z,2026-10-12T23:08:00.000Z,2026-10-12T23:13:00.000Z,2026-10-12T23:18:00.000Z,2026-10-12T23:23:00.000Z,2026-10-12T23:28:00.000Z,2026-10-12T23:33:00.000Z,2026-10-12T23:38:00.000Z,2026-10-12T23:43:00.000Z,2026-10-12T23:48:00.000Z,2026-10-12T23:53:00.000Z,2026-10-12T23:58:00.000Z,2026-10-13T00:03:00.000Z,2026-10-13T00:08:00.000Z,2026-10-13T00:13:00.000Z,2026-10-13T00:18:00.000Z,2026-10-13T00:23:00.000Z,2026-10-13T00:28:00.000Z,2026-10-13T00:33:00.000Z,2026-10-13T00:38:00.000Z,2026-10-13T00:43:00.000Z,2026-10-13T00:48:00.000Z,2026-10-13T00:53:00.000Z,2026-10-13T00:58:00.000Z,2026-10-13T01:03:00.000Z</Dimension>
+        <Style>
+          <Name>goes-vis</Name>
+          <Title>GOES Visible</Title>
+          <LegendURL width="46" height="62">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?service=WMS&amp;version=1.3.0&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=goes_visible_imagery"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+      <Layer queryable="1" opaque="0">
+        <Name>goes_water_vapor_imagery</Name>
+        <Title>GOES East &amp; West Satellite Water Vapor Imagery</Title>
+        <Abstract>NOAA/NASA Geostationary Operational Environmental Satellites (GOES) Upper-Level Water Vapor Band 8 (6.2 μm), has a 5 min update frequency, 2 km spatial resolution, and is one of three water vapor bands on the ABI, and is used for tracking upper-tropospheric winds, identifying jet streams, forecasting hurricane track and mid-latitude storm motion, monitoring severe weather potential, estimating upper/mid-level moisture (for legacy vertical moisture profiles) and identifying regions where the potential for turbulence exists. Further, it can be used to validate numerical model initialization and warming/cooling with time can reveal vertical motions at mid and upper levels. Primary application atmospheric feature identification (jet streams, troughs/ridges, signatures of potential turbulence).This composite water vapor imagery contains GOES-19 (East) and GOES-18 (West) from GOES Advanced Baseline Imager (ABI) Level 1b (L1b), L1b products are calibrated and, where applicable, geographically corrected.</Abstract>
+        <KeywordList>
+          <Keyword>observations</Keyword>
+          <Keyword>time-enabled</Keyword>
+          <Keyword>GOES</Keyword>
+          <Keyword>satellite</Keyword>
+          <Keyword>water vapor</Keyword>
+          <Keyword>upper-level</Keyword>
+          <Keyword>IR</Keyword>
+          <Keyword>GOES-19</Keyword>
+          <Keyword>GOES-18</Keyword>
+          <Keyword>GOES-EAST</Keyword>
+          <Keyword>GOES-WEST</Keyword>
+          <Keyword>infrared</Keyword>
+          <Keyword>Band 8</Keyword>
+          <Keyword>Weather Satellites</Keyword>
+          <Keyword>present weather</Keyword>
+          <Keyword>ABI</Keyword>
+          <Keyword>L1b</Keyword>
+        </KeywordList>
+        <CRS>EPSG:3857</CRS>
+        <CRS>CRS:84</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>-179.50264534993195</westBoundLongitude>
+          <eastBoundLongitude>-50.74952459605097</eastBoundLongitude>
+          <southBoundLatitude>10.910578706055357</southBoundLatitude>
+          <northBoundLatitude>50.55317923122151</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <BoundingBox CRS="CRS:84" minx="-179.50264534993195" miny="10.910578706055357" maxx="-50.74952459605097" maxy="50.55317923122151"/>
+        <BoundingBox CRS="EPSG:3857" minx="-1.99821430764E7" miny="1221967.6905265786" maxx="-5649411.236033106" maxy="6542633.663146"/>
+        <Dimension name="time" default="2026-10-13T01:03:00Z" units="ISO8601" nearestValue="1">2026-10-12T18:03:00.000Z,2026-10-12T18:08:00.000Z,2026-10-12T18:13:00.000Z,2026-10-12T18:18:00.000Z,2026-10-12T18:23:00.000Z,2026-10-12T18:28:00.000Z,2026-10-12T18:33:00.000Z,2026-10-12T18:38:00.000Z,2026-10-12T18:43:00.000Z,2026-10-12T18:48:00.000Z,2026-10-12T18:53:00.000Z,2026-10-12T18:58:00.000Z,2026-10-12T19:13:00.000Z,2026-10-12T19:18:00.000Z,2026-10-12T19:23:00.000Z,2026-10-12T19:28:00.000Z,2026-10-12T19:33:00.000Z,2026-10-12T19:38:00.000Z,2026-10-12T19:43:00.000Z,2026-10-12T19:48:00.000Z,2026-10-12T19:53:00.000Z,2026-10-12T19:58:00.000Z,2026-10-12T20:03:00.000Z,2026-10-12T20:08:00.000Z,2026-10-12T20:13:00.000Z,2026-10-12T20:18:00.000Z,2026-10-12T20:23:00.000Z,2026-10-12T20:28:00.000Z,2026-10-12T20:33:00.000Z,2026-10-12T20:38:00.000Z,2026-10-12T20:43:00.000Z,2026-10-12T20:48:00.000Z,2026-10-12T20:53:00.000Z,2026-10-12T20:58:00.000Z,2026-10-12T21:03:00.000Z,2026-10-12T21:08:00.000Z,2026-10-12T21:13:00.000Z,2026-10-12T21:18:00.000Z,2026-10-12T21:23:00.000Z,2026-10-12T21:28:00.000Z,2026-10-12T21:33:00.000Z,2026-10-12T21:38:00.000Z,2026-10-12T21:43:00.000Z,2026-10-12T21:48:00.000Z,2026-10-12T21:53:00.000Z,2026-10-12T21:58:00.000Z,2026-10-12T22:03:00.000Z,2026-10-12T22:08:00.000Z,2026-10-12T22:13:00.000Z,2026-10-12T22:18:00.000Z,2026-10-12T22:23:00.000Z,2026-10-12T22:28:00.000Z,2026-10-12T22:33:00.000Z,2026-10-12T22:38:00.000Z,2026-10-12T22:43:00.000Z,2026-10-12T22:48:00.000Z,2026-10-12T22:53:00.000Z,2026-10-12T22:58:00.000Z,2026-10-12T23:03:00.000Z,2026-10-12T23:08:00.000Z,2026-10-12T23:13:00.000Z,2026-10-12T23:18:00.000Z,2026-10-12T23:23:00.000Z,2026-10-12T23:28:00.000Z,2026-10-12T23:33:00.000Z,2026-10-12T23:38:00.000Z,2026-10-12T23:43:00.000Z,2026-10-12T23:48:00.000Z,2026-10-12T23:53:00.000Z,2026-10-12T23:58:00.000Z,2026-10-13T00:03:00.000Z,2026-10-13T00:08:00.000Z,2026-10-13T00:13:00.000Z,2026-10-13T00:18:00.000Z,2026-10-13T00:23:00.000Z,2026-10-13T00:28:00.000Z,2026-10-13T00:33:00.000Z,2026-10-13T00:38:00.000Z,2026-10-13T00:43:00.000Z,2026-10-13T00:48:00.000Z,2026-10-13T00:53:00.000Z,2026-10-13T00:58:00.000Z,2026-10-13T01:03:00.000Z</Dimension>
+        <Style>
+          <Name>goes-wv</Name>
+          <Title>GOES Water Vapor</Title>
+          <LegendURL width="38" height="62">
+            <Format>image/png</Format>
+            <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://nowcoast.noaa.gov/geoserver/observations/satellite/ows?service=WMS&amp;version=1.3.0&amp;request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=goes_water_vapor_imagery"/>
+          </LegendURL>
+        </Style>
+      </Layer>
+    </Layer>
+  </Capability>
+</WMS_Capabilities>

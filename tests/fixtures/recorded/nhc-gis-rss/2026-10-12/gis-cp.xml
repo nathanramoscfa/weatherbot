@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:georss="http://www.georss.org/georss"
+  xmlns:gml="http://www.opengis.net/gml"
+  xmlns:nhc="https://www.nhc.noaa.gov">
+  <channel>
+    <pubDate>Tue, 13 Oct 2026 00:17:17 GMT</pubDate>
+    <title>Central Pacific Hurricane Center GIS Data (Central North Pacific)</title>
+    <description>Central North Pacific Basin GIS Data for Active Tropical Cyclones</description>
+    <link>https://www.nhc.noaa.gov/gis/</link>
+    <copyright>none</copyright>
+    <managingEditor>nhcwebmaster@noaa.gov (NHC Webmaster)</managingEditor>
+    <language>en-us</language>
+    <webMaster>nhcwebmaster@noaa.gov (NHC Webmaster)</webMaster>
+    <image>
+      <url>https://www.nhc.noaa.gov/gifs/xml_logo_nhc.gif</url>
+      <link>https://www.nhc.noaa.gov/</link>
+      <title>Central Pacific Hurricane Center GIS Data (Central North Pacific)</title>
+      <description>NOAA logo</description>
+      <width>95</width>
+      <height>45</height>
+    </image>
+    <item>
+      <title>There are no tropical cyclones at this time.</title>
+      <description>No tropical cyclones as of Tue, 13 Oct 2026 00:17:17 GMT</description>
+      <pubDate>Wed, 14 Oct 2026 11:07:59 GMT</pubDate>
+      <link>https://www.nhc.noaa.gov/gis/</link>
+      <guid>https://www.nhc.noaa.gov/gis/</guid>
+      <author>nhcwebmaster@noaa.gov (NHC Webmaster)</author>
+    </item>
+  </channel>
+</rss>

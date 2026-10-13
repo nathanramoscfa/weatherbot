@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "source": "overlay-radar",
+  "recorded_at": "2026-10-13T01:09:08Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "capabilities.xml",
+      "url": "https://nowcoast.noaa.gov/geoserver/weather_radar/ows?service=WMS&version=1.3.0&request=GetCapabilities",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:09:08Z",
+      "sha256": "52e590c8ad413829511caa5269b6cae831c34c7eeee1bf6b05eea5cf081dbe2a",
+      "bytes": 34420,
+      "stored_as": "raw",
+      "headers": {
+        "age": "111",
+        "cache-control": "max-age=240, public",
+        "content-type": "text/xml",
+        "date": "Tue, 13 Oct 2026 01:07:09 GMT",
+        "expires": "Tue, 13 Oct 2026 01:11:09 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    }
+  ]
+}

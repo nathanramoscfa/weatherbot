@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "source": "nhc-text-products",
+  "recorded_at": "2026-10-13T01:08:55Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "tcp-ep5-list.json",
+      "url": "https://api.weather.gov/products/types/TCP/locations/EP5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:47Z",
+      "sha256": "444a633e5da5c1e5717b6cda77b4b75ac21af300e81931ab2b2e7524f3ae3f85",
+      "bytes": 17014,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=120, s-maxage=120",
+        "content-length": "1719",
+        "content-type": "application/ld+json",
+        "date": "Tue, 13 Oct 2026 01:08:39 GMT",
+        "expires": "Tue, 13 Oct 2026 01:10:39 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "tcp-ep5-product.json",
+      "url": "https://api.weather.gov/products/8916389a-6334-4134-b9a5-26ab195a7381",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:48Z",
+      "sha256": "e256c86594800e756799061d521fdd69bc580759a8ec98e6710785391de4eb81",
+      "bytes": 4442,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=120, s-maxage=120",
+        "content-length": "2139",
+        "content-type": "application/ld+json",
+        "date": "Tue, 13 Oct 2026 01:08:41 GMT",
+        "expires": "Tue, 13 Oct 2026 01:10:41 GMT"
+      },
+      "origin": "live",
+      "notes": "the newest product"
+    },
+    {
+      "file": "two-at-list.json",
+      "url": "https://api.weather.gov/products/types/TWO/locations/AT",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:49Z",
+      "sha256": "5559c35132e1a9403aed385f2f4d10a0751a23a12208f91a543f42637c2dc42f",
+      "bytes": 11498,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=120, s-maxage=120",
+        "content-length": "1260",
+        "content-type": "application/ld+json",
+        "date": "Tue, 13 Oct 2026 01:08:42 GMT",
+        "expires": "Tue, 13 Oct 2026 01:10:42 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "two-at-product.json",
+      "url": "https://api.weather.gov/products/24b1f0b5-60e2-4e4d-b984-b4cd04ed4254",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:51Z",
+      "sha256": "e0a7c8a40bb700436eac0d360585bab7808ed33eb8e199afa2d79c789279cb97",
+      "bytes": 1499,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=120, s-maxage=120",
+        "content-length": "814",
+        "content-type": "application/ld+json",
+        "date": "Tue, 13 Oct 2026 01:08:43 GMT",
+        "expires": "Tue, 13 Oct 2026 01:10:43 GMT"
+      },
+      "origin": "live",
+      "notes": "the newest product"
+    },
+    {
+      "file": "two-ep-list.json",
+      "url": "https://api.weather.gov/products/types/TWO/locations/EP",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:52Z",
+      "sha256": "bc7b0a7be938fc029755d6dc934f7056158dc10ed8262649619bb11c0236afec",
+      "bytes": 11498,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=120, s-maxage=120",
+        "content-length": "1254",
+        "content-type": "application/ld+json",
+        "date": "Tue, 13 Oct 2026 01:08:44 GMT",
+        "expires": "Tue, 13 Oct 2026 01:10:44 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "two-ep-product.json",
+      "url": "https://api.weather.gov/products/0ca4cdaf-4e4a-48f7-a61b-eebef295fbb3",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:53Z",
+      "sha256": "5b29e33dcb5e00575db6ca17cdb133ac5e15a2da565e279cae8cb11f32e41c85",
+      "bytes": 1544,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=120, s-maxage=120",
+        "content-length": "834",
+        "content-type": "application/ld+json",
+        "date": "Tue, 13 Oct 2026 01:08:45 GMT",
+        "expires": "Tue, 13 Oct 2026 01:10:45 GMT"
+      },
+      "origin": "live",
+      "notes": "the newest product"
+    },
+    {
+      "file": "two-cp-list.json",
+      "url": "https://api.weather.gov/products/types/TWO/locations/CP",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:54Z",
+      "sha256": "4cb18e51074043331b42a701664f6bde6b1be22aa4b11b1ad63169f78150f0b8",
+      "bytes": 11498,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=120, s-maxage=120",
+        "content-length": "1271",
+        "content-type": "application/ld+json",
+        "date": "Tue, 13 Oct 2026 01:08:47 GMT",
+        "expires": "Tue, 13 Oct 2026 01:10:47 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "two-cp-product.json",
+      "url": "https://api.weather.gov/products/8246a737-3ba6-45e8-9bea-cb5e7737acc5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:55Z",
+      "sha256": "6de56538b14770995664e3e9f24d701aab14dc6d4b6701689cb3603f273560de",
+      "bytes": 982,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=120, s-maxage=120",
+        "content-length": "555",
+        "content-type": "application/ld+json",
+        "date": "Tue, 13 Oct 2026 01:08:48 GMT",
+        "expires": "Tue, 13 Oct 2026 01:10:48 GMT"
+      },
+      "origin": "live",
+      "notes": "the newest product"
+    }
+  ]
+}
