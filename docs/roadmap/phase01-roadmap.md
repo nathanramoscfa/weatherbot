@@ -2344,9 +2344,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 4 — Data-source register
+## Step 4 — Data-source register ✅
 
-**Status:** Not started
+**Status:** Complete — PR #13 (2026-10-12)
 
 > **Goal:** Write `docs/DATA_SOURCES.md`, the verified register of every
 > source the brief's §5 names, from live discovery on the day the step
@@ -4650,7 +4650,7 @@ any workflow above maps directly to the corresponding row below.
 | 1    | Freeze v1, `main`        | GPT-6.1 Sol              | Codex        | Intelligence Med    | --       | New  | Complete — PR #3 |
 | 2    | uv scaffold              | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #4 |
 | 3    | Security gate            | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #7 |
-| 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Not started |
+| 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #13 |
 | 5    | Fixture recorder         | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Not started |
 | 6    | Replay corpus            | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
 | 7    | QA + verify_phase01.py   | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
