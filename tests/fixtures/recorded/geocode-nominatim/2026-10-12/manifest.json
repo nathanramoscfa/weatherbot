@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "source": "geocode-nominatim",
+  "recorded_at": "2026-10-13T01:09:10Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "reverse-miami-dade.json",
+      "url": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=25.7757&lon=-80.1966",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:09:09Z",
+      "sha256": "14ac3a3791ac91d3f5b38328ef22b08486b3cdbabb0cea2d8d62fe7cbe4d7e42",
+      "bytes": 830,
+      "stored_as": "raw",
+      "headers": {
+        "age": "0",
+        "content-length": "472",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Tue, 13 Oct 2026 01:09:01 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "reverse-nassau.json",
+      "url": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=25.0778&lon=-77.3405",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:09:10Z",
+      "sha256": "f227d677fd5c6ad8f1f24270be688d491473a87e758d43008fc50109117dc594",
+      "bytes": 587,
+      "stored_as": "raw",
+      "headers": {
+        "age": "0",
+        "content-length": "387",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Tue, 13 Oct 2026 01:09:02 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    }
+  ]
+}

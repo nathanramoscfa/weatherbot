@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "source": "nhc-map-breakpoints",
+  "recorded_at": "2026-10-13T01:08:42Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "catalog.json",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_Breakpoints/MapServer?f=json",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:41Z",
+      "sha256": "13eaa9442d0f640bf7dc4e1696e60789fa9c677056bc13c68c7227c3937559f0",
+      "bytes": 5208,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "2073",
+        "content-type": "application/json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:33 GMT",
+        "etag": "\"5921b59b\""
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "layers.json",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_Breakpoints/MapServer/layers?f=json",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:41Z",
+      "sha256": "d878757a8c2a9dff328aec07bc7c2feace903a3305bb7b4c50480c72da396a3d",
+      "bytes": 8034,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-length": "1626",
+        "content-type": "application/json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:34 GMT",
+        "etag": "\"5921b59b\""
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "query-watch-warning-breakpoints.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_Breakpoints/MapServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:42Z",
+      "sha256": "330085f32c130e73d4ba3c11d0b02491df227c453e5981a770b304e18761f9c9",
+      "bytes": 131688,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:34 GMT",
+        "etag": "\"c492e8ec\""
+      },
+      "origin": "live",
+      "notes": "layer 'Watch_Warning_Breakpoints', id 0"
+    },
+    {
+      "file": "query-stormsurge-communication-points.geojson",
+      "url": "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_Breakpoints/MapServer/1/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&geometryPrecision=5",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:42Z",
+      "sha256": "c712facf8eeae854283689be21d53ecc2839b53962d6e82691d085a1ce31d4ac",
+      "bytes": 74021,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=0,must-revalidate",
+        "content-type": "application/geo+json;charset=UTF-8",
+        "date": "Tue, 13 Oct 2026 01:08:35 GMT",
+        "etag": "\"34ea5430\""
+      },
+      "origin": "live",
+      "notes": "layer 'StormSurge_Communication_Points', id 1"
+    }
+  ]
+}

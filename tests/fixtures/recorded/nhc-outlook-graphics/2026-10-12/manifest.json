@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "source": "nhc-outlook-graphics",
+  "recorded_at": "2026-10-13T01:08:58Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "two_atl_2d0.png",
+      "url": "https://www.nhc.noaa.gov/xgtwo/two_atl_2d0.png",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:56Z",
+      "sha256": "5f0c2bcd00ad090d2a18ef0f2dba2840170b5fa2472c1883bce02946db4cdecc",
+      "bytes": 211628,
+      "stored_as": "raw",
+      "headers": {
+        "age": "7",
+        "cache-control": "max-age=300",
+        "content-length": "211628",
+        "content-type": "image/png",
+        "date": "Tue, 13 Oct 2026 01:08:48 GMT",
+        "etag": "\"33aac-65dacc9c8934c\"",
+        "expires": "Tue, 13 Oct 2026 01:13:41 GMT",
+        "last-modified": "Mon, 12 Oct 2026 23:09:21 GMT"
+      },
+      "origin": "live",
+      "notes": "PNG 900x679"
+    },
+    {
+      "file": "two_atl_7d0.png",
+      "url": "https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:56Z",
+      "sha256": "d78f6879789d46100745b543bcfa04e9b45b8c980e259d7ce3115bc677fc5013",
+      "bytes": 68779,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=300",
+        "content-length": "68779",
+        "content-type": "image/png",
+        "date": "Tue, 13 Oct 2026 01:08:48 GMT",
+        "etag": "\"10cab-65dacc9cbeac4\"",
+        "expires": "Tue, 13 Oct 2026 01:13:48 GMT",
+        "last-modified": "Mon, 12 Oct 2026 23:09:21 GMT"
+      },
+      "origin": "live",
+      "notes": "PNG 900x679"
+    },
+    {
+      "file": "two_pac_2d0.png",
+      "url": "https://www.nhc.noaa.gov/xgtwo/two_pac_2d0.png",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:57Z",
+      "sha256": "c3f22e536bb2cb60de2d052bec168ab667c21e8ccd466c13d711357fe954782b",
+      "bytes": 166080,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=300",
+        "content-length": "166080",
+        "content-type": "image/png",
+        "date": "Tue, 13 Oct 2026 01:08:49 GMT",
+        "etag": "\"288c0-65dad24e3a632\"",
+        "expires": "Tue, 13 Oct 2026 01:13:49 GMT",
+        "last-modified": "Mon, 12 Oct 2026 23:34:49 GMT"
+      },
+      "origin": "live",
+      "notes": "PNG 900x547"
+    },
+    {
+      "file": "two_pac_7d0.png",
+      "url": "https://www.nhc.noaa.gov/xgtwo/two_pac_7d0.png",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:57Z",
+      "sha256": "e700c55dc6f26238b398b6a7f57a767c5f401e7e1422f0c0ea04b9b081394f77",
+      "bytes": 47771,
+      "stored_as": "raw",
+      "headers": {
+        "age": "12",
+        "cache-control": "max-age=300",
+        "content-length": "47771",
+        "content-type": "image/png",
+        "date": "Tue, 13 Oct 2026 01:08:46 GMT",
+        "etag": "\"ba9b-65dad24e44a3a\"",
+        "expires": "Tue, 13 Oct 2026 01:13:37 GMT",
+        "last-modified": "Mon, 12 Oct 2026 23:34:49 GMT"
+      },
+      "origin": "live",
+      "notes": "PNG 900x547"
+    },
+    {
+      "file": "two_cpac_2d0.png",
+      "url": "https://www.nhc.noaa.gov/xgtwo/two_cpac_2d0.png",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:58Z",
+      "sha256": "9d2c3766e9d9ee2f81c750bdd0dc3cb9348adcc459d14d8c94e0e8c405b83202",
+      "bytes": 162019,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=300",
+        "content-length": "162019",
+        "content-type": "image/png",
+        "date": "Tue, 13 Oct 2026 01:08:50 GMT",
+        "etag": "\"278e3-65dacc9b42ca1\"",
+        "expires": "Tue, 13 Oct 2026 01:13:50 GMT",
+        "last-modified": "Mon, 12 Oct 2026 23:09:20 GMT"
+      },
+      "origin": "live",
+      "notes": "PNG 900x679"
+    },
+    {
+      "file": "two_cpac_7d0.png",
+      "url": "https://www.nhc.noaa.gov/xgtwo/two_cpac_7d0.png",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:58Z",
+      "sha256": "edf20a90104404d387a83a5a51fe90ffaa5396ca6f7d5bc797e29246651785c9",
+      "bytes": 35323,
+      "stored_as": "raw",
+      "headers": {
+        "age": "5",
+        "cache-control": "max-age=300",
+        "content-length": "35323",
+        "content-type": "image/png",
+        "date": "Tue, 13 Oct 2026 01:08:45 GMT",
+        "etag": "\"89fb-65dacc9c733fe\"",
+        "expires": "Tue, 13 Oct 2026 01:13:45 GMT",
+        "last-modified": "Mon, 12 Oct 2026 23:09:21 GMT"
+      },
+      "origin": "live",
+      "notes": "PNG 900x679"
+    }
+  ]
+}

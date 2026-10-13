@@ -1,0 +1,14 @@
+{
+    "@context": {
+        "@version": "1.1",
+        "@vocab": "https://api.weather.gov/ontology#"
+    },
+    "@id": "https://api.weather.gov/products/0ca4cdaf-4e4a-48f7-a61b-eebef295fbb3",
+    "id": "0ca4cdaf-4e4a-48f7-a61b-eebef295fbb3",
+    "wmoCollectiveId": "ABPZ20",
+    "issuingOffice": "KNHC",
+    "issuanceTime": "2026-10-12T23:07:00+00:00",
+    "productCode": "TWO",
+    "productName": "Tropical Weather Outlook and Summary",
+    "productText": "\n000\nABPZ20 KNHC 122307\nTWOEP \n\nTropical Weather Outlook\nNWS National Hurricane Center Miami FL\n500 PM PDT Mon Oct 12 2026\n\nFor the eastern and central North Pacific east of 180 longitude:\n\nActive Systems:\nThe National Hurricane Center is issuing advisories on Hurricane \nSimon, located within a hundred miles west of Cabo Corrientes, \nMexico.\n\nSouth of Southern Mexico (EP93):\nShowers and thunderstorms are beginning to show signs of \norganization in association with a broad area of low pressure \nlocated several hundred miles south-southwest of the coast of \nGuatemala. This system is gradually becoming better defined, and \nenvironmental conditions are forecast to be conducive for further \ndevelopment. A tropical depression or tropical storm is expected to \nform well south of southern Mexico later tonight or tomorrow while \nthe system moves generally west-northwestward at around 10 mph.\n* Formation chance through 48 hours...high...near 100 percent.\n* Formation chance through 7 days...high...near 100 percent.\n\n$$\nForecaster Pierce/Cangialosi\n"
+}

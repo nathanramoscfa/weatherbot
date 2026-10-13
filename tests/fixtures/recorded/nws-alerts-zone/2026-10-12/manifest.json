@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "source": "nws-alerts-zone",
+  "recorded_at": "2026-10-13T01:09:04Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "alerts-zone-FLC086.geojson",
+      "url": "https://api.weather.gov/alerts/active/zone/FLC086",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:09:03Z",
+      "sha256": "1709a80524539110221e58f1abdc9adbc5a8b88782a42ebd424321bb3e68bbfe",
+      "bytes": 242,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=5, s-maxage=5",
+        "content-length": "197",
+        "content-type": "application/geo+json",
+        "date": "Tue, 13 Oct 2026 01:08:55 GMT",
+        "etag": "W/\"a71e1452933b49095b6f344d76455973\"",
+        "expires": "Tue, 13 Oct 2026 01:09:00 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "alerts-zone-FLZ173.geojson",
+      "url": "https://api.weather.gov/alerts/active/zone/FLZ173",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:09:04Z",
+      "sha256": "553f79674898a5455388f991c10ca302c41092108e39c2bcde5483533b3d8c38",
+      "bytes": 250,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=4, s-maxage=5",
+        "content-length": "201",
+        "content-type": "application/geo+json",
+        "date": "Tue, 13 Oct 2026 01:08:57 GMT",
+        "etag": "W/\"9881972bffba0d9eda745bd75936dac7\"",
+        "expires": "Tue, 13 Oct 2026 01:09:01 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    }
+  ]
+}

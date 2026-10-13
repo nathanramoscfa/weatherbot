@@ -1,0 +1,14 @@
+{
+    "@context": {
+        "@version": "1.1",
+        "@vocab": "https://api.weather.gov/ontology#"
+    },
+    "@id": "https://api.weather.gov/products/8246a737-3ba6-45e8-9bea-cb5e7737acc5",
+    "id": "8246a737-3ba6-45e8-9bea-cb5e7737acc5",
+    "wmoCollectiveId": "ACPN50",
+    "issuingOffice": "PHFO",
+    "issuanceTime": "2026-10-12T23:07:00+00:00",
+    "productCode": "TWO",
+    "productName": "Tropical Weather Outlook and Summary",
+    "productText": "\n000\nACPN50 PHFO 122307\nTWOCP \n\nTropical Weather Outlook\nNWS Central Pacific Hurricane Center Honolulu HI\nIssued by NWS National Hurricane Center Miami FL\n200 PM HST Mon Oct 12 2026\n\nFor the central North Pacific...between 140W and 180W:\n\nActive Systems:\nThe National Hurricane Center is issuing advisories on Hurricane\nSimon, located within a hundred miles west of Cabo Corrientes,\nMexico.\n\nTropical cyclone formation is not expected during the next 7 days.\n\n$$\nForecaster Pierce/Cangialosi\nNNNN\n\n"
+}

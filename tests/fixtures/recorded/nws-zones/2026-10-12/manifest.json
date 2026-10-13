@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "source": "nws-zones",
+  "recorded_at": "2026-10-13T01:09:08Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "zone-county-FLC086.json",
+      "url": "https://api.weather.gov/zones/county/FLC086",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:09:05Z",
+      "sha256": "099c4eeffca082090c221804dbf49399094fcbe524f6947e9894f6c129449c5a",
+      "bytes": 784207,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=2328751, s-maxage=604800",
+        "content-length": "53461",
+        "content-type": "application/geo+json",
+        "date": "Tue, 13 Oct 2026 01:08:58 GMT",
+        "expires": "Mon, 09 Nov 2026 00:01:29 GMT",
+        "last-modified": "Thu, 16 Apr 2026 16:22:33 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "zone-forecast-FLZ173.json",
+      "url": "https://api.weather.gov/zones/forecast/FLZ173",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:09:06Z",
+      "sha256": "61a53af4eb31c1fe5d08cced008306b79951ff137a998be52d3bbaf67a2be5c9",
+      "bytes": 300392,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=2068343, s-maxage=604800",
+        "content-length": "20377",
+        "content-type": "application/geo+json",
+        "date": "Tue, 13 Oct 2026 01:08:59 GMT",
+        "expires": "Thu, 05 Nov 2026 23:41:22 GMT",
+        "last-modified": "Thu, 16 Apr 2026 16:31:13 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "zone-fire-FLZ173.json",
+      "url": "https://api.weather.gov/zones/fire/FLZ173",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:09:08Z",
+      "sha256": "ce6c4d943ff0ada94ac590f410162f540d51ef7c9972244db2fe30f4eca73a3d",
+      "bytes": 300840,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=2579472, s-maxage=604800",
+        "content-length": "20408",
+        "content-type": "application/geo+json",
+        "date": "Tue, 13 Oct 2026 01:09:00 GMT",
+        "etag": "W/\"1776356750:dtagent10337260504112723F6xZ:dtagent10337260504112723F6xZ\"",
+        "expires": "Wed, 11 Nov 2026 21:40:12 GMT",
+        "last-modified": "Thu, 16 Apr 2026 16:25:48 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    }
+  ]
+}

@@ -2842,9 +2842,9 @@ The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 5 — Fixture recorder and harvest
+## Step 5 — Fixture recorder and harvest ✅
 
-**Status:** Not started
+**Status:** Complete — PR #14 (2026-10-12)
 
 > **Goal:** Record a fixture of every `required` source in the register
 > and harvest the six outlook maps the surviving v1 reports hold.
@@ -3703,7 +3703,14 @@ conversation is new per phase-boundary hygiene.
     - `scripts/record_fixtures.py` holds the HTTP client
       settings (User-Agent, timeouts, retries) and the gzip
       writer (`mtime=0`); `tests/contract/test_fixture_budget.py`
-      enforces the recorded budget.
+      enforces the recorded budget. Step 5's names to reuse:
+      `USER_AGENT`, `REQUEST_TIMEOUT`, `Fetcher` (with `Pacer`:
+      per-host spacing, retries, backoff), `stored_form` (gzip
+      above `GZIP_THRESHOLD_BYTES`), and `RecorderError`. The
+      budget test lists its roots in `BUDGETED_ROOTS` (add
+      `tests/fixtures/replay/` there, with its own 10 MiB cap);
+      `tests/contract/fixture_support.py` holds the readers the
+      contract tests share.
     - Archive files are immutable, so their checksums are
       stable once recorded; the archive is public and keyless,
       and polite use means serial requests with the project
@@ -4651,7 +4658,7 @@ any workflow above maps directly to the corresponding row below.
 | 2    | uv scaffold              | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #4 |
 | 3    | Security gate            | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #7 |
 | 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #13 |
-| 5    | Fixture recorder         | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Not started |
+| 5    | Fixture recorder         | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #14 |
 | 6    | Replay corpus            | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
 | 7    | QA + verify_phase01.py   | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
 | V1   | Freeze v1, `main`        | CI: phase-verify.yml     | --           | --                  | --       | --   | --          |

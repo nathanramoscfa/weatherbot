@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   probabilistic-wind, and surge layers; the NWS, text-product, graphic,
   RSS, archive, overlay, and geocoding endpoints with their etiquette; the
   project User-Agent; and the sources version 2 does not use.
+- `scripts/record_fixtures.py`, the fixture recorder, and `tests/fixtures/recorded/`: a
+  capture of every `required` source in the register, taken live on 2026-10-12 with the
+  project User-Agent and stored with a checksummed `manifest.json` per directory; the six
+  seven-day Atlantic outlook maps recovered from the 2025 version 1 reports; a notice of the
+  third-party terms; and contract tests that keep the register, the recorder, and the
+  recorded service catalogs in agreement and hold the fixtures to a 25 MiB budget.
 
 ### Changed
 - Version 1 is retired; it remains installable with

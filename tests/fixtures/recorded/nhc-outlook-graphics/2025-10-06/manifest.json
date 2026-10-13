@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "source": "nhc-outlook-graphics",
+  "recorded_at": "2026-10-13T01:09:11Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "two_atl_7d0.png",
+      "url": "https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png",
+      "status": 200,
+      "fetched_at": "2025-10-06T05:18:41Z",
+      "sha256": "01c4a30bc322cf00fe2e2777163219b4af2784a245721543ae47dc2fd642af8f",
+      "bytes": 170552,
+      "stored_as": "raw",
+      "headers": {},
+      "origin": "harvest:v1-report",
+      "notes": "PNG 900x665. Version 1 embedded this image in its report; fetched_at is the report's local time (EDT) converted to UTC.",
+      "harvested_from": "reports/hurricane_threat_analysis_20251006_011841.html"
+    }
+  ]
+}

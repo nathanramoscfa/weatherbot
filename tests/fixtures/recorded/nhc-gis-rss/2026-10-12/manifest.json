@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "source": "nhc-gis-rss",
+  "recorded_at": "2026-10-13T01:08:47Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "gis-at.xml",
+      "url": "https://www.nhc.noaa.gov/gis-at.xml",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:46Z",
+      "sha256": "81dbf6f458198667df6e6a87dfc84356a34b7d6601e28bf2bec2fe12e8e419a1",
+      "bytes": 1438,
+      "stored_as": "raw",
+      "headers": {
+        "age": "5",
+        "cache-control": "max-age=300",
+        "content-length": "1438",
+        "content-type": "text/xml",
+        "date": "Tue, 13 Oct 2026 01:08:38 GMT",
+        "etag": "\"59e-65dadbd1604f1\"",
+        "expires": "Tue, 13 Oct 2026 01:13:33 GMT",
+        "last-modified": "Tue, 13 Oct 2026 00:17:23 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "gis-ep.xml",
+      "url": "https://www.nhc.noaa.gov/gis-ep.xml",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:46Z",
+      "sha256": "f061120c01b275773c64e54adfd5057e330e7b76db9a28e1f00f82e12e79d815",
+      "bytes": 5786,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=300",
+        "content-length": "5786",
+        "content-type": "text/xml",
+        "date": "Tue, 13 Oct 2026 01:08:39 GMT",
+        "etag": "\"169a-65dadbd1608c1\"",
+        "expires": "Tue, 13 Oct 2026 01:13:39 GMT",
+        "last-modified": "Tue, 13 Oct 2026 00:17:23 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "gis-cp.xml",
+      "url": "https://www.nhc.noaa.gov/gis-cp.xml",
+      "status": 200,
+      "fetched_at": "2026-10-13T01:08:47Z",
+      "sha256": "7818551040302ec4a770e1a59b1a5fea9a726a8b0997c616fe3d2b821146329d",
+      "bytes": 1455,
+      "stored_as": "raw",
+      "headers": {
+        "age": "17",
+        "cache-control": "max-age=300",
+        "content-length": "1455",
+        "content-type": "text/xml",
+        "date": "Tue, 13 Oct 2026 01:08:39 GMT",
+        "etag": "\"5af-65dadbd1608be\"",
+        "expires": "Tue, 13 Oct 2026 01:13:22 GMT",
+        "last-modified": "Tue, 13 Oct 2026 00:17:23 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    }
+  ]
+}

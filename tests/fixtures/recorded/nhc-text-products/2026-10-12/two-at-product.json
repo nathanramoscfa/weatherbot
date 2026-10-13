@@ -1,0 +1,14 @@
+{
+    "@context": {
+        "@version": "1.1",
+        "@vocab": "https://api.weather.gov/ontology#"
+    },
+    "@id": "https://api.weather.gov/products/24b1f0b5-60e2-4e4d-b984-b4cd04ed4254",
+    "id": "24b1f0b5-60e2-4e4d-b984-b4cd04ed4254",
+    "wmoCollectiveId": "ABNT20",
+    "issuingOffice": "KNHC",
+    "issuanceTime": "2026-10-12T23:02:00+00:00",
+    "productCode": "TWO",
+    "productName": "Tropical Weather Outlook and Summary",
+    "productText": "\n000\nABNT20 KNHC 122302\nTWOAT \n\nTropical Weather Outlook\nNWS National Hurricane Center Miami FL\n800 PM EDT Mon Oct 12 2026\n\nFor the North Atlantic...Caribbean Sea and the Gulf of America:\n\nEastern Tropical Atlantic:\nAn elongated area of low pressure centered several hundred miles \nwest of the Cabo Verde Islands continues to produce a large, but \ndisorganized area of showers and thunderstorms on its east side, \nextending toward the westernmost Cabo Verde Islands. Environmental \nconditions appear, at best, only marginally conducive for \ndevelopment of this system before upper-level winds become too \nstrong for any further development on Tuesday. Regardless, heavy \nrainfall is expected to continue for the next day or two across \nwestern portions of the Cabo Verde Islands, and some flooding is \npossible there as the system moves slowly northward to \nnorth-northwestward.\n* Formation chance through 48 hours...low...20 percent.\n* Formation chance through 7 days...low...20 percent.\n\n$$\nForecaster Adams\n"
+}
