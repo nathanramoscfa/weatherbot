@@ -46,6 +46,9 @@ uv run pytest                # run the tests
   the decisions behind it.
 - [The project roadmap](docs/roadmap/ROADMAP.md) and its
   [phase roadmaps](docs/roadmap/): how the work is sequenced.
+- [The data-source register](docs/DATA_SOURCES.md): every official
+  source version 2 reads, verified live, with its endpoints, terms, and
+  etiquette.
 - [CHANGELOG.md](CHANGELOG.md): what has changed.
 
 ## License

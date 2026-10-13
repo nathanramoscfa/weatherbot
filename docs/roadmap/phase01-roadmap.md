@@ -2344,9 +2344,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 4 — Data-source register
+## Step 4 — Data-source register ✅
 
-**Status:** Not started
+**Status:** Complete — PR #13 (2026-10-12)
 
 > **Goal:** Write `docs/DATA_SOURCES.md`, the verified register of every
 > source the brief's §5 names, from live discovery on the day the step
@@ -3337,6 +3337,12 @@ new per phase-boundary hygiene.
         200; every ArcGIS layer name in the register, with
         `{slot}` expanded over the slots in the recorded
         catalog, exists in that service's recorded catalog.
+        `StormSurgeRisk` repeats its layer names, so the
+        register names those layers by group path: a name
+        containing ` / ` is a path of layer names from the
+        service root, and `{n}` expands over the categories
+        the register lists for that region (Step 4,
+        2026-10-12).
       - `test_fixture_budget.py`: the stored bytes under
         `tests/fixtures/recorded/` total at most 25 MiB, and
         every stored file is at most 5 MiB (Step 6 extends it
@@ -3682,6 +3688,18 @@ conversation is new per phase-boundary hygiene.
     - `docs/DATA_SOURCES.md` documents the GIS archive for the
       four storms: the listing URLs, the naming in each year,
       and which products exist for which storm.
+    - Step 4 found, on 2026-10-12: the arrival-time archive
+      begins in 2018, so Irma has no arrival-time product;
+      arrival times are KMZ only, and
+      `archive_toa_results.php` ignores its `id` and `year`
+      (one 1.9 MB page of every file since 2018: filter by
+      storm id). Wind-speed probabilities are one file set
+      per synoptic time with no storm in the name: match
+      each advisory to the set whose time equals the
+      `SYNOPTIME` in its `_fcst_` package. Ian's `_fcst_`
+      packages stop at advisory 035, while `_5day_` runs
+      to 038. Inundation zips are 10–22 MB each and are
+      not part of the corpus.
     - `scripts/record_fixtures.py` holds the HTTP client
       settings (User-Agent, timeouts, retries) and the gzip
       writer (`mtime=0`); `tests/contract/test_fixture_budget.py`
@@ -4244,6 +4262,9 @@ phase-boundary hygiene.
         `nws-alerts-point`, and `nws-alerts-zone`.
     33. The register states the User-Agent with
         `github.com/nathanramoscfa/weatherbot` and no `@`.
+        Check the User-Agent string itself, not the whole
+        file: the register quotes JSON-LD keys such as
+        `@id`.
     34. The register records ATCF and storm-page scraping as
         not used.
     35. The register contains the per-basin table header.
@@ -4629,7 +4650,7 @@ any workflow above maps directly to the corresponding row below.
 | 1    | Freeze v1, `main`        | GPT-6.1 Sol              | Codex        | Intelligence Med    | --       | New  | Complete — PR #3 |
 | 2    | uv scaffold              | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #4 |
 | 3    | Security gate            | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #7 |
-| 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Not started |
+| 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #13 |
 | 5    | Fixture recorder         | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Not started |
 | 6    | Replay corpus            | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
 | 7    | QA + verify_phase01.py   | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
