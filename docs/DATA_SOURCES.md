@@ -711,6 +711,81 @@ last `fcst` package):
 | AL092022 Ian | 68: 001–038, 30 intermediates | 65: 001–035 | complete, 2022092306–2022100106 (33 times) | 35 advisories, 001–035, both kinds | 20 advisories, 12–33 except 21 and 23 | 29 `Experimental` files, 011–033A |
 | AL142024 Milton | 41: 001–023, 18 intermediates | 41, as `_5day_` | complete, 2024100512–2024101018 (22 times) | 23 advisories, 001–023, both kinds | 17 advisories, 05–22 except 09 | 22 files, 008–023 |
 
+### Replay corpus recorded 2026-10-15
+
+`tests/fixtures/replay/corpus-manifest.json` pins 1,199 original archive
+files, 117,177,968 bytes (111.75 MiB), by URL, size, and SHA-256. The
+ignored cache defaults to `.cache/replay-corpus/`; set
+`WEATHERBOT_CORPUS_CACHE` or pass `--cache` to use another directory.
+Discovery reads the listings above, not storm web pages. Forecast and
+probability products use shapefile zips; arrival times use KMZ because
+no shapefile is available. WSP includes both the 5 km polygons and
+half-degree points, with advisory associations taken from `SYNOPTIME`
+in the radii packages, not a guessed issuance time.
+
+| Storm | Forecast advisories / 5day files | Radii files | WSP files | Arrival KMZ files | Total cache files | Cache bytes |
+| --- | --- | --- | --- | --- | --- | --- |
+| AL112017 Irma | 84 | 84 | 102 | 0 | 270 | 32,727,720 |
+| AL052019 Dorian | 117 | 117 | 126 | 128 | 488 | 46,005,977 |
+| AL092022 Ian | 68 | 65 | 66 | 70 | 269 | 20,883,514 |
+| AL142024 Milton | 41 | 41 | 44 | 46 | 172 | 17,560,757 |
+
+Irma has no arrival-time product (the archive begins in 2018). The other
+storms have both arrival products only for full advisories: Dorian
+001–064, Ian 001–035, and Milton 001–023. Intermediate advisories have
+none, and Ian's full advisories 036–038 lack both radii and arrival
+products. Every available radii synoptic time has both WSP shapefile
+products. Watch-warning geometry exists in 271 forecast packages; the
+other packages lack that product. The manifest records these gaps;
+no absent product is fabricated. Inundation and peak surge are outside
+this corpus.
+
+The committed subset contains 1,201 compressed FeatureCollections,
+5,435,928 bytes (5.18 MiB), covering **all 310 advisories**. With the
+manifest and notice, the replay tree is about 6.68 MiB, below its
+10 MiB cap. Every cone is a valid polygon; source attributes are
+preserved, keys sorted, floats fixed to seven decimals, and gzip
+`mtime` fixed to zero. The regional fallback rule was not needed.
+
+Every archived `.prj` in this corpus declares geographic `D_Sphere`,
+radius 6,371,200 m. With operator approval on 2026-10-15, conversion
+preserves that native CRS and records exact WKT in the manifest and
+`source_crs` in each collection. These coordinates have **not** been
+transformed to WGS84; the output is GeoJSON-shaped native-CRS data,
+not RFC 7946 WGS84 GeoJSON. Consumers must honor this provenance.
+Projected or unsupported datums still stop conversion.
+
+Dorian 056–062A has 39 one-vertex watch-warning records across 13
+advisories. Conversion represents those as Points, retains the source
+line in `source_geometry`, and adds `geometry_note`; it invents no line
+segment. pyshp also preserves rings when the source has only interior
+winding by treating them as exterior rings; all resulting cones pass
+validity checks. The original archives remain untouched in the cache.
+
+```sh
+uv run python scripts/fetch_replay_corpus.py fetch
+uv run python scripts/fetch_replay_corpus.py verify
+uv run python scripts/fetch_replay_corpus.py convert
+uv run pytest -m corpus
+```
+
+`manifest` deliberately refreshes the trust baseline from a fresh
+download; review its diff before committing. `manifest --reuse-downloads`
+resumes an interrupted initial recording using retained bytes and fresh
+listings; it establishes new checksums, so it is forbidden for `fetch`,
+`verify`, or `convert`. Normal fetches never rewrite checksums or accept
+corrupt existing files. Every parse follows checksum verification;
+archive members are bounded, path-checked, and read in memory.
+
+`replay-corpus.yml` verifies the original cache and byte-for-byte
+reconversion on relevant PRs and merges, on demand, and at 08:23 UTC
+Mondays and Thursdays. Its actions cache is keyed only on the manifest
+hash. It is read-only, keyless, and outside required branch checks.
+GitHub can evict unused caches after seven days and disable scheduled
+workflows after 60 days without repository activity; a miss fetches the
+pinned originals again. The `simulate_failure` dispatch proves the
+failure alarm after verification and tests have passed.
+
 ## Overlays
 
 Both overlays come from NOAA's nowCOAST, so the Iowa Environmental

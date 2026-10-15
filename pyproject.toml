@@ -51,10 +51,12 @@ dev = [
     "pip-audit>=2.10.1",
     "pre-commit>=4.6.2",
     "pyright>=1.1.414",
+    "pyshp>=3.1.6",
     "pytest>=9.1.1",
     "pytest-socket>=0.8.1",
     "respx>=0.23.1",
     "ruff>=0.17.0",
+    "shapely>=2.2.0",
 ]
 # roadmodel is the planning tool behind docs/roadmap/ (ROADMAP.md and
 # phaseNN-roadmap.md); it is not an application dependency. pip is here

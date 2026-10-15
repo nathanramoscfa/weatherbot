@@ -31,6 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   third-party terms; and contract tests that keep the register, the recorder, and the
   recorded service catalogs in agreement and hold the fixtures to a 25 MiB budget.
 
+- A checksum-pinned NHC replay corpus for Irma, Dorian, Ian, and Milton, with
+  deterministic compressed advisory geometry, explicit native CRS provenance, an
+  ignored cache for original forecast, wind-probability, and arrival-time archives,
+  offline and full-cache tests, and a twice-weekly cache-verification workflow.
+
 ### Changed
 - Version 1 is retired; it remains installable with
   `pip install weatherbot==1.0.0`, and its source is preserved at the

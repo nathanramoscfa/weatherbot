@@ -1,0 +1,83 @@
+# .github/workflows/replay-corpus.yml
+# Public, keyless archives only. This maintenance workflow is not a required check.
+name: replay-corpus
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/fetch_replay_corpus.py
+      - tests/fixtures/replay/**
+      - tests/replay/**
+      - .github/workflows/replay-corpus.yml
+      - pyproject.toml
+      - uv.lock
+  pull_request:
+    paths:
+      - scripts/fetch_replay_corpus.py
+      - tests/fixtures/replay/**
+      - tests/replay/**
+      - .github/workflows/replay-corpus.yml
+      - pyproject.toml
+      - uv.lock
+  schedule:
+    - cron: "23 8 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: Prove the failure alarm after verification
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: replay-corpus-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  UV_LOCKED: "1"
+  UV_LINK_MODE: copy
+
+jobs:
+  corpus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install (locked)
+        run: uv sync --locked
+
+      - name: Restore the checksum-pinned archive cache
+        id: cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/replay-corpus
+          key: replay-corpus-${{ hashFiles('tests/fixtures/replay/corpus-manifest.json') }}
+
+      - name: Fetch on a cache miss
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv run python scripts/fetch_replay_corpus.py fetch
+
+      - name: Verify every archive before parsing
+        run: uv run python scripts/fetch_replay_corpus.py verify
+
+      - name: Reconvert and test the full cache
+        run: uv run pytest -m corpus
+
+      - name: Prove the failure alarm
+        if: github.event_name == 'workflow_dispatch' && inputs.simulate_failure
+        run: |
+          echo "Intentional alarm proof: archive verification and tests passed."
+          exit 1

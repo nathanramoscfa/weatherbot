@@ -16,7 +16,8 @@ import record_fixtures as recorder
 MEBIBYTE = 1024 * 1024
 MAX_TOTAL_BYTES = 25 * MEBIBYTE
 MAX_FILE_BYTES = 5 * MEBIBYTE
-BUDGETED_ROOTS = (RECORDED_ROOT,)
+REPLAY_ROOT = RECORDED_ROOT.parent / "replay"
+BUDGETED_ROOTS = (RECORDED_ROOT, REPLAY_ROOT)
 
 
 def stored_files() -> list[Path]:
@@ -43,3 +44,10 @@ def test_every_stored_file_is_at_most_5_mib(root: Path) -> None:
 
 def test_the_recorder_enforces_the_same_limits() -> None:
     assert recorder.MAX_STORED_BYTES == MAX_FILE_BYTES
+
+
+def test_replay_stored_bytes_total_at_most_10_mib() -> None:
+    files = [path for path in REPLAY_ROOT.rglob("*") if path.is_file()]
+    assert files, "no replay corpus to budget"
+    total = sum(path.stat().st_size for path in files)
+    assert total <= 10 * MEBIBYTE, f"replay corpus stores {total} bytes"
