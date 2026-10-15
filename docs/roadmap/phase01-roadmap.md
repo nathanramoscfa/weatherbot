@@ -3405,7 +3405,7 @@ new per phase-boundary hygiene.
 
 ## Step 6 — Replay corpus
 
-**Status:** Not started
+**Status:** Complete ? PR #15 (2026-10-15)
 
 > **Goal:** Build the historical replay corpus that Phase 3's harness and
 > golden tests load. `scripts/fetch_replay_corpus.py` discovers the NHC
@@ -3433,11 +3433,13 @@ trigger), then twice a week and on demand; it is not a required check.
 
 | Setting      | Value                                  |
 | ------------ | -------------------------------------- |
-| Model        | GPT-6 Sol                              |
+| Model        | GPT-6.1 Sol                              |
 | Backup       | Sonnet 5.5 — Claude Code · Effort High |
 | Platform     | Codex                                  |
 | Intelligence | Medium                                 |
 | Conversation | **New**                                |
+
+> Settings updated 2026-10-15: was GPT-6 Sol ? Medium. Ran GPT-6.1 Sol ? Medium on Codex, the same-line successor; model and effort verified from this session's rollout.
 
 **Model rationale:** A bounded download, verify, and convert pipeline
 over four storms in documented formats is coding work (agentic secondary,
@@ -4687,7 +4689,7 @@ any workflow above maps directly to the corresponding row below.
 | 3    | Security gate            | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #7 |
 | 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #13 |
 | 5    | Fixture recorder         | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #14 |
-| 6    | Replay corpus            | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
+| 6    | Replay corpus            | GPT-6.1 Sol                | Codex        | Intelligence Med    | --       | New  | Complete ? PR #15 |
 | 7    | QA + verify_phase01.py   | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
 | V1   | Freeze v1, `main`        | CI: phase-verify.yml     | --           | --                  | --       | --   | --          |
 | V2   | uv scaffold              | CI: ci.yml               | --           | --                  | --       | --   | --          |
