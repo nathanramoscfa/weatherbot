@@ -82,6 +82,10 @@ from standard input without echoing it. Without a denylist the hook fails
 closed and prints these instructions. Never paste a denylist value into an
 issue, a pull request, or an AI conversation.
 
+Standalone decimal coordinate entries match whole numeric values, including
+equivalent trailing zeros. A prefix of a different, more precise number does not
+match; other strings and coordinate pairs still use literal substring matching.
+
 Coordinates in tracked files, requests, fixtures, and examples must be the
 public landmarks in `scripts/public_landmarks.toml` (Miami-Dade County Hall
 and Parliament Square, Nassau). Any other coordinate fails the check. The

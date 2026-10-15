@@ -119,6 +119,46 @@ def test_r1_matches_regardless_of_letter_case(
     assert "notes.md:1: R1" in output
 
 
+def test_r1_decimal_prefix_collision_passes_but_exact_and_zero_padded_values_fail(
+    denylist: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    entry = checker.read_denylist(denylist)[0]
+    # The synthetic fixture has four decimals; adding a nonzero digit changes its value.
+    larger = write(
+        "tests/fixtures/replay/storm/clean.geojson.gz",
+        gzip.compress(json.dumps({"coordinates": [entry + "123"]}).encode(), mtime=0),
+    )
+    assert run(capsys, larger)[0] == checker.EXIT_CLEAN
+    for number in (entry, entry + "000"):
+        exact = write(
+            "tests/fixtures/replay/storm/private.geojson.gz",
+            gzip.compress(json.dumps({"coordinates": [number]}).encode(), mtime=0),
+        )
+        status, output = run(capsys, exact)
+        assert status == checker.EXIT_FINDINGS
+        assert "R1 denylist entry in the decompressed payload" in output
+        assert number not in output
+
+
+def test_r1_numeric_entries_do_not_match_a_different_sign_or_larger_integer(
+    home: tuple[str, str],
+) -> None:
+    entry = home[0].lstrip("-")
+    pattern = checker.denylist_pattern([entry])
+    assert pattern is not None
+    assert pattern.search(entry.encode())
+    assert not pattern.search(("-" + entry).encode())
+    assert not pattern.search(("1" + entry).encode())
+
+
+def test_r1_strings_and_coordinate_pairs_still_match_as_substrings(home: tuple[str, str]) -> None:
+    pair = ",".join(home)
+    pattern = checker.denylist_pattern([pair, "Synthetic Example Lane"])
+    assert pattern is not None
+    assert pattern.search(("prefix " + pair + " suffix").encode())
+    assert pattern.search(b"prefixSynthetic Example Lanesuffix")
+
+
 # Rule R2 flags coordinates that are not landmarks.
 
 

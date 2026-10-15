@@ -2130,6 +2130,12 @@ phase-boundary hygiene.
       - R1 denylist (local only): any denylist entry,
         case-insensitive, anywhere in a scanned file, fixtures
         and binaries included (scan bytes).
+        Standalone decimal coordinate entries match complete
+        numeric values (including trailing-zero equivalents),
+        not prefixes of distinct longer numbers. Other strings
+        and coordinate pairs retain literal substring matching.
+        Regression-test both prefix collisions and genuine
+        private values in decompressed fixtures.
       - R2 coordinates: a decimal latitude/longitude pair
         (either order, comma or space separated, in range, at
         least three decimals each) or a `lat`/`lon`/
@@ -3773,7 +3779,16 @@ conversation is new per phase-boundary hygiene.
       properties and coordinates in the shapefile's
       geographic CRS. Record each `.prj` datum in the
       manifest, and stop and report if a file is projected or
-      on a datum other than WGS84 or NAD83. Sort keys, use a
+      on a datum other than WGS84, NAD83, or the archive's
+      geographic D_Sphere (radius 6,371,200 m). The operator
+      approved preserving native D_Sphere coordinates on
+      2026-10-15: record the source WKT and datum explicitly,
+      never relabel it WGS84 or imply a transformation.
+      Preserve the source's degenerate one-vertex watch-warning
+      lines as Points with the exact original `source_geometry`
+      and an explicit `geometry_note`; invent no line segment.
+      The archive has these records in Dorian advisories 056–062A.
+      Sort keys, use a
       fixed float format, and write gzip with `mtime=0`, so
       `convert` is reproducible byte for byte.
     </requirement>
@@ -4157,6 +4172,19 @@ phase-boundary hygiene.
     Steps 1 through 6 have been implemented. Now create the
     verification script, the QA findings document, and the
     `phase-verify.yml` workflow, then close the phase.
+
+    Step 6 carry-over for the QA findings rollup:
+    - All 310 advisories fit: 1,201 GeoJSON-shaped files and
+      1,199 checksum-pinned original archives. Native D_Sphere
+      is recorded explicitly, with operator approval 2026-10-15.
+    - Dorian 056–062A contains 39 singleton warning lines;
+      conversion preserves them as Points with source_geometry
+      and geometry_note. All cones pass geometry validity tests.
+    - The numeric-prefix false positives in R1 were fixed with
+      synthetic regressions; no denylist value or fixture was
+      altered and no security hook was bypassed.
+    - Read Step 6's PR body for both post-merge alarm-proof run
+      URLs and include them in the QA findings.
 
     Reference scripts (pattern templates):
     - the newest `scripts/verify_phaseNN.py` on judge-metrics'

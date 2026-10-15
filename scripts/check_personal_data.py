@@ -9,7 +9,9 @@ can run it by hand. It uses the standard library only.
 Rules:
     R1  Denylist (local only): any entry of the operator's denylist, case-insensitive,
         anywhere in a scanned file, fixtures and binaries included (the bytes are
-        scanned, and a gzip file is scanned again decompressed).
+        scanned, and a gzip file is scanned again decompressed). Standalone decimal
+        coordinate entries match whole numeric values, including zero padding, rather
+        than prefixes of different numbers; strings and coordinate pairs remain literal.
     R2  Coordinates: a decimal latitude/longitude pair (either order, comma or space
         separated, in range, at least three decimals each) or a lat, lon, lng, latitude,
         or longitude assignment with at least three decimals, in a text file outside
@@ -453,6 +455,28 @@ def denylist_entries(lat_text: str, lon_text: str) -> list[str]:
     return [entry for entry in dict.fromkeys(entries) if len(entry) >= MIN_ENTRY_LENGTH]
 
 
+def _denylist_alternative(entry: str) -> bytes:
+    """Match decimal coordinate values as numbers, other personal entries literally.
+
+    A public forecast coordinate can share a prefix with a denylisted decimal but
+    have a different value. Numeric boundaries prevent that false positive while
+    normalized trailing zeros still detect the same private value at greater precision.
+    This does not exempt any file or payload from the denylist.
+    """
+    if not re.fullmatch(r"[+-]?[0-9]{1,3}\.[0-9]+", entry):
+        return re.escape(entry.encode("utf-8"))
+    value = Decimal(entry)
+    if abs(value) > MAX_LONGITUDE:
+        return re.escape(entry.encode("utf-8"))
+    unsigned = format(abs(value), "f").rstrip("0").rstrip(".")
+    sign = b"-" if value < 0 else rb"\+?"
+    if value == 0:
+        sign = rb"[+-]?"
+    number = re.escape(unsigned.encode("ascii"))
+    number += rb"0*" if "." in unsigned else rb"(?:\.0+)?"
+    return rb"(?<![0-9.+-])" + sign + number + rb"(?![0-9]|\.[0-9])"
+
+
 def denylist_pattern(entries: Sequence[str]) -> re.Pattern[bytes] | None:
     """Compile the entries into one case-insensitive byte pattern.
 
@@ -464,7 +488,7 @@ def denylist_pattern(entries: Sequence[str]) -> re.Pattern[bytes] | None:
     """
     if not entries:
         return None
-    alternatives = sorted({re.escape(entry.encode("utf-8")) for entry in entries}, key=len)
+    alternatives = sorted({_denylist_alternative(entry) for entry in entries}, key=len)
     return re.compile(b"|".join(reversed(alternatives)), re.IGNORECASE)
 
 

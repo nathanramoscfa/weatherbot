@@ -465,6 +465,10 @@ funded backup, per the `roadmodel score` PRIMARY and BACKUP lines.
   or left).
 
 #### 3.3 Replay harness and golden tests
+- Honor the replay FeatureCollections' `source_crs` and the manifest's
+  original WKT. Phase 1 preserves geographic D_Sphere (radius 6,371,200 m)
+  with operator approval on 2026-10-15; it performs no WGS84 transformation.
+  Geometry/geodesy must account for this CRS before comparing locations.
 - Load the Phase 1 replay corpus as a sequence of snapshots and run the
   engine over time; `weatherbot replay <storm> --location <name>`
   prints the ladder timeline.
