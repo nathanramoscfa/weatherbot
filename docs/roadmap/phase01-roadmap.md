@@ -1,6 +1,6 @@
-# Phase 1 Roadmap — Foundation and discovery
+# Phase 1 Roadmap — Foundation and discovery ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-10-15
 
 ## Overview
 
@@ -3892,9 +3892,9 @@ conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 7 — QA & Verification Script
+## Step 7 — QA & Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #17 (2026-10-15)
 
 > **Goal:** Package the verification matrix into
 > `scripts/verify_phase01.py` (with `--fast`, `--py`, `--corpus`,
@@ -3918,11 +3918,14 @@ pushed after it.
 
 | Setting      | Value                                  |
 | ------------ | -------------------------------------- |
-| Model        | GPT-6 Sol                              |
+| Model        | GPT-6.1 Sol                              |
 | Backup       | Sonnet 5.5 — Claude Code · Effort High |
 | Platform     | Codex                                  |
 | Intelligence | Medium                                 |
 | Conversation | **New**                                |
+
+> Settings updated 2026-10-15: was GPT-6 Sol · Medium.
+> Ran GPT-6.1 Sol · medium on Codex, the allowed successor in the same model line.
 
 **Model rationale:** Translating this roadmap's acceptance criteria into
 numbered, independent static checks, a V-matrix, a workflow, and a
@@ -4694,7 +4697,7 @@ any workflow above maps directly to the corresponding row below.
 | 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #13 |
 | 5    | Fixture recorder         | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #14 |
 | 6    | Replay corpus            | GPT-6.1 Sol              | Codex        | Intelligence Med    | --       | New  | Complete — PR #15 |
-| 7    | QA + verify_phase01.py   | GPT-6 Sol                | Codex        | Intelligence Med    | --       | New  | Not started |
+| 7    | QA + verify_phase01.py   | GPT-6.1 Sol                | Codex        | Intelligence Med    | --       | New  | Complete — PR #17 |
 | V1   | Freeze v1, `main`        | CI: phase-verify.yml     | --           | --                  | --       | --   | --          |
 | V2   | uv scaffold              | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V3   | Security gate            | CI: ci.yml               | --           | --                  | --       | --   | --          |

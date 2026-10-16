@@ -9,8 +9,9 @@ specifies both in [the project brief](docs/brief/weatherbot-v2-brief.md).
 
 ## Status
 
-Version 2 is a from-scratch rewrite in progress. It is in Phase 1
-(foundation and discovery) and nothing is released: the package builds and
+Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
+discovery) is complete; Phase 2 (sources and persistence) is next. No version 2
+package is released: the package builds and
 `weatherbot --version` runs, and that is all. The plan lives in
 [the roadmap](docs/roadmap/ROADMAP.md).
 
