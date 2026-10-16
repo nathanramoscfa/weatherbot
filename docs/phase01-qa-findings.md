@@ -124,7 +124,7 @@ Source: [PR #15](https://github.com/nathanramoscfa/weatherbot/pull/15).
 | The register has one table per basin, rather than a table headed Basin; Dependabot uses unquoted ecosystem scalars. | Spec rot / checker assumptions | Step 7's task and checker use the actual table header and all three basin sections; ecosystem checks read the existing scalar format. | Static checks 27/35. |
 | Repeated Git index subprocesses made the first Windows fast sweep take about 60 seconds. | Performance bug, fixed in-step | Index snapshot cached once per invocation. | Fast-mode subprocess integration test has a 30-second timeout; corrected local sweep measured 8 seconds. |
 | Existing CI/package evidence and GitHub configuration must be read back rather than inferred from local files. | Verification integrity | Post V matrix, protection API readback and deployed main workflow check. | Required aggregate phase-verify beside gate, no bypass actors, all PR checks green before squash merge. |
-| Phase 1's exact scaffold/runtime assertions will become historical when later phases add modules or dependencies. | Downstream integration requirement | Phase 2 entry in the project roadmap. | Phase 2 must adapt historical assertions against `v2.0.0-phase-1`, while retaining live security and provenance checks and the Phase 1 matrix entry. |
+| Phase 1's exact scaffold/runtime assertions will become historical when later phases add modules or dependencies. | Downstream integration requirement | Phase 2 Step 1 (`feature/phase02-step1-domain-models`): checks 7, 9, and 12 read `v2.0.0-phase-1`. | Phase 2 must adapt historical assertions against `v2.0.0-phase-1`, while retaining live security and provenance checks and the Phase 1 matrix entry. |
 
 ## Pre-ship items
 

@@ -1,0 +1,158 @@
+# src/weatherbot/models/__init__.py
+"""The domain models every layer shares: the lowest layer of the package.
+
+Rule: ``weatherbot.models`` imports no other ``weatherbot`` layer and no I/O library (no
+HTTP, sockets, databases, web frameworks, the Anthropic SDK, or schedulers). Sources parse
+into these models, the engine reads them, services store them, and the CLI and the web app
+print them. Every model is frozen and strict, every record carries its ``Provenance``,
+every geometry its CRS, and every instant is UTC.
+"""
+
+from weatherbot.models.advisory_number import AdvisoryNumber
+from weatherbot.models.alerts import AlertQuery, GeocodeResult, NwsAlert, NwsZone
+from weatherbot.models.arrivals import ArrivalTimeLine, ArrivalTimeProduct
+from weatherbot.models.base import DomainModel
+from weatherbot.models.codes import (
+    AlertCategory,
+    AlertCategoryCode,
+    AlertCertainty,
+    AlertCertaintyCode,
+    AlertMessageType,
+    AlertMessageTypeCode,
+    AlertSeverity,
+    AlertSeverityCode,
+    AlertStatus,
+    AlertStatusCode,
+    AlertUrgency,
+    AlertUrgencyCode,
+    CodedValue,
+    OutlookRisk,
+    OutlookRiskCode,
+    StormClassification,
+    StormClassificationCode,
+    WatchWarningCode,
+    WatchWarningType,
+)
+from weatherbot.models.geometry import WGS84, Crs, Geometry, GeometryType, require_geometry
+from weatherbot.models.location import LatLon, Location, NwsCoverage
+from weatherbot.models.outlook import (
+    WIND_PROBABILITY_BANDS,
+    OutlookArea,
+    WindProbabilityBand,
+    WindProbabilityProduct,
+    parse_band_label,
+    parse_percent,
+)
+from weatherbot.models.products import (
+    Breakpoint,
+    DisplayLayer,
+    GisFeedItem,
+    MapCatalog,
+    MapLayer,
+    OutlookGraphic,
+    OverlayCatalog,
+    OverlayLayer,
+    TextProduct,
+)
+from weatherbot.models.provenance import Provenance, SourceId
+from weatherbot.models.snapshot import Snapshot, SourceOutcome, StormProducts
+from weatherbot.models.storms import (
+    Advisory,
+    AdvisoryRecord,
+    AtcfId,
+    ConeGeometry,
+    ForecastTrack,
+    RosterProduct,
+    StormSlot,
+    StormSummary,
+    TrackPoint,
+    WatchWarningSegment,
+    WindRadii,
+)
+from weatherbot.models.times import (
+    NHC_ZONE_OFFSETS,
+    ArrivalResolution,
+    UtcDatetime,
+    from_epoch_ms,
+    parse_nhc_local_time,
+    parse_synoptic_time,
+    resolve_arrival_label,
+    resolve_track_valid_time,
+)
+
+__all__ = [
+    "NHC_ZONE_OFFSETS",
+    "WGS84",
+    "WIND_PROBABILITY_BANDS",
+    "Advisory",
+    "AdvisoryNumber",
+    "AdvisoryRecord",
+    "AlertCategory",
+    "AlertCategoryCode",
+    "AlertCertainty",
+    "AlertCertaintyCode",
+    "AlertMessageType",
+    "AlertMessageTypeCode",
+    "AlertQuery",
+    "AlertSeverity",
+    "AlertSeverityCode",
+    "AlertStatus",
+    "AlertStatusCode",
+    "AlertUrgency",
+    "AlertUrgencyCode",
+    "ArrivalResolution",
+    "ArrivalTimeLine",
+    "ArrivalTimeProduct",
+    "AtcfId",
+    "Breakpoint",
+    "CodedValue",
+    "ConeGeometry",
+    "Crs",
+    "DisplayLayer",
+    "DomainModel",
+    "ForecastTrack",
+    "GeocodeResult",
+    "Geometry",
+    "GeometryType",
+    "GisFeedItem",
+    "LatLon",
+    "Location",
+    "MapCatalog",
+    "MapLayer",
+    "NwsAlert",
+    "NwsCoverage",
+    "NwsZone",
+    "OutlookArea",
+    "OutlookGraphic",
+    "OutlookRisk",
+    "OutlookRiskCode",
+    "OverlayCatalog",
+    "OverlayLayer",
+    "Provenance",
+    "RosterProduct",
+    "Snapshot",
+    "SourceId",
+    "SourceOutcome",
+    "StormClassification",
+    "StormClassificationCode",
+    "StormProducts",
+    "StormSlot",
+    "StormSummary",
+    "TextProduct",
+    "TrackPoint",
+    "UtcDatetime",
+    "WatchWarningCode",
+    "WatchWarningSegment",
+    "WatchWarningType",
+    "WindProbabilityBand",
+    "WindProbabilityProduct",
+    "WindRadii",
+    "from_epoch_ms",
+    "parse_band_label",
+    "parse_nhc_local_time",
+    "parse_percent",
+    "parse_synoptic_time",
+    "require_geometry",
+    "resolve_arrival_label",
+    "resolve_track_valid_time",
+]

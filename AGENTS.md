@@ -41,9 +41,16 @@ later phases fill in.
 
 ## Layers and commands
 
-One package, `src/weatherbot/`, with five layers (brief §6). Each layer's
-`__init__.py` states its rule; `import-linter` contracts in
-`pyproject.toml` and `tests/test_architecture.py` enforce them.
+One package, `src/weatherbot/`, with five layers (brief §6) over the
+shared `models` package. Each layer's `__init__.py` states its rule;
+`import-linter` contracts in `pyproject.toml` and
+`tests/test_architecture.py` enforce them.
+
+- `models/` — the typed domain models every layer shares, and the lowest
+  layer: frozen, strict Pydantic models with a `Provenance` on every
+  record, an explicit CRS on every geometry, UTC instants, and the only
+  functions that parse NOAA's time text. Like the engine, the models
+  import no other layer and no I/O library.
 
 - `sources/` — async HTTP clients, one per official feed. Sources fetch,
   validate, and return typed models with provenance; they never interpret.
@@ -59,10 +66,9 @@ One package, `src/weatherbot/`, with five layers (brief §6). Each layer's
 
 Imports run downward only: `cli` and `web` may import `services`;
 `services` may import `sources` and `engine`; `sources` and `engine` are
-independent siblings and import neither each other nor anything above. The
-typed domain models that sources and the engine share get their own
-package, `weatherbot.models`, which Phase 2 creates and adds to the
-contracts as the lowest layer.
+independent siblings and import neither each other nor anything above;
+and every layer may import `weatherbot.models`, the lowest layer, which
+imports none of them.
 
 ```sh
 uv sync                      # create .venv from the lock (dev and planning groups)

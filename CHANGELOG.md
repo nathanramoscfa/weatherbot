@@ -41,8 +41,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deterministic compressed advisory geometry, explicit native CRS provenance, an
   ignored cache for original forecast, wind-probability, and arrival-time archives,
   offline and full-cache tests, and a twice-weekly cache-verification workflow.
+- `weatherbot.models`, the domain models every layer shares and the lowest
+  layer of the import contracts: frozen, strict Pydantic models with a
+  `Provenance` on every record; GeoJSON-shaped geometry with an explicit
+  CRS and Shapely's validity verdict, never relabeled or transformed; UTC
+  instants with NOAA's local text kept beside them and parsed only by the
+  tested functions of `weatherbot.models.times`; coded values that keep
+  unknown official codes; units in field names only where NHC states them;
+  `ArrivalTimeProduct`, resolved from the arrival-time KMZ's own zone and
+  publication time (issue #11); `WindProbabilityProduct`, held by the
+  snapshot with no storm field (issue #12); and `Snapshot` with one outcome
+  per source. `pydantic` and `shapely` join the runtime dependencies.
 
 ### Changed
+- Phase 1 verification checks 7, 9, and 12 read Phase 1's version, its
+  eight-file skeleton, and its Typer-only dependency list from the
+  `v2.0.0-phase-1` tag, so the package can grow while `phase-verify (01)`
+  stays green; the identity, entry-point, and still-tracked halves stay
+  live, and a missing tag fails.
 - Version 1 is retired; it remains installable with
   `pip install weatherbot==1.0.0`, and its source is preserved at the
   `v1.0.0` tag. Version 2 is a from-scratch rewrite specified in

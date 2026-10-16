@@ -33,6 +33,11 @@ from typing import Literal, cast
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "nathanramoscfa/weatherbot"
 RELEASE_COMMIT = "5de67aa1ad7883243af65d4f4f713d78ce02f791"
+# Phase 1's milestone tag. Checks 7, 9, and 12 read the version, the skeleton, and the
+# runtime dependency list Phase 1 shipped from this tag, so later phases may grow the
+# package without turning those checks red.
+PHASE_1_TAG = "v2.0.0-phase-1"
+PHASE_1_VERSION = "2.0.0.dev0"
 REGISTER = "docs/DATA_SOURCES.md"
 ROADMAP = "docs/roadmap/ROADMAP.md"
 CI_WORKFLOW = ".github/workflows/ci.yml"
@@ -92,9 +97,9 @@ def report(outcome: Outcome) -> Outcome:
     return outcome
 
 
-def read(relative: str) -> str:
+def read(relative: str, root: Path = REPO_ROOT) -> str:
     """Read a repository text file, anchored independently of the caller's cwd."""
-    return (REPO_ROOT / relative).read_text(encoding="utf-8")
+    return (root / relative).read_text(encoding="utf-8")
 
 
 def object_of(value: object) -> dict[str, object]:
@@ -116,22 +121,29 @@ def json_file(relative: str) -> dict[str, object]:
     return object_of(json.loads(read(relative)))
 
 
-def config(*keys: str) -> object:
-    """Read a TOML configuration value; missing tables fail their own check."""
-    value: object = tomllib.loads(read("pyproject.toml"))
+def toml_value(text: str, keys: Sequence[str]) -> object:
+    """Read one value from TOML text; a missing table or key raises and fails its check."""
+    value: object = tomllib.loads(text)
     for key in keys:
         value = object_of(value)[key]
     return value
 
 
-def capture(argv: Sequence[str], *, timeout: int = 60) -> subprocess.CompletedProcess[str]:
+def config(*keys: str, root: Path = REPO_ROOT) -> object:
+    """Read a TOML configuration value; missing tables fail their own check."""
+    return toml_value(read("pyproject.toml", root), keys)
+
+
+def capture(
+    argv: Sequence[str], *, timeout: int = 60, root: Path = REPO_ROOT
+) -> subprocess.CompletedProcess[str]:
     """Capture bounded tool output; callers choose safe fields to display."""
     executable = shutil.which(argv[0])
     if executable is None:
         raise FileNotFoundError
     return subprocess.run(  # noqa: S603 - argument list, no shell  # nosec B603
         [executable, *argv[1:]],
-        cwd=REPO_ROOT,
+        cwd=root,
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -142,22 +154,22 @@ def capture(argv: Sequence[str], *, timeout: int = 60) -> subprocess.CompletedPr
     )
 
 
-def git(*args: str) -> str:
+def git(*args: str, root: Path = REPO_ROOT) -> str:
     """Read Git metadata, failing closed on an unsuccessful command."""
-    result = capture(["git", *args])
+    result = capture(["git", *args], root=root)
     result.check_returncode()
     return result.stdout.strip()
 
 
 @cache
-def index_files() -> frozenset[str]:
+def index_files(root: Path = REPO_ROOT) -> frozenset[str]:
     """Snapshot the index once per invocation, including staged implementation files."""
-    return frozenset(git("ls-files", "-z").split("\0")) - {""}
+    return frozenset(git("ls-files", "-z", root=root).split("\0")) - {""}
 
 
-def tracked(*paths: str) -> set[str]:
+def tracked(*paths: str, root: Path = REPO_ROOT) -> set[str]:
     """Select exact files or directory prefixes from this invocation's index."""
-    names = index_files()
+    names = index_files(root)
     return {
         name
         for name in names
@@ -402,6 +414,50 @@ def matrix_includes_01() -> bool:
     return match is not None and "01" in {part.strip().strip("\"'") for part in match[1].split(",")}
 
 
+def tagged(relative: str, root: Path = REPO_ROOT) -> str:
+    """Read one file as Phase 1's tag recorded it; a missing tag or path raises."""
+    return git("show", f"{PHASE_1_TAG}:{relative}", root=root)
+
+
+def tagged_tree(prefix: str, root: Path = REPO_ROOT) -> set[str]:
+    """List the files under ``prefix`` in Phase 1's tagged tree."""
+    return set(
+        git("ls-tree", "-r", "--name-only", PHASE_1_TAG, "--", prefix, root=root).splitlines()
+    )
+
+
+def is_typer(requirement: object) -> bool:
+    """Match a ``typer`` requirement by distribution name, not by prefix (``typer-slim``)."""
+    return re.match(r"typer(?![\w.-])", str(requirement)) is not None
+
+
+def project_identity(root: Path = REPO_ROOT) -> bool:
+    """Check 7: live identity and backend; Phase 1's version read from its tag."""
+    return (
+        config("project", "name", root=root) == "weatherbot"
+        and config("project", "requires-python", root=root) == ">=3.13"
+        and config("build-system", "build-backend", root=root) == "uv_build"
+        and toml_value(tagged("pyproject.toml", root), ("project", "version")) == PHASE_1_VERSION
+    )
+
+
+def skeleton_kept(root: Path = REPO_ROOT) -> bool:
+    """Check 9: the tag holds exactly the eight-file skeleton, and each file is still tracked."""
+    still_tracked = tracked("src/weatherbot", root=root)
+    return tagged_tree("src/weatherbot", root) == SKELETON and still_tracked >= SKELETON
+
+
+def runtime_entry(root: Path = REPO_ROOT) -> bool:
+    """Check 12: Typer was the only runtime dependency at the tag; the CLI entry stays live."""
+    shipped = array_of(toml_value(tagged("pyproject.toml", root), ("project", "dependencies")))
+    return (
+        len(shipped) == 1
+        and is_typer(shipped[0])
+        and config("project", "scripts", "weatherbot", root=root) == "weatherbot.cli:app"
+        and any(is_typer(item) for item in array_of(config("project", "dependencies", root=root)))
+    )
+
+
 STATIC_CHECKS: tuple[Check, ...] = (
     ("v1.0.0 is annotated", lambda: git("cat-file", "-t", "v1.0.0") == "tag"),
     (
@@ -437,19 +493,14 @@ STATIC_CHECKS: tuple[Check, ...] = (
         ),
     ),
     (
-        "project identity, version, Python and uv backend",
-        lambda: (
-            config("project", "name") == "weatherbot"
-            and config("project", "version") == "2.0.0.dev0"
-            and config("project", "requires-python") == ">=3.13"
-            and config("build-system", "build-backend") == "uv_build"
-        ),
+        f"project identity, Python and uv backend; version at {PHASE_1_TAG}",
+        project_identity,
     ),
     (
         "Python pin and tracked lock",
         lambda: read(".python-version").strip() == "3.13" and files_exist("uv.lock"),
     ),
-    ("exact eight-file v2 skeleton", lambda: tracked("src/weatherbot") == SKELETON),
+    (f"exact eight-file v2 skeleton at {PHASE_1_TAG}, still tracked", skeleton_kept),
     ("all v1 deletions remain absent", v1_removed),
     (
         "dev and planning installed by default",
@@ -465,14 +516,7 @@ STATIC_CHECKS: tuple[Check, ...] = (
             and {"dev", "planning"} <= set(array_of(config("tool", "uv", "default-groups")))
         ),
     ),
-    (
-        "Typer-only runtime and CLI entry point",
-        lambda: (
-            config("project", "scripts", "weatherbot") == "weatherbot.cli:app"
-            and len(array_of(config("project", "dependencies"))) == 1
-            and str(array_of(config("project", "dependencies"))[0]).startswith("typer")
-        ),
-    ),
+    (f"Typer-only runtime at {PHASE_1_TAG}; live CLI entry point and typer", runtime_entry),
     (
         "engine and layer import contracts",
         lambda: (
