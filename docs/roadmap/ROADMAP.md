@@ -159,11 +159,25 @@ These gaps drive the phase ordering below.
   carries the same text, line for line, with a structured issuance time,
   so v2 reads it there and scrapes no HTML (`docs/DATA_SOURCES.md`, "Text
   products").
+- **Arrival times come from the arrival-time KMZ.** The brief's §5 names
+  the map layers as the arrival-time source. Their labels (`Tue 8 am`)
+  carry no date or zone, and the slot's `advdate` can belong to a later,
+  intermediate advisory, so v2 reads the KMZ the roster links, which
+  states its own time zone and publication time, and keeps the layers as
+  a label-only fallback (issue #11; `phase02-roadmap.md`, "Design
+  rationale").
+- **Wind-speed probabilities belong to the snapshot.** The brief's §7
+  lists wind probabilities among the per-storm threat outputs. NHC
+  publishes one combined product per synoptic time, and no official
+  field attributes a band to a storm, so v2 holds the product per
+  snapshot, the per-storm threat record carries no wind-probability
+  field, and the ladder's probability triggers read the location's band
+  (issue #12; `phase02-roadmap.md`, "Design rationale").
 
 Everything else in the brief applies unchanged: the decisions D1–D10,
-the data sources (with the graphic names and the text-product path
-above), the ladder semantics, the AI role and model, the notification
-policy, and the success criteria.
+the data sources (with the graphic names, the text-product path, and
+the arrival-time KMZ above), the ladder semantics, the AI role and
+model, the notification policy, and the success criteria.
 
 ---
 
@@ -369,19 +383,25 @@ from required verification.
 
 #### 2.1 Domain models
 - Pydantic models with provenance on every record: `Location` (name,
-  point, optional polygon, country, NWS zone and county ids, nearest
-  breakpoint span), `StormSummary`, `Advisory`, `ConeGeometry`,
-  `TrackPoint`, `WindRadii`, `WatchWarningSegment`, `OutlookArea`,
-  `WindProbability`, `ArrivalTime`, `NwsAlert`, and `Snapshot` (the
-  set fetched at one instant).
-- Geometry carried as GeoJSON-compatible structures validated by
-  Shapely; coordinates in WGS84.
+  point, optional polygon, country, NWS zone and county ids, and a
+  breakpoint span that Phase 3 fills), `StormSummary`, `Advisory`,
+  `ConeGeometry`, `TrackPoint`, `WindRadii`, `WatchWarningSegment`,
+  `OutlookArea`, `WindProbability` (one product per synoptic time,
+  held by the snapshot, issue #12), `ArrivalTime` (resolved against
+  the arrival-time KMZ's own time zone and publication time, issue
+  #11), `NwsAlert`, and `Snapshot` (the set fetched at one instant).
+- Geometry carried as GeoJSON-shaped values validated by Shapely, each
+  with an explicit CRS: WGS 84 for live map queries (`outSR=4326`) and
+  NWS GeoJSON, and the archive's native D_Sphere for the replay corpus.
+  Nothing is relabeled or transformed (`phase02-roadmap.md`, "Design
+  rationale").
 
 #### 2.2 NHC clients
 - Current storms, map-service layer discovery by name per storm slot
   and for the outlook group, the summary service for probabilistic
-  winds, breakpoints, peak surge, text products, outlook graphics, and
-  the GIS RSS feed.
+  winds, breakpoints, peak surge, text products, outlook graphics, the
+  GIS RSS feed, and the arrival-time KMZ the roster links (a new
+  register source, `nhc-arrival-times`).
 - One `httpx.AsyncClient` with retries and backoff, conditional
   requests where the service honors them, timeouts, and the project
   User-Agent; every response shape covered by a recorded fixture.
@@ -393,10 +413,13 @@ from required verification.
   alert list.
 
 #### 2.4 Persistence
-- SQLAlchemy 2 models and Alembic migrations for locations, snapshots,
-  storms, advisories, geometries, alerts, assessments, evidence,
-  notifications, briefings, settings, and a raw-response cache keyed by
-  source, product, and issuance time.
+- SQLAlchemy 2 models and an Alembic baseline for the tables Phase 2
+  writes: locations, snapshots, per-source outcomes, storms, advisories,
+  geometries, text products, feed items, alerts, settings, and a
+  raw-response cache keyed by source, product, and issuance time.
+  Assessments and evidence (Phase 3), notifications and the heartbeat
+  (Phase 4), and briefings and the Claude ledger (Phase 6) arrive as
+  revisions with the code that writes them.
 - Database and configuration in the user data directory (`platformdirs`),
   a `weatherbot.toml`, and `WEATHERBOT_*` environment overrides; the
   app backs the database up before applying a migration.
