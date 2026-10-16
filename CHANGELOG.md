@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 1 verification
+- Add the 50-check foundation verifier, full V1-V7 post sweep, QA findings ledger,
+  and the required aggregate phase-verify workflow. Keep fixture bytes unchanged
+  while guarding LF line endings for repository text.
+
+
 ### Added
 - The version 2 scaffold (2.0.0.dev0): a uv project on Python 3.13 with a
   `uv_build` backend and a committed `uv.lock`; the `src/weatherbot/`

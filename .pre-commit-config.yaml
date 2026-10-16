@@ -32,6 +32,9 @@ repos:
         exclude: ^tests/fixtures/
       - id: end-of-file-fixer
         exclude: ^tests/fixtures/
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: ^tests/fixtures/
       - id: check-yaml
       - id: check-toml
       - id: check-merge-conflict

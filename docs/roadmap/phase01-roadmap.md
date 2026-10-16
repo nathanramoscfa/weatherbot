@@ -4305,7 +4305,10 @@ phase-boundary hygiene.
         `@id`.
     34. The register records ATCF and storm-page scraping as
         not used.
-    35. The register contains the per-basin table header.
+    35. The register contains the exact per-basin table header
+        (`Storm`, `Arrival-time layers`, `Probabilistic winds 34/50/64 kt`,
+        `Peak surge`, `Inundation`, `Checked`) under the Atlantic,
+        Eastern Pacific, and Central Pacific headings.
 
     Step 5 (fixture recorder) — checks 36-41:
     36. `scripts/record_fixtures.py` is tracked and defines

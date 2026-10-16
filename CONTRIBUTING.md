@@ -35,6 +35,27 @@ uv run lint-imports        # layer contracts (see AGENTS.md)
 uv run pytest              # tests: no network, each in a temporary directory
 ```
 
+Phase 1's repeatable verification is `uv run python scripts/verify_phase01.py`:
+
+- `--fast`: 50 numbered, independent checks, offline and standard-library only.
+- `--py`: static checks, lint, formatting, types, import contracts, tests and a
+  fresh installed-wheel smoke in a temporary environment.
+- `--corpus`: static checks, fetch on missing pinned archives, checksum verification
+  and full-cache reconversion tests.
+- `--security`: static checks and the four-check security gate; install gitleaks
+  locally for the history scan. CI requires it. No denylist value is printed.
+- `--all`: the Python, corpus and security suites together.
+- `--post`: the canonical 75-check pre-tag sweep, including GitHub readbacks,
+  the local updater dry run and a live recording in a temporary directory.
+
+No flag means static plus Python checks. The post sweep reports unavailable
+evidence explicitly; phase closure requires every V-row to pass. The findings
+and downstream owners are in [the QA ledger](docs/phase01-qa-findings.md).
+
+Both `gate` and `phase-verify` are required on protected `main`. The latter
+aggregates the `phase-verify (01)` matrix job; later phases append their entries
+and retain the aggregate name. Both workflows run on every pull request.
+
 The test suite blocks all network access except loopback, and every test
 runs in a temporary working directory, so a test can never read or write the
 repository through a relative path. A test that must reach a real service is
@@ -57,7 +78,7 @@ finding on `main`. Any finding blocks the commit.
 | Dependency audit | Known-vulnerable or yanked packages | `scripts/audit_deps.py` (pip-audit `--strict` over `uv.lock`) when `uv.lock` or `pyproject.toml` changes | On every run |
 
 The hook also runs ruff, ruff format, pyright, the import contracts, and
-hygiene checks: trailing whitespace, final newlines, YAML and TOML syntax,
+hygiene checks: trailing whitespace, final newlines, LF line endings, YAML and TOML syntax,
 merge-conflict markers, private keys, files over 5 MB, and no commit on
 `main`.
 

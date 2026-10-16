@@ -356,6 +356,12 @@ UI all consume, so a wrong field here costs three phases. Opus 5.5 is
 the `roadmodel score` PRIMARY for planning at `Max`, funded by the
 claude.ai Max subscription; GPT-6 Astra on Codex is the funded backup.
 
+Phase 2 also adapts Phase 1 verification when it expands the scaffold: exact
+version, eight-file skeleton, and Typer-only assertions become historical checks
+against `v2.0.0-phase-1`; live security, provenance, and fixture guards stay live.
+Keep the `"01"` matrix entry and its numbered checks rather than dropping Phase 1
+from required verification.
+
 #### 2.1 Domain models
 - Pydantic models with provenance on every record: `Location` (name,
   point, optional polygon, country, NWS zone and county ids, nearest

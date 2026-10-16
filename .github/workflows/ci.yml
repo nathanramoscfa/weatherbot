@@ -2,7 +2,7 @@
 # Continuous integration for weatherbot 2. The repository is public, so every
 # job runs on GitHub-hosted runners; never point this workflow at a
 # self-hosted runner. The aggregate `gate` job is the single required status
-# check on `main`.
+# checks on `main`, beside `phase-verify`.
 #
 # Trust boundary rules (docs/roadmap/ROADMAP.md, "Per-step security gate"):
 #   - every third-party action is pinned to a full commit SHA;
@@ -90,6 +90,7 @@ jobs:
       - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up uv
