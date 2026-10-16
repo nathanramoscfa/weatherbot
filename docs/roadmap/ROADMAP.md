@@ -348,7 +348,7 @@ the weekly Claude pool reads exhausted when the session opens.
 
 ### Phase 2 — Sources and persistence
 
-**Status:** Not started
+**Status:** In progress — phase02-roadmap.md
 
 **Goal:** Typed, provenance-carrying clients for every official source,
 a SQLite schema with migrations, and CLI commands that print today's

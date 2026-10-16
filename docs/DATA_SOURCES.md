@@ -156,6 +156,17 @@ file was last modified at 21:24 for that storm's 21:00 advisory.
   TCP's own WMO time was 20:51.
 - The product objects link to NHC HTML pages and archive files. v2
   follows none of the HTML links.
+- **Units (recorded 2026-10-16).** NHC's
+  [Tropical Cyclone Status JSON File Reference](https://www.nhc.noaa.gov/productexamples/NHC_Tropical_Cyclone_Status_JSON_File_Reference.pdf)
+  (last updated 2019-04-08, linked from NHC's product examples page)
+  states `intensity` in knots, `pressure` in millibars, `movementDir` in
+  "decimal degrees from true north", and `movementSpeed` in **miles per
+  hour**, and lists the classification codes `TD`, `STD`, `TS`, `HU`,
+  `STS`, `PTC`, `TY`, and `PC`. The models name the fields
+  `intensity_kt`, `pressure_mb`, `movement_dir_deg`, and
+  `movement_speed_mph`. The recorded TCP agrees: Simon's 85 kt and 3
+  appear there as 100 mph and "AT 3 MPH". The forecast points' speed is
+  in knots (below), so the two speeds differ in unit.
 
 ## ArcGIS map services
 
@@ -271,6 +282,22 @@ NOAA's spelling (`Past Track Infomation`).
 | `Probabilistic Winds 34 kts` | polygon | `objectid`, `percentage`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_area(shape)`, `st_perimeter(shape)` | `percentage`, `idp_source` | `WindProbability`. One product per synoptic time: no storm id. `percentage` bands are strings (`5-10%` …); `idp_source` names the synoptic time (`2026101218_wsp34knt120hr_5km`). |
 | `Probabilistic Winds 50 kts` | polygon | `objectid`, `percentage`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_area(shape)`, `st_perimeter(shape)` | `percentage`, `idp_source` | As above. |
 | `Probabilistic Winds 64 kts` | polygon | `objectid`, `percentage`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_area(shape)`, `st_perimeter(shape)` | `percentage`, `idp_source` | As above. |
+
+**Units (recorded 2026-10-16).** The map layers state no unit. The field
+metadata (`*.shp.xml`) inside the archived forecast packages of the same
+products does, and the models take their units from it (read from the
+replay cache's `al052019_5day_036.zip` and `al052019_fcst_036.zip`):
+
+- `{slot} Forecast Points` (`_5day_pts`): `MAXWIND` "the highest 1-minute
+  average wind … (knots)", `GUST` "(knots)", `MSLP` "in Millibars",
+  `TCDIR` "(degrees)", and `TCSPD` "(knots)", so `max_wind_kt`, `gust_kt`,
+  `mslp_mb`, `direction_deg`, and `speed_kt`. `VALIDTIME` is `dd/hhmm`.
+- `{slot} Forecast Wind Radii` and `{slot} Advisory Wind Field`
+  (`_forecastradii`, `_initialradii`): `RADII` "the wind speed in knots",
+  and `NE`, `SE`, `SW`, `NW` "the largest distance of wind speed in
+  Nautical Miles" per quadrant, so `threshold_kt` and `ne_extent_nmi` …
+  `nw_extent_nmi`. `SYNOPTIME` is the forecast cycle's 0000, 0600, 1200,
+  or 1800 UTC.
 
 ### `tropical/NHC_tropical_weather_summary`
 

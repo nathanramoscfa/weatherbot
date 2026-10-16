@@ -1,6 +1,6 @@
 # Phase 2 Roadmap — Sources and persistence
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -450,8 +450,10 @@ declaring a step complete.
   intermediate advisory 22A while its arrival-time lines belonged to full
   advisory 22, beside the wind-speed probabilities of the 2026-10-12 18:00 UTC
   synoptic time; Atlantic and Pacific outlook areas; the Miami-Dade landmark's
-  NWS point, zone alerts (a Coastal Flood Statement on county `FLC086` that the
-  point query missed), and zones; the Nassau landmark's documented 404 and 400
+  NWS point, zone alerts, and zones (the `FLC086` and `FLZ173` alert captures,
+  taken at 01:09 UTC on 2026-10-13, hold no features: the Coastal Flood
+  Statement the register saw on `FLC086` at verification had expired, so no
+  recorded alert exists yet); the Nassau landmark's documented 404 and 400
   answers; and the six 2025 outlook maps harvested from v1 reports.
   `tests/contract/fixture_support.py` holds the shared readers
   (`capture_directories`, `latest_live`, `register_rows`, `register_layers`,
@@ -629,9 +631,9 @@ permits no concurrent steps.
 
 ---
 
-## Step 1 — Domain models
+## Step 1 — Domain models ✅
 
-**Status:** Not started
+**Status:** Complete — PR #20 (2026-10-16)
 
 > **Goal:** Create `weatherbot.models`, the typed vocabulary every later layer
 > shares, and keep Phase 1's verification green while the package grows. Frozen,
@@ -664,6 +666,8 @@ from the merge on; its first run on `main` must be green.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-16: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 1 is coding — models, their tests, and a verifier
 change — with planning as its secondary category, because its field choices fix
@@ -939,8 +943,9 @@ is new per phase-boundary hygiene.
       outlook areas carry `prob2day` `20%` and `risk2day` `Low`;
       the roster carries `intensity` `"85"`, `pressure` `"969"`,
       `movementSpeed` 3, and `publicAdvisory.advNum` `022a`; the
-      county alert carries `affectedZones` URLs and `geocode`
-      `SAME` and `UGC` lists.
+      register describes a county alert with `affectedZones`
+      URLs and `geocode` `SAME` and `UGC` lists, but the
+      recorded zone-alert captures hold no features.
     - The replay subset (`tests/fixtures/replay/`) keeps the
       archive's native D_Sphere with the WKT in each
       collection's `source_crs`, and Dorian 056–062A keeps 39
@@ -1675,6 +1680,25 @@ the other maker. The conversation is new per phase-boundary hygiene.
       import contracts. Checks 7, 9, and 12 of
       `verify_phase01.py` are historical, so new modules and
       dependencies keep `phase-verify (01)` green.
+    - Carry-over from Step 1 (2026-10-16). Field names follow
+      the unit statements the register now records: the
+      roster's `movementSpeed` is miles per hour
+      (`StormSummary.movement_speed_mph`), while the forecast
+      points' `tcspd` is knots (`TrackPoint.speed_kt`); wind
+      radii extents are nautical miles (`ne_extent_nmi` ...
+      `nw_extent_nmi`). The models are strict: a parser passes
+      tuples, not lists (`Geometry.from_geojson(mapping, crs)`
+      converts parsed GeoJSON), builds coded values with
+      `.parse(raw)`, `AdvisoryNumber.parse`, and upper-cases
+      the roster's ATCF id. `WindRadii.advisory` is an
+      `AdvisoryNumber`, because the radii layers carry no
+      `advdate`. The recorded forecast points' taus count from
+      the synoptic time (tau 0 is the 21:00 position; tau 12
+      is 06:00 the next day). Map-layer arrival lines are built
+      with `ArrivalTimeLine.resolve(label, geometry,
+      origin="map_layer")`, which turns the blank label into
+      the outer contour. Validation errors never repeat their
+      input (`hide_input_in_errors`).
     - `scripts/record_fixtures.py` is the synchronous precedent:
       `USER_AGENT`, `HOST_INTERVALS` (1.2 s for
       `api.weather.gov`, 1.5 s for Nominatim, 0.5 s otherwise),
@@ -2296,6 +2320,16 @@ new per phase-boundary hygiene.
       `tests/contract/test_field_coverage.py` ties every parser
       to the register; `live-smoke.yml` runs `pytest -m live` on
       dispatch. Issue #12 is closed.
+    - Carry-over from Step 1 (2026-10-16): build each KMZ line
+      with `ArrivalTimeLine.resolve(label, geometry,
+      origin="kmz", published_at=..., time_zone=...)`; the
+      `ArrivalTimeProduct` validator recomputes every line by
+      the same rule and rejects any other instant. When the
+      KMZ disagrees with the roster (advisory, ATCF id, or
+      issuance), set the product's `withheld_reason` and pass
+      it to every line: they stay unresolved with that reason.
+      `published_at` must be the instant `parse_nhc_local_time`
+      reads from `published_local_text`.
     - The map layers' arrival-time lines parse into label-only
       `ArrivalTimeProduct` values (`origin` `map_layer`). The
       roster names each storm's arrival-time KMZ: on 2026-10-12,
@@ -2899,7 +2933,14 @@ phase-boundary hygiene.
     - `weatherbot.models` defines `NwsAlert` (with `found_by`,
       `affected_zone_ids`, `geocode_same`, `geocode_ugc`),
       `AlertQuery`, `NwsCoverage`, `NwsZone`, `GeocodeResult`,
-      and `Location`.
+      and `Location`. Carry-over from Step 1 (2026-10-16): each
+      `AlertQuery` holds the `Provenance` of the response that
+      returned the alert, so a merged alert keeps one per
+      query; `NwsZone.cwa` and `time_zone` are tuples, because
+      the zone answers list them; `Location.country_code` is
+      upper case, while `GeocodeResult.country_code` keeps
+      Nominatim's lower case; the models' validation errors
+      never repeat their input.
     - The register's NWS facts (2026-10-12): the Miami-Dade
       landmark's `/points` answer (200, `max-age=86400`) names
       `forecastZone` `FLZ173`, `county` `FLC086`,
@@ -2909,10 +2950,14 @@ phase-boundary hygiene.
       `https://api.weather.gov/problems/InvalidPoint`; alerts at
       the Miami-Dade point returned an empty FeatureCollection,
       and at the Nassau point 400 `InvalidParameter` ("out of
-      bounds"); `FLC086` returned one Coastal Flood Statement
-      (`affectedZones` `FLZ069`, `FLZ075`, `FLZ174`;
-      `geocode.SAME` including `012086`; `geometry` null) that
-      the point query missed, and `FLZ173` returned none; zones
+      bounds"); at verification `FLC086` returned one Coastal
+      Flood Statement (`affectedZones` `FLZ069`, `FLZ075`,
+      `FLZ174`; `geocode.SAME` including `012086`; `geometry`
+      null) that the point query missed, and `FLZ173` returned
+      none. That alert had expired by the recording: both
+      recorded zone-alert captures (01:09 UTC on 2026-10-13)
+      hold no features, and no recorded alert exists (found
+      by Step 1, 2026-10-16). Zones
       are MultiPolygons of up to 784,207 bytes with `max-age` of
       weeks. The API requires an identifying User-Agent, keeps
       its rate limit private, and says a key will replace the
@@ -3007,10 +3052,17 @@ phase-boundary hygiene.
       Contract tests over every recorded capture: the Miami-Dade
       point; the Nassau 404 as `OutsideNwsCoverage`; the
       Miami-Dade point alerts (none); the Nassau 400 as a
-      `DocumentedProblem`; `FLC086` and `FLZ173` merged into one
+      `DocumentedProblem`; the empty `FLC086` and `FLZ173`
+      answers parsed to no alert; the three zones; the two
+      reverse lookups. The merge is proved on an alert built in
+      the test from the register's `FLC086` description, never a
+      fabricated fixture: returned by `zone FLC086` and absent
+      from the point and `FLZ173` answers, it merges into one
       alert found by `zone FLC086`, with affected zones
       `FLZ069`, `FLZ075`, and `FLZ174` and `012086` among its
-      SAME codes; the three zones; the two reverse lookups. The
+      SAME codes. When a live capture holds an alert, it is
+      recorded beside the 2026-10-12 set under Source drift and
+      a contract test parses it. The
       field-coverage rule of Step 2 holds against the register's
       "Fields v2 uses" for all five sources, including deletion
       tests.
@@ -3052,7 +3104,7 @@ phase-boundary hygiene.
       `CHANGELOG.md` `[Unreleased]` gains `Added` entries for
       both clients. Comment on issue #10: the client keeps
       `found_by`, `affected_zone_ids`, and both geocode lists on
-      every alert, with the recorded `FLC086` example; the issue
+      every alert, with the register's `FLC086` example; the issue
       stays open for Phase 3's rule.
     </requirement>
 
@@ -3069,8 +3121,9 @@ phase-boundary hygiene.
 - Every recorded capture of `nws-points`, `nws-alerts-point`, `nws-alerts-zone`,
   `nws-zones`, and `geocode-nominatim` parses, and the field-coverage rule holds
   for all five.
-- The recorded `FLC086` and `FLZ173` answers merge into one alert found by
-  `zone FLC086` with its affected zones and SAME codes, and the Nassau landmark
+- The recorded (empty) `FLC086` and `FLZ173` answers parse; an alert built from
+  the register's `FLC086` description merges into one alert found by
+  `zone FLC086` with its affected zones and SAME codes; and the Nassau landmark
   yields `OutsideNwsCoverage` with no alert request.
 - `format_point` is the only writer of coordinates into a URL, renders four
   decimals, and its precision is recorded in the register with its source; the
@@ -4752,8 +4805,8 @@ phase-boundary hygiene.
         pair matches the corpus manifest's checksums and its
         labels resolve; V3.4 issues #11 and #12 are closed.
       - V4 NWS and geocoding: V4.1 static checks 25-28; V4.2 the
-        location-source contract tests pass, the `FLC086` merge
-        included; V4.3 the coordinate-hygiene tests pass.
+        location-source contract tests pass, the `FLC086`-shaped
+        merge included; V4.3 the coordinate-hygiene tests pass.
       - V5 persistence: V5.1 static checks 29-35; V5.2 the
         migration, backup, refusal, and round-trip tests pass;
         V5.3 the installed wheel opens a new database at head;
@@ -4979,7 +5032,7 @@ workflow above maps directly to the corresponding row below.
 | ID   | Check                                                                                         | Automation                                                                 |
 | ---- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | V4.1 | Static checks 25–28 all PASS (clients, the alert's issue #10 inputs, contract tests, coordinates confined to the NWS client). | `phase-verify.yml --fast`.                                                 |
-| V4.2 | The five location sources' contract tests pass, the `FLC086` merge and the non-US path included. | `ci.yml` `test`.                                                           |
+| V4.2 | The five location sources' contract tests pass, the `FLC086`-shaped merge and the non-US path included. | `ci.yml` `test`.                                                           |
 | V4.3 | No record at INFO or above, error message, or `repr` exposes a coordinate.                    | `ci.yml` `test`.                                                           |
 
 ### V5 — Persistence and configuration
@@ -5022,7 +5075,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                    | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ------------------------ | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Domain models            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 1    | Domain models            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #20 |
 | 2    | HTTP + NHC map clients   | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 3    | NHC products             | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 4    | NWS + geocoding clients  | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |

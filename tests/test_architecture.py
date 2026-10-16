@@ -2,12 +2,14 @@
 """Tests that keep the layer architecture honest.
 
 The import-linter contracts in ``pyproject.toml`` forbid the engine from importing any
-other layer and fix the direction of every other import. The AST scan here adds what
-those contracts cannot see: the engine must also not import an I/O library, so it stays a
-pure function of its inputs.
+other layer and fix the direction of every other import, with ``weatherbot.models`` as the
+lowest layer. The AST scan here adds what those contracts cannot see: neither the engine
+nor the models may import an I/O library, so the engine stays a pure function of its
+inputs and the models stay plain data.
 """
 
 import ast
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -15,9 +17,12 @@ from importlinter.cli import lint_imports
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 ENGINE_DIRECTORY = REPOSITORY_ROOT / "src" / "weatherbot" / "engine"
+MODELS_DIRECTORY = REPOSITORY_ROOT / "src" / "weatherbot" / "models"
+# The packages the I/O ban covers: the pure engine and the shared models below it.
+IO_FREE_DIRECTORIES = (ENGINE_DIRECTORY, MODELS_DIRECTORY)
 
-# Top-level modules the engine must never import: network, process, database, web,
-# model, and scheduler libraries.
+# Top-level modules the engine and the models must never import: network, process,
+# database, web, model, and scheduler libraries.
 BANNED_ENGINE_IMPORTS = frozenset(
     {
         "alembic",
@@ -70,17 +75,29 @@ def test_import_contracts_are_kept() -> None:
     assert exit_code == 0
 
 
-def test_engine_imports_no_io_library() -> None:
-    engine_files = sorted(ENGINE_DIRECTORY.rglob("*.py"))
-    assert engine_files, "the engine package must exist"
+@pytest.mark.parametrize("directory", IO_FREE_DIRECTORIES, ids=lambda path: path.name)
+def test_engine_and_models_import_no_io_library(directory: Path) -> None:
+    files = sorted(directory.rglob("*.py"))
+    assert files, f"the {directory.name} package must exist"
 
     violations = {
         path.relative_to(REPOSITORY_ROOT).as_posix(): found
-        for path in engine_files
+        for path in files
         if (found := banned_imports(path.read_text(encoding="utf-8")))
     }
 
     assert not violations
+
+
+def test_models_are_the_lowest_layer() -> None:
+    contracts = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    layered = next(
+        contract
+        for contract in contracts["tool"]["importlinter"]["contracts"]
+        if contract["type"] == "layers"
+    )
+
+    assert layered["layers"][-1] == "weatherbot.models"
 
 
 @pytest.mark.parametrize(

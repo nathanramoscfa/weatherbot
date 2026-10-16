@@ -27,7 +27,11 @@ classifiers = [
     "Typing :: Typed",
 ]
 keywords = ["hurricane", "NHC", "NWS", "NOAA", "weather", "tropical-cyclone"]
-dependencies = ["typer>=0.27.3"]
+dependencies = [
+    "pydantic>=2.14.1,<3",
+    "shapely>=2.2.0",
+    "typer>=0.27.3",
+]
 
 [project.scripts]
 weatherbot = "weatherbot.cli:app"
@@ -56,7 +60,6 @@ dev = [
     "pytest-socket>=0.8.1",
     "respx>=0.23.1",
     "ruff>=0.17.0",
-    "shapely>=2.2.0",
 ]
 # roadmodel is the planning tool behind docs/roadmap/ (ROADMAP.md and
 # phaseNN-roadmap.md); it is not an application dependency. pip is here
@@ -151,4 +154,5 @@ layers = [
     "weatherbot.cli | weatherbot.web",
     "weatherbot.services",
     "weatherbot.sources | weatherbot.engine",
+    "weatherbot.models",
 ]
