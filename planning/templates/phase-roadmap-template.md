@@ -737,6 +737,30 @@ that owns it.}}
      "Sonnet 4.6 via Claude Code" reads very differently
      from "Sonnet 4.6 via Anthropic API" on the cost line.
 
+     THE LADDER — the default wherever roadmodel is
+     installed. A step's Settings table carries the full
+     recommendation /recommend shows: Cost, Balanced and
+     Quality, each with its own model, platform and effort
+     and a backup from another maker. The roadmap then
+     outlives a usage pool's state: when a pool reads
+     `tight` or `exhausted`, the step's runner picks
+     another column (the **Runs:** line's rule) instead of
+     the roadmap being refreshed. Paste the table and its
+     **Runs:** line exactly as `roadmodel ladder --category
+     <c> --complexity <x> [--novel]` prints them for the
+     step's classification (MCP tool: `roadmap_settings`).
+     Rows: Model / Backup / Platform / Effort / Thinking /
+     Conversation. The Effort cell names each column's own
+     dial (`Intelligence Medium` on Codex, `Effort High` on
+     Claude Code); a column whose surface has no such
+     control reads `—` there. Every model is the latest
+     version of its series, never an older one (GPT-6 Sol
+     where GPT-6.1 Sol runs, Opus 5 where Opus 5.5 does).
+     Set Conversation to **Continue** in every column only
+     when the step continues the previous one's session.
+     The single-column shapes below are the fallback where
+     roadmodel cannot be reached.
+
      SETTINGS TABLE SHAPE IS PLATFORM-SPECIFIC. Each
      surface exposes a different tuning UI, and the table
      MUST mirror what the operator will actually see in
@@ -823,6 +847,24 @@ that owns it.}}
      thinking level for it would document a setting they
      cannot apply.
      -->
+
+Settings table — ladder ({{the default wherever roadmodel is
+installed: the table and **Runs:** line `roadmodel ladder
+--category <c> --complexity <x> [--novel]` prints for the
+step's classification, pasted as printed. The three shapes
+after it are the fallback where roadmodel cannot be
+reached}}):
+
+| Setting      | Cost                        | Balanced                    | Quality                     |
+| ------------ | --------------------------- | --------------------------- | --------------------------- |
+| Model        | {{Model}}                   | {{Model}}                   | {{Model}}                   |
+| Backup       | {{Backup — platform · dial}} | {{Backup — platform · dial}} | {{Backup — platform · dial}} |
+| Platform     | {{Access method}}           | {{Access method}}           | {{Access method}}           |
+| Effort       | {{Its dial and level}}      | {{Its dial and level}}      | {{Its dial and level}}      |
+| Thinking     | {{On, or — with no toggle}} | {{On, or — with no toggle}} | {{On, or — with no toggle}} |
+| Conversation | **{{New or Continue}}**     | **{{New or Continue}}**     | **{{New or Continue}}**     |
+
+**Runs:** {{Cost / Balanced / Quality}} — the user-context's Budget priority is `{{cheap / balanced / best}}`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
 Settings table — Effort + Thinking variant ({{use this
 shape when PLATFORM is "Claude Code" or any other
@@ -1228,29 +1270,28 @@ hygiene").}}
 
 **Deploys:** {{surface → environment, or "nothing beyond merge"}}
 
-{{Settings table — pick the variant that matches PLATFORM
-per the Step 1 guidance, and carry ONLY the rows that
-platform's panel exposes. Claude Code and the other
-reasoning-dial surfaces use Model / Platform / Effort /
-Thinking (On/Off) / Conversation. Codex uses Model /
-Platform / Intelligence / Conversation (no Max Mode, no
-Thinking row). Cursor uses Model / Platform / Max Mode /
-Conversation (no Effort row, no Thinking row). The shape
-below is the Effort + Thinking variant — swap it wholesale if
-PLATFORM is something else; never keep a row for a dial
-the surface does not have.}}
+{{Settings table — the ladder `roadmodel ladder` prints for
+this step's classification (the Step 1 guidance), pasted as
+printed with its **Runs:** line. Where roadmodel cannot be
+reached, the single-column variant that matches PLATFORM,
+carrying ONLY the rows that platform's panel exposes.}}
 
-| Setting      | Value                          |
-| ------------ | ------------------------------ |
-| Model        | {{Model name}}                 |
-| Backup       | {{Backup model — its platform · its dial, or None}} |
-| Platform     | {{Access method name}}         |
-| Effort       | {{Low/Medium/High/Extra High/Max/Ultracode}} |
-| Thinking     | {{On or Off}}                  |
-| Conversation | **{{New or Continue}}**        |
+| Setting      | Cost                        | Balanced                    | Quality                     |
+| ------------ | --------------------------- | --------------------------- | --------------------------- |
+| Model        | {{Model}}                   | {{Model}}                   | {{Model}}                   |
+| Backup       | {{Backup — platform · dial}} | {{Backup — platform · dial}} | {{Backup — platform · dial}} |
+| Platform     | {{Access method}}           | {{Access method}}           | {{Access method}}           |
+| Effort       | {{Its dial and level}}      | {{Its dial and level}}      | {{Its dial and level}}      |
+| Thinking     | {{On, or — with no toggle}} | {{On, or — with no toggle}} | {{On, or — with no toggle}} |
+| Conversation | **{{New or Continue}}**     | **{{New or Continue}}**     | **{{New or Continue}}**     |
 
-**Model rationale:** 3-5 sentences. Name the PLATFORM and
-the subscription or API key that pays for it. For Claude
+**Runs:** {{the line `roadmodel ladder` prints}}
+
+**Model rationale:** 3-5 sentences. With the ladder: the
+classification it was printed for (PRIMARY and SECONDARY
+category, complexity, novel or not) and why, then what sets
+the three columns apart for this step. Otherwise: name the
+PLATFORM and the subscription or API key that pays for it. For Claude
 Code and the other reasoning-dial surfaces, state why
 EFFORT is at the stated level and why THINKING is on or
 off. For Codex, state why INTELLIGENCE is at the stated
@@ -1366,23 +1407,21 @@ mechanically rather than left to memory.
 **Deploys:** nothing beyond merge — the CI matrix entry is live
 on merge.
 
-{{Settings table — pick the variant that matches PLATFORM
-per the Step 1 guidance, carrying ONLY the rows that
-platform exposes. There are exactly three shapes: the
-Effort + Thinking variant (Claude Code and every other
-reasoning-dial surface), the Codex variant (Intelligence
-alone — no Max Mode, no Thinking row), and the Cursor
-variant (Max Mode alone — no Effort row, no Thinking row).
-The shape below is the Effort + Thinking variant.}}
+{{Settings table — the ladder `roadmodel ladder` prints for
+this step's classification, pasted as printed with its
+**Runs:** line; where roadmodel cannot be reached, the
+single-column variant that matches PLATFORM.}}
 
-| Setting      | Value                          |
-| ------------ | ------------------------------ |
-| Model        | {{Model}}                      |
-| Backup       | {{Backup model — its platform · its dial, or None}} |
-| Platform     | {{Access method name}}         |
-| Effort       | {{Low/Medium/High/Extra High/Max/Ultracode}} |
-| Thinking     | {{On or Off}}                  |
-| Conversation | **New**                        |
+| Setting      | Cost                        | Balanced                    | Quality                     |
+| ------------ | --------------------------- | --------------------------- | --------------------------- |
+| Model        | {{Model}}                   | {{Model}}                   | {{Model}}                   |
+| Backup       | {{Backup — platform · dial}} | {{Backup — platform · dial}} | {{Backup — platform · dial}} |
+| Platform     | {{Access method}}           | {{Access method}}           | {{Access method}}           |
+| Effort       | {{Its dial and level}}      | {{Its dial and level}}      | {{Its dial and level}}      |
+| Thinking     | {{On, or — with no toggle}} | {{On, or — with no toggle}} | {{On, or — with no toggle}} |
+| Conversation | **New**                     | **New**                     | **New**                     |
+
+**Runs:** {{the line `roadmodel ladder` prints}}
 
 **Model rationale:** Why this model fits the mechanical
 translation of the prior verify-script template into this
@@ -1868,7 +1907,12 @@ corresponding row below.
 
 ## Summary Table
 
-<!-- Summary Table column "Reasoning dial" carries
+<!-- With ladder Settings tables, each step's row shows the
+     column its **Runs:** line names (the Model, Platform
+     and dial of that column); the other two columns live
+     in the step's own table.
+
+     Summary Table column "Reasoning dial" carries
      whichever dial the step's PLATFORM exposes, written
      in the surface's native vocabulary so reviewers can
      audit each row 1:1 against the panel. The per-step
@@ -1928,6 +1972,8 @@ output format for ease of audit by a roadmodel script.
 
 Include this section if your project has a roadmodel
 audit tool that consumes the text format. Skip it if not.
+With ladder Settings tables, each block restates the column
+the step's **Runs:** line names.
 -->
 
 <!-- These blocks follow OUTPUT CONTRACT VERSION 2 of

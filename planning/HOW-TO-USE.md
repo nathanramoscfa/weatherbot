@@ -28,6 +28,19 @@ MCP tool, or web service — the operator's editor session already pays for your
 reasoning (e.g. Claude Code funded by a flat Max plan = $0 marginal). Calling
 out would add cost for no benefit.
 
+**Where `roadmodel` is installed, the Settings table comes from it.** Classify
+the step (step 1 below), then paste the table and **Runs:** line
+`roadmodel ladder --category <c> --complexity <x> [--novel]` prints: the
+Cost / Balanced / Quality picks /recommend shows, each with its effort and a
+backup from another maker. It is local code — no API call, no engine — and it
+reads every usage pool at headroom, so the table outlives a pool's state: when
+a pool reads `tight` or `exhausted`, `/roadmap-step` runs another column
+instead of the roadmap being refreshed. Its models are always the latest
+version of their series (GPT-6.1 Sol, never GPT-6 Sol where both run). The
+project roadmap's phase tables come from `roadmodel ladder --category
+planning --complexity high --phase`. Steps 2–4 are the fallback where
+`roadmodel` cannot be reached.
+
 Concretely, for each roadmap step:
 
 1. **Classify** the step's task with the selector's
@@ -98,7 +111,7 @@ at the start of each phase** to pull the latest:
 pip install -U roadmodel
 roadmodel export-kit /path/to/this/project
 
-# Or fetch fresh from GitHub main with the bash script:
+# Or use the release wrapper from a reviewed roadmodel checkout:
 scripts/export-planning-kit.sh /path/to/this/project
 ```
 
