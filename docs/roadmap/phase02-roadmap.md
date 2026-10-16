@@ -1,6 +1,6 @@
 # Phase 2 Roadmap — Sources and persistence
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -631,9 +631,9 @@ permits no concurrent steps.
 
 ---
 
-## Step 1 — Domain models
+## Step 1 — Domain models ✅
 
-**Status:** Not started
+**Status:** Complete — PR #20 (2026-10-16)
 
 > **Goal:** Create `weatherbot.models`, the typed vocabulary every later layer
 > shares, and keep Phase 1's verification green while the package grows. Frozen,
@@ -666,6 +666,8 @@ from the merge on; its first run on `main` must be green.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-16: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 1 is coding — models, their tests, and a verifier
 change — with planning as its secondary category, because its field choices fix
@@ -5073,7 +5075,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                    | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ------------------------ | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Domain models            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 1    | Domain models            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #20 |
 | 2    | HTTP + NHC map clients   | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 3    | NHC products             | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 4    | NWS + geocoding clients  | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
