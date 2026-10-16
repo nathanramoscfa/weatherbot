@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Draft v1 (2026-10-11); no phase started
+> **Status:** Phase 1 Complete — 2026-10-15; PR #17; v2.0.0-phase-1. Phase 2 (Sources and persistence) is next.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -207,9 +207,9 @@ optional LAN mode in Phase 8 is the only widening, and it is gated.
 
 ## 4. Phased Roadmap
 
-### Phase 1 — Foundation and discovery
+### Phase 1 — Foundation and discovery ✅
 
-**Status:** In progress — phase01-roadmap.md
+**Status:** Complete — 2026-10-15; PR #17; v2.0.0-phase-1; phase01-roadmap.md
 
 **Goal:** Replace v1 with a green, strictly gated uv project on Python
 3.13 whose tests already replay real NOAA payloads, with v1 preserved
@@ -319,6 +319,11 @@ the weekly Claude pool reads exhausted when the session opens.
   checksums, and the committed subset is under its size budget.
 - `planning/` is current and the roadmodel updater's dry run shows this
   project with no environment override.
+- The canonical Phase 1 `--post` sweep reports all 50 static checks and
+  V1.1 through V7.4 PASS (see `phase01-roadmap.md`). Both `gate` and
+  `phase-verify` are required on protected `main`; the first main phase
+  workflow run is green, and annotated `v2.0.0-phase-1` peels to the
+  closure merge commit. The QA ledger assigns every finding a destination.
 - **Security:** the §5 security gate ran clean on this phase's work —
   gitleaks, bandit, and pip-audit green in pre-commit and CI; the
   personal-data check passes over the whole tree and the recorded
@@ -355,6 +360,12 @@ This roadmap fixes the domain model that the engine, the API, and the
 UI all consume, so a wrong field here costs three phases. Opus 5.5 is
 the `roadmodel score` PRIMARY for planning at `Max`, funded by the
 claude.ai Max subscription; GPT-6 Astra on Codex is the funded backup.
+
+Phase 2 also adapts Phase 1 verification when it expands the scaffold: exact
+version, eight-file skeleton, and Typer-only assertions become historical checks
+against `v2.0.0-phase-1`; live security, provenance, and fixture guards stay live.
+Keep the `"01"` matrix entry and its numbered checks rather than dropping Phase 1
+from required verification.
 
 #### 2.1 Domain models
 - Pydantic models with provenance on every record: `Location` (name,
@@ -1469,7 +1480,7 @@ The following are deliberately deferred to a future version:
 
 | Phase | Description                                   | Complexity | Status      |
 |-------|-----------------------------------------------|------------|-------------|
-| 1     | Foundation and discovery                      | Medium     | In progress |
+| 1     | Foundation and discovery                      | Medium     | Complete |
 | 2     | Sources and persistence                       | Medium     | Not started |
 | 3     | Threat engine                                 | High       | Not started |
 | 4     | Monitoring and notifications                  | Medium     | Not started |
