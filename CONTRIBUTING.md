@@ -62,6 +62,26 @@ repository through a relative path. A test that must reach a real service is
 marked `live`, also carries `@pytest.mark.enable_socket`, and runs only on
 request with `pytest -m live`.
 
+### The live suite
+
+`uv run pytest -m live` calls the real services: it fetches the storm
+roster, resolves every register layer name in both NHC tropical map services
+(each `{slot}` layer for all fifteen slots), queries one outlook layer, and
+records the roster into a temporary directory. No live test sends a
+coordinate. Run it before a change that touches a source client, and whenever
+a register layer, field, or product may have changed (Source drift).
+
+The same suite runs on GitHub's hosted runners when you dispatch
+`.github/workflows/live-smoke.yml`, which has no other trigger:
+
+```sh
+gh workflow run live-smoke.yml --ref main
+gh run list --workflow live-smoke.yml --limit 1
+```
+
+It is not part of `gate` or of branch protection, and it uses no secret.
+Scheduled drift detection belongs to Phase 4.
+
 ## Security gate
 
 Every commit passes the project's fail-closed security gate

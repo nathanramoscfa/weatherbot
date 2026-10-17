@@ -28,6 +28,7 @@ classifiers = [
 ]
 keywords = ["hurricane", "NHC", "NWS", "NOAA", "weather", "tropical-cyclone"]
 dependencies = [
+    "httpx>=0.28.1",
     "pydantic>=2.14.1,<3",
     "shapely>=2.2.0",
     "typer>=0.27.3",
@@ -50,7 +51,6 @@ source-include = ["DISCLAIMER.md"]
 [dependency-groups]
 dev = [
     "bandit>=1.9.4",
-    "httpx>=0.28.1",
     "import-linter>=2.15",
     "pip-audit>=2.10.1",
     "pre-commit>=4.6.2",
@@ -106,8 +106,9 @@ convention = "google"
 typeCheckingMode = "strict"
 pythonVersion = "3.13"
 include = ["src", "tests", "scripts"]
-# tests/scripts/ import the development scripts as top-level modules.
-extraPaths = ["scripts"]
+# tests/scripts/ import the development scripts as top-level modules, and tests/live/
+# reads the register through tests/contract/fixture_support.py.
+extraPaths = ["scripts", "tests/contract"]
 venvPath = "."
 venv = ".venv"
 
@@ -120,8 +121,9 @@ exclude_dirs = ["tests", ".venv", ".worktrees"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# tests/scripts/ import the development scripts as top-level modules.
-pythonpath = ["scripts"]
+# tests/scripts/ import the development scripts as top-level modules, and tests/live/
+# reads the register through tests/contract/fixture_support.py.
+pythonpath = ["scripts", "tests/contract"]
 # `--allow-hosts`, not `--disable-socket`: asyncio on Windows opens a loopback
 # socket pair that `--disable-socket` would block. Selecting `-m live` does
 # not lift the guard, so every `live` test also carries pytest-socket's

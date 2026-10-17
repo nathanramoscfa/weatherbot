@@ -14,6 +14,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Added
+- The HTTP layer, `weatherbot.sources.http`: one `httpx` client per run with the
+  register's User-Agent (`weatherbot.sources.USER_AGENT`, which the fixture
+  recorder now imports with the per-host intervals and the ArcGIS query
+  parameters), TLS verification on, redirects refused, and fixed timeouts;
+  per-host pacing, at most four attempts with full-jitter backoff and
+  `Retry-After`, an 8 MiB body cap, conditional requests through a
+  `ValidatorStore`, typed errors in `weatherbot.sources.errors`, and log
+  records that never carry a request coordinate above DEBUG.
+- The roster client (`nhc_current_storms`), the ArcGIS client (`arcgis`:
+  catalogs, layer resolution by name or group path, paging, counts), and the
+  NHC map clients (`nhc_map`), which parse every register layer of the
+  tropical, summary, breakpoint, and peak-surge services into the shared
+  models, including one wind-probability product per threshold held by the
+  snapshot (issue #12), and log Source-drift warnings where the products
+  disagree. `tests/contract/test_field_coverage.py` keeps each parser's
+  fields equal to the register's "Fields v2 uses".
+- `.github/workflows/live-smoke.yml`, which runs `pytest -m live` when
+  dispatched by hand.
 - The version 2 scaffold (2.0.0.dev0): a uv project on Python 3.13 with a
   `uv_build` backend and a committed `uv.lock`; the `src/weatherbot/`
   package skeleton with the `sources`, `engine`, `services`, `cli`, and

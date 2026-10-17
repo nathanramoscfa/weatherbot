@@ -49,6 +49,9 @@ from urllib.parse import urlencode, urlsplit
 import httpx
 
 from check_personal_data import Landmark, load_landmarks
+from weatherbot.sources import USER_AGENT
+from weatherbot.sources.arcgis import COUNT_PARAMETERS, QUERY_PARAMETERS
+from weatherbot.sources.http import DEFAULT_INTERVAL, HEADER_ALLOWLIST, HOST_INTERVALS
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = REPOSITORY_ROOT / "tests" / "fixtures" / "recorded"
@@ -56,30 +59,15 @@ DEFAULT_REPORTS = REPOSITORY_ROOT / "reports"
 DEFAULT_CACHE = REPOSITORY_ROOT / "cache"
 
 RECORDER_PATH = "scripts/record_fixtures.py"
-# The register's User-Agent (docs/DATA_SOURCES.md, "User-Agent"); a contract test compares them.
-USER_AGENT = "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)"
+# USER_AGENT, the header allowlist, the per-host intervals, and the ArcGIS query parameters
+# are the package's (weatherbot.sources): one definition each, shared with the clients.
 SCHEMA_VERSION = 1
 MANIFEST_NAME = "manifest.json"
 
 GZIP_THRESHOLD_BYTES = 1024 * 1024
 MAX_STORED_BYTES = 5 * 1024 * 1024
-HEADER_ALLOWLIST: Final = frozenset(
-    {
-        "content-type",
-        "content-length",
-        "last-modified",
-        "etag",
-        "date",
-        "cache-control",
-        "expires",
-        "age",
-    }
-)
 
-# Seconds between two requests to one host. The NWS API and Nominatim policies ask for at
-# most one request per second, so the recorder keeps a margin; NHC requests run serially.
-HOST_INTERVALS: Final = {"api.weather.gov": 1.2, "nominatim.openstreetmap.org": 1.5}
-DEFAULT_INTERVAL = 0.5
+# The recorder's requests run serially, paced by the package's HOST_INTERVALS.
 REQUEST_TIMEOUT = httpx.Timeout(60.0, connect=15.0)
 REQUEST_ATTEMPTS = 4
 BACKOFF_SECONDS = 2.0
@@ -109,16 +97,6 @@ HTTP_OK = 200
 HTTP_SERVER_ERROR = 500
 PROBLEM_JSON = "application/problem+json"
 DOCUMENTED_ERROR_STATUSES = (400, 404)
-
-# The register's shared ArcGIS query parameters ("Shared query parameters").
-QUERY_PARAMETERS: Final = {
-    "where": "1=1",
-    "outFields": "*",
-    "outSR": "4326",
-    "f": "geojson",
-    "geometryPrecision": "5",
-}
-COUNT_PARAMETERS: Final = {"where": "1=1", "returnCountOnly": "true", "f": "json"}
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 PNG_HEADER_END = 24

@@ -144,11 +144,13 @@ class RegisterRow:
 
 @dataclass(frozen=True)
 class RegisterLayer:
-    """One row of a service's layer table."""
+    """One row of a service's layer table: the cells as the register writes them."""
 
     name: str
     geometry: str
     notes: str
+    present: str = ""
+    used: str = ""
 
 
 def _cells(line: str) -> list[str]:
@@ -204,8 +206,60 @@ def register_layers(service: str) -> list[RegisterLayer]:
     for line in section.splitlines():
         if line.startswith("| `"):
             cells = _cells(line)
-            layers.append(RegisterLayer(_unquote(cells[0]), cells[1], cells[4]))
+            layers.append(RegisterLayer(_unquote(cells[0]), cells[1], cells[4], cells[2], cells[3]))
     return layers
+
+
+SLOT_SERVICE = "NHC_tropical_weather"
+_QUOTED = re.compile(r"`([^`]+)`")
+BULLET = "\n- "
+
+
+def _names(cell: str, layer: str, column: str) -> frozenset[str]:
+    """Read a fields cell: quoted names, ``—``, or a reference to another table's row.
+
+    ``as in `NHC_tropical_weather``` names the same layer in that service; ``as `{slot}
+    Forecast Points``` names that row of the slot service, and ``plus `idp_subset```
+    adds names to the reference.
+    """
+    if cell in {"—", ""}:
+        return frozenset()
+    quoted = _QUOTED.findall(cell)
+    if cell.startswith("as in `"):
+        return layer_fields(quoted[0])[layer][column] | frozenset(quoted[1:])
+    if cell.startswith("as `"):
+        return layer_fields(SLOT_SERVICE)[quoted[0]][column] | frozenset(quoted[1:])
+    return frozenset(quoted)
+
+
+def layer_fields(service: str) -> dict[str, dict[str, frozenset[str]]]:
+    """Read a service's "Fields present" and "Fields v2 uses" columns, references resolved.
+
+    Args:
+        service: The service folder name, such as ``NHC_tropical_weather_summary``.
+
+    Returns:
+        By layer name: ``{"present": ..., "used": ...}``.
+    """
+    return {
+        layer.name: {
+            "present": _names(layer.present, layer.name, "present"),
+            "used": _names(layer.used, layer.name, "used"),
+        }
+        for layer in register_layers(service)
+    }
+
+
+def register_roster_fields() -> frozenset[str]:
+    """Read the roster's "Fields v2 uses" (section "NHC current storms").
+
+    Returns:
+        The field names, product members as ``object.member``.
+    """
+    section = _section(register_text(), "NHC current storms", 2)
+    start = section.index("- **Fields v2 uses:**")
+    end = section.index(BULLET, start + 1)
+    return frozenset(_QUOTED.findall(section[start:end]))
 
 
 def register_user_agent() -> str:

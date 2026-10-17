@@ -1,0 +1,48 @@
+# .github/workflows/live-smoke.yml
+# The live smoke: `pytest -m live` against the real NHC services. The
+# repository is public, so the job runs on GitHub-hosted runners only; never
+# point this workflow at a self-hosted runner.
+#
+# Manual by design: `workflow_dispatch` is its only trigger. Detecting source
+# drift on a schedule belongs to Phase 4's heartbeat and staleness rules. The
+# workflow joins neither `gate` nor branch protection, uses no secret, and
+# its tests send no coordinate. Dispatch it with:
+#
+#   gh workflow run live-smoke.yml --ref main
+name: live-smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-smoke-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  UV_LOCKED: "1"
+  UV_LINK_MODE: copy
+
+jobs:
+  live:
+    name: live smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install (locked)
+        run: uv sync --locked
+
+      - name: Live tests
+        run: uv run pytest -m live
