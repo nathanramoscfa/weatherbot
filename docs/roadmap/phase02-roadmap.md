@@ -2670,9 +2670,9 @@ new per phase-boundary hygiene.
 
 ---
 
-## Step 4 — NWS and geocoding clients
+## Step 4 — NWS and geocoding clients ✅
 
-**Status:** Not started
+**Status:** Complete — PR #23 (2026-10-17)
 
 > **Goal:** Give the location-specific sources their clients.
 > `weatherbot.sources.nws` resolves a point through `/points` to its forecast
@@ -2702,6 +2702,8 @@ new per phase-boundary hygiene.
 | Conversation | **New**                                  | **New**                                 | **New**                                 |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-17: Balanced — Opus 5.5 · Effort Medium. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 4 is coding at Medium complexity: bounded clients over
 five endpoints whose answers, including the documented errors and the
@@ -3495,6 +3497,20 @@ comes from the other maker. The conversation is new per phase-boundary hygiene.
       line its `unresolved_reason`. A post-tropical storm's
       KMZ can hold only the outer contour (`EP202026` advisory
       038 on 2026-10-17).
+    - Carry-over from Step 4 (2026-10-17): the answers of
+      `nws-points`, `nws-alerts-point`, and `geocode-nominatim`
+      have a location's coordinates in their URLs (written by
+      `nws.format_point`). The raw-response cache and
+      `Provenance.url` may hold them in the local database, but
+      no log record above DEBUG, error message, or `repr` may
+      (the clients' tests show the pattern). A point outside
+      NWS coverage returns `OutsideNwsCoverage` with no answer
+      kept, so it has no raw response to store. Zones are
+      fetched conditionally, so the persisted `ValidatorStore`
+      serves them too. The first recorded alert (2026-10-17,
+      `tests/fixtures/recorded/nws-alerts-*/2026-10-17/`) is a
+      real `NwsAlert` with VTEC, onset, and ends for the alert
+      tables' tests.
     - The project roadmap fixes the rules (§5, "Data and schema
       migrations" and "Rollback"): migrations run at application
       start after the application copies the database aside, the
@@ -4098,6 +4114,22 @@ per phase-boundary hygiene.
       `catalogs.fetch_overlay_catalogs(fetcher)` and
       `catalogs.fetch_surge_risk_catalog(fetcher)`
       (`catalogs.surge_risk_images` resolves the five images).
+    - Carry-over from Step 4 (2026-10-17): the location
+      clients are `nws.lookup_point(fetcher, lat, lon)`, whose
+      `records` is an `NwsCoverage` or `nws.OutsideNwsCoverage`;
+      `nws.fetch_alerts(fetcher, location)`, which sends no
+      request when `location.nws` is `None` and raises
+      `DocumentedProblem` for the point's out-of-bounds 400;
+      `nws.fetch_zone(fetcher, kind, zone_id)` with `kind`
+      `forecast`, `county`, or `fire`; and
+      `nominatim.reverse_geocode(fetcher, lat, lon)`, whose
+      `records` is `None` when Nominatim finds no place (a
+      point at sea), so `add` must accept a location without a
+      display name. `Location.country_code` is upper case, while
+      `GeocodeResult.country_code` keeps Nominatim's lower case.
+      The fetch functions take floats; `format_point` refuses a
+      non-finite or out-of-range value with a `ValueError` that
+      never repeats it, and `add` checks the range first.
       The KMZ supersession rule is the pure function
       `nhc_arrival_times.prefer_kmz(products)`: pass it the
       map-layer and KMZ products together. A reused slot's TCP
@@ -4765,7 +4797,8 @@ phase-boundary hygiene.
         `geocode_same`, and `geocode_ugc`.
     27. The contract tests for `nws-points`, `nws-alerts-point`,
         `nws-alerts-zone`, `nws-zones`, and `geocode-nominatim`
-        are tracked.
+        are tracked (`tests/contract/test_nws_captures.py`,
+        named by Step 4 on 2026-10-17).
     28. Under `src/weatherbot/`, only `sources/nws.py` and the
         redaction in `sources/http.py` contain `/points/` or
         `point=`.
@@ -5180,7 +5213,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Domain models            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #20 |
 | 2    | HTTP + NHC map clients   | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #21 |
 | 3    | NHC products             | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #22 |
-| 4    | NWS + geocoding clients  | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
+| 4    | NWS + geocoding clients  | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Complete — PR #23 |
 | 5    | Persistence + config     | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 6    | Services + CLI commands  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 7    | QA + verify_phase02.py   | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
