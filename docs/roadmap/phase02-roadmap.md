@@ -2031,9 +2031,9 @@ the other maker. The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 3 — NHC products
+## Step 3 — NHC products ✅
 
-**Status:** Not started
+**Status:** Complete — PR #22 (2026-10-17)
 
 > **Goal:** Give every remaining NHC product and display catalog a client, and
 > settle issue #11. The new register source `nhc-arrival-times` reads the
@@ -2067,6 +2067,8 @@ the other maker. The conversation is new per phase-boundary hygiene.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-17: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 3 is coding with a knowledge secondary — the register
 amendment is grounded, live-verified research — at High complexity: hardened
@@ -2964,6 +2966,15 @@ phase-boundary hygiene.
       `weatherbot.sources.http` also cover `latitude` and
       `longitude`, and `tests/sources/test_http.py` shows the
       `synthetic_coordinates()` pattern for the privacy tests.
+    - Carry-over from Step 3 (2026-10-17): the 1.2-second
+      `api.weather.gov` pacing is shared only when every client
+      uses the run's one `Fetcher`, whose `HostPacer` keys by
+      host; `tests/sources/test_nhc_text_products.py` asserts
+      the spacing on the pacer's fake clock. Any XML goes
+      through `weatherbot.sources.markup.parse_xml`
+      (`defusedxml`, no DTD). Bandit runs at every severity, so
+      no module under `src/` or `scripts/` imports `xml.etree`,
+      even for a type: use `markup.XmlElement`.
     - `weatherbot.models` defines `NwsAlert` (with `found_by`,
       `affected_zone_ids`, `geocode_same`, `geocode_ugc`),
       `AlertQuery`, `NwsCoverage`, `NwsZone`, `GeocodeResult`,
@@ -3473,6 +3484,17 @@ comes from the other maker. The conversation is new per phase-boundary hygiene.
       `Advisory.issued_at_source` (`local_text` or `roster`,
       with `local_text` nullable for the map-layer arrival
       products) and `MapCatalog.max_record_count`.
+    - Carry-over from Step 3 (2026-10-17): the raw-response
+      cache holds binary bodies too, such as the outlook PNGs
+      and the arrival-time KMZ files. The persisted
+      `ValidatorStore` must return the stored body on a 304:
+      `nhc_outlook_graphics` relies on it
+      (`tests/sources/test_nhc_outlook_graphics.py`,
+      `test_a_304_reuses_the_stored_body`, shows the contract).
+      An arrival product carries `withheld_reason`, and each
+      line its `unresolved_reason`. A post-tropical storm's
+      KMZ can hold only the outer contour (`EP202026` advisory
+      038 on 2026-10-17).
     - The project roadmap fixes the rules (§5, "Data and schema
       migrations" and "Rollback"): migrations run at application
       start after the application copies the database aside, the
@@ -4065,6 +4087,21 @@ per phase-boundary hygiene.
       `skipped` outcome), `fetch_outlook`, `fetch_breakpoints`,
       and `fetch_peak_surge`; `nhc_current_storms.
       fetch_current_storms` reads the roster.
+    - Carry-over from Step 3 (2026-10-17): the product fetch
+      functions are `nhc_arrival_times.fetch_arrival_times(
+      fetcher, storms)`, which checks every link before the
+      first request and sends none without a storm;
+      `nhc_text_products.fetch_tcps(fetcher, storms)` and
+      `fetch_twos(fetcher)`;
+      `nhc_outlook_graphics.fetch_outlook_graphics(fetcher)`;
+      `nhc_gis_rss.fetch_gis_feeds(fetcher)`; and, for `doctor`,
+      `catalogs.fetch_overlay_catalogs(fetcher)` and
+      `catalogs.fetch_surge_risk_catalog(fetcher)`
+      (`catalogs.surge_risk_images` resolves the five images).
+      The KMZ supersession rule is the pure function
+      `nhc_arrival_times.prefer_kmz(products)`: pass it the
+      map-layer and KMZ products together. A reused slot's TCP
+      and an older TCP are Source-drift warnings, never errors.
     - The CLI is a Typer `app` with `--version` only; Typer
       brings Rich, and `tests/test_cli.py` strips ANSI escapes
       because GitHub's runners force color.
@@ -4703,15 +4740,22 @@ phase-boundary hygiene.
         under `src/weatherbot/` imports `xml.etree`, `xml.dom`,
         `xml.sax`, or `lxml`.
     21. `nhc_arrival_times.py`, `nhc_text_products.py`,
-        `nhc_outlook_graphics.py`, and `nhc_gis_rss.py` are
-        tracked under `src/weatherbot/sources/`.
+        `nhc_outlook_graphics.py`, `nhc_gis_rss.py`,
+        `catalogs.py`, and `markup.py` are tracked under
+        `src/weatherbot/sources/`.
     22. The recorder's `SOURCES` includes `nhc-arrival-times`.
     23. `nhc_arrival_times.py` holds the KMZ URL pattern
-        anchored on
-        `https://www.nhc.noaa.gov/storm_graphics/api/`.
+        (`ARRIVAL_KMZ_URL`) anchored on
+        `https://www.nhc.noaa.gov/storm_graphics/api/`; the
+        source writes it as a regular expression,
+        `^https://www\.nhc\.noaa\.gov/storm_graphics/api/`, so
+        the check matches the escaped form.
     24. The contract tests for the Step 3 sources are tracked,
-        `tests/contract/test_arrival_times_parsing.py` among
-        them.
+        `tests/contract/test_product_captures.py` (every capture
+        of the seven sources, the field-coverage rule, and the
+        archived pair's corpus checksums) among them.
+        (Corrected 2026-10-17 by Step 3, which named its file
+        `test_product_captures.py`.)
 
     Step 4 (NWS and geocoding clients) — checks 25-28:
     25. `nws.py` and `nominatim.py` are tracked under
@@ -5135,7 +5179,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | ------------------------ | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Domain models            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #20 |
 | 2    | HTTP + NHC map clients   | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #21 |
-| 3    | NHC products             | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 3    | NHC products             | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #22 |
 | 4    | NWS + geocoding clients  | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
 | 5    | Persistence + config     | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 6    | Services + CLI commands  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |

@@ -8,9 +8,11 @@ lands in ``tmp_path``. The one ``live`` test calls NHC and runs only with ``pyte
 import base64
 import gzip
 import hashlib
+import io
 import json
 import os
 import struct
+import zipfile
 import zlib
 from collections.abc import Iterator
 from dataclasses import dataclass, field
@@ -905,3 +907,109 @@ def test_live_current_storms_capture_has_a_valid_manifest(
     assert entry["bytes"] == len(payload)
     assert set(as_object(entry["headers"])) <= recorder.HEADER_ALLOWLIST
     assert isinstance(as_object(json.loads(payload))["activeStorms"], list)
+
+
+ARRIVAL_ROOT = f"{recorder.NHC_ROOT}/storm_graphics/api"
+KML = (
+    b'<kml xmlns="http://earth.google.com/kml/2.2"><Document><ExtendedData>'
+    b'<Data name="timezone"><value>MST</value></Data></ExtendedData></Document></kml>'
+)
+
+
+def kmz_bytes(*members: tuple[str, bytes]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name, data in members:
+            archive.writestr(name, data)
+    return buffer.getvalue()
+
+
+def arrival_storm(storm_id: str, advisory: str) -> dict[str, object]:
+    def product(kind: str) -> dict[str, object]:
+        return {
+            "advNum": advisory,
+            "issuance": "2026-10-20T15:00:00.000Z",
+            "kmzFile": f"{ARRIVAL_ROOT}/{storm_id.upper()}_{advisory}adv_{kind}_toa_34.kmz",
+        }
+
+    return {
+        "id": storm_id,
+        "binNumber": "EP1",
+        "earliestArrivalTimeTSWindsGIS": product("earliest_reasonable"),
+        "mostLikelyTimeTSWindsGIS": product("most_likely"),
+    }
+
+
+def test_arrival_times_record_the_archived_pair_and_every_roster_link(
+    noaa: FakeNoaa, run: recorder.Recorder
+) -> None:
+    noaa.json(STORMS_URL, {"activeStorms": [arrival_storm("ep212026", "015")]})
+    body = kmz_bytes(("doc.kml", KML), ("labels/am.png", b"png"))
+    linked = [f"{ARRIVAL_ROOT}/EP212026_015adv_{kind}_toa_34.kmz" for kind in recorder.KINDS]
+    for url in (*recorder.ARCHIVED_ARRIVAL_PAIR, *linked):
+        noaa.answer(
+            url, Reply(body=body, headers={"content-type": "application/vnd.google-earth.kmz"})
+        )
+
+    captures = recorder.record_arrival_times(run)
+
+    assert [c.url for c in captures] == [*recorder.ARCHIVED_ARRIVAL_PAIR, *linked]
+    assert [c.name for c in captures][2] == "EP212026_015adv_earliest_reasonable_toa_34.kmz"
+    assert captures[0].notes == recorder.ARCHIVED_ARRIVAL_NOTE
+    assert captures[2].notes == (
+        "roster: EP212026 earliestArrivalTimeTSWindsGIS advNum 015, "
+        "issuance 2026-10-20T15:00:00.000Z"
+    )
+
+
+def test_arrival_times_off_season_record_the_archived_pair_only(
+    noaa: FakeNoaa, run: recorder.Recorder
+) -> None:
+    noaa.json(STORMS_URL, roster())
+    for url in recorder.ARCHIVED_ARRIVAL_PAIR:
+        noaa.answer(url, Reply(body=kmz_bytes(("doc.kml", KML))))
+
+    captures = recorder.record_arrival_times(run)
+
+    assert [c.url for c in captures] == list(recorder.ARCHIVED_ARRIVAL_PAIR)
+
+
+@pytest.mark.parametrize(
+    "link",
+    [
+        "https://example.org/EP212026_015adv_most_likely_toa_34.kmz",
+        f"{ARRIVAL_ROOT}/EP212026_015adv_TRACK.kmz",
+        f"{ARRIVAL_ROOT}/EP212026_015adv_most_likely_toa_34.kmz".replace("https", "http"),
+    ],
+)
+def test_a_roster_link_outside_the_pattern_fails_before_any_kmz_is_fetched(
+    noaa: FakeNoaa, run: recorder.Recorder, link: str
+) -> None:
+    storm = arrival_storm("ep212026", "015")
+    as_object(storm["mostLikelyTimeTSWindsGIS"])["kmzFile"] = link
+    noaa.json(STORMS_URL, {"activeStorms": [storm]})
+
+    with pytest.raises(recorder.RecorderError, match="outside the arrival-time pattern"):
+        recorder.record_arrival_times(run)
+
+    assert noaa.urls() == [STORMS_URL]
+
+
+@pytest.mark.parametrize(
+    ("body", "message"),
+    [
+        (b"not a zip", "not a readable zip archive"),
+        (kmz_bytes(("../doc.kml", KML)), "absolute or parent-relative"),
+        (kmz_bytes(("doc.kml", b"<!DOCTYPE kml [<!ENTITY a 'b'>]><kml/>")), "DTD or an entity"),
+    ],
+    ids=["not-zip", "traversal", "entity"],
+)
+def test_a_kmz_that_breaks_the_clients_limits_fails_the_source(
+    noaa: FakeNoaa, run: recorder.Recorder, body: bytes, message: str
+) -> None:
+    noaa.json(STORMS_URL, roster())
+    for url in recorder.ARCHIVED_ARRIVAL_PAIR:
+        noaa.answer(url, Reply(body=body))
+
+    with pytest.raises(recorder.RecorderError, match=message):
+        recorder.record_arrival_times(run)

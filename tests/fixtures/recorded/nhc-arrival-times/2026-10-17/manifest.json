@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "source": "nhc-arrival-times",
+  "recorded_at": "2026-10-17T04:16:19Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "AL052019_036adv_earliest_reasonable_toa_34.kmz",
+      "url": "https://www.nhc.noaa.gov/storm_graphics/api/AL052019_036adv_earliest_reasonable_toa_34.kmz",
+      "status": 200,
+      "fetched_at": "2026-10-17T04:16:16Z",
+      "sha256": "eeebeb304a6d3150bd20af652bcc4827a068a6f91db1bb48d373764bc9b0ebb1",
+      "bytes": 37795,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=300",
+        "content-length": "37795",
+        "content-type": "application/vnd.google-earth.kmz",
+        "date": "Sat, 17 Oct 2026 04:16:14 GMT",
+        "etag": "\"93a3-59215c8bfa640\"",
+        "expires": "Sat, 17 Oct 2026 04:21:14 GMT",
+        "last-modified": "Mon, 09 Sep 2019 02:45:43 GMT"
+      },
+      "origin": "live",
+      "notes": "archived pair: AL052019 advisory 036 (tests/fixtures/replay/corpus-manifest.json)"
+    },
+    {
+      "file": "AL052019_036adv_most_likely_toa_34.kmz",
+      "url": "https://www.nhc.noaa.gov/storm_graphics/api/AL052019_036adv_most_likely_toa_34.kmz",
+      "status": 200,
+      "fetched_at": "2026-10-17T04:16:17Z",
+      "sha256": "4451e160745802acbed79c445cbca3f15b83f56a316f1c3271f73f35cc727165",
+      "bytes": 37515,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=300",
+        "content-length": "37515",
+        "content-type": "application/vnd.google-earth.kmz",
+        "date": "Sat, 17 Oct 2026 04:16:15 GMT",
+        "etag": "\"928b-59215c959230a\"",
+        "expires": "Sat, 17 Oct 2026 04:21:15 GMT",
+        "last-modified": "Mon, 09 Sep 2019 02:45:53 GMT"
+      },
+      "origin": "live",
+      "notes": "archived pair: AL052019 advisory 036 (tests/fixtures/replay/corpus-manifest.json)"
+    },
+    {
+      "file": "EP212026_015adv_earliest_reasonable_toa_34.kmz",
+      "url": "https://www.nhc.noaa.gov/storm_graphics/api/EP212026_015adv_earliest_reasonable_toa_34.kmz",
+      "status": 200,
+      "fetched_at": "2026-10-17T04:16:18Z",
+      "sha256": "dc0becc392313c84de9bed0435d8aacf8f0ec4cfd40ec122d85270f971761248",
+      "bytes": 20202,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=300",
+        "content-length": "20202",
+        "content-type": "application/vnd.google-earth.kmz",
+        "date": "Sat, 17 Oct 2026 04:16:16 GMT",
+        "etag": "\"4eea-65e0058fad678\"",
+        "expires": "Sat, 17 Oct 2026 04:21:16 GMT",
+        "last-modified": "Sat, 17 Oct 2026 02:50:46 GMT"
+      },
+      "origin": "live",
+      "notes": "roster: EP212026 earliestArrivalTimeTSWindsGIS advNum 015, issuance 2026-10-17T03:00:00.000Z"
+    },
+    {
+      "file": "EP212026_015adv_most_likely_toa_34.kmz",
+      "url": "https://www.nhc.noaa.gov/storm_graphics/api/EP212026_015adv_most_likely_toa_34.kmz",
+      "status": 200,
+      "fetched_at": "2026-10-17T04:16:18Z",
+      "sha256": "90bd45e57e060b15fdf5fe45a9850b5773c99c183cd3aa9a3209a699ba34027a",
+      "bytes": 21086,
+      "stored_as": "raw",
+      "headers": {
+        "age": "7",
+        "cache-control": "max-age=300",
+        "content-length": "21086",
+        "content-type": "application/vnd.google-earth.kmz",
+        "date": "Sat, 17 Oct 2026 04:16:16 GMT",
+        "etag": "\"525e-65e00596b89aa\"",
+        "expires": "Sat, 17 Oct 2026 04:21:09 GMT",
+        "last-modified": "Sat, 17 Oct 2026 02:50:53 GMT"
+      },
+      "origin": "live",
+      "notes": "roster: EP212026 mostLikelyTimeTSWindsGIS advNum 015, issuance 2026-10-17T03:00:00.000Z"
+    },
+    {
+      "file": "EP202026_038adv_earliest_reasonable_toa_34.kmz",
+      "url": "https://www.nhc.noaa.gov/storm_graphics/api/EP202026_038adv_earliest_reasonable_toa_34.kmz",
+      "status": 200,
+      "fetched_at": "2026-10-17T04:16:18Z",
+      "sha256": "d97c4bbbd2d6b65e80485116677e982eb2e03e958e064a3921be3da52689ba49",
+      "bytes": 9130,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=300",
+        "content-length": "9130",
+        "content-type": "application/vnd.google-earth.kmz",
+        "date": "Sat, 17 Oct 2026 04:16:16 GMT",
+        "etag": "\"23aa-65dfb2180042b\"",
+        "expires": "Sat, 17 Oct 2026 04:21:16 GMT",
+        "last-modified": "Fri, 16 Oct 2026 20:37:20 GMT"
+      },
+      "origin": "live",
+      "notes": "roster: EP202026 earliestArrivalTimeTSWindsGIS advNum 038, issuance 2026-10-16T21:00:00.000Z"
+    },
+    {
+      "file": "EP202026_038adv_most_likely_toa_34.kmz",
+      "url": "https://www.nhc.noaa.gov/storm_graphics/api/EP202026_038adv_most_likely_toa_34.kmz",
+      "status": 200,
+      "fetched_at": "2026-10-17T04:16:19Z",
+      "sha256": "fba26ce0b96d1e6fc79223dc522c5463f463b2fe2b5f6dd2adfde57e4aa37806",
+      "bytes": 9109,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "max-age=300",
+        "content-length": "9109",
+        "content-type": "application/vnd.google-earth.kmz",
+        "date": "Sat, 17 Oct 2026 04:16:17 GMT",
+        "etag": "\"2395-65dfb21805230\"",
+        "expires": "Sat, 17 Oct 2026 04:21:17 GMT",
+        "last-modified": "Fri, 16 Oct 2026 20:37:20 GMT"
+      },
+      "origin": "live",
+      "notes": "roster: EP202026 mostLikelyTimeTSWindsGIS advNum 038, issuance 2026-10-16T21:00:00.000Z"
+    }
+  ]
+}

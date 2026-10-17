@@ -1158,6 +1158,15 @@ wheels = [
 ]
 
 [[package]]
+name = "types-defusedxml"
+version = "0.7.0.20260504"
+source = { registry = "https://pkgs.safetycli.com/repository/nr-capital-management/pypi/simple/" }
+sdist = { url = "https://pkgs.safetycli.com/package/nr-capital-management/pypi/packages/da/d2/4553c8fa9cdebfe1e84b950cf790a4d2376a97fa016e43f7c65323fa6c7d/types_defusedxml-0.7.0.20260504.tar.gz", hash = "sha256:2ab2828a3f97111ba1c16cee273ad4124a831fc9198c41bf8368ff6ea48ad300", size = 10729, upload-time = "2026-05-04T05:22:50.192Z" }
+wheels = [
+    { url = "https://pkgs.safetycli.com/package/nr-capital-management/pypi/packages/bf/2d/8a4b5ba1d732b8bc691f0efbb1c6f77cb5f6f473b2afe181d83d910773c5/types_defusedxml-0.7.0.20260504-py3-none-any.whl", hash = "sha256:a959e3a0a43b93e464bd625d91ec9193a2703ddc10443bdd627792485fae0b10", size = 13467, upload-time = "2026-05-04T05:22:49.319Z" },
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.16.0"
 source = { registry = "https://pkgs.safetycli.com/repository/nr-capital-management/pypi/simple/" }
@@ -1208,6 +1217,7 @@ name = "weatherbot"
 version = "2.0.0.dev0"
 source = { editable = "." }
 dependencies = [
+    { name = "defusedxml" },
     { name = "httpx" },
     { name = "pydantic" },
     { name = "shapely" },
@@ -1226,6 +1236,7 @@ dev = [
     { name = "pytest-socket" },
     { name = "respx" },
     { name = "ruff" },
+    { name = "types-defusedxml" },
 ]
 planning = [
     { name = "pip" },
@@ -1234,6 +1245,7 @@ planning = [
 
 [package.metadata]
 requires-dist = [
+    { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pydantic", specifier = ">=2.14.1,<3" },
     { name = "shapely", specifier = ">=2.2.0" },
@@ -1252,6 +1264,7 @@ dev = [
     { name = "pytest-socket", specifier = ">=0.8.1" },
     { name = "respx", specifier = ">=0.23.1" },
     { name = "ruff", specifier = ">=0.17.0" },
+    { name = "types-defusedxml", specifier = ">=0.7.0.20260504" },
 ]
 planning = [
     { name = "pip", specifier = ">=26.2.1" },

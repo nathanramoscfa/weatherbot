@@ -14,6 +14,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Added
+- The register source `nhc-arrival-times` (issue #11): the arrival-time KMZ
+  that the roster links, with its row, an "Arrival-time KMZ" section, and a
+  narrowed "Not used" row in `docs/DATA_SOURCES.md` (verified 2026-10-17).
+  The recorder records the archived Dorian 036 pair, whose checksums the
+  replay corpus manifest pins, and every active storm's linked pair.
+  `scripts/check_personal_data.py` now scans every member of a zip capture,
+  under the client's bounds.
+- The arrival-time client, `weatherbot.sources.nhc_arrival_times`. It opens
+  the KMZ in memory under member, size, ratio, and path limits, parses its
+  KML with `defusedxml`, and resolves every labelled line to an instant from
+  the product's `timezone` and `pubAdvTime`. When the KMZ disagrees with the
+  roster or with its own URL, every line stays unresolved and the reason is
+  given. `prefer_kmz` applies the snapshot rule: a KMZ product supersedes
+  the map-layer product of the same storm, advisory, and kind. Links outside
+  the arrival-time pattern are never fetched.
+- The text-product client, `weatherbot.sources.nhc_text_products`: the
+  newest TCP of each storm's slot and the newest English TWO of each basin,
+  from the NWS API. A TCP from a reused slot is logged and not attributed
+  to the storm, and an older TCP keeps its own advisory number.
+- The outlook-graphic client, `weatherbot.sources.nhc_outlook_graphics`:
+  the six `two_{atl,pac,cpac}_{2d0,7d0}.png` maps, fetched with conditional
+  requests, with the PNG signature checked and the size read from `IHDR`.
+- The GIS RSS client, `weatherbot.sources.nhc_gis_rss`: the three feeds,
+  parsed with `defusedxml`. The no-storm placeholder item is recognized.
+- The catalog client, `weatherbot.sources.catalogs`: the `StormSurgeRisk`
+  catalog, with the five US East and Gulf Coast images resolved by group
+  path, and the nowCOAST radar and satellite WMS capabilities. All network
+  XML goes through `weatherbot.sources.markup`, which uses `defusedxml` and
+  refuses any DTD. `defusedxml` is a new runtime dependency.
 - The HTTP layer, `weatherbot.sources.http`: one `httpx` client per run with the
   register's User-Agent (`weatherbot.sources.USER_AGENT`, which the fixture
   recorder now imports with the per-host intervals and the ArcGIS query
