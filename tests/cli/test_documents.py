@@ -77,7 +77,8 @@ def test_the_packaged_disclaimer_is_the_repositorys_byte_for_byte() -> None:
     packaged = (REPOSITORY_ROOT / "src" / "weatherbot" / "DISCLAIMER.md").read_bytes()
 
     assert packaged == repository
-    assert full_text() == repository.decode("utf-8")
+    # Text mode reads either checkout's line endings (a Windows runner checks out CRLF).
+    assert full_text() == (REPOSITORY_ROOT / "DISCLAIMER.md").read_text(encoding="utf-8")
 
 
 def test_the_essentials_and_the_notice_say_what_the_disclaimer_says() -> None:

@@ -7,6 +7,7 @@ document is validated against its committed schema before it is read.
 """
 
 import json
+import re
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -326,8 +327,9 @@ def test_storms_renders_rich_tables_in_a_terminal() -> None:
 
     assert result.exit_code == 0
     assert "Active storms" in result.stdout
-    assert "│ ATCF id" in result.stdout
-    assert "│ EP202026 │ Simon" in result.stdout
+    # Rich draws the header heavy on some consoles and light on others.
+    assert re.search(r"[│┃] ATCF id\s+[│┃] Name", result.stdout)
+    assert re.search(r"│ EP202026\s+│ Simon", result.stdout)
 
 
 # alerts ------------------------------------------------------------------------------------
