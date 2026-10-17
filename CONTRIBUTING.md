@@ -76,8 +76,33 @@ says why, when none is active. The NWS and Nominatim tests send the two
 public landmarks of `scripts/public_landmarks.toml` and no other
 coordinate: the Miami-Dade point, its alerts, and its three zones; the
 Nassau point, which is outside NWS coverage and makes no alert request;
-and one reverse lookup per landmark. Run it before a change that touches a source client, and whenever
-a register layer, field, or product may have changed (Source drift).
+and one reverse lookup per landmark. The command test adds both landmarks
+through `locations add` in a temporary data directory, then runs `fetch`,
+`storms --json`, `alerts --json` for each landmark, and `doctor --json`,
+validating each document against its committed schema. Run it before a
+change that touches a source client or a command, and whenever a register
+layer, field, or product may have changed (Source drift).
+
+### The command tests and the JSON Schemas
+
+`tests/cli/` runs every command through Typer's runner, offline: respx serves
+every recorded answer, and the fetcher's pacing waits are recorded rather than
+slept. Every `--json` document a test produces is validated against its schema
+in `docs/schema/`.
+
+Each command's document is a Pydantic model in `src/weatherbot/cli/documents.py`.
+After you change one, regenerate the schemas and commit them with the change:
+
+```sh
+uv run python scripts/export_schemas.py           # writes docs/schema/*.schema.json
+uv run python scripts/export_schemas.py --check   # exits 1 if a committed schema is stale
+```
+
+`tests/cli/test_documents.py` fails while a committed schema differs from a
+fresh export. A schema holds no example value, and only `locations` has a
+field for a coordinate. The disclaimer the commands print ships in the package as
+`src/weatherbot/DISCLAIMER.md`; after editing the root `DISCLAIMER.md`, copy
+it there byte for byte, or the same test file fails.
 
 The same suite runs on GitHub's hosted runners when you dispatch
 `.github/workflows/live-smoke.yml`, which has no other trigger:
@@ -130,7 +155,8 @@ every other `WEATHERBOT_*` variable except the development tools'
 `WEATHERBOT_DENYLIST` and `WEATHERBOT_CORPUS_CACHE`.
 
 To start over, delete the data directory. Weatherbot creates a new database
-the next time it opens one.
+the next time it opens one. `uv run weatherbot doctor --offline` shows both
+directories, the database file, and its revision against the head.
 
 ## Security gate
 

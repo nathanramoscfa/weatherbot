@@ -14,6 +14,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Added
+- The first commands: `weatherbot locations add|list|remove`, `fetch`,
+  `storms`, `alerts`, and `doctor`. `locations add NAME --lat LAT --lon LON
+  [--polygon county|forecast]` checks the name and the point before any
+  request, looks up the point's NWS coverage, stores a zone's shape on
+  request, and reverse-geocodes the point once through Nominatim.
+  `locations list` is the only command, and `locations list --json` the
+  only document, that shows a location's coordinates. `fetch` stores a
+  snapshot and prints each source's outcome. `storms` prints the active
+  storms, the products the snapshot holds for each (with the arrival
+  times' origin), the outlook per basin, and the wind-probability synoptic
+  time. `alerts` prints a location's NWS alerts in UTC and its own time
+  zone. Outside NWS coverage it lists the storms' watch-warning segments
+  verbatim. `storms` and `alerts` take `--no-fetch` to read the latest
+  stored snapshot and print its age. `doctor` reports the paths, the
+  database's Alembic revision against the head, the number of locations,
+  one location-free probe per register source, the resolution of every
+  register layer name, and the Source-drift warnings of the latest
+  snapshot. It never probes Nominatim. Output is Rich tables in a terminal
+  and plain text otherwise. `--json` prints one document whose JSON
+  Schema is committed under `docs/schema/`. The exit status is 0 for
+  complete, 1 for a partial or failed snapshot or a failed check, and 2
+  for a usage error. `--verbose` logs at DEBUG.
+- The snapshot service, `weatherbot.services.snapshots`. It reads the
+  roster first, then every other source concurrently under the per-host
+  pacing, and records one outcome per source: `ok`, `not_modified`,
+  `failed` with the error's kind, or `skipped` with the reason. A failed
+  source leaves its part of the snapshot empty. An arrival-time KMZ
+  product supersedes the map-layer product of the same storm, advisory,
+  and kind (issue #11). The snapshot, its raw responses, and the run's
+  Source-drift warnings are stored in one transaction. The locations
+  service is `weatherbot.services.locations`.
+- Alembic revision `0002` adds `drift_warnings`, the table that keeps each
+  snapshot's Source-drift warnings for `doctor`.
+- The disclaimer ships in the package as `weatherbot/DISCLAIMER.md`, equal
+  byte for byte to the repository's copy (a test compares them). The
+  first command prints its essentials (to standard error under `--json`)
+  and records the time. Every read command ends with a one-line notice,
+  and every `--json` document carries it.
+- `scripts/export_schemas.py` writes the five `--json` schemas (JSON
+  Schema 2020-12) to `docs/schema/`; a test fails while a committed schema
+  differs from a fresh export.
+- The CLI configures logging once: the `[logging] level` setting or
+  `--verbose`, and one standard-error handler with the coordinate-
+  redacting filter. httpx, httpcore, and Alembic stay at WARNING unless
+  the level is DEBUG.
+- `open_client` takes the `[http] timeout_seconds` setting.
+- Live tests of every command for both public landmarks
+  (`tests/live/test_cli_live.py`). New runtime dependencies: `rich`, and
+  `tzdata` on Windows. New development dependencies: `jsonschema` and
+  `types-jsonschema`.
 - Local state for the application. `weatherbot.services.config` resolves
   the configuration and data directories through `platformdirs`, with
   `WEATHERBOT_CONFIG_DIR` and `WEATHERBOT_DATA_DIR` as overrides, and reads

@@ -51,7 +51,8 @@ HOST_INTERVALS: Final[Mapping[str, float]] = MappingProxyType(
 DEFAULT_INTERVAL: Final = 0.5
 """Seconds between two requests to any host ``HOST_INTERVALS`` does not name."""
 
-TIMEOUT: Final = httpx.Timeout(30.0, connect=10.0)
+CONNECT_TIMEOUT_SECONDS: Final = 10.0
+TIMEOUT: Final = httpx.Timeout(30.0, connect=CONNECT_TIMEOUT_SECONDS)
 MAX_ATTEMPTS: Final = 4
 BACKOFF_SECONDS: Final = (1.0, 2.0, 4.0)
 """The ceiling of the full-jitter wait before the second, third, and fourth attempts."""
@@ -158,19 +159,36 @@ class RedactingFilter(logging.Filter):
         return True
 
 
+def client_timeout(seconds: float | None = None) -> httpx.Timeout:
+    """Return a client's timeout: ``seconds`` for every phase, connecting at most 10 s.
+
+    Args:
+        seconds: The ``[http] timeout_seconds`` setting; ``None`` means 30 seconds.
+
+    Returns:
+        The timeout.
+    """
+    if seconds is None:
+        return TIMEOUT
+    return httpx.Timeout(seconds, connect=min(seconds, CONNECT_TIMEOUT_SECONDS))
+
+
 @asynccontextmanager
-async def open_client() -> AsyncGenerator[httpx.AsyncClient]:
+async def open_client(timeout_seconds: float | None = None) -> AsyncGenerator[httpx.AsyncClient]:
     """Open the one HTTP client a run uses, and close it when the run ends.
+
+    Args:
+        timeout_seconds: The ``[http] timeout_seconds`` setting; ``None`` means 30.
 
     Yields:
         A client with the User-Agent header, TLS verification on, redirects refused, and
-        a 30-second timeout with a 10-second connect timeout.
+        the timeout, with a connect timeout of at most 10 seconds.
     """
     async with httpx.AsyncClient(
         headers={"User-Agent": USER_AGENT},
         follow_redirects=False,
         verify=True,
-        timeout=TIMEOUT,
+        timeout=client_timeout(timeout_seconds),
     ) as client:
         yield client
 

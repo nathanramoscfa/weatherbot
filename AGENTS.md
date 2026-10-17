@@ -73,6 +73,7 @@ imports none of them.
 ```sh
 uv sync                      # create .venv from the lock (dev and planning groups)
 uv run weatherbot --version  # prints the version
+uv run weatherbot doctor     # paths, database revision vs head, every source and layer
 uv run ruff check            # lint (select = ALL; every ignore states its reason)
 uv run ruff format --check   # formatting
 uv run pyright               # strict type checking

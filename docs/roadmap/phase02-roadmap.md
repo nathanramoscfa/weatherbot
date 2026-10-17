@@ -4736,6 +4736,22 @@ phase-boundary hygiene.
     verification script, the QA findings document, and the
     matrix entry, then close the phase.
 
+    Carry-over from Step 6 (2026-10-17): Alembic revision
+    `0002` adds `drift_warnings`, the table the snapshot
+    service writes and `doctor` reads, so the head is `0002`
+    and the history has two revisions; V5's "upgrade from every
+    revision" now starts from `0001` too. `doctor`'s copy of the
+    register's layer names is `weatherbot.services.register`
+    (kept equal to the register by
+    `tests/contract/test_doctor_register.py`). The `--json`
+    models are `weatherbot.cli.documents`; the command tests
+    are `tests/cli/` (offline) and `tests/live/test_cli_live.py`;
+    `CliRunner` gets a `weatherbot.cli.runtime.Runtime` as its
+    `obj` to swap the fetcher and the clock. The `--post`
+    operations proof can stamp a temporary database with an
+    unknown revision and run `doctor --offline`:
+    `tests/cli/test_commands.py` shows the FAIL row and exit 1.
+
     Reference script (pattern template):
     `scripts/verify_phase01.py` — numbered, independent static
     checks that read the repository only, standard library only
@@ -4843,8 +4859,11 @@ phase-boundary hygiene.
         are tracked (`tests/contract/test_nws_captures.py`,
         named by Step 4 on 2026-10-17).
     28. Under `src/weatherbot/`, only `sources/nws.py` and the
-        redaction in `sources/http.py` contain `/points/` or
-        `point=`.
+        redaction in `sources/http.py` hold `/points/` or
+        `point=` inside a string literal or f-string (an AST
+        read, as `tests/sources/test_nws.py` does: a keyword
+        argument such as `Location(point=...)` is not a URL;
+        amended by Step 6, 2026-10-17).
 
     Step 5 (persistence and configuration) — checks 29-35:
     29. `sqlalchemy`, `alembic`, and `platformdirs` are runtime
@@ -4858,8 +4877,9 @@ phase-boundary hygiene.
         `feed_items`, `feed_item_observations`, `alerts`,
         `alert_observations`, and `settings` (17 tables; the
         four observation and link tables were added by Step 5,
-        2026-10-17).
-    31. The baseline creates no table for assessments, evidence,
+        2026-10-17), and revision `0002` adds `drift_warnings`
+        (Step 6, 2026-10-17).
+    31. No revision creates a table for assessments, evidence,
         notifications, heartbeats, briefings, or a ledger.
     32. `tests/conftest.py` sets `WEATHERBOT_CONFIG_DIR` and
         `WEATHERBOT_DATA_DIR` in an autouse fixture (it clears
@@ -4883,13 +4903,14 @@ phase-boundary hygiene.
         `alerts`, and `doctor` schemas, each valid JSON
         declaring JSON Schema 2020-12.
     38. `scripts/export_schemas.py` is tracked.
-    39. The packaged disclaimer text exists, and a test compares
-        it with `DISCLAIMER.md`.
+    39. The packaged disclaimer `src/weatherbot/DISCLAIMER.md`
+        is tracked, and `tests/cli/test_documents.py` compares it
+        with `DISCLAIMER.md`.
     40. `src/weatherbot/services/snapshots.py` and
         `locations.py` are tracked.
     41. `README.md` has a "Commands" section.
-    42. `tests/live/` holds the command tests under the `live`
-        marker.
+    42. `tests/live/test_cli_live.py` holds the command tests
+        under the `live` marker.
     43. The gate is still wired: `.pre-commit-config.yaml` runs
         gitleaks, bandit, pip-audit, and the personal-data
         check, and `phase-verify.yml` runs `--security` for

@@ -1,0 +1,350 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/doctor.schema.json",
+  "$defs": {
+    "CheckStatus": {
+      "enum": [
+        "pass",
+        "fail",
+        "skip"
+      ],
+      "type": "string"
+    },
+    "DoctorCheck": {
+      "additionalProperties": false,
+      "description": "One local check.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/CheckStatus"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "status",
+        "detail"
+      ],
+      "title": "DoctorCheck",
+      "type": "object"
+    },
+    "DoctorData": {
+      "additionalProperties": false,
+      "description": "Everything ``doctor`` checked.",
+      "properties": {
+        "paths": {
+          "$ref": "#/$defs/DoctorPaths"
+        },
+        "database": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DoctorDatabase"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locations": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "How many are stored; never their coordinates.",
+          "title": "Locations"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/DoctorCheck"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "offline": {
+          "title": "Offline",
+          "type": "boolean"
+        },
+        "probes": {
+          "items": {
+            "$ref": "#/$defs/SourceProbeEntry"
+          },
+          "title": "Probes",
+          "type": "array"
+        },
+        "layers": {
+          "items": {
+            "$ref": "#/$defs/LayerDiscoveryEntry"
+          },
+          "title": "Layers",
+          "type": "array"
+        },
+        "drift_snapshot_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Drift Snapshot Id"
+        },
+        "drift_warnings": {
+          "items": {
+            "$ref": "#/$defs/DriftWarningEntry"
+          },
+          "title": "Drift Warnings",
+          "type": "array"
+        },
+        "failed": {
+          "title": "Failed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "paths",
+        "database",
+        "locations",
+        "checks",
+        "offline",
+        "probes",
+        "layers",
+        "drift_snapshot_id",
+        "drift_warnings",
+        "failed"
+      ],
+      "title": "DoctorData",
+      "type": "object"
+    },
+    "DoctorDatabase": {
+      "additionalProperties": false,
+      "description": "The database's Alembic revision against the head.",
+      "properties": {
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Revision"
+        },
+        "head": {
+          "title": "Head",
+          "type": "string"
+        },
+        "at_head": {
+          "title": "At Head",
+          "type": "boolean"
+        },
+        "created": {
+          "title": "Created",
+          "type": "boolean"
+        },
+        "backup_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Backup File"
+        }
+      },
+      "required": [
+        "revision",
+        "head",
+        "at_head",
+        "created",
+        "backup_file"
+      ],
+      "title": "DoctorDatabase",
+      "type": "object"
+    },
+    "DoctorPaths": {
+      "additionalProperties": false,
+      "description": "Where Weatherbot keeps its state.",
+      "properties": {
+        "config_dir": {
+          "title": "Config Dir",
+          "type": "string"
+        },
+        "data_dir": {
+          "title": "Data Dir",
+          "type": "string"
+        },
+        "settings_file": {
+          "title": "Settings File",
+          "type": "string"
+        },
+        "database_file": {
+          "title": "Database File",
+          "type": "string"
+        }
+      },
+      "required": [
+        "config_dir",
+        "data_dir",
+        "settings_file",
+        "database_file"
+      ],
+      "title": "DoctorPaths",
+      "type": "object"
+    },
+    "DriftWarningEntry": {
+      "additionalProperties": false,
+      "description": "A Source-drift warning: an official product disagreed with another or the register.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "message"
+      ],
+      "title": "DriftWarningEntry",
+      "type": "object"
+    },
+    "LayerDiscoveryEntry": {
+      "additionalProperties": false,
+      "description": "A map service's register layers resolved in this run's catalog.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "status": {
+          "$ref": "#/$defs/CheckStatus"
+        },
+        "expected": {
+          "minimum": 0,
+          "title": "Expected",
+          "type": "integer"
+        },
+        "resolved": {
+          "minimum": 0,
+          "title": "Resolved",
+          "type": "integer"
+        },
+        "missing": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_id",
+        "status",
+        "expected",
+        "resolved",
+        "missing"
+      ],
+      "title": "LayerDiscoveryEntry",
+      "type": "object"
+    },
+    "SourceId": {
+      "enum": [
+        "nhc-current-storms",
+        "nhc-arrival-times",
+        "nhc-map-tropical-weather",
+        "nhc-map-tropical-summary",
+        "nhc-map-breakpoints",
+        "nhc-map-peak-surge",
+        "nhc-map-surge-risk",
+        "nhc-gis-rss",
+        "nhc-gis-archive",
+        "nhc-text-products",
+        "nhc-outlook-graphics",
+        "nws-points",
+        "nws-alerts-point",
+        "nws-alerts-zone",
+        "nws-zones",
+        "basemap-osm-tiles",
+        "overlay-radar",
+        "overlay-satellite",
+        "geocode-nominatim"
+      ],
+      "type": "string"
+    },
+    "SourceProbeEntry": {
+      "additionalProperties": false,
+      "description": "One register source's probe, or why it was not probed.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "status": {
+          "$ref": "#/$defs/CheckStatus"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "status",
+        "detail"
+      ],
+      "title": "SourceProbeEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot doctor --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "doctor",
+      "default": "doctor",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/DoctorData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "DoctorDocument",
+  "type": "object"
+}
