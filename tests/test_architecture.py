@@ -100,6 +100,27 @@ def test_models_are_the_lowest_layer() -> None:
     assert layered["layers"][-1] == "weatherbot.models"
 
 
+def test_only_the_services_may_import_the_database_libraries() -> None:
+    linter = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    settings = linter["tool"]["importlinter"]
+    database = next(
+        contract
+        for contract in settings["contracts"]
+        if contract["type"] == "forbidden" and "sqlalchemy" in contract["forbidden_modules"]
+    )
+
+    assert settings["include_external_packages"] is True
+    assert set(database["forbidden_modules"]) == {"sqlalchemy", "alembic"}
+    assert set(database["source_modules"]) == {
+        "weatherbot.models",
+        "weatherbot.sources",
+        "weatherbot.engine",
+        "weatherbot.cli",
+        "weatherbot.web",
+    }
+    assert database["allow_indirect_imports"] is True
+
+
 @pytest.mark.parametrize(
     ("source", "expected"),
     [

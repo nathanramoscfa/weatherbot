@@ -1,9 +1,16 @@
 # tests/conftest.py
 """Shared fixtures and guards for the whole test suite."""
 
+import os
 from pathlib import Path
+from typing import Final
 
 import pytest
+
+# Development-tool variables, read by scripts and the corpus tests, never by the
+# application: the personal-data denylist's path and the replay-corpus cache. Every other
+# WEATHERBOT_* variable is cleared for each test.
+TOOL_VARIABLES: Final = frozenset({"WEATHERBOT_DENYLIST", "WEATHERBOT_CORPUS_CACHE"})
 
 
 @pytest.fixture(autouse=True)
@@ -21,3 +28,21 @@ def run_in_temporary_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 
     """
     monkeypatch.chdir(tmp_path)
+
+
+@pytest.fixture(autouse=True)
+def isolate_application_directories(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Pin the configuration and data directories under ``tmp_path`` for every test.
+
+    No test can then read the operator's ``weatherbot.toml`` or open the operator's
+    database, and no setting from the developer's environment leaks into a test.
+
+    Args:
+        tmp_path: The test's own temporary directory.
+        monkeypatch: Used to set and clear the environment for the test's duration.
+    """
+    for name in list(os.environ):
+        if name.upper().startswith("WEATHERBOT_") and name.upper() not in TOOL_VARIABLES:
+            monkeypatch.delenv(name)
+    monkeypatch.setenv("WEATHERBOT_CONFIG_DIR", str(tmp_path / "weatherbot-config"))
+    monkeypatch.setenv("WEATHERBOT_DATA_DIR", str(tmp_path / "weatherbot-data"))

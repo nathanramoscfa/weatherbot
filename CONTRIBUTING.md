@@ -90,6 +90,48 @@ gh run list --workflow live-smoke.yml --limit 1
 It is not part of `gate` or of branch protection, and it uses no secret.
 Scheduled drift detection belongs to Phase 4.
 
+## Local data
+
+Weatherbot keeps its state outside the repository, in your user directories:
+
+| What | Windows | Linux |
+| --- | --- | --- |
+| Configuration: `weatherbot.toml` (optional) | `%LOCALAPPDATA%\weatherbot\` | `${XDG_CONFIG_HOME:-~/.config}/weatherbot/` |
+| Data: the database `weatherbot.sqlite3` and `backups/` | `%LOCALAPPDATA%\weatherbot\` | `${XDG_DATA_HOME:-~/.local/share}/weatherbot/` |
+
+`WEATHERBOT_CONFIG_DIR` and `WEATHERBOT_DATA_DIR` override the two
+directories. Each must be an absolute path. `weatherbot.toml` holds Phase 2's
+two settings, and `WEATHERBOT_LOG_LEVEL` and `WEATHERBOT_HTTP_TIMEOUT_SECONDS`
+override them (environment, then file, then default):
+
+```toml
+[logging]
+level = "INFO"          # DEBUG, INFO, WARNING, ERROR, or CRITICAL
+
+[http]
+timeout_seconds = 30    # more than 0, at most 300
+```
+
+An unknown key or a bad value stops the program with a message that names the
+key and never repeats the value. No setting holds a secret, a location, or a
+coordinate. Your locations live in the database.
+
+The database is SQLite in WAL mode. Its schema is the Alembic head of the
+migrations in `src/weatherbot/services/persistence/migrations/`, which ship
+in the wheel. Opening a database that is behind the head first copies it,
+through SQLite's online backup API, to
+`backups/weatherbot-<UTC stamp>-<revision>.sqlite3`, then upgrades it. That
+copy is the rollback. A database written by a newer Weatherbot refuses to
+open, and nothing ever downgrades it.
+
+The tests never touch any of this. An autouse fixture in `tests/conftest.py`
+points both directories into each test's temporary directory and clears
+every other `WEATHERBOT_*` variable except the development tools'
+`WEATHERBOT_DENYLIST` and `WEATHERBOT_CORPUS_CACHE`.
+
+To start over, delete the data directory. Weatherbot creates a new database
+the next time it opens one.
+
 ## Security gate
 
 Every commit passes the project's fail-closed security gate

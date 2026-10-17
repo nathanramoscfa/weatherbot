@@ -151,6 +151,40 @@ jobs:
           echo "installed weatherbot --version: $actual"
           test "$expected" = "$actual"
 
+      # The migrations ship inside the wheel: the installed package, run outside the
+      # checkout with its data directory in a temporary directory, creates a new
+      # database at the Alembic head.
+      - name: The installed wheel opens a new database at head
+        env:
+          WEATHERBOT_CONFIG_DIR: ${{ runner.temp }}/smoke-config
+          WEATHERBOT_DATA_DIR: ${{ runner.temp }}/smoke-data
+        working-directory: ${{ runner.temp }}
+        run: |
+          smoke="$RUNNER_TEMP/smoke"
+          if [ "$RUNNER_OS" = "Windows" ]; then python="$smoke/Scripts/python"; else python="$smoke/bin/python"; fi
+          "$python" - <<'EOF'
+          import sys
+          from pathlib import Path
+
+          import weatherbot
+          from weatherbot.services.config import AppPaths
+          from weatherbot.services.persistence.database import (
+              current_revision,
+              head_revision,
+              open_database,
+          )
+
+          installed = Path(weatherbot.__file__).resolve()
+          assert installed.is_relative_to(Path(sys.prefix).resolve()), installed
+          paths = AppPaths.resolve()
+          assert not paths.database_path.exists()
+          with open_database(paths) as database:
+              revision = current_revision(database.engine)
+              print(f"new database at revision {revision}; head {head_revision()}")
+              assert revision == head_revision() == database.revision
+              assert database.backup_path is None
+          EOF
+
   # The CI half of the security gate (docs/roadmap/ROADMAP.md, "Per-step
   # security gate"): the same four checks the pre-commit hook runs, so a
   # skipped hook cannot land an issue on `main`. gitleaks runs first; every

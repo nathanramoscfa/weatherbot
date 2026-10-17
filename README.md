@@ -40,6 +40,9 @@ uv run pytest                # run the tests
 ```
 
 [CONTRIBUTING.md](CONTRIBUTING.md) describes the full development loop.
+Weatherbot keeps its database and optional `weatherbot.toml` in your user
+directories (`%LOCALAPPDATA%\weatherbot` on Windows), never in the
+repository; "Local data" there lists the paths and the overrides.
 
 ## Documents
 

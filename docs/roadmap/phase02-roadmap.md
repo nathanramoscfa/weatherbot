@@ -3634,6 +3634,21 @@ comes from the other maker. The conversation is new per phase-boundary hygiene.
       table for assessments, evidence, notifications, the
       heartbeat, briefings, or the Claude ledger is created
       here.
+      Amended 2026-10-17 (Step 5, PR body): loading a snapshot
+      back equal needs what each snapshot saw of the records the
+      tables above store once, so the baseline also creates
+      `storm_observations` (the roster summary per snapshot),
+      `text_product_observations` (the provenance per snapshot),
+      `feed_item_observations` (the item as read), and
+      `outcome_responses` (an outcome's answers, in order: a
+      source such as `nws-alerts-zone` has several, so
+      `source_outcomes` names no single raw response).
+      `source_outcomes` also keeps a skipped outcome's `reason`;
+      `text_products` keeps `wmo_collective_id` and
+      `issuing_office`; `feed_items` is unique on feed and guid;
+      an `alert_observations` row without an alert records a
+      location whose queries found none; every observation and
+      product row keeps its position in the snapshot's tuple.
     </requirement>
 
     <requirement>
@@ -4134,6 +4149,32 @@ per phase-boundary hygiene.
       `nhc_arrival_times.prefer_kmz(products)`: pass it the
       map-layer and KMZ products together. A reused slot's TCP
       and an older TCP are Source-drift warnings, never errors.
+    - Carry-over from Step 5 (2026-10-17): the API is
+      `config.AppPaths.resolve()` (an override must be
+      absolute, else `ConfigError`) and
+      `config.load_settings(paths)` (`settings.logging.level`,
+      `settings.http.timeout_seconds`);
+      `persistence.database.open_database(paths)` returns a
+      `Database` (`engine`, `path`, `revision`, `backup_path`;
+      a context manager) or raises `UnknownRevisionError`,
+      `MigrationFailedError` (`backup_path`), or
+      `DatabaseError`; `doctor` reads
+      `current_revision(engine)` against `head_revision()`.
+      `raw_cache.RawResponseCache(engine)` is the `Fetcher`'s
+      `validators`; a 200 it sees becomes durable only when it
+      is recorded, so save every answer: wrap each `FetchResult`
+      as `CachedFetch(result, product_key, issued_at)` and pass
+      them to `SnapshotRepository(engine).save(snapshot,
+      responses)`, which links each to its source's outcome (an
+      answer whose source has no outcome is refused).
+      `save` refuses alerts keyed by a location name that
+      `LocationRepository` has not stored; an empty tuple is
+      kept apart from a location not asked, so decide whether an
+      outside-coverage location gets a key. `LocationRepository`
+      has `add` (`LocationExistsError`), `list` (by name),
+      `get`, and `remove`; `SettingsRepository` has `get` and
+      `set` of any JSON value. Opening a behind database logs
+      the backup's path at INFO (no coordinate).
     - The CLI is a Typer `app` with `--version` only; Typer
       brings Rich, and `tests/test_cli.py` strips ANSI escapes
       because GitHub's runners force color.
@@ -4808,14 +4849,21 @@ phase-boundary hygiene.
         dependencies.
     30. `src/weatherbot/services/persistence/migrations/versions/`
         holds the baseline revision, which creates `locations`,
-        `snapshots`, `source_outcomes`, `raw_responses`,
-        `response_bodies`, `storms`, `advisories`,
-        `product_geometries`, `text_products`, `feed_items`,
-        `alerts`, `alert_observations`, and `settings`.
+        `snapshots`, `source_outcomes`, `outcome_responses`,
+        `raw_responses`, `response_bodies`, `storms`,
+        `storm_observations`, `advisories`, `product_geometries`,
+        `text_products`, `text_product_observations`,
+        `feed_items`, `feed_item_observations`, `alerts`,
+        `alert_observations`, and `settings` (17 tables; the
+        four observation and link tables were added by Step 5,
+        2026-10-17).
     31. The baseline creates no table for assessments, evidence,
         notifications, heartbeats, briefings, or a ledger.
     32. `tests/conftest.py` sets `WEATHERBOT_CONFIG_DIR` and
-        `WEATHERBOT_DATA_DIR` in an autouse fixture.
+        `WEATHERBOT_DATA_DIR` in an autouse fixture (it clears
+        every other `WEATHERBOT_*` variable except the
+        development tools' `WEATHERBOT_DENYLIST` and
+        `WEATHERBOT_CORPUS_CACHE`).
     33. `[tool.importlinter]` sets
         `include_external_packages = true`, and a forbidden
         contract keeps `sqlalchemy` and `alembic` out of

@@ -33,6 +33,11 @@ planning/user-context.md
 /logs/
 /state/
 
+# Weatherbot's SQLite database and its WAL and shared-memory files live in the user
+# data directory; these guard a WEATHERBOT_DATA_DIR that points into the checkout.
+*.sqlite3
+*.sqlite3-*
+
 # Editors and operating systems
 .idea/
 .vscode/
