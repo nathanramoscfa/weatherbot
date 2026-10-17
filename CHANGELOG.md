@@ -14,6 +14,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Added
+- Local state for the application. `weatherbot.services.config` resolves
+  the configuration and data directories through `platformdirs`, with
+  `WEATHERBOT_CONFIG_DIR` and `WEATHERBOT_DATA_DIR` as overrides, and reads
+  an optional `weatherbot.toml`. Its two settings are `[logging] level` and
+  `[http] timeout_seconds`, and `WEATHERBOT_LOG_LEVEL` and
+  `WEATHERBOT_HTTP_TIMEOUT_SECONDS` override them. An error names the key
+  and never echoes the value. `weatherbot.services.persistence` adds
+  SQLAlchemy 2 tables for the data Phase 2 writes, created by an Alembic
+  baseline (`0001`) that ships inside the package. `open_database` sets
+  foreign keys, WAL, and a busy timeout on every connection. It copies an
+  existing database through SQLite's online backup API before any upgrade,
+  and keeps that copy if the upgrade fails. It refuses a revision the code
+  does not know and never downgrades. The repositories store a whole
+  `Snapshot` in one transaction and load it back equal, and also hold
+  locations and application settings. The raw-response cache keeps every
+  answer with its allowlisted headers. It stores each body once, by
+  SHA-256 and zlib-compressed, and serves as the HTTP layer's persistent
+  validator store, so conditional requests and 304s work across runs.
+  Tests pin both directories to their temporary directory. A new
+  import-linter contract keeps SQLAlchemy and Alembic inside
+  `weatherbot.services`. CI's `package` job opens a new database through
+  the installed wheel on Ubuntu and Windows. New runtime dependencies:
+  `sqlalchemy`, `alembic`, and `platformdirs`.
 - The NWS client, `weatherbot.sources.nws`. `lookup_point` resolves a point
   to its forecast zone, county, office, and time zone, and returns
   `OutsideNwsCoverage` for the documented `InvalidPoint` 404. `fetch_alerts`
