@@ -28,7 +28,8 @@ from fixture_support import (
 )
 
 import record_fixtures as recorder
-from weatherbot import __version__
+from weatherbot import __version__, sources
+from weatherbot.sources import arcgis, http
 
 PATH_SEPARATOR = " / "
 EN_DASH = chr(0x2013)  # the register writes a range with an en dash
@@ -68,11 +69,20 @@ def test_every_required_source_has_a_capture_with_status_200(source: str) -> Non
     )
 
 
-def test_the_recorder_uses_the_registers_user_agent() -> None:
-    assert register_user_agent() == recorder.USER_AGENT
+def test_the_package_user_agent_is_the_registers() -> None:
+    assert register_user_agent() == sources.USER_AGENT
     # The version part follows the package version (the register's "User-Agent").
     expected = f"weatherbot/{__version__} (+https://github.com/nathanramoscfa/weatherbot)"
-    assert expected == recorder.USER_AGENT
+    assert expected == sources.USER_AGENT
+
+
+def test_the_recorder_imports_the_packages_register_constants() -> None:
+    # One definition each: the recorder uses the package's objects, not copies.
+    assert recorder.USER_AGENT is sources.USER_AGENT
+    assert recorder.HOST_INTERVALS is http.HOST_INTERVALS
+    assert recorder.QUERY_PARAMETERS is arcgis.QUERY_PARAMETERS
+    assert recorder.COUNT_PARAMETERS is arcgis.COUNT_PARAMETERS
+    assert recorder.HEADER_ALLOWLIST is http.HEADER_ALLOWLIST
 
 
 def test_the_register_shares_the_recorders_arcgis_query_parameters() -> None:

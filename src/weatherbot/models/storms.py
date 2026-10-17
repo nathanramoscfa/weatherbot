@@ -84,19 +84,32 @@ class StormSummary(DomainModel):
 class Advisory(DomainModel):
     """An advisory of one storm, as a product's ``advisnum`` and ``advdate`` state it.
 
-    ``issued_at`` is ``None`` only when the local text names a zone outside the table in
-    ``weatherbot.models.times``: the text is kept, and no instant is guessed.
+    ``issued_at_source`` says where ``issued_at`` comes from. ``local_text``: the instant
+    the local text names, ``None`` only when the text names a zone outside the table in
+    ``weatherbot.models.times`` (the text is kept, and no instant is guessed). ``roster``:
+    the roster's issuance for the product, which the map clients prefer to the text and
+    compare with it; the local text is then kept as received, or ``None`` for a product
+    that carries none (the arrival-time map layers).
     """
 
     atcf_id: AtcfId
     number: AdvisoryNumber
     issued_at: UtcDatetime | None
-    local_text: str = Field(min_length=1, description="NHC's local issuance text, advdate.")
+    local_text: str | None = Field(
+        min_length=1, description="NHC's local issuance text, advdate, as received."
+    )
+    issued_at_source: Literal["local_text", "roster"] = "local_text"
 
     @model_validator(mode="after")
-    def _instant_follows_text(self) -> Self:
-        if parse_nhc_local_time(self.local_text) != self.issued_at:
+    def _instant_follows_its_source(self) -> Self:
+        named = parse_nhc_local_time(self.local_text) if self.local_text is not None else None
+        if self.issued_at_source == "local_text" and (
+            self.local_text is None or named != self.issued_at
+        ):
             message = "issued_at must be the instant local_text names"
+            raise ValueError(message)
+        if self.issued_at_source == "roster" and self.issued_at is None:
+            message = "an issuance taken from the roster is an instant"
             raise ValueError(message)
         return self
 

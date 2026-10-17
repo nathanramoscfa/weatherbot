@@ -12,6 +12,7 @@ import pytest
 from model_samples import (
     ATCF_ID,
     FULL_TEXT,
+    INTERMEDIATE_TEXT,
     REPOSITORY_ROOT,
     advisory,
     alert,
@@ -263,6 +264,26 @@ def test_an_advisory_s_instant_is_the_one_its_text_names() -> None:
     )
 
     assert unknown.issued_at is None
+
+
+def test_an_advisory_may_take_its_instant_from_the_roster() -> None:
+    later = datetime(2026, 10, 13, 2, tzinfo=UTC)
+    kept = revalidate(advisory(), issued_at=later, issued_at_source="roster")
+    assert (kept.issued_at, kept.local_text) == (later, INTERMEDIATE_TEXT)
+    untexted = Advisory(
+        atcf_id=ATCF_ID,
+        number=AdvisoryNumber.parse("22"),
+        issued_at=later,
+        local_text=None,
+        issued_at_source="roster",
+    )
+    assert untexted.local_text is None
+    with pytest.raises(ValidationError, match="instant"):
+        revalidate(untexted, issued_at=None)
+    with pytest.raises(ValidationError, match="local_text"):
+        revalidate(untexted, issued_at_source="local_text")
+    with pytest.raises(ValidationError, match="NHC local time"):
+        revalidate(kept, local_text="tomorrow")
 
 
 def test_a_record_s_advisory_belongs_to_its_storm() -> None:

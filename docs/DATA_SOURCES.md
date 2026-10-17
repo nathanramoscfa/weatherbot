@@ -46,8 +46,10 @@ Nominatim's adds that the stock User-Agents of HTTP libraries "will not
 do". The repository URL meets all three policies. It identifies the application and gives a contact
 route (issues and private vulnerability reporting) without putting a
 personal email address into a public repository and a public package
-(brief §5 and §12). The version part follows the package version. Step
-5's recorder and Phase 2's clients share one constant.
+(brief §5 and §12). The version part follows the package version. The
+one definition is `weatherbot.sources.USER_AGENT`, built from the
+package version; the fixture recorder imports it, and a contract test
+keeps it equal to the string above.
 
 ## Re-verifying
 
@@ -147,8 +149,22 @@ file was last modified at 21:24 for that storm's 21:00 advisory.
 - **Fields v2 uses:** `id`, `binNumber`, `name`, `classification`,
   `intensity`, `pressure`, `latitudeNumeric`, `longitudeNumeric`,
   `movementDir`, `movementSpeed`, `lastUpdate`, `publicAdvisory.advNum`,
-  `publicAdvisory.issuance`, and whether the three surge objects are
-  `null`.
+  `publicAdvisory.issuance`, `stormSurgeWatchWarningGIS`,
+  `potentialStormSurgeFloodingGIS`, and `peakSurgeKML` (whether each is
+  null), and, amended 2026-10-16 for the map and arrival-time clients,
+  `trackCone.advNum`, `trackCone.issuance`,
+  `windSpeedProbabilitiesGIS.issuance`,
+  `earliestArrivalTimeTSWindsGIS.advNum`,
+  `earliestArrivalTimeTSWindsGIS.issuance`,
+  `earliestArrivalTimeTSWindsGIS.kmzFile`,
+  `mostLikelyTimeTSWindsGIS.advNum`, `mostLikelyTimeTSWindsGIS.issuance`,
+  and `mostLikelyTimeTSWindsGIS.kmzFile`. A product object that is
+  absent or null leaves its product unlisted; one that is present must
+  carry these members.
+- `weatherbot.sources.nhc_current_storms` reads exactly the fields above
+  (`FIELDS_READ`), and `tests/contract/test_field_coverage.py` keeps the
+  two lists equal. The map layers' "Fields v2 uses" columns below are
+  held to their parsers the same way.
 - `intensity` and `pressure` are strings (`"85"`, `"969"`). `binNumber`
   (`EP5`) is the map-service slot and the NWS API's TCP location. It joins
   the roster to the `{slot}` layers and to the text products.
@@ -191,7 +207,8 @@ listed with the outlook. That service's `/layers` document is 2.3 MB.
 ### Shared query parameters
 
 The recorder and Phase 2's clients query a feature layer with
-`GET <service>/MapServer/<id>/query` and these parameters:
+`GET <service>/MapServer/<id>/query` and these parameters
+(`weatherbot.sources.arcgis.QUERY_PARAMETERS`):
 
 | Parameter | Value | Why |
 | --- | --- | --- |
@@ -247,15 +264,15 @@ NOAA's spelling (`Past Track Infomation`).
 | Layer name | Geometry | Fields present | Fields v2 uses | Notes |
 | --- | --- | --- | --- | --- |
 | `Graphical Tropical Weather Outlook` | group | — | — |  |
-| `Two-Day: Current Location` | point | `objectid`, `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape` | `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source` | Marker for a disturbance in the outlook. |
+| `Two-Day: Current Location` | point | `objectid`, `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape` | `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate` | Marker for a disturbance in the outlook. `idp_filedate` (epoch ms) is the `OutlookArea`'s issuance (added 2026-10-16). |
 | `Seven-Day Outlook` | group | — | — |  |
-| `Seven-Day: Current Location` | point | `objectid`, `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape` | `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source` | As above, seven-day. |
-| `Seven-Day: Development Motion` | polyline | `objectid`, `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_length(shape)` | `basin` | Arrow on the map. No features on 2026-10-12; `basin` is in the schema. |
-| `Seven-Day: Potential Development Region` | polygon | `objectid`, `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_area(shape)`, `st_perimeter(shape)` | `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source` | `OutlookArea`; a level-2 trigger. `prob*` are strings such as `20%`; `idp_source` carries the outlook stamp (`gtwo_areas_202610121711`). |
+| `Seven-Day: Current Location` | point | `objectid`, `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape` | `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate` | As above, seven-day. |
+| `Seven-Day: Development Motion` | polyline | `objectid`, `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_length(shape)` | `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate` | Arrow on the map, an `OutlookArea`. No features on 2026-10-12; the fields v2 uses are the other outlook layers', all in the schema (amended 2026-10-16). |
+| `Seven-Day: Potential Development Region` | polygon | `objectid`, `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_area(shape)`, `st_perimeter(shape)` | `basin`, `prob2day`, `risk2day`, `prob7day`, `risk7day`, `idp_source`, `idp_filedate` | `OutlookArea`; a level-2 trigger. `prob*` are strings such as `20%`; `idp_source` carries the outlook stamp (`gtwo_areas_202610121711`); `idp_filedate` dates it (added 2026-10-16). |
 | `{slot}` | group | — | — |  |
 | `{slot} Forecast Information` | group | — | — |  |
 | `{slot} Forecast Points` | point | `objectid`, `stormname`, `stormtype`, `dvlbl`, `basin`, `advdate`, `advisnum`, `fcstprd`, `gust`, `maxwind`, `mslp`, `ssnum`, `datelbl`, `tcdvlp`, `tcdir`, `tcspd`, `fldatelbl`, `lat`, `lon`, `stormnum`, `stormsrc`, `tau`, `timezone`, `validtime`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `binnumber` | `stormname`, `stormtype`, `tcdvlp`, `basin`, `binnumber`, `stormnum`, `advisnum`, `advdate`, `tau`, `validtime`, `fldatelbl`, `maxwind`, `gust`, `mslp`, `tcdir`, `tcspd`, `ssnum`, `dvlbl` | `TrackPoint`. `validtime` reads `DD/HHMM` in UTC (`12/1800`); `fldatelbl` and `advdate` are local text (`200 PM MST Mon Oct 12 2026`). `9999` stands in for a missing `mslp`, `tcdir`, or `tcspd`. |
-| `{slot} Forecast Track` | polyline | `objectid`, `stormname`, `stormtype`, `basin`, `advdate`, `advisnum`, `fcstprd`, `stormnum`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_length(shape)`, `binnumber` | `advisnum`, `binnumber` | Line on the map. |
+| `{slot} Forecast Track` | polyline | `objectid`, `stormname`, `stormtype`, `basin`, `advdate`, `advisnum`, `fcstprd`, `stormnum`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_length(shape)`, `binnumber` | `advisnum`, `advdate`, `binnumber` | `ForecastTrack`, a line on the map; `advdate` dates its advisory (added 2026-10-16). |
 | `{slot} Forecast Cone` | polygon | `objectid`, `stormname`, `stormtype`, `basin`, `advdate`, `advisnum`, `fcstprd`, `stormnum`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_area(shape)`, `st_perimeter(shape)`, `binnumber` | `stormname`, `stormtype`, `basin`, `stormnum`, `advisnum`, `advdate`, `fcstprd`, `binnumber`, `idp_source` | `ConeGeometry`; one polygon per advisory. |
 | `{slot} Watch-Warning` | polyline | `objectid`, `stormname`, `stormtype`, `basin`, `advdate`, `advisnum`, `fcstprd`, `stormnum`, `tcww`, `idp_source`, `idp_filedate`, `idp_ingestdate`, `shape`, `st_length(shape)`, `binnumber` | `tcww`, `stormname`, `advisnum`, `advdate`, `binnumber` | `WatchWarningSegment`. `tcww` codes seen: `HWA`, `HWR`. |
 | `{slot} Past Track Infomation` | group | — | — |  |

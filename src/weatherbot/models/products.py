@@ -116,6 +116,9 @@ class MapCatalog(DomainModel):
     service: str = Field(description="Such as tropical/NHC_tropical_weather.")
     read_at: UtcDatetime
     layers: tuple[MapLayer, ...]
+    max_record_count: int | None = Field(
+        default=None, gt=0, description="maxRecordCount: the most features one query returns."
+    )
     provenance: Provenance
 
 
