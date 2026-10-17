@@ -1,0 +1,609 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/alerts.schema.json",
+  "$defs": {
+    "AlertCertainty": {
+      "additionalProperties": false,
+      "description": "An alert's CAP ``certainty``.",
+      "properties": {
+        "raw": {
+          "title": "Raw",
+          "type": "string"
+        },
+        "recognized": {
+          "title": "Recognized",
+          "type": "boolean"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AlertCertaintyCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "raw",
+        "recognized",
+        "code"
+      ],
+      "title": "AlertCertainty",
+      "type": "object"
+    },
+    "AlertCertaintyCode": {
+      "description": "CAP ``certainty``.",
+      "enum": [
+        "Observed",
+        "Likely",
+        "Possible",
+        "Unlikely",
+        "Unknown"
+      ],
+      "title": "AlertCertaintyCode",
+      "type": "string"
+    },
+    "AlertEntry": {
+      "additionalProperties": false,
+      "description": "An active NWS alert, with its times in UTC and in the location's time zone.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "event": {
+          "title": "Event",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/AlertSeverity"
+        },
+        "urgency": {
+          "$ref": "#/$defs/AlertUrgency"
+        },
+        "certainty": {
+          "$ref": "#/$defs/AlertCertainty"
+        },
+        "headline": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Headline"
+        },
+        "effective": {
+          "format": "date-time",
+          "title": "Effective",
+          "type": "string"
+        },
+        "expires": {
+          "format": "date-time",
+          "title": "Expires",
+          "type": "string"
+        },
+        "effective_local": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "ISO 8601 in the location's time zone.",
+          "title": "Effective Local"
+        },
+        "expires_local": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "ISO 8601 in the location's time zone.",
+          "title": "Expires Local"
+        },
+        "found_by": {
+          "items": {
+            "$ref": "#/$defs/FoundByEntry"
+          },
+          "title": "Found By",
+          "type": "array"
+        },
+        "affected_zone_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Affected Zone Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "event",
+        "severity",
+        "urgency",
+        "certainty",
+        "headline",
+        "effective",
+        "expires",
+        "effective_local",
+        "expires_local",
+        "found_by",
+        "affected_zone_ids"
+      ],
+      "title": "AlertEntry",
+      "type": "object"
+    },
+    "AlertLocationEntry": {
+      "additionalProperties": false,
+      "description": "The location the alerts are for, without its coordinates.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "inside_nws_coverage": {
+          "title": "Inside Nws Coverage",
+          "type": "boolean"
+        },
+        "time_zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Time Zone"
+        },
+        "forecast_zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Forecast Zone"
+        },
+        "county_zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "County Zone"
+        }
+      },
+      "required": [
+        "name",
+        "inside_nws_coverage",
+        "time_zone",
+        "forecast_zone",
+        "county_zone"
+      ],
+      "title": "AlertLocationEntry",
+      "type": "object"
+    },
+    "AlertSeverity": {
+      "additionalProperties": false,
+      "description": "An alert's CAP ``severity``.",
+      "properties": {
+        "raw": {
+          "title": "Raw",
+          "type": "string"
+        },
+        "recognized": {
+          "title": "Recognized",
+          "type": "boolean"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AlertSeverityCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "raw",
+        "recognized",
+        "code"
+      ],
+      "title": "AlertSeverity",
+      "type": "object"
+    },
+    "AlertSeverityCode": {
+      "description": "CAP ``severity``.",
+      "enum": [
+        "Extreme",
+        "Severe",
+        "Moderate",
+        "Minor",
+        "Unknown"
+      ],
+      "title": "AlertSeverityCode",
+      "type": "string"
+    },
+    "AlertUrgency": {
+      "additionalProperties": false,
+      "description": "An alert's CAP ``urgency``.",
+      "properties": {
+        "raw": {
+          "title": "Raw",
+          "type": "string"
+        },
+        "recognized": {
+          "title": "Recognized",
+          "type": "boolean"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AlertUrgencyCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "raw",
+        "recognized",
+        "code"
+      ],
+      "title": "AlertUrgency",
+      "type": "object"
+    },
+    "AlertUrgencyCode": {
+      "description": "CAP ``urgency``.",
+      "enum": [
+        "Immediate",
+        "Expected",
+        "Future",
+        "Past",
+        "Unknown"
+      ],
+      "title": "AlertUrgencyCode",
+      "type": "string"
+    },
+    "AlertsData": {
+      "additionalProperties": false,
+      "description": "A location's alerts, or, outside NWS coverage, the active watch-warning segments.",
+      "properties": {
+        "location": {
+          "$ref": "#/$defs/AlertLocationEntry"
+        },
+        "alerts": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/AlertEntry"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: the snapshot holds no alert list for this location.",
+          "title": "Alerts"
+        },
+        "watch_warnings": {
+          "items": {
+            "$ref": "#/$defs/SegmentEntry"
+          },
+          "title": "Watch Warnings",
+          "type": "array"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Note"
+        }
+      },
+      "required": [
+        "location",
+        "alerts",
+        "watch_warnings",
+        "note"
+      ],
+      "title": "AlertsData",
+      "type": "object"
+    },
+    "FoundByEntry": {
+      "additionalProperties": false,
+      "description": "One query that returned an alert.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "point",
+            "zone"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "zone_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Zone Id"
+        }
+      },
+      "required": [
+        "kind",
+        "zone_id"
+      ],
+      "title": "FoundByEntry",
+      "type": "object"
+    },
+    "SegmentEntry": {
+      "additionalProperties": false,
+      "description": "An active storm's official watch-warning segment, verbatim, not matched to a place.",
+      "properties": {
+        "atcf_id": {
+          "title": "Atcf Id",
+          "type": "string"
+        },
+        "storm_name": {
+          "title": "Storm Name",
+          "type": "string"
+        },
+        "tcww": {
+          "$ref": "#/$defs/WatchWarningType"
+        },
+        "advisory": {
+          "title": "Advisory",
+          "type": "string"
+        }
+      },
+      "required": [
+        "atcf_id",
+        "storm_name",
+        "tcww",
+        "advisory"
+      ],
+      "title": "SegmentEntry",
+      "type": "object"
+    },
+    "SnapshotInfo": {
+      "additionalProperties": false,
+      "description": "The snapshot a document was read from.",
+      "properties": {
+        "snapshot_id": {
+          "format": "uuid",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "age_seconds": {
+          "description": "generated_at minus completed_at.",
+          "minimum": 0,
+          "title": "Age Seconds",
+          "type": "number"
+        },
+        "source_outcomes": {
+          "items": {
+            "$ref": "#/$defs/SourceOutcome"
+          },
+          "title": "Source Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "started_at",
+        "completed_at",
+        "status",
+        "age_seconds",
+        "source_outcomes"
+      ],
+      "title": "SnapshotInfo",
+      "type": "object"
+    },
+    "SourceId": {
+      "enum": [
+        "nhc-current-storms",
+        "nhc-arrival-times",
+        "nhc-map-tropical-weather",
+        "nhc-map-tropical-summary",
+        "nhc-map-breakpoints",
+        "nhc-map-peak-surge",
+        "nhc-map-surge-risk",
+        "nhc-gis-rss",
+        "nhc-gis-archive",
+        "nhc-text-products",
+        "nhc-outlook-graphics",
+        "nws-points",
+        "nws-alerts-point",
+        "nws-alerts-zone",
+        "nws-zones",
+        "basemap-osm-tiles",
+        "overlay-radar",
+        "overlay-satellite",
+        "geocode-nominatim"
+      ],
+      "type": "string"
+    },
+    "SourceOutcome": {
+      "additionalProperties": false,
+      "description": "What one source the snapshot asked for answered.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "not_modified",
+            "failed",
+            "skipped"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "error_kind": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For failed: the error's kind.",
+          "title": "Error Kind"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For skipped: why.",
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "source_id",
+        "status"
+      ],
+      "title": "SourceOutcome",
+      "type": "object"
+    },
+    "WatchWarningCode": {
+      "description": "Watch-warning ``tcww`` codes of the NHC forecast packages and map layers.",
+      "enum": [
+        "HWA",
+        "HWR",
+        "TWA",
+        "TWR"
+      ],
+      "title": "WatchWarningCode",
+      "type": "string"
+    },
+    "WatchWarningType": {
+      "additionalProperties": false,
+      "description": "A watch-warning segment's ``tcww``.",
+      "properties": {
+        "raw": {
+          "title": "Raw",
+          "type": "string"
+        },
+        "recognized": {
+          "title": "Recognized",
+          "type": "boolean"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WatchWarningCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "raw",
+        "recognized",
+        "code"
+      ],
+      "title": "WatchWarningType",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot alerts --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "alerts",
+      "default": "alerts",
+      "title": "Command",
+      "type": "string"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/SnapshotInfo"
+    },
+    "data": {
+      "$ref": "#/$defs/AlertsData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "snapshot",
+    "data"
+  ],
+  "title": "AlertsDocument",
+  "type": "object"
+}

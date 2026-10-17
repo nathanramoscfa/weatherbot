@@ -2,7 +2,8 @@
 """Command-line layer: Typer commands over the services.
 
 The cli layer sits above the services layer, with the web layer. It holds no business
-logic of its own.
+logic of its own: each command opens the database, calls a service, and prints the result
+as Rich tables in a terminal, plain text otherwise, or one JSON document with ``--json``.
 """
 
 from typing import Annotated
@@ -10,6 +11,9 @@ from typing import Annotated
 import typer
 
 from weatherbot import __version__
+from weatherbot.cli import doctor as doctor_command
+from weatherbot.cli import locations, snapshots
+from weatherbot.cli.runtime import Runtime, start
 
 app = typer.Typer(
     name="weatherbot",
@@ -17,6 +21,11 @@ app = typer.Typer(
     "for official guidance.",
     no_args_is_help=True,
 )
+app.add_typer(locations.app)
+app.command("fetch")(snapshots.fetch)
+app.command("storms")(snapshots.storms)
+app.command("alerts")(snapshots.alerts)
+app.command("doctor")(doctor_command.doctor)
 
 
 def _print_version_and_exit(*, value: bool) -> None:
@@ -35,6 +44,7 @@ def _print_version_and_exit(*, value: bool) -> None:
 
 @app.callback()
 def main(
+    ctx: typer.Context,
     *,
     version: Annotated[
         bool,
@@ -45,5 +55,11 @@ def main(
             help="Print the version and exit.",
         ),
     ] = False,
+    verbose: Annotated[
+        bool, typer.Option("--verbose", "-v", help="Log at DEBUG, to standard error.")
+    ] = False,
 ) -> None:
     """Weatherbot: a personal hurricane-threat monitor."""
+    del version  # handled eagerly by its callback
+    runtime = ctx.obj if isinstance(ctx.obj, Runtime) else Runtime()
+    ctx.meta["weatherbot"] = start(runtime, verbose=verbose)

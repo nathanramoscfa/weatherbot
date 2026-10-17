@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/fetch.schema.json",
+  "$defs": {
+    "DriftWarningEntry": {
+      "additionalProperties": false,
+      "description": "A Source-drift warning: an official product disagreed with another or the register.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "message"
+      ],
+      "title": "DriftWarningEntry",
+      "type": "object"
+    },
+    "FetchCounts": {
+      "additionalProperties": false,
+      "description": "How many records of each kind the snapshot holds.",
+      "properties": {
+        "storms": {
+          "minimum": 0,
+          "title": "Storms",
+          "type": "integer"
+        },
+        "outlook_areas": {
+          "minimum": 0,
+          "title": "Outlook Areas",
+          "type": "integer"
+        },
+        "wind_probability_products": {
+          "minimum": 0,
+          "title": "Wind Probability Products",
+          "type": "integer"
+        },
+        "text_products": {
+          "minimum": 0,
+          "title": "Text Products",
+          "type": "integer"
+        },
+        "gis_feed_items": {
+          "minimum": 0,
+          "title": "Gis Feed Items",
+          "type": "integer"
+        },
+        "outlook_graphics": {
+          "minimum": 0,
+          "title": "Outlook Graphics",
+          "type": "integer"
+        },
+        "breakpoints": {
+          "minimum": 0,
+          "title": "Breakpoints",
+          "type": "integer"
+        },
+        "display_layers": {
+          "minimum": 0,
+          "title": "Display Layers",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "storms",
+        "outlook_areas",
+        "wind_probability_products",
+        "text_products",
+        "gis_feed_items",
+        "outlook_graphics",
+        "breakpoints",
+        "display_layers"
+      ],
+      "title": "FetchCounts",
+      "type": "object"
+    },
+    "FetchData": {
+      "additionalProperties": false,
+      "description": "What one fetch stored.",
+      "properties": {
+        "counts": {
+          "$ref": "#/$defs/FetchCounts"
+        },
+        "alerts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Alerts per location inside NWS coverage, when both alert sources answered.",
+          "title": "Alerts",
+          "type": "object"
+        },
+        "drift_warnings": {
+          "items": {
+            "$ref": "#/$defs/DriftWarningEntry"
+          },
+          "title": "Drift Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "counts",
+        "alerts",
+        "drift_warnings"
+      ],
+      "title": "FetchData",
+      "type": "object"
+    },
+    "SnapshotInfo": {
+      "additionalProperties": false,
+      "description": "The snapshot a document was read from.",
+      "properties": {
+        "snapshot_id": {
+          "format": "uuid",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "age_seconds": {
+          "description": "generated_at minus completed_at.",
+          "minimum": 0,
+          "title": "Age Seconds",
+          "type": "number"
+        },
+        "source_outcomes": {
+          "items": {
+            "$ref": "#/$defs/SourceOutcome"
+          },
+          "title": "Source Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "started_at",
+        "completed_at",
+        "status",
+        "age_seconds",
+        "source_outcomes"
+      ],
+      "title": "SnapshotInfo",
+      "type": "object"
+    },
+    "SourceId": {
+      "enum": [
+        "nhc-current-storms",
+        "nhc-arrival-times",
+        "nhc-map-tropical-weather",
+        "nhc-map-tropical-summary",
+        "nhc-map-breakpoints",
+        "nhc-map-peak-surge",
+        "nhc-map-surge-risk",
+        "nhc-gis-rss",
+        "nhc-gis-archive",
+        "nhc-text-products",
+        "nhc-outlook-graphics",
+        "nws-points",
+        "nws-alerts-point",
+        "nws-alerts-zone",
+        "nws-zones",
+        "basemap-osm-tiles",
+        "overlay-radar",
+        "overlay-satellite",
+        "geocode-nominatim"
+      ],
+      "type": "string"
+    },
+    "SourceOutcome": {
+      "additionalProperties": false,
+      "description": "What one source the snapshot asked for answered.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "not_modified",
+            "failed",
+            "skipped"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "error_kind": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For failed: the error's kind.",
+          "title": "Error Kind"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For skipped: why.",
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "source_id",
+        "status"
+      ],
+      "title": "SourceOutcome",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot fetch --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "fetch",
+      "default": "fetch",
+      "title": "Command",
+      "type": "string"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/SnapshotInfo"
+    },
+    "data": {
+      "$ref": "#/$defs/FetchData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "snapshot",
+    "data"
+  ],
+  "title": "FetchDocument",
+  "type": "object"
+}

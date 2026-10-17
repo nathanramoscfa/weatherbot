@@ -10,10 +10,41 @@ specifies both in [the project brief](docs/brief/weatherbot-v2-brief.md).
 ## Status
 
 Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
-discovery) is complete; Phase 2 (sources and persistence) is next. No version 2
-package is released: the package builds and
-`weatherbot --version` runs, and that is all. The plan lives in
-[the roadmap](docs/roadmap/ROADMAP.md).
+discovery) is complete, and Phase 2 (sources and persistence) is in progress.
+No version 2 package is released. The commands below read the official
+products and print them; they do not yet decide a threat level, which is
+Phase 3's work. The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
+
+## Commands
+
+Run each command with `uv run weatherbot ...` from a checkout. The examples
+use the two public landmarks the project tests with; add your own places the
+same way. Your locations stay in your local database.
+
+```sh
+# Watch a place. The NWS says whether it covers the point; Nominatim names it, once.
+weatherbot locations add "Miami-Dade County Hall" --lat 25.7757 --lon -80.1966
+weatherbot locations add "Parliament Square" --lat 25.0778 --lon -77.3405
+weatherbot locations add "Miami-Dade County Hall" --lat 25.7757 --lon -80.1966 --polygon county  # also store the county's shape
+weatherbot locations list            # the only command that prints coordinates
+weatherbot locations remove "Parliament Square"
+
+weatherbot fetch                     # fetch every official source once; print each outcome
+weatherbot storms                    # active storms, their products, the outlook, wind probabilities
+weatherbot storms --no-fetch         # the same from the latest stored snapshot, with its age
+weatherbot alerts --location "Miami-Dade County Hall"   # NWS alerts, in UTC and local time
+weatherbot alerts --location "Parliament Square"        # outside NWS coverage: the watch-warning segments
+weatherbot doctor                    # paths, database revision, every source and layer
+weatherbot doctor --offline          # local checks only
+```
+
+`locations list`, `fetch`, `storms`, `alerts`, and `doctor` take `--json` and
+print one JSON document whose schema is in [docs/schema/](docs/schema/).
+`--verbose` (before the command: `weatherbot --verbose fetch`) logs at DEBUG
+to standard error. The exit status is 0 when everything answered, 1 when a
+source failed or a check did, and 2 for a usage error. With one location,
+`alerts` needs no `--location`. The first command shows the disclaimer, and
+every read command ends with a one-line reminder of it.
 
 Version 1 is retired. It remains installable with
 `pip install weatherbot==1.0.0`, and its source is the

@@ -385,3 +385,20 @@ class SettingRow(Base):
     key: Mapped[str] = mapped_column(String(64), primary_key=True)
     value: Mapped[Any] = mapped_column(JSON, comment="Any JSON value")
     updated_at: Mapped[datetime]
+
+
+class DriftWarningRow(Base):
+    """A Source-drift warning logged while one snapshot was fetched (revision 0002).
+
+    The message names products and fields, never a coordinate (``weatherbot.sources.drift``).
+    """
+
+    __tablename__ = "drift_warnings"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    snapshot_id: Mapped[UUID] = mapped_column(
+        ForeignKey("snapshots.id", ondelete="CASCADE"), index=True
+    )
+    position: Mapped[int]
+    source_id: Mapped[str] = mapped_column(String(32))
+    message: Mapped[str] = mapped_column(Text)

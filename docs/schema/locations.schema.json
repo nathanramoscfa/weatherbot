@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/locations.schema.json",
+  "$defs": {
+    "LocationEntry": {
+      "additionalProperties": false,
+      "description": "A stored location. Its coordinates appear in this document and in no other.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Longitude",
+          "type": "number"
+        },
+        "country_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Country Code"
+        },
+        "display_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Display Name"
+        },
+        "nws": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NwsCoverage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: outside NWS coverage."
+        },
+        "has_polygon": {
+          "description": "Whether a zone's shape is stored (not shown).",
+          "title": "Has Polygon",
+          "type": "boolean"
+        },
+        "evacuation_order_in_effect": {
+          "title": "Evacuation Order In Effect",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "latitude",
+        "longitude",
+        "country_code",
+        "display_name",
+        "nws",
+        "has_polygon",
+        "evacuation_order_in_effect"
+      ],
+      "title": "LocationEntry",
+      "type": "object"
+    },
+    "LocationsData": {
+      "additionalProperties": false,
+      "description": "The stored locations, by name.",
+      "properties": {
+        "locations": {
+          "items": {
+            "$ref": "#/$defs/LocationEntry"
+          },
+          "title": "Locations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "locations"
+      ],
+      "title": "LocationsData",
+      "type": "object"
+    },
+    "NwsCoverage": {
+      "additionalProperties": false,
+      "description": "What the NWS ``/points`` answer says covers a location (the register's fields).",
+      "properties": {
+        "forecast_zone": {
+          "pattern": "^[A-Z]{2}Z\\d{3}$",
+          "title": "Forecast Zone",
+          "type": "string"
+        },
+        "county_zone": {
+          "pattern": "^[A-Z]{2}C\\d{3}$",
+          "title": "County Zone",
+          "type": "string"
+        },
+        "cwa": {
+          "description": "The forecast office.",
+          "pattern": "^[A-Z]{3}$",
+          "title": "Cwa",
+          "type": "string"
+        },
+        "time_zone": {
+          "description": "An IANA time-zone name.",
+          "pattern": "^[A-Za-z_]+(?:/[A-Za-z0-9_+-]+)+$",
+          "title": "Time Zone",
+          "type": "string"
+        },
+        "city": {
+          "description": "relativeLocation's city.",
+          "title": "City",
+          "type": "string"
+        },
+        "state": {
+          "description": "relativeLocation's state.",
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "forecast_zone",
+        "county_zone",
+        "cwa",
+        "time_zone",
+        "city",
+        "state"
+      ],
+      "title": "NwsCoverage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot locations list --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "locations list",
+      "default": "locations list",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/LocationsData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "LocationsDocument",
+  "type": "object"
+}

@@ -1,0 +1,645 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/storms.schema.json",
+  "$defs": {
+    "ArrivalProductEntry": {
+      "additionalProperties": false,
+      "description": "An arrival-time product the snapshot holds, and where its times come from.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "earliest_reasonable",
+            "most_likely"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "enum": [
+            "kmz",
+            "map_layer"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "advisory": {
+          "title": "Advisory",
+          "type": "string"
+        },
+        "published_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Published At"
+        },
+        "time_zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Time Zone"
+        },
+        "lines": {
+          "minimum": 0,
+          "title": "Lines",
+          "type": "integer"
+        },
+        "withheld_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Withheld Reason"
+        }
+      },
+      "required": [
+        "kind",
+        "origin",
+        "advisory",
+        "published_at",
+        "time_zone",
+        "lines",
+        "withheld_reason"
+      ],
+      "title": "ArrivalProductEntry",
+      "type": "object"
+    },
+    "OutlookEntry": {
+      "additionalProperties": false,
+      "description": "An outlook area: a disturbance, a development region, or a motion arrow.",
+      "properties": {
+        "basin": {
+          "title": "Basin",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "two_day_location",
+            "seven_day_location",
+            "development_region",
+            "development_motion"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "chance_2day_pct": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Chance 2Day Pct"
+        },
+        "chance_7day_pct": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Chance 7Day Pct"
+        },
+        "risk_2day": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OutlookRisk"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "risk_7day": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OutlookRisk"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "basin",
+        "kind",
+        "chance_2day_pct",
+        "chance_7day_pct",
+        "risk_2day",
+        "risk_7day",
+        "issued_at"
+      ],
+      "title": "OutlookEntry",
+      "type": "object"
+    },
+    "OutlookRisk": {
+      "additionalProperties": false,
+      "description": "An outlook area's ``risk2day`` or ``risk7day``.",
+      "properties": {
+        "raw": {
+          "title": "Raw",
+          "type": "string"
+        },
+        "recognized": {
+          "title": "Recognized",
+          "type": "boolean"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OutlookRiskCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "raw",
+        "recognized",
+        "code"
+      ],
+      "title": "OutlookRisk",
+      "type": "object"
+    },
+    "OutlookRiskCode": {
+      "description": "Formation risk in the Graphical Tropical Weather Outlook.",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "title": "OutlookRiskCode",
+      "type": "string"
+    },
+    "SnapshotInfo": {
+      "additionalProperties": false,
+      "description": "The snapshot a document was read from.",
+      "properties": {
+        "snapshot_id": {
+          "format": "uuid",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "age_seconds": {
+          "description": "generated_at minus completed_at.",
+          "minimum": 0,
+          "title": "Age Seconds",
+          "type": "number"
+        },
+        "source_outcomes": {
+          "items": {
+            "$ref": "#/$defs/SourceOutcome"
+          },
+          "title": "Source Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "started_at",
+        "completed_at",
+        "status",
+        "age_seconds",
+        "source_outcomes"
+      ],
+      "title": "SnapshotInfo",
+      "type": "object"
+    },
+    "SourceId": {
+      "enum": [
+        "nhc-current-storms",
+        "nhc-arrival-times",
+        "nhc-map-tropical-weather",
+        "nhc-map-tropical-summary",
+        "nhc-map-breakpoints",
+        "nhc-map-peak-surge",
+        "nhc-map-surge-risk",
+        "nhc-gis-rss",
+        "nhc-gis-archive",
+        "nhc-text-products",
+        "nhc-outlook-graphics",
+        "nws-points",
+        "nws-alerts-point",
+        "nws-alerts-zone",
+        "nws-zones",
+        "basemap-osm-tiles",
+        "overlay-radar",
+        "overlay-satellite",
+        "geocode-nominatim"
+      ],
+      "type": "string"
+    },
+    "SourceOutcome": {
+      "additionalProperties": false,
+      "description": "What one source the snapshot asked for answered.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "not_modified",
+            "failed",
+            "skipped"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "error_kind": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For failed: the error's kind.",
+          "title": "Error Kind"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For skipped: why.",
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "source_id",
+        "status"
+      ],
+      "title": "SourceOutcome",
+      "type": "object"
+    },
+    "StormClassification": {
+      "additionalProperties": false,
+      "description": "A storm's ``classification`` from the roster.",
+      "properties": {
+        "raw": {
+          "title": "Raw",
+          "type": "string"
+        },
+        "recognized": {
+          "title": "Recognized",
+          "type": "boolean"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StormClassificationCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "raw",
+        "recognized",
+        "code"
+      ],
+      "title": "StormClassification",
+      "type": "object"
+    },
+    "StormClassificationCode": {
+      "description": "Storm classifications, from NHC's Tropical Cyclone Status JSON File Reference.",
+      "enum": [
+        "TD",
+        "STD",
+        "TS",
+        "HU",
+        "STS",
+        "PTC",
+        "TY",
+        "PC"
+      ],
+      "title": "StormClassificationCode",
+      "type": "string"
+    },
+    "StormEntry": {
+      "additionalProperties": false,
+      "description": "An active storm from the roster, with the latest advisory and its products.",
+      "properties": {
+        "atcf_id": {
+          "title": "Atcf Id",
+          "type": "string"
+        },
+        "slot": {
+          "$ref": "#/$defs/StormSlot"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "classification": {
+          "$ref": "#/$defs/StormClassification"
+        },
+        "intensity_kt": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Intensity Kt"
+        },
+        "pressure_mb": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Pressure Mb"
+        },
+        "movement_dir_deg": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Movement Dir Deg"
+        },
+        "movement_speed_mph": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Movement Speed Mph"
+        },
+        "advisory": {
+          "description": "The public advisory's number, such as 22A.",
+          "title": "Advisory",
+          "type": "string"
+        },
+        "advisory_issued_at": {
+          "format": "date-time",
+          "title": "Advisory Issued At",
+          "type": "string"
+        },
+        "last_update": {
+          "format": "date-time",
+          "title": "Last Update",
+          "type": "string"
+        },
+        "products": {
+          "$ref": "#/$defs/StormProductsEntry"
+        }
+      },
+      "required": [
+        "atcf_id",
+        "slot",
+        "name",
+        "classification",
+        "intensity_kt",
+        "pressure_mb",
+        "movement_dir_deg",
+        "movement_speed_mph",
+        "advisory",
+        "advisory_issued_at",
+        "last_update",
+        "products"
+      ],
+      "title": "StormEntry",
+      "type": "object"
+    },
+    "StormProductsEntry": {
+      "additionalProperties": false,
+      "description": "Which advisory products the snapshot holds for a storm.",
+      "properties": {
+        "cone": {
+          "title": "Cone",
+          "type": "boolean"
+        },
+        "track": {
+          "title": "Track",
+          "type": "boolean"
+        },
+        "track_points": {
+          "minimum": 0,
+          "title": "Track Points",
+          "type": "integer"
+        },
+        "watch_warning_segments": {
+          "minimum": 0,
+          "title": "Watch Warning Segments",
+          "type": "integer"
+        },
+        "wind_radii": {
+          "minimum": 0,
+          "title": "Wind Radii",
+          "type": "integer"
+        },
+        "arrival_times": {
+          "items": {
+            "$ref": "#/$defs/ArrivalProductEntry"
+          },
+          "title": "Arrival Times",
+          "type": "array"
+        }
+      },
+      "required": [
+        "cone",
+        "track",
+        "track_points",
+        "watch_warning_segments",
+        "wind_radii",
+        "arrival_times"
+      ],
+      "title": "StormProductsEntry",
+      "type": "object"
+    },
+    "StormSlot": {
+      "enum": [
+        "AT1",
+        "AT2",
+        "AT3",
+        "AT4",
+        "AT5",
+        "EP1",
+        "EP2",
+        "EP3",
+        "EP4",
+        "EP5",
+        "CP1",
+        "CP2",
+        "CP3",
+        "CP4",
+        "CP5"
+      ],
+      "type": "string"
+    },
+    "StormsData": {
+      "additionalProperties": false,
+      "description": "The active storms, the outlook, and the wind-probability products.",
+      "properties": {
+        "storms": {
+          "items": {
+            "$ref": "#/$defs/StormEntry"
+          },
+          "title": "Storms",
+          "type": "array"
+        },
+        "outlook": {
+          "items": {
+            "$ref": "#/$defs/OutlookEntry"
+          },
+          "title": "Outlook",
+          "type": "array"
+        },
+        "wind_probabilities": {
+          "items": {
+            "$ref": "#/$defs/WindProbabilityEntry"
+          },
+          "title": "Wind Probabilities",
+          "type": "array"
+        }
+      },
+      "required": [
+        "storms",
+        "outlook",
+        "wind_probabilities"
+      ],
+      "title": "StormsData",
+      "type": "object"
+    },
+    "WindProbabilityEntry": {
+      "additionalProperties": false,
+      "description": "A wind-speed-probability product: one per threshold and synoptic time.",
+      "properties": {
+        "threshold_kt": {
+          "enum": [
+            34,
+            50,
+            64
+          ],
+          "title": "Threshold Kt",
+          "type": "integer"
+        },
+        "synoptic_at": {
+          "format": "date-time",
+          "title": "Synoptic At",
+          "type": "string"
+        },
+        "bands": {
+          "minimum": 0,
+          "title": "Bands",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "threshold_kt",
+        "synoptic_at",
+        "bands"
+      ],
+      "title": "WindProbabilityEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot storms --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "storms",
+      "default": "storms",
+      "title": "Command",
+      "type": "string"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/SnapshotInfo"
+    },
+    "data": {
+      "$ref": "#/$defs/StormsData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "snapshot",
+    "data"
+  ],
+  "title": "StormsDocument",
+  "type": "object"
+}

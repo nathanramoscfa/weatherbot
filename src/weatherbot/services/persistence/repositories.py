@@ -8,6 +8,7 @@
 
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Sequence
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Final, cast
 from uuid import UUID
@@ -33,6 +34,7 @@ from weatherbot.models import (
     OutlookArea,
     OutlookGraphic,
     Snapshot,
+    SourceId,
     SourceOutcome,
     StormProducts,
     StormSummary,
@@ -59,6 +61,7 @@ from weatherbot.services.persistence.tables import (
     AdvisoryRow,
     AlertObservationRow,
     AlertRow,
+    DriftWarningRow,
     FeedItemObservationRow,
     FeedItemRow,
     LocationRow,
@@ -103,6 +106,14 @@ class LocationExistsError(Exception):
 
 class SnapshotStoreError(Exception):
     """A snapshot cannot be stored as given."""
+
+
+@dataclass(frozen=True)
+class DriftWarning:
+    """A Source-drift warning a fetch logged: its source and a coordinate-free message."""
+
+    source_id: SourceId
+    message: str
 
 
 # Locations ---------------------------------------------------------------------------------
@@ -349,13 +360,19 @@ class SnapshotRepository:
         """
         self._engine = engine
 
-    def save(self, snapshot: Snapshot, responses: Sequence[CachedFetch] = ()) -> None:
+    def save(
+        self,
+        snapshot: Snapshot,
+        responses: Sequence[CachedFetch] = (),
+        drift_warnings: Sequence[DriftWarning] = (),
+    ) -> None:
         """Store a snapshot, its outcomes, and the answers behind them in one transaction.
 
         Args:
             snapshot: The snapshot.
             responses: Its sources' answers, each recorded once per body and linked to its
                 source's outcome.
+            drift_warnings: The Source-drift warnings its fetch logged, in order.
 
         Raises:
             SnapshotStoreError: The snapshot is stored already, an answer's source has no
@@ -381,6 +398,15 @@ class SnapshotRepository:
             self._save_text_products(session, snapshot)
             self._save_feed_items(session, snapshot)
             self._save_alerts(session, snapshot)
+            session.add_all(
+                DriftWarningRow(
+                    snapshot_id=snapshot.snapshot_id,
+                    position=position,
+                    source_id=warning.source_id,
+                    message=warning.message,
+                )
+                for position, warning in enumerate(drift_warnings)
+            )
 
     @staticmethod
     def _save_outcomes(
@@ -551,19 +577,47 @@ class SnapshotRepository:
                 )
         session.flush()
 
+    def latest_id(self) -> UUID | None:
+        """Return the id of the snapshot that completed last, without loading it.
+
+        Returns:
+            The id, or ``None`` when none is stored.
+        """
+        with Session(self._engine) as session:
+            return session.scalar(
+                select(SnapshotRow.id)
+                .order_by(SnapshotRow.completed_at.desc(), SnapshotRow.started_at.desc())
+                .limit(1)
+            )
+
     def latest(self) -> Snapshot | None:
         """Return the snapshot that completed last.
 
         Returns:
             The snapshot, or ``None`` when none is stored.
         """
+        snapshot_id = self.latest_id()
+        return self.load(snapshot_id) if snapshot_id is not None else None
+
+    def drift_warnings(self, snapshot_id: UUID) -> tuple[DriftWarning, ...]:
+        """Return the Source-drift warnings stored with a snapshot, in the order logged.
+
+        Args:
+            snapshot_id: The snapshot's id.
+
+        Returns:
+            The warnings; none for a snapshot that is not stored.
+        """
         with Session(self._engine) as session:
-            snapshot_id = session.scalar(
-                select(SnapshotRow.id)
-                .order_by(SnapshotRow.completed_at.desc(), SnapshotRow.started_at.desc())
-                .limit(1)
+            rows = session.scalars(
+                select(DriftWarningRow)
+                .where(DriftWarningRow.snapshot_id == snapshot_id)
+                .order_by(DriftWarningRow.position)
             )
-            return _load(session, snapshot_id) if snapshot_id is not None else None
+            return tuple(
+                DriftWarning(source_id=cast("SourceId", row.source_id), message=row.message)
+                for row in rows
+            )
 
     def load(self, snapshot_id: UUID) -> Snapshot | None:
         """Load a stored snapshot back into an equal ``Snapshot``.

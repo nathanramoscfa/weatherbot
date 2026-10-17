@@ -13,7 +13,7 @@ from weatherbot.services.config import AppPaths
 from weatherbot.services.persistence.database import open_database
 from weatherbot.services.persistence.tables import Base, SettingRow, SnapshotRow
 
-PHASE_2_TABLES = {
+BASELINE_TABLES = {
     "locations",
     "snapshots",
     "source_outcomes",
@@ -32,11 +32,12 @@ PHASE_2_TABLES = {
     "alert_observations",
     "settings",
 }
+PHASE_2_TABLES = BASELINE_TABLES | {"drift_warnings"}  # revision 0002, Step 6
 LATER_PHASES = ("assessment", "evidence", "notification", "heartbeat", "briefing", "ledger")
 EASTERN = timezone(timedelta(hours=-4))
 
 
-def test_the_baseline_tables_are_phase_2s_only() -> None:
+def test_the_tables_are_phase_2s_only() -> None:
     names = set(Base.metadata.tables)
 
     assert names == PHASE_2_TABLES

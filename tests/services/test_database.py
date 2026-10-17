@@ -2,8 +2,8 @@
 """Opening the database: migrations, the backup before them, and refusal.
 
 The history tests walk the package's script directory, so every later revision joins
-them without an edit. The backup and failure tests add a revision to a copy of the
-scripts, because the baseline is the only revision so far.
+them without an edit. The backup and failure tests add a probe revision after the head to
+a copy of the scripts, so they never depend on what the head revision creates.
 """
 
 import shutil
@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 from alembic import command
+from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import Engine, inspect, text
 
@@ -37,6 +38,8 @@ HEAD = head_revision()
 REVISIONS = [
     script.revision for script in ScriptDirectory(str(MIGRATIONS_DIRECTORY)).walk_revisions()
 ]
+PROBE = "probe"
+"""A test revision after the head, in a copy of the scripts."""
 STAMP = datetime(2026, 10, 17, 12, 30, 5, tzinfo=UTC)
 EXTRA_TABLE = """
 def upgrade() -> None:
@@ -63,10 +66,18 @@ def paths() -> AppPaths:
 
 
 def _migrate(engine: Engine, target: str, migrations: Path = MIGRATIONS_DIRECTORY) -> None:
+    """Move a database to ``target``: down to an earlier revision, else up to it."""
     with engine.begin() as connection:
         config = alembic_config(connection, migrations)
-        if target == "base":
-            command.downgrade(config, "base")
+        current = MigrationContext.configure(connection).get_current_revision()
+        script = ScriptDirectory(str(migrations))
+        earlier = (
+            {revision.revision for revision in script.iterate_revisions(current, "base")}
+            if current is not None
+            else set[str]()
+        )
+        if target == "base" or (target != current and target in earlier):
+            command.downgrade(config, target)
         else:
             command.upgrade(config, target)
 
@@ -80,14 +91,15 @@ def engine(paths: AppPaths) -> Iterator[Engine]:
 
 
 def _with_revision(tmp_path: Path, body: str) -> Path:
-    """Copy the package's scripts and add revision ``0002`` after the head."""
+    """Copy the package's scripts and add the revision ``PROBE`` after the head."""
     migrations = tmp_path / "migrations"
     shutil.copytree(MIGRATIONS_DIRECTORY, migrations, ignore=shutil.ignore_patterns("__pycache__"))
     header = (
         '"""A test revision."""\n\nimport sqlalchemy as sa\nfrom alembic import op\n\n'
-        f'revision = "0002"\ndown_revision = "{HEAD}"\nbranch_labels = None\ndepends_on = None\n'
+        f'revision = "{PROBE}"\ndown_revision = "{HEAD}"\nbranch_labels = None\n'
+        "depends_on = None\n"
     )
-    (migrations / "versions" / "0002_probe.py").write_text(header + body, encoding="utf-8")
+    (migrations / "versions" / f"{PROBE}.py").write_text(header + body, encoding="utf-8")
     return migrations
 
 
@@ -179,7 +191,7 @@ def test_an_upgrade_from_a_behind_revision_backs_up_first_through_the_online_api
 
     try:
         with open_database(paths, migrations=migrations, now=lambda: STAMP) as opened:
-            assert opened.revision == "0002"
+            assert opened.revision == PROBE
             backup = opened.backup_path
     finally:
         holder.close()
@@ -193,7 +205,7 @@ def test_an_upgrade_from_a_behind_revision_backs_up_first_through_the_online_api
         assert connection.execute("SELECT key FROM settings").fetchall() == [("probe",)]
     with closing(sqlite3.connect(raw_copy)) as connection:
         assert connection.execute("SELECT key FROM settings").fetchall() == []
-    assert _revision_of(paths.database_path) == "0002"
+    assert _revision_of(paths.database_path) == PROBE
 
 
 def test_a_failed_upgrade_keeps_its_backup_and_names_it(
