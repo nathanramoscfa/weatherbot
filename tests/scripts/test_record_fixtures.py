@@ -28,6 +28,7 @@ import respx
 
 import check_personal_data as checker
 import record_fixtures as recorder
+from weatherbot.sources.nws import point_alerts_url, points_url
 
 FIXED_NOW = datetime(2026, 10, 20, 15, 2, 11, tzinfo=UTC)
 DAY = date(2026, 10, 20)
@@ -386,7 +387,7 @@ def test_the_nassau_points_error_is_recorded_with_its_status_and_body(
 ) -> None:
     problem = {"title": "Data Unavailable For Requested Point", "status": 404}
     for landmark in landmarks:
-        url = f"{recorder.NWS_ROOT}/points/{recorder.coordinates(landmark)}"
+        url = points_url(float(landmark.lat), float(landmark.lon))
         if landmark.key == "nassau":
             noaa.answer(
                 url,
@@ -411,7 +412,7 @@ def test_an_unlabelled_error_response_is_not_recorded(
 ) -> None:
     for landmark in landmarks:
         noaa.answer(
-            f"{recorder.NWS_ROOT}/points/{recorder.coordinates(landmark)}",
+            points_url(float(landmark.lat), float(landmark.lon)),
             Reply(status=404, body=b"<html>Not Found</html>"),
         )
 
@@ -429,7 +430,7 @@ def test_zone_sources_follow_the_zones_the_points_response_names(
         "fireWeatherZone": f"{zone}/fire/FLZ173",
     }
     for landmark in landmarks:
-        url = f"{recorder.NWS_ROOT}/points/{recorder.coordinates(landmark)}"
+        url = points_url(float(landmark.lat), float(landmark.lon))
         if landmark.key == "nassau":
             noaa.answer(url, Reply(status=404, headers={"content-type": recorder.PROBLEM_JSON}))
         else:
@@ -460,7 +461,7 @@ def test_a_zone_url_outside_the_zone_pattern_is_refused(
 ) -> None:
     for landmark in landmarks:
         noaa.json(
-            f"{recorder.NWS_ROOT}/points/{recorder.coordinates(landmark)}",
+            points_url(float(landmark.lat), float(landmark.lon)),
             {"properties": {"county": "https://api.weather.gov/zones/county/../../admin"}},
             content_type="application/geo+json",
         )
@@ -509,11 +510,9 @@ def test_manifest_urls_carry_only_landmark_coordinates(
 ) -> None:
     allowlist = checker.Allowlist.from_landmarks(landmarks)
     for landmark in landmarks:
+        noaa.json(points_url(float(landmark.lat), float(landmark.lon)), {"properties": {}})
         noaa.json(
-            f"{recorder.NWS_ROOT}/points/{recorder.coordinates(landmark)}", {"properties": {}}
-        )
-        noaa.json(
-            f"{recorder.NWS_ROOT}/alerts/active?point={recorder.coordinates(landmark)}",
+            point_alerts_url(float(landmark.lat), float(landmark.lon)),
             json.loads(EMPTY_COLLECTION),
         )
         noaa.json(

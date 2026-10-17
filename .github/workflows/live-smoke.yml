@@ -1,12 +1,13 @@
 # .github/workflows/live-smoke.yml
-# The live smoke: `pytest -m live` against the real NHC services. The
+# The live smoke: `pytest -m live` against the real NHC, NWS, and Nominatim services. The
 # repository is public, so the job runs on GitHub-hosted runners only; never
 # point this workflow at a self-hosted runner.
 #
 # Manual by design: `workflow_dispatch` is its only trigger. Detecting source
 # drift on a schedule belongs to Phase 4's heartbeat and staleness rules. The
 # workflow joins neither `gate` nor branch protection, uses no secret, and
-# its tests send no coordinate. Dispatch it with:
+# its tests send no coordinate but the two public landmarks of
+# scripts/public_landmarks.toml. Dispatch it with:
 #
 #   gh workflow run live-smoke.yml --ref main
 name: live-smoke

@@ -56,6 +56,8 @@ from weatherbot.sources.http import DEFAULT_INTERVAL, HEADER_ALLOWLIST, HOST_INT
 from weatherbot.sources.markup import parse_xml
 from weatherbot.sources.nhc_arrival_times import ARRIVAL_KMZ_URL, KINDS, read_kml
 from weatherbot.sources.nhc_text_products import PRODUCT_ID_PATTERN
+from weatherbot.sources.nominatim import REVERSE_URL, reverse_url
+from weatherbot.sources.nws import point_alerts_url, points_url
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = REPOSITORY_ROOT / "tests" / "fixtures" / "recorded"
@@ -64,8 +66,8 @@ DEFAULT_CACHE = REPOSITORY_ROOT / "cache"
 
 RECORDER_PATH = "scripts/record_fixtures.py"
 # USER_AGENT, the header allowlist, the per-host intervals, the ArcGIS query parameters, the
-# arrival-time URL pattern, and the product-id pattern are the package's
-# (weatherbot.sources): one definition each, shared with the clients.
+# arrival-time URL pattern, the product-id pattern, and the coordinate URL builders are
+# the package's (weatherbot.sources): one definition each, shared with the clients.
 SCHEMA_VERSION = 1
 MANIFEST_NAME = "manifest.json"
 
@@ -79,7 +81,7 @@ BACKOFF_SECONDS = 2.0
 
 NHC_ROOT = "https://www.nhc.noaa.gov"
 NWS_ROOT = "https://api.weather.gov"
-NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse"
+NOMINATIM_URL = REVERSE_URL
 MAP_ROOT = "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical"
 NOWCOAST_ROOT = "https://nowcoast.noaa.gov/geoserver"
 
@@ -617,24 +619,12 @@ class Recorder:
             The response.
         """
         if landmark.key not in self._points:
-            url = f"{NWS_ROOT}/points/{coordinates(landmark)}"
+            url = points_url(float(landmark.lat), float(landmark.lon))
             self._points[landmark.key] = self.fetcher.get(
                 url, source="nws-points", accept=(200, *DOCUMENTED_ERROR_STATUSES)
             )
             require_documented(self._points[landmark.key], "nws-points")
         return self._points[landmark.key]
-
-
-def coordinates(landmark: Landmark) -> str:
-    """Format a landmark as ``lat,lon`` to four decimals, the way the register writes it.
-
-    Args:
-        landmark: A public landmark.
-
-    Returns:
-        For example ``25.7757,-80.1966``.
-    """
-    return f"{landmark.lat:.4f},{landmark.lon:.4f}"
 
 
 def require_documented(fetched: Fetched, source: str) -> None:
@@ -1047,7 +1037,7 @@ def record_nws_alerts_point(recorder: Recorder) -> list[Capture]:
     captures: list[Capture] = []
     for landmark in recorder.landmarks:
         fetched = recorder.fetcher.get(
-            f"{NWS_ROOT}/alerts/active?point={coordinates(landmark)}",
+            point_alerts_url(float(landmark.lat), float(landmark.lon)),
             source=source,
             accept=(200, *DOCUMENTED_ERROR_STATUSES),
         )
@@ -1154,8 +1144,8 @@ def record_nominatim(recorder: Recorder) -> list[Capture]:
     """
     captures: list[Capture] = []
     for landmark in recorder.landmarks:
-        query = f"format=jsonv2&lat={landmark.lat:.4f}&lon={landmark.lon:.4f}"
-        fetched = recorder.fetcher.get(f"{NOMINATIM_URL}?{query}", source="geocode-nominatim")
+        url = reverse_url(float(landmark.lat), float(landmark.lon))
+        fetched = recorder.fetcher.get(url, source="geocode-nominatim")
         parse_json(fetched.body, "a Nominatim response")
         captures.append(capture_of(fetched, f"reverse-{landmark.key}.json"))
     return captures

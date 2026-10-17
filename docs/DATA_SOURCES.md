@@ -7,8 +7,12 @@ unless a product's own local time is quoted.
 Step 3: the `nhc-arrival-times` row, its section
 [Arrival-time KMZ](#arrival-time-kmz), the narrowed "Not used" row on
 per-storm KMZ, and the "Fields v2 uses" lists of the text products and the
-GIS feeds. Every other statement keeps 2026-10-12, or the date its own
-amendment names.
+GIS feeds. Amended again 2026-10-17, live, between 16:15 and 16:18 UTC, for
+Phase 2 Step 4: the point precision under [Points](#points), the first
+recorded alert under [Alerts for a zone](#alerts-for-a-zone), and the
+"Fields v2 uses" lists of the NWS points, the alerts, and Nominatim, which
+now name nested members as `object.member`. Every other statement keeps
+2026-10-12, or the date its own amendment names.
 
 ## Purpose
 
@@ -119,9 +123,9 @@ response headers on an allowlist (never `set-cookie`).
 | `nhc-gis-archive` | NHC GIS archive and `gis-at.xml` | `https://www.nhc.noaa.gov/gis/archive_forecast.php?year={yyyy}` | HTML listings; ZIP (shapefiles), KMZ, KML | `replay-corpus` | Static per season | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-text-products` | NHC text products (TCP, TWO) | `https://api.weather.gov/products/types/{TCP,TWO}/locations/{location}` | JSON-LD (`application/ld+json`) | `required` | TCP per advisory; TWO four times a day; `max-age=120` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-outlook-graphics` | NHC outlook graphics | `https://www.nhc.noaa.gov/xgtwo/two_{atl,pac,cpac}_{2d0,7d0}.png` | PNG | `required` | Per outlook, and redrawn with advisories; `max-age=300`, `ETag`, `Last-Modified`, 304 honored | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
-| `nws-points` | NWS API | `https://api.weather.gov/points/{lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Static per point; `max-age=86400` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
-| `nws-alerts-point` | NWS API | `https://api.weather.gov/alerts/active?point={lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
-| `nws-alerts-zone` | NWS API | `https://api.weather.gov/alerts/active/zone/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
+| `nws-points` | NWS API | `https://api.weather.gov/points/{lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Static per point; `max-age=86400` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-17 |
+| `nws-alerts-point` | NWS API | `https://api.weather.gov/alerts/active?point={lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-17 |
+| `nws-alerts-zone` | NWS API | `https://api.weather.gov/alerts/active/zone/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-17 |
 | `nws-zones` | NWS API | `https://api.weather.gov/zones/{type}/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Static (zones effective 2026-04-16); `max-age` of weeks, `Last-Modified` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `basemap-osm-tiles` | OpenStreetMap tiles | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | PNG tiles | `none — display-only: the browser loads tiles directly and the code never parses one; the OSMF tile policy forbids bulk download` | Cached per the tile's own headers (`max-age` of days) | [OSMF Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/); visible attribution required | 2026-10-12 |
 | `overlay-radar` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/weather_radar/ows` | WMS 1.3.0 capabilities XML; PNG tiles | `required` | Mosaic about every 4 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE` | 2026-10-12 |
@@ -618,8 +622,19 @@ s-maxage=86400`.
   `timeZone` `America/New_York`; `radarStation` `KAMX`;
   `relativeLocation` Miami, FL.
 - **Fields v2 uses:** `forecastZone` and `county` (the zone id is the last
-  path segment), `cwa`, `timeZone`, and `relativeLocation.properties.city`
-  and `state`.
+  path segment), `cwa`, `timeZone`, `relativeLocation.properties.city`, and
+  `relativeLocation.properties.state`.
+- **Precision** (amended 2026-10-17): four decimals. The
+  [API documentation](https://www.weather.gov/documentation/services-web-api)
+  writes its examples with four decimals but states no rule; the API states
+  it. A request for the Miami-Dade landmark with a fifth decimal returned
+  301 with `Location: /points/25.7757,-80.1966` and an
+  `application/problem+json` body of type
+  `https://api.weather.gov/problems/AdjustPointPrecision`: "The precision
+  of latitude/longitude points is limited for efficiency." The clients
+  refuse redirects, so `weatherbot.sources.nws.format_point` writes every
+  point with four decimals, rounded half to even, and is the only function
+  that writes a coordinate into a URL (Nominatim's included).
 
 For the Nassau landmark, `GET https://api.weather.gov/points/25.0778,-77.3405`
 returned the API's out-of-coverage error: 404, `application/problem+json`,
@@ -682,9 +697,18 @@ issue [#10](https://github.com/nathanramoscfa/weatherbot/issues/10).
   `expiredReferences`), `scope`, `code`, `language`, `web`, `eventCode`.
 - **Fields v2 uses:** `id`, `event`, `headline`, `severity`, `certainty`,
   `urgency`, `status`, `messageType`, `category`, `sent`, `effective`,
-  `onset`, `expires`, `ends`, `areaDesc`, `affectedZones`, `geocode`,
-  `senderName`, `references`, `parameters.VTEC`, `parameters.NWSheadline`,
-  `description`, `instruction`.
+  `onset`, `expires`, `ends`, `areaDesc`, `affectedZones`, `geocode.SAME`,
+  `geocode.UGC`, `senderName`, `references`, `parameters.VTEC`,
+  `parameters.NWSheadline`, `description`, `instruction`. Each reference's
+  identifier is read. The two parameters are read when present: a product
+  without VTEC or a headline omits them (amended 2026-10-17).
+- **First recorded alert** (amended 2026-10-17, recorded at 16:17 UTC
+  beside the 2026-10-12 set as a Source drift capture): a Rip Current
+  Statement from NWS Miami FL (`affectedZones` `FLZ168`, `FLZ172`,
+  `FLZ173`; `geocode.SAME` including `012086`; `geometry` null) that the
+  point query, `FLC086`, and `FLZ173` all returned. The client merges it
+  into one alert found by all three queries. The Nassau point query again
+  returned 400 `InvalidParameter`.
 
 ### Zones
 
@@ -963,8 +987,10 @@ its materials in the public domain and appreciates attribution.
   - **Fields present:** `place_id`, `licence`, `osm_type`, `osm_id`,
     `lat`, `lon`, `category`, `type`, `place_rank`, `importance`,
     `addresstype`, `name`, `display_name`, `address`, `boundingbox`.
-  - **Fields v2 uses:** `display_name`, `name`, `address`
-    (`country_code`, `country`), `licence`, `osm_type`, `osm_id`.
+  - **Fields v2 uses:** `display_name`, `name`, `address.country_code`,
+    `address.country`, `licence`, `osm_type`, `osm_id` (amended
+    2026-10-17). An answer that holds only an error member (no place at the point) is
+    not a place, and the client returns none.
   - **Policy:** the
     [usage policy](https://operations.osmfoundation.org/policies/nominatim/)
     sets "an absolute maximum of 1 request per second" and a User-Agent

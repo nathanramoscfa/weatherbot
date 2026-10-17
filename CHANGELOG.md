@@ -14,6 +14,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Added
+- The NWS client, `weatherbot.sources.nws`. `lookup_point` resolves a point
+  to its forecast zone, county, office, and time zone, and returns
+  `OutsideNwsCoverage` for the documented `InvalidPoint` 404. `fetch_alerts`
+  queries the point, the county, and the forecast zone and merges the
+  answers by alert id. Each alert keeps `found_by`, its affected zones, and
+  both geocode lists, which issue #10's rule needs in Phase 3, and nothing
+  is filtered by zone. A location outside NWS coverage sends no alert
+  request. `fetch_zone` reads a zone's metadata and shape with conditional
+  requests. `format_point` writes every point with four decimals, the
+  precision the API serves (recorded in the register 2026-10-17). It is
+  the only function that writes a coordinate into a URL, and the fixture
+  recorder now uses it too.
+- The Nominatim client, `weatherbot.sources.nominatim`: `reverse_geocode`
+  returns the place's display name, country, and the licence text for the
+  attribution. It sends one request per location, at setup, never per
+  fetch, and returns none when Nominatim finds no place.
+- The first recorded NWS alert: a Rip Current Statement (2026-10-17) that
+  the point, county, and forecast-zone queries all returned, recorded
+  beside the 2026-10-12 set. The register's points, alerts, and Nominatim
+  "Fields v2 uses" lists now name nested members as `object.member`.
 - The register source `nhc-arrival-times` (issue #11): the arrival-time KMZ
   that the roster links, with its row, an "Arrival-time KMZ" section, and a
   narrowed "Not used" row in `docs/DATA_SOURCES.md` (verified 2026-10-17).

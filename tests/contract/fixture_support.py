@@ -212,7 +212,8 @@ def register_layers(service: str) -> list[RegisterLayer]:
 
 SLOT_SERVICE = "NHC_tropical_weather"
 _QUOTED = re.compile(r"`([^`]+)`")
-BULLET = "\n- "
+# A bullet ends where the next one starts, at any indentation (nested lists included).
+_NEXT_BULLET = re.compile(r"\n[ \t]*- ")
 
 
 def _names(cell: str, layer: str, column: str) -> frozenset[str]:
@@ -250,20 +251,23 @@ def layer_fields(service: str) -> dict[str, dict[str, frozenset[str]]]:
     }
 
 
-def register_section_fields(heading: str, label: str = "Fields v2 uses") -> frozenset[str]:
+def register_section_fields(
+    heading: str, label: str = "Fields v2 uses", *, level: int = 2
+) -> frozenset[str]:
     """Read a section's "Fields v2 uses" bullet: the names it quotes, up to the next bullet.
 
     Args:
-        heading: The ``##`` section, such as ``Text products``.
+        heading: The section, such as ``Text products``.
         label: The bullet's bold label, such as ``List fields v2 uses``.
+        level: The heading's level: 2 for ``##``, 3 for ``###``.
 
     Returns:
         The field names, nested members as ``object.member``.
     """
-    section = _section(register_text(), heading, 2)
+    section = _section(register_text(), heading, level)
     start = section.index(f"- **{label}:**")
-    end = section.find(BULLET, start + 1)
-    return frozenset(_QUOTED.findall(section[start : end if end != -1 else None]))
+    following = _NEXT_BULLET.search(section, start + 1)
+    return frozenset(_QUOTED.findall(section[start : following.start() if following else None]))
 
 
 def register_roster_fields() -> frozenset[str]:
