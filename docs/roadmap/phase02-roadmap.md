@@ -2330,6 +2330,29 @@ new per phase-boundary hygiene.
       it to every line: they stay unresolved with that reason.
       `published_at` must be the instant `parse_nhc_local_time`
       reads from `published_local_text`.
+    - Carry-over from Step 2 (2026-10-16). Issues #11 and #12
+      were closed on 2026-10-16 by PR #19's merge, before any
+      parser existed and with no decision comment; Step 2's PR
+      commented on #12. Step 3 earns #11's close: post the
+      decision comment, and reopen #11 if a criterion below
+      fails. The client API: `Fetcher.get(url, *, source_id,
+      accept, problems, max_bytes)` returns a `FetchResult`
+      (`.provenance()` builds the record's `Provenance`); every
+      fetch function returns `SourceResult(records,
+      responses)`; `arcgis.fetch_catalog(fetcher, service)`
+      returns a `SourceResult[MapCatalog]`, read once per run
+      and passed to every fetch function; `arcgis.query`
+      takes the resolved `MapLayer`, not a bare id, so its
+      errors name the layer. Parsers read fields through
+      `weatherbot.sources.fields.Fields` and a declared
+      `FIELDS_READ`, and raise `SourceSchemaError` on a missing
+      or mistyped field; `weatherbot.sources.drift.warn_drift`
+      logs a Source-drift warning. A map-layer arrival product's
+      `Advisory` has `issued_at_source` `roster` (the roster's
+      arrival-time `issuance`) and no `local_text`; a KMZ
+      product's `Advisory` takes the default `local_text`
+      source from `pubAdvTime`. A `Retry-After` over 60 seconds
+      fails the source without a retry.
     - The map layers' arrival-time lines parse into label-only
       `ArrivalTimeProduct` values (`origin` `map_layer`). The
       roster names each storm's arrival-time KMZ: on 2026-10-12,
@@ -2930,6 +2953,15 @@ phase-boundary hygiene.
       above DEBUG, and types `application/problem+json` answers
       the caller declares as `DocumentedProblem`. Issues #11 and
       #12 are closed; issue #10 is open for Phase 3.
+    - Carry-over from Step 2 (2026-10-16): declare the
+      documented error statuses with `problems=(404,)` (and
+      `(400,)` for an out-of-bounds alerts point); a
+      `DocumentedProblem` keeps the problem's `type` and
+      `title` and drops its `detail`, which repeats the
+      coordinates. `redact_url` and `RedactingFilter` in
+      `weatherbot.sources.http` also cover `latitude` and
+      `longitude`, and `tests/sources/test_http.py` shows the
+      `synthetic_coordinates()` pattern for the privacy tests.
     - `weatherbot.models` defines `NwsAlert` (with `found_by`,
       `affected_zone_ids`, `geocode_same`, `geocode_ugc`),
       `AlertQuery`, `NwsCoverage`, `NwsZone`, `GeocodeResult`,
@@ -3429,6 +3461,16 @@ comes from the other maker. The conversation is new per phase-boundary hygiene.
       has an in-memory implementation only, so conditional
       requests do not survive a run; `FetchResult` carries the
       body, its SHA-256, and the allowlisted headers.
+    - Carry-over from Step 2 (2026-10-16): the protocol is
+      `ValidatorStore.load(url) -> StoredResponse | None` and
+      `save(url, StoredResponse(etag, last_modified, body,
+      sha256, headers))`; only a 200 with an `ETag` or a
+      `Last-Modified` is saved, and a 304 returns the stored
+      body with `not_modified` and the stored hash. Two model
+      fields arrived in Step 2 for the tables to hold:
+      `Advisory.issued_at_source` (`local_text` or `roster`,
+      with `local_text` nullable for the map-layer arrival
+      products) and `MapCatalog.max_record_count`.
     - The project roadmap fixes the rules (§5, "Data and schema
       migrations" and "Rollback"): migrations run at application
       start after the application copies the database aside, the
@@ -4007,6 +4049,20 @@ per phase-boundary hygiene.
       revisions) and stores and loads `Snapshot` and `Location`
       values; tests run in `tmp_path` with both directories
       pinned there.
+    - Carry-over from Step 2 (2026-10-16): Source-drift
+      warnings are WARNING records on the `weatherbot.sources`
+      logger with `extra={"source_drift": <source id>}`
+      (`weatherbot.sources.drift.DRIFT_ATTRIBUTE`), so the
+      snapshot service collects a run's warnings with a
+      handler; "the Step 2 redaction filter" is
+      `weatherbot.sources.http.RedactingFilter`. The map fetch
+      functions are `nhc_map.fetch_storm_products`,
+      `fetch_storm_display_layers`, `fetch_wind_probabilities`
+      (each with the catalog and the roster's storms; the
+      storm ones send no request when there is no storm, the
+      `skipped` outcome), `fetch_outlook`, `fetch_breakpoints`,
+      and `fetch_peak_surge`; `nhc_current_storms.
+      fetch_current_storms` reads the roster.
     - The CLI is a Typer `app` with `--version` only; Typer
       brings Rich, and `tests/test_cli.py` strips ANSI escapes
       because GitHub's runners force color.
