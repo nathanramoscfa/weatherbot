@@ -162,6 +162,43 @@ class Fields:
             raise self._error(name, "is missing")
         return self._values[name]
 
+    def has(self, name: str) -> bool:
+        """Return whether a declared field is present, for a field the source may omit.
+
+        Args:
+            name: The field.
+
+        Returns:
+            Whether the object holds the field (its value may be null).
+
+        Raises:
+            RuntimeError: The parser did not declare the field.
+        """
+        if name not in self._declared:
+            message = f"{self.where}: the parser reads {name!r} without declaring it"
+            raise RuntimeError(message)
+        return name in self._values
+
+    def texts(self, name: str) -> tuple[str, ...]:
+        """Return a field that holds a list of text values.
+
+        Args:
+            name: The field.
+
+        Returns:
+            The values, in order.
+
+        Raises:
+            SourceSchemaError: The field is absent, or not a list of text.
+        """
+        value = self.raw(name)
+        if not isinstance(value, list):
+            raise self._error(name, "is not a list")
+        items = cast("list[object]", value)
+        if not all(isinstance(item, str) for item in items):
+            raise self._error(name, "is not a list of text")
+        return tuple(cast("list[str]", items))
+
     def optional_text(self, name: str) -> str | None:
         """Return a text field, or ``None`` when it is null.
 

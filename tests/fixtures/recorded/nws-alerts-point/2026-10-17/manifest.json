@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "source": "nws-alerts-point",
+  "recorded_at": "2026-10-17T16:17:29Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "alerts-point-miami-dade.geojson",
+      "url": "https://api.weather.gov/alerts/active?point=25.7757,-80.1966",
+      "status": 200,
+      "fetched_at": "2026-10-17T16:17:28Z",
+      "sha256": "e304aad0b1345152908ef71df92227e49e556a501f2fa9f79fa7d512d82681ef",
+      "bytes": 4337,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "public, max-age=5, s-maxage=5",
+        "content-length": "1373",
+        "content-type": "application/geo+json",
+        "date": "Sat, 17 Oct 2026 16:17:27 GMT",
+        "etag": "W/\"f19c827618547bd70c4a73fb60cb0625\"",
+        "expires": "Sat, 17 Oct 2026 16:17:32 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "alerts-point-nassau.json",
+      "url": "https://api.weather.gov/alerts/active?point=25.0778,-77.3405",
+      "status": 400,
+      "fetched_at": "2026-10-17T16:17:29Z",
+      "sha256": "7737ddbc3e6b5ff9f6f38ebe3f04b36ac75698b6441137a397d8f70ffb61b2c1",
+      "bytes": 277,
+      "stored_as": "raw",
+      "headers": {
+        "cache-control": "private, no-cache",
+        "content-length": "277",
+        "content-type": "application/problem+json",
+        "date": "Sat, 17 Oct 2026 16:17:28 GMT",
+        "expires": "Sat, 17 Oct 2026 16:17:28 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    }
+  ]
+}

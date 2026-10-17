@@ -72,7 +72,11 @@ storm's arrival-time KMZ pair and the archived Dorian pair, one TCP list,
 the three TWO lists, one outlook map twice (the second request
 conditional), the three GIS feeds, both overlay capabilities documents,
 and the surge-risk catalog. A test that needs an active storm skips, and
-says why, when none is active. No live test sends a coordinate. Run it before a change that touches a source client, and whenever
+says why, when none is active. The NWS and Nominatim tests send the two
+public landmarks of `scripts/public_landmarks.toml` and no other
+coordinate: the Miami-Dade point, its alerts, and its three zones; the
+Nassau point, which is outside NWS coverage and makes no alert request;
+and one reverse lookup per landmark. Run it before a change that touches a source client, and whenever
 a register layer, field, or product may have changed (Source drift).
 
 The same suite runs on GitHub's hosted runners when you dispatch
