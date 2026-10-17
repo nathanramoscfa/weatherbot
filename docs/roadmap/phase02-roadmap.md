@@ -3185,9 +3185,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 5 — Persistence and configuration
+## Step 5 — Persistence and configuration ✅
 
-**Status:** Not started
+**Status:** Complete — PR #24 (2026-10-17)
 
 > **Goal:** Give the application its local state. `weatherbot.services.config`
 > resolves the configuration and data directories through `platformdirs`
@@ -3222,6 +3222,8 @@ Deployed & verified check.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-17: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 5 is coding at High complexity: a schema that must
 hold every Step 1 model and give it back unchanged, a migration path with a
@@ -5262,7 +5264,7 @@ workflow above maps directly to the corresponding row below.
 | 2    | HTTP + NHC map clients   | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #21 |
 | 3    | NHC products             | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #22 |
 | 4    | NWS + geocoding clients  | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Complete — PR #23 |
-| 5    | Persistence + config     | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 5    | Persistence + config     | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #24 |
 | 6    | Services + CLI commands  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 7    | QA + verify_phase02.py   | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
 | V1   | Domain models            | CI: ci.yml               | --           | --                  | --       | --   | --          |
