@@ -11,11 +11,13 @@ import gzip
 import io
 import json
 import sys
+import zipfile
 from pathlib import Path
 
 import pytest
 
 import check_personal_data as checker
+from weatherbot.sources import nhc_arrival_times
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
@@ -103,6 +105,65 @@ def test_r1_scans_a_gzip_payload_decompressed(
 
     assert status == checker.EXIT_FINDINGS
     assert "cone.geojson.gz:2: R1 denylist entry in the decompressed payload" in output
+
+
+def zipped(*members: tuple[str, bytes]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name, data in members:
+            archive.writestr(name, data)
+    return buffer.getvalue()
+
+
+def test_r1_scans_every_zip_member_decompressed(
+    denylist: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    entry = checker.read_denylist(denylist)[0]
+    kml = f"<kml>\n<Document>\n<value>{entry}</value>\n</Document>\n</kml>\n".encode()
+    payload = zipped(("labels/am.png", b"\x89PNG label"), ("doc.kml", kml))
+    assert entry.encode() not in payload, "the planted value is hidden by compression"
+    path = write("tests/fixtures/recorded/nhc-arrival-times/2026-10-20/doc.kmz", payload)
+
+    status, output = run(capsys, path)
+
+    assert status == checker.EXIT_FINDINGS
+    assert "doc.kmz:3: R1 denylist entry in zip member 2" in output
+    assert entry not in output
+
+
+def test_r1_passes_a_clean_zip(denylist: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert denylist.exists()
+    path = write("notes/clean.kmz", zipped(("doc.kml", b"<kml/>")))
+
+    assert run(capsys, path)[0] == checker.EXIT_CLEAN
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        b"PK\x03\x04 truncated",
+        zipped(("doc.kml", b"<kml/>"), ("labels/blank.png", bytes(1024 * 1024))),
+        zipped(("../doc.kml", b"<kml/>")),
+        zipped(*((f"labels/{index}.png", b"png") for index in range(65))),
+    ],
+    ids=["unreadable", "high-ratio", "parent-relative", "too-many-members"],
+)
+def test_r1_fails_closed_on_a_zip_it_cannot_scan_within_the_bounds(
+    denylist: Path, capsys: pytest.CaptureFixture[str], payload: bytes
+) -> None:
+    assert denylist.exists()
+    path = write("tests/fixtures/recorded/nhc-arrival-times/2026-10-20/bad.kmz", payload)
+
+    status, output = run(capsys, path)
+
+    assert status == checker.EXIT_FINDINGS
+    assert "bad.kmz:0: R1 zip archive could not be scanned" in output
+
+
+def test_the_zip_bounds_are_the_arrival_time_clients() -> None:
+    assert checker.MAX_ZIP_MEMBERS == nhc_arrival_times.MAX_MEMBERS
+    assert checker.MAX_ZIP_UNCOMPRESSED_BYTES == nhc_arrival_times.MAX_UNCOMPRESSED_BYTES
+    assert checker.MAX_ZIP_RATIO == nhc_arrival_times.MAX_COMPRESSION_RATIO
 
 
 def test_r1_matches_regardless_of_letter_case(

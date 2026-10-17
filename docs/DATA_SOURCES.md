@@ -3,6 +3,13 @@
 **Verified:** 2026-10-12, live, between 21:36 and 22:09 UTC. Times are UTC
 unless a product's own local time is quoted.
 
+**Amended:** 2026-10-17, live, between 04:10 and 04:17 UTC, for Phase 2
+Step 3: the `nhc-arrival-times` row, its section
+[Arrival-time KMZ](#arrival-time-kmz), the narrowed "Not used" row on
+per-storm KMZ, and the "Fields v2 uses" lists of the text products and the
+GIS feeds. Every other statement keeps 2026-10-12, or the date its own
+amendment names.
+
 ## Purpose
 
 This register lists every external source Weatherbot version 2 reads, as
@@ -85,6 +92,10 @@ response headers on an allowlist (never `set-cookie`).
   count. `StormSurgeRisk` records its catalog only.
 - **Text products.** For every active storm slot, the NWS API's TCP list and
   its newest product; for each basin, the TWO list and its newest product.
+- **Arrival-time KMZ** (added 2026-10-17). The archived Dorian 036 pair,
+  always, and both files every active storm's roster objects link, stored
+  as received. Every URL is checked against the pattern before the first
+  request.
 - **Documented errors.** The Nassau landmark's `/points` response (404) and
   `alerts/active?point=` response (400) are recorded with their status and
   `application/problem+json` body.
@@ -98,6 +109,7 @@ response headers on an allowlist (never `set-cookie`).
 | Source id | Brief §5 source | Endpoint | Format | Fixture | Cadence | Terms | Verified |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `nhc-current-storms` | `CurrentStorms.json` | `https://www.nhc.noaa.gov/CurrentStorms.json` | JSON | `required` | Rewritten after each advisory (at 21:24 for the 21:00 advisory); advisories every 6 h with intermediates between; `max-age=300`, `ETag`, `Last-Modified`, 304 honored | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
+| `nhc-arrival-times` | `CurrentStorms.json` | `https://www.nhc.noaa.gov/storm_graphics/api/{ID}_{adv}adv_{earliest_reasonable,most_likely}_toa_34.kmz` | KMZ (KML 2.2 in a zip) | `required` | Per full advisory; `ETag`, `Last-Modified` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-17 |
 | `nhc-map-tropical-weather` | MapServer `tropical/NHC_tropical_weather` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | Per advisory for storm slots, per outlook for the outlook layers, per synoptic time (6 h) for probabilistic winds; queries `max-age=0,must-revalidate` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-map-tropical-summary` | MapServer `tropical/NHC_tropical_weather_summary` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather_summary/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | As `nhc-map-tropical-weather` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-map-breakpoints` | MapServers `NHC_Breakpoints`, `NHC_PeakStormSurge`, `StormSurgeRisk` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_Breakpoints/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | Static catalogue; loaded 2026-04-30 | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
@@ -183,6 +195,71 @@ file was last modified at 21:24 for that storm's 21:00 advisory.
   `movement_speed_mph`. The recorded TCP agrees: Simon's 85 kt and 3
   appear there as 100 mph and "AT 3 MPH". The forecast points' speed is
   in knots (below), so the two speeds differ in unit.
+
+## Arrival-time KMZ
+
+`nhc-arrival-times`, added 2026-10-17. The roster's
+`earliestArrivalTimeTSWindsGIS.kmzFile` and
+`mostLikelyTimeTSWindsGIS.kmzFile` link one KMZ each per full advisory:
+`https://www.nhc.noaa.gov/storm_graphics/api/{ID}_{adv}adv_{earliest_reasonable,most_likely}_toa_34.kmz`,
+with `{ID}` in upper case and `{adv}` three digits. Intermediate
+advisories have none. The GIS archive serves the same files for past
+storms (see [GIS archive](#gis-archive)).
+
+- **Verified 2026-10-17.** Both files of every active storm, `EP212026`
+  (Trudy, advisory 015, `pubAdvTime` `900 PM CST Fri Oct 16 2026`) and
+  `EP202026` (Simon, post-tropical, advisory 038, `200 PM MST Fri Oct 16
+  2026`), and the archived pair of `AL052019` (Dorian) advisory 036
+  returned 200, `application/vnd.google-earth.kmz`, 9,109 to 37,795 bytes,
+  with an `ETag` and a `Last-Modified`. The roster gave each product's
+  `issuance` and `advNum`, which agreed with `pubAdvTime` and
+  `advisoryNum`.
+- **Structure.** Every file held 12 members: one KML,
+  `{ID}_{n}_{kind}_toa_34.kml` with the advisory unpadded
+  (`AL052019_36_earliest_reasonable_toa_34.kml`), and 11 label images
+  under `labels/`. The KML is in namespace
+  `http://earth.google.com/kml/2.2`. Its Document's `ExtendedData` holds
+  `Data` named `timezone` (`EDT`, `CST`, `MST`), `storm`, `atcfid`,
+  `advisoryNum` (unpadded, `36`), and `pubAdvTime`
+  (`500 AM EDT Mon Sep 02 2019`). Each line is a Placemark with a
+  LineString and a `description` whose single HTML table cell is its
+  label (`Mon 8 am`), or `Wind Speed Probability 5% contour` for the outer
+  contour. The other Placemarks are the label icons, Points with no
+  description. Dorian 036 has 11 labelled lines in the earliest-reasonable
+  file and 10 in the most-likely file, each plus the contour; Trudy 015
+  has 5 and 7; Simon 038 has the contour only.
+- **Fields v2 uses:** `timezone`, `advisoryNum`, `atcfid`, and
+  `pubAdvTime`.
+- **Why v2 reads it.** Issue
+  [#11](https://github.com/nathanramoscfa/weatherbot/issues/11) chose this
+  file (option b). The map layers' labels carry no date and no zone, and
+  the slot's `advdate` belongs to the latest advisory, which can be an
+  intermediate one: on 2026-10-12 the `EP5` cone was advisory 22A while
+  the arrival lines belonged to advisory 22, three hours earlier.
+- **Resolution rule** (`weatherbot.models.resolve_arrival_label`). A label
+  resolves to the first instant at or after `pubAdvTime` whose local
+  weekday and clock time, in the product's `timezone`, match it, provided
+  it falls less than 120 hours after `pubAdvTime`. A label that does not
+  parse, an unknown zone, or an instant beyond the horizon leaves the line
+  without an instant and with the reason. The outer contour has no time.
+- **Checks.** `pubAdvTime` must agree with the roster's `issuance` within
+  an hour, `advisoryNum` must equal the roster's `advNum` and the URL's
+  advisory, `atcfid` must equal the storm's, and `timezone` must be the
+  zone `pubAdvTime` names. Otherwise every line stays unresolved with the
+  reason, and the client logs a Source-drift warning.
+- **Fallback.** The map layers' arrival lines remain a label-only product
+  for display when the KMZ is unavailable. In a snapshot, a KMZ product
+  supersedes the map-layer product of the same storm, advisory, and kind.
+- **Limits.** The client and the recorder follow a link only when it
+  matches the pattern above on `www.nhc.noaa.gov` over HTTPS. They open
+  the archive in memory with at most 64 members, none absolute or
+  containing `..`, at most 8 MiB uncompressed, and no member compressed
+  more than 100 to 1. They parse the one KML member with `defusedxml` and
+  ignore the label images.
+- **Recorded fixtures.** The recorder always records the archived Dorian
+  036 pair, whose SHA-256 values the replay corpus manifest pins, and
+  every active storm's roster-linked pair. Each roster-linked capture's
+  `notes` give the roster's `advNum` and `issuance`.
 
 ## ArcGIS map services
 
@@ -493,8 +570,8 @@ Whether the live layers fill for every Atlantic storm stays open.
   "Wind Speed Probability 5% contour". Labels such as `Tue 8 am` carry
   neither date nor zone. The KMZ states `timezone` `MST` and `pubAdvTime`
   `200 PM MST Mon Oct 12 2026` in its `ExtendedData`, but the map layer keeps
-  neither. Issue [#11](https://github.com/nathanramoscfa/weatherbot/issues/11) decides how v2 dates
-  them.
+  neither. Issue [#11](https://github.com/nathanramoscfa/weatherbot/issues/11) chose the KMZ
+  to date them (amended 2026-10-17; see [Arrival-time KMZ](#arrival-time-kmz)).
 - **Probabilistic winds** carry no storm field. `idp_source` names the
   synoptic time (`2026101218_wsp34knt120hr_5km`), the same file the
   roster lists under Simon's `windSpeedProbabilitiesGIS`. They are one
@@ -672,6 +749,12 @@ so no HTML is scraped.
 - **History:** the `EP5` TCP list held 41 products, back to 2026-10-07
   14:57. The `AT` TWO list held 28, back to 2026-10-05 23:30.
 - **Etiquette:** the API's one-request-per-second pacing applies.
+- **Fields v2 uses:** a product's `id`, `issuanceTime`, `wmoCollectiveId`,
+  `issuingOffice`, and `productText` (listed 2026-10-17).
+- A TCP's storm comes from the ATCF id on its header line, and its
+  advisory from the text's "ADVISORY NUMBER 22A".
+- **List fields v2 uses:** each list item's `id` and `issuanceTime`; the
+  newest item names the product to fetch (listed 2026-10-17).
 
 ## Outlook graphics
 
@@ -722,8 +805,10 @@ max-age=300`, an `ETag`, and a `Last-Modified`.
   the previous version, with only the channel `pubDate` changed. A
   conditional request after the rewrite returned 200.
 - **Fields v2 uses:** each item's `guid`, `title`, `link`, and `pubDate`,
-  and `nhc:Cyclone`'s `atcf` and `wallet`. Change detection compares item
-  `guid`s.
+  and, where the item has one, `nhc:Cyclone.atcf` and `nhc:Cyclone.wallet`
+  (written as paths 2026-10-17).
+- Change detection compares the items' guids. The channel `pubDate` is
+  not read, because NHC rewrites it without changing an item.
 
 ## GIS archive
 
@@ -895,7 +980,7 @@ its materials in the public domain and appreciates attribution.
 | --- | --- |
 | ATCF invest files (v1's `atcf_client.py`) | Invests come from the outlook layers (`Two-Day: Current Location`, `Seven-Day: Potential Development Region`), and storms from `nhc-current-storms`. v2 takes storms and disturbances only from official products. |
 | NHC storm web pages (`graphics_{slot}.shtml`, `text/*.shtml`, `text/refresh/…`) | No HTML scraping. Text products come from the NWS API, and geometry from the map services. |
-| Live per-storm shapefiles and KMZ (`forecast/archive/*_latest.zip`, `storm_graphics/api/*.kmz`) | The map services serve the same products as GeoJSON. The archive copies serve only the replay corpus (Step 6). |
+| Live per-storm shapefiles and KMZ (`forecast/archive/*_latest.zip`, `storm_graphics/api/*.kmz`), except the arrival-time KMZ | The map services serve the same products as GeoJSON. The archive copies serve only the replay corpus (Step 6). The arrival-time KMZ is read (`nhc-arrival-times`, amended 2026-10-17): its `timezone` and `pubAdvTime` date the arrival lines, which the map layers cannot (issue #11). |
 | Arrival-time and wind-speed-probability GRIB2 (`https://ftp.nhc.ncep.noaa.gov/toa/`, `/wsp/`), probabilistic storm surge | The map layers carry what v2 shows. Gridded data would add a GRIB dependency for no rule in the brief. |
 | `two_epac_{2d0,7d0}.png` | 404. The working names are `two_pac_*`. |
 | Any source that needs a key | None of the sources above needs one. If NWS replaces its User-Agent requirement with an API key, as its documentation says it will, the `nws-*` rows need a decision first. |

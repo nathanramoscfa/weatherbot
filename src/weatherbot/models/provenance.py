@@ -12,6 +12,7 @@ from weatherbot.models.times import UtcDatetime
 # The register's source ids (docs/DATA_SOURCES.md, "Register"); a test keeps them equal.
 type SourceId = Literal[
     "nhc-current-storms",
+    "nhc-arrival-times",
     "nhc-map-tropical-weather",
     "nhc-map-tropical-summary",
     "nhc-map-breakpoints",

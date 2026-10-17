@@ -11,7 +11,6 @@ import hashlib
 import json
 import re
 from decimal import Decimal
-from xml.parsers import expat
 
 import pytest
 from fixture_support import (
@@ -27,6 +26,8 @@ from fixture_support import (
 
 import check_personal_data as checker
 import record_fixtures as recorder
+from weatherbot.sources.markup import parse_xml
+from weatherbot.sources.nhc_arrival_times import read_kml
 
 DIRECTORIES = capture_directories()
 EVERY_DIRECTORY = pytest.mark.parametrize(
@@ -147,7 +148,10 @@ def test_every_payload_parses_by_its_format(directory: CaptureDirectory) -> None
             assert note is not None, f"{where} does not record its size in notes"
             assert recorder.png_dimensions(payload) == (int(note[1]), int(note[2])), where
         elif name.endswith(".xml"):
-            expat.ParserCreate().Parse(payload, True)  # noqa: FBT003 - expat's `isfinal` flag
+            parse_xml(payload, "nhc-gis-rss", where)
+        elif name.endswith(".kmz"):
+            # A zip under the client's limits whose single KML member parses with defusedxml.
+            parse_xml(read_kml(payload), "nhc-arrival-times", where)
         else:
             pytest.fail(f"{where} has no parser for its extension")
 

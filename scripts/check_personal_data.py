@@ -9,7 +9,9 @@ can run it by hand. It uses the standard library only.
 Rules:
     R1  Denylist (local only): any entry of the operator's denylist, case-insensitive,
         anywhere in a scanned file, fixtures and binaries included (the bytes are
-        scanned, and a gzip file is scanned again decompressed). Standalone decimal
+        scanned, a gzip file is scanned again decompressed, and so is every member of
+        a zip archive such as a KMZ, under the arrival-time client's bounds; an archive
+        that cannot be read within them fails). Standalone decimal
         coordinate entries match whole numeric values, including zero padding, rather
         than prefixes of different numbers; strings and coordinate pairs remain literal.
     R2  Coordinates: a decimal latitude/longitude pair (either order, comma or space
@@ -60,12 +62,13 @@ import subprocess  # runs `git ls-files` from an argument list, never a shell  #
 import sys
 import tempfile
 import tomllib
+import zipfile
 import zlib
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from itertools import zip_longest
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Self, TextIO, cast
 from urllib.parse import parse_qs, unquote, urlsplit
 
@@ -99,6 +102,12 @@ LANDMARK_TOLERANCE = Decimal("0.0005")
 BINARY_SNIFF_BYTES = 8000
 GZIP_MAGIC = b"\x1f\x8b"
 MAX_DECOMPRESSED_BYTES = 256 * 1024 * 1024
+ZIP_MAGIC = b"PK\x03\x04"
+# The bounds weatherbot.sources.nhc_arrival_times puts on a KMZ (this script imports
+# nothing outside the standard library, so a test keeps the two sets equal).
+MAX_ZIP_MEMBERS = 64
+MAX_ZIP_UNCOMPRESSED_BYTES = 8 * 1024 * 1024
+MAX_ZIP_RATIO = 100
 
 SYNTHETIC_SEED = 0
 SYNTHETIC_ATTEMPTS = 1000
@@ -609,6 +618,36 @@ def _decompress(data: bytes) -> bytes | None:
     return payload if len(payload) <= MAX_DECOMPRESSED_BYTES else None
 
 
+def _zip_members(data: bytes) -> list[bytes] | None:
+    """Return every member of a zip archive, decompressed, or None outside the bounds.
+
+    The bounds are the arrival-time client's: at most 64 members, none absolute,
+    parent-relative, or encrypted, at most 8 MiB uncompressed, and no member compressed
+    more than 100 to 1. An archive that breaks one, or cannot be read, gives None.
+    """
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            infos = archive.infolist()
+            if (
+                len(infos) > MAX_ZIP_MEMBERS
+                or sum(info.file_size for info in infos) > MAX_ZIP_UNCOMPRESSED_BYTES
+            ):
+                return None
+            for info in infos:
+                path = PurePosixPath(info.filename.replace("\\", "/"))
+                if (
+                    path.is_absolute()
+                    or ".." in path.parts
+                    or info.flag_bits & 1
+                    or info.file_size > MAX_ZIP_RATIO * max(info.compress_size, 1)
+                ):
+                    return None
+            members = [archive.read(info) for info in infos if not info.is_dir()]
+    except (zipfile.BadZipFile, OSError, EOFError, ValueError, NotImplementedError, zlib.error):
+        return None
+    return members
+
+
 @dataclass(frozen=True)
 class Scanner:
     """Applies the rules to files under one root directory."""
@@ -717,6 +756,16 @@ class Scanner:
                 findings.update(
                     Finding(shown, number, "R1", "denylist entry in the decompressed payload")
                     for number in _line_numbers(payload, self.denylist)
+                )
+        if data.startswith(ZIP_MAGIC):
+            members = _zip_members(data)
+            if members is None:
+                findings.add(Finding(shown, 0, "R1", "zip archive could not be scanned"))
+            else:
+                findings.update(
+                    Finding(shown, number, "R1", f"denylist entry in zip member {index}")
+                    for index, member in enumerate(members, start=1)
+                    for number in _line_numbers(member, self.denylist)
                 )
         return findings
 

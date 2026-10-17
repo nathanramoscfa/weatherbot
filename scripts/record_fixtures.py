@@ -51,7 +51,11 @@ import httpx
 from check_personal_data import Landmark, load_landmarks
 from weatherbot.sources import USER_AGENT
 from weatherbot.sources.arcgis import COUNT_PARAMETERS, QUERY_PARAMETERS
+from weatherbot.sources.errors import SourceSchemaError
 from weatherbot.sources.http import DEFAULT_INTERVAL, HEADER_ALLOWLIST, HOST_INTERVALS
+from weatherbot.sources.markup import parse_xml
+from weatherbot.sources.nhc_arrival_times import ARRIVAL_KMZ_URL, KINDS, read_kml
+from weatherbot.sources.nhc_text_products import PRODUCT_ID_PATTERN
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = REPOSITORY_ROOT / "tests" / "fixtures" / "recorded"
@@ -59,8 +63,9 @@ DEFAULT_REPORTS = REPOSITORY_ROOT / "reports"
 DEFAULT_CACHE = REPOSITORY_ROOT / "cache"
 
 RECORDER_PATH = "scripts/record_fixtures.py"
-# USER_AGENT, the header allowlist, the per-host intervals, and the ArcGIS query parameters
-# are the package's (weatherbot.sources): one definition each, shared with the clients.
+# USER_AGENT, the header allowlist, the per-host intervals, the ArcGIS query parameters, the
+# arrival-time URL pattern, and the product-id pattern are the package's
+# (weatherbot.sources): one definition each, shared with the clients.
 SCHEMA_VERSION = 1
 MANIFEST_NAME = "manifest.json"
 
@@ -80,7 +85,6 @@ NOWCOAST_ROOT = "https://nowcoast.noaa.gov/geoserver"
 
 SLOT_PATTERN = re.compile(r"(?:AT|EP|CP)[1-5]")
 ZONE_ID_PATTERN = re.compile(r"[A-Z]{2}[A-Z][0-9]{3}")
-PRODUCT_ID_PATTERN = re.compile(r"[0-9A-Za-z-]{8,64}")
 BASINS = ("AT", "EP", "CP")
 GIS_FEEDS = ("at", "ep", "cp")
 OUTLOOK_FILES = (
@@ -91,6 +95,16 @@ OUTLOOK_FILES = (
     "two_cpac_2d0.png",
     "two_cpac_7d0.png",
 )
+ARRIVAL_SOURCE = "nhc-arrival-times"
+# The fixed archived pair the recorder always records; the replay corpus manifest pins the
+# same URLs, and a contract test keeps the checksums equal.
+ARCHIVED_ARRIVAL_PAIR = tuple(
+    f"{NHC_ROOT}/storm_graphics/api/AL052019_036adv_{kind}_toa_34.kmz" for kind in KINDS
+)
+ARCHIVED_ARRIVAL_NOTE = (
+    "archived pair: AL052019 advisory 036 (tests/fixtures/replay/corpus-manifest.json)"
+)
+ROSTER_ARRIVAL_OBJECTS = ("earliestArrivalTimeTSWindsGIS", "mostLikelyTimeTSWindsGIS")
 ZONE_TYPES = {"county": "county", "forecastZone": "forecast", "fireWeatherZone": "fire"}
 ALERT_ZONE_FIELDS = ("county", "forecastZone")
 HTTP_OK = 200
@@ -864,6 +878,63 @@ def _map_recorder(source_id: str) -> SourceRecorder:
     return record
 
 
+def arrival_targets(recorder: Recorder) -> list[tuple[str, str]]:
+    """List the arrival-time KMZ files to record: the archived pair, then every roster link.
+
+    Every URL is checked against the arrival-time pattern before anything is fetched.
+
+    Args:
+        recorder: The run's state.
+
+    Returns:
+        ``(url, note)`` pairs; a roster link's note names the roster's ``advNum`` and
+        ``issuance`` for that product, which the contract tests compare with the KML.
+
+    Raises:
+        RecorderError: The roster is malformed, or a link is outside the pattern.
+    """
+    targets = [(url, ARCHIVED_ARRIVAL_NOTE) for url in ARCHIVED_ARRIVAL_PAIR]
+    roster = as_object(parse_json(recorder.roster().body, "CurrentStorms.json"), "the roster")
+    for item in as_list(roster.get("activeStorms"), "activeStorms"):
+        storm = as_object(item, "an active storm")
+        for key in ROSTER_ARRIVAL_OBJECTS:
+            if storm.get(key) is None:
+                continue
+            product = as_object(storm[key], key)
+            note = (
+                f"roster: {str(storm.get('id')).upper()} {key} advNum "
+                f"{product.get('advNum')}, issuance {product.get('issuance')}"
+            )
+            targets.append((str(product.get("kmzFile")), note))
+    if any(ARRIVAL_KMZ_URL.fullmatch(url) is None for url, _ in targets):
+        message = f"{ARRIVAL_SOURCE}: a roster link is outside the arrival-time pattern"
+        raise RecorderError(message)
+    return targets
+
+
+def record_arrival_times(recorder: Recorder) -> list[Capture]:
+    """Record the archived arrival-time pair and every active storm's roster-linked pair.
+
+    Args:
+        recorder: The run's state.
+
+    Returns:
+        The captures, each a KMZ whose one KML member parses.
+
+    Raises:
+        RecorderError: A link is outside the pattern, or a KMZ breaks the client's limits.
+    """
+    captures: list[Capture] = []
+    for url, note in arrival_targets(recorder):
+        fetched = recorder.fetcher.get(url, source=ARRIVAL_SOURCE)
+        try:
+            parse_xml(read_kml(fetched.body), ARRIVAL_SOURCE, "the KMZ's KML")
+        except SourceSchemaError as error:
+            raise RecorderError(str(error)) from error
+        captures.append(capture_of(fetched, url.rsplit("/", 1)[1], note))
+    return captures
+
+
 def record_gis_rss(recorder: Recorder) -> list[Capture]:
     """Record the three NHC GIS RSS feeds.
 
@@ -1094,6 +1165,7 @@ def record_nominatim(recorder: Recorder) -> list[Capture]:
 # equal to the register's `required` rows.
 SOURCES: Final[Mapping[str, SourceRecorder]] = {
     "nhc-current-storms": record_current_storms,
+    ARRIVAL_SOURCE: record_arrival_times,
     "nhc-map-tropical-weather": _map_recorder("nhc-map-tropical-weather"),
     "nhc-map-tropical-summary": _map_recorder("nhc-map-tropical-summary"),
     "nhc-map-breakpoints": _map_recorder("nhc-map-breakpoints"),

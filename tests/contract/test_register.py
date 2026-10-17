@@ -29,7 +29,7 @@ from fixture_support import (
 
 import record_fixtures as recorder
 from weatherbot import __version__, sources
-from weatherbot.sources import arcgis, http
+from weatherbot.sources import arcgis, http, nhc_arrival_times, nhc_text_products
 
 PATH_SEPARATOR = " / "
 EN_DASH = chr(0x2013)  # the register writes a range with an en dash
@@ -83,6 +83,15 @@ def test_the_recorder_imports_the_packages_register_constants() -> None:
     assert recorder.QUERY_PARAMETERS is arcgis.QUERY_PARAMETERS
     assert recorder.COUNT_PARAMETERS is arcgis.COUNT_PARAMETERS
     assert recorder.HEADER_ALLOWLIST is http.HEADER_ALLOWLIST
+    assert recorder.ARRIVAL_KMZ_URL is nhc_arrival_times.ARRIVAL_KMZ_URL
+    assert recorder.PRODUCT_ID_PATTERN is nhc_text_products.PRODUCT_ID_PATTERN
+    assert recorder.ARRIVAL_SOURCE == nhc_arrival_times.SOURCE
+
+
+def test_the_archived_arrival_pair_matches_the_arrival_time_pattern() -> None:
+    assert len(recorder.ARCHIVED_ARRIVAL_PAIR) == len(nhc_arrival_times.KINDS)
+    for url in recorder.ARCHIVED_ARRIVAL_PAIR:
+        assert nhc_arrival_times.ARRIVAL_KMZ_URL.fullmatch(url), url
 
 
 def test_the_register_shares_the_recorders_arcgis_query_parameters() -> None:

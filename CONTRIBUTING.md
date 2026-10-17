@@ -67,8 +67,12 @@ request with `pytest -m live`.
 `uv run pytest -m live` calls the real services: it fetches the storm
 roster, resolves every register layer name in both NHC tropical map services
 (each `{slot}` layer for all fifteen slots), queries one outlook layer, and
-records the roster into a temporary directory. No live test sends a
-coordinate. Run it before a change that touches a source client, and whenever
+records the roster into a temporary directory. It also fetches every active
+storm's arrival-time KMZ pair and the archived Dorian pair, one TCP list,
+the three TWO lists, one outlook map twice (the second request
+conditional), the three GIS feeds, both overlay capabilities documents,
+and the surge-risk catalog. A test that needs an active storm skips, and
+says why, when none is active. No live test sends a coordinate. Run it before a change that touches a source client, and whenever
 a register layer, field, or product may have changed (Source drift).
 
 The same suite runs on GitHub's hosted runners when you dispatch

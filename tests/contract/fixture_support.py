@@ -250,16 +250,29 @@ def layer_fields(service: str) -> dict[str, dict[str, frozenset[str]]]:
     }
 
 
+def register_section_fields(heading: str, label: str = "Fields v2 uses") -> frozenset[str]:
+    """Read a section's "Fields v2 uses" bullet: the names it quotes, up to the next bullet.
+
+    Args:
+        heading: The ``##`` section, such as ``Text products``.
+        label: The bullet's bold label, such as ``List fields v2 uses``.
+
+    Returns:
+        The field names, nested members as ``object.member``.
+    """
+    section = _section(register_text(), heading, 2)
+    start = section.index(f"- **{label}:**")
+    end = section.find(BULLET, start + 1)
+    return frozenset(_QUOTED.findall(section[start : end if end != -1 else None]))
+
+
 def register_roster_fields() -> frozenset[str]:
     """Read the roster's "Fields v2 uses" (section "NHC current storms").
 
     Returns:
         The field names, product members as ``object.member``.
     """
-    section = _section(register_text(), "NHC current storms", 2)
-    start = section.index("- **Fields v2 uses:**")
-    end = section.index(BULLET, start + 1)
-    return frozenset(_QUOTED.findall(section[start:end]))
+    return register_section_fields("NHC current storms")
 
 
 def register_user_agent() -> str:
