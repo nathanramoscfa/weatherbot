@@ -1382,9 +1382,9 @@ is new per phase-boundary hygiene.
 
 ---
 
-## Step 2 — HTTP foundation and NHC map clients
+## Step 2 — HTTP foundation and NHC map clients ✅
 
-**Status:** Not started
+**Status:** Complete — PR #21 (2026-10-16)
 
 > **Goal:** Build the network layer once, then the storm roster and map-service
 > clients on it. `weatherbot.sources.http` holds the one `httpx.AsyncClient` a
@@ -1421,6 +1421,8 @@ is new per phase-boundary hygiene.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-16: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 2 is coding with an agentic secondary — live probes
 and a new workflow — at High complexity: pacing, retries, conditional requests,
@@ -5132,7 +5134,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                    | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ------------------------ | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Domain models            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #20 |
-| 2    | HTTP + NHC map clients   | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 2    | HTTP + NHC map clients   | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #21 |
 | 3    | NHC products             | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 4    | NWS + geocoding clients  | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
 | 5    | Persistence + config     | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
