@@ -3808,9 +3808,9 @@ comes from the other maker. The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 6 — Services and the first CLI commands
+## Step 6 — Services and the first CLI commands ✅
 
-**Status:** Not started
+**Status:** Complete — PR #25 (2026-10-17)
 
 > **Goal:** Put the clients and the database behind the first commands.
 > `weatherbot.services.snapshots` fetches one snapshot — the roster, the summary
@@ -3846,6 +3846,8 @@ through the live suite.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-17: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 6 is coding with an agentic secondary — live runs of
 every command and a check on the operator's machine — at High complexity: it
@@ -5286,7 +5288,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | NHC products             | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #22 |
 | 4    | NWS + geocoding clients  | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Complete — PR #23 |
 | 5    | Persistence + config     | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #24 |
-| 6    | Services + CLI commands  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 6    | Services + CLI commands  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #25 |
 | 7    | QA + verify_phase02.py   | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
 | V1   | Domain models            | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V2   | HTTP + NHC map clients   | CI: ci.yml               | --           | --                  | --       | --   | --          |
