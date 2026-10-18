@@ -52,9 +52,28 @@ No flag means static plus Python checks. The post sweep reports unavailable
 evidence explicitly; phase closure requires every V-row to pass. The findings
 and downstream owners are in [the QA ledger](docs/phase01-qa-findings.md).
 
+Phase 2's is `uv run python scripts/verify_phase02.py`, with the same flag
+shape and `--live` in place of `--corpus`:
+
+- `--fast`: 47 numbered, independent checks, offline and standard-library only.
+- `--py`: static checks, lint, formatting, types, import contracts, the offline
+  tests, and the installed-wheel smoke, which also opens a new database at the
+  Alembic head.
+- `--live`: static checks and `pytest -m live` (landmarks only, in a temporary
+  data directory).
+- `--security`: static checks and the four-check security gate.
+- `--all`: the Python, live and security suites together.
+- `--post`: the canonical 73-check pre-tag sweep: the V1-V7 matrix, GitHub
+  readbacks, Phase 1's own `--post`, `doctor` against your database (only the
+  revision is printed), and a `doctor` alarm against a temporary database
+  stamped with an unknown revision. Each V-row reads its own tests from one
+  JUnit report of the pytest run. Findings are in
+  [the Phase 2 QA ledger](docs/phase02-qa-findings.md).
+
 Both `gate` and `phase-verify` are required on protected `main`. The latter
-aggregates the `phase-verify (01)` matrix job; later phases append their entries
-and retain the aggregate name. Both workflows run on every pull request.
+aggregates the `phase-verify (01)` and `phase-verify (02)` matrix jobs; later
+phases append their entries and retain the aggregate name. Both workflows run
+on every pull request.
 
 The test suite blocks all network access except loopback, and every test
 runs in a temporary working directory, so a test can never read or write the

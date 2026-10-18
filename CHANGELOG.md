@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the required aggregate phase-verify workflow. Keep fixture bytes unchanged
   while guarding LF line endings for repository text.
 
+### Phase 2 verification
+- Add `scripts/verify_phase02.py`: 47 static checks over the models, clients,
+  persistence, and commands, and the 26-row V1-V7 matrix in `--post` (with
+  Phase 1's own sweep, GitHub readbacks, and `doctor` on the operator's
+  database and against a database stamped with an unknown revision). Add the
+  Phase 2 QA findings ledger and matrix entry `"02"` under the required
+  aggregate `phase-verify`.
+
 
 ### Added
 - The first commands: `weatherbot locations add|list|remove`, `fetch`,
