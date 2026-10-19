@@ -154,6 +154,43 @@ gh run list --workflow live-smoke.yml --limit 1
 It is not part of `gate` or of branch protection, and it uses no secret.
 Scheduled drift detection belongs to Phase 4.
 
+### The replay corpus
+
+`tests/fixtures/replay/` holds four historical storms as the archive's
+products, converted: every advisory's cone, track, points, and watches and
+warnings, and each synoptic time's 5 km wind-speed probabilities clipped to
+one degree on each side of each public landmark (read a windowed product only
+inside its window). `corpus-manifest.json` pins every original by URL, size,
+and SHA-256, and every committed file by its SHA-256.
+`weatherbot.services.replay.ReplayCorpus` reads it: `ReplayCorpus.open(directory)`,
+then `storms()` and `snapshots(atcf_id)`, one `Snapshot(origin="replay")` per
+advisory, every file checked against the manifest before it is parsed. Replay
+snapshots are never stored.
+
+The originals live in the ignored cache (`.cache/replay-corpus/`, or
+`WEATHERBOT_CORPUS_CACHE`). `pytest -m corpus` needs it:
+
+```sh
+uv run python scripts/fetch_replay_corpus.py fetch    # download the pinned originals
+uv run python scripts/fetch_replay_corpus.py verify   # check every checksum
+uv run pytest -m corpus                               # reconvert byte for byte; replay a full conversion
+```
+
+For your own locations, convert everything (every forecast product, every
+probability product unclipped, and every arrival-time KMZ) into a directory
+outside the checkout; the script refuses one inside it, so its 70 MiB can
+never reach a commit:
+
+```sh
+uv run python scripts/fetch_replay_corpus.py convert --full --out ../weatherbot-replay
+```
+
+`ReplayCorpus.open` reads that directory like the committed subset. A change
+to the conversion itself is committed with `convert --refresh-subset`, which
+rewrites only the manifest's `subset` and `subset_rule` from the verified
+cache: review the manifest diff in the pull request. The originals' checksums
+never change except through a deliberate `manifest` re-recording.
+
 ## Local data
 
 Weatherbot keeps its state outside the repository, in your user directories:
