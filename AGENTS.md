@@ -58,7 +58,12 @@ shared `models` package. Each layer's `__init__.py` states its rule;
   assessment. The engine imports nothing from the other layers and no I/O
   library (HTTP, sockets, databases, web frameworks, the Anthropic SDK, or
   schedulers); it is deterministic and tested with recorded and replayed
-  data.
+  data. It reads no clock, randomness, filesystem, environment, or logger
+  (its instant is the snapshot's), and `tests/test_architecture.py` scans
+  for each. Its geodesy follows each geometry's CRS — WGS 84 for
+  `EPSG:4326`, the archive's 6,371,200 m sphere for replay geometry, never
+  relabelled — through `pyproj.Geod` only (no `Transformer`, CRS database,
+  or network). CI holds its branch coverage at 90 percent or more.
 - `services/` — time, state, and side effects: scheduling, change
   detection, notification, persistence, and the Claude integration.
 - `cli/` — Typer commands over the services.

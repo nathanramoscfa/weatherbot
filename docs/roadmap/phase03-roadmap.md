@@ -1,6 +1,6 @@
 # Phase 3 Roadmap — Threat engine
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -758,9 +758,9 @@ parallel, and the Worktree rule permits no concurrent steps.
 
 ---
 
-## Step 1 — Geodesy and geometry
+## Step 1 — Geodesy and geometry ✅
 
-**Status:** Not started
+**Status:** Complete — PR #29 (2026-10-19)
 
 > **Goal:** Land the engine's measuring tools and the gates that keep the engine
 > honest. `src/weatherbot/engine/geodesy.py` gives every geometry the figure its
@@ -796,6 +796,8 @@ check; the first run of each on `main` must be green.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-19: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 1 is coding with knowledge as its secondary category:
 geodesy, coordinate reference systems, and computational geometry, where a wrong
@@ -1730,6 +1732,20 @@ per phase-boundary hygiene.
     - `parse_arrival_kmz(body, provenance, storm=None)` parses an
       archived KMZ checked against its URL; every cached KMZ
       parses and resolves (2026-10-18).
+    - Carry-over from Step 1: `tests/engine/engine_support.py`
+      builds `TrackPoint`s from a replay `points` collection
+      (`replay_track`), with an `nhc-gis-archive` provenance
+      that cites the original zip's URL and SHA-256, and reads
+      collections through `Geometry.from_geojson` with
+      `Crs.native(source_crs)` (`features`). The archive parser
+      this step writes supersedes those helpers: have them call
+      it, so the engine tests read replay data exactly as
+      snapshots do. `weatherbot.engine.geodesy.figure_of` refuses
+      any WKT that is not one geographic spheroid in degrees from
+      Greenwich, by rule name. On Windows, Python's
+      `Path.write_text` writes CRLF: an edit script writes bytes,
+      and `git ls-files --eol` (not `grep $'\r'` in Git Bash)
+      reads a file's line endings.
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -2333,6 +2349,26 @@ hygiene.
     - Issue #10 is open with its kept-inputs comment; its body
       asks for a golden test built from the recorded zone-alert
       capture.
+    - Carry-over from Step 1 (the shapes the rules read):
+      `nearest_on_line(position, line, figure)` returns
+      `Nearest(distance_km, part, fraction, at_end)`; `at_end` is
+      false for a Point segment (its one vertex is first and
+      last) and for two parts that meet at 180 degrees, so a
+      Point segment covers within `coastal_reach_km`. Every
+      measuring function refuses a figure other than its
+      geometry's own CRS's (`figure_of(geometry.crs)`), and
+      `place(location.point, geometry.crs)` gives the position to
+      pass. `repair(cone)` returns `Repaired(shape, note)`:
+      `shape` is the cone itself when valid, `None` when no area
+      remained (the product is unusable: an `UnavailableInput`);
+      the note names the reason without its location. `covers`
+      counts the boundary as inside. The engine's tests share
+      `tests/engine/engine_support.py` (`landmark`, `features`,
+      `advisories`, `replay_track`, `synthetic_track`,
+      `square`, `wrapped_polygon`); `tests/engine/scenarios.py`
+      imports from it as `tests/models/` imports
+      `model_samples`. Branch coverage of the engine stood at
+      98 percent after Step 1.
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -2924,6 +2960,14 @@ per phase-boundary hygiene.
       these events: notify on a level change in either direction,
       on a new advisory for a storm whose cone contains the
       location, and on a new or changed official alert.
+    - Carry-over from Step 1: `closest_approach(points:
+      Sequence[TrackPoint], position, figure)` returns
+      `Approach(distance_km, instant, lead_h)`; it sorts the
+      points by `valid_at`, so `lead_h` counts from the earliest
+      point (tau 0, the advisory's own position), and a tie goes
+      to the earliest instant. `initial_bearing_deg` is in [0,
+      360). Pass `figure_of(point.position.crs)`: a mismatched
+      figure is refused.
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -4549,6 +4593,25 @@ The conversation is new per phase-boundary hygiene.
         `.pre-commit-config.yaml`, and `--security` in every
         phase entry.
 
+    Carry-over from Step 1 (what checks 1-8 read): `ci.yml`'s
+    `test` step sets `COVERAGE_FILE` to `.coverage` under
+    `runner.temp` in its `env` and runs a folded (`>-`) command
+    whose lines
+    carry `--cov=weatherbot.engine`, `--cov-branch`, and
+    `--cov-fail-under=90`; `tests/conftest.py` registers and
+    loads `HYPOTHESIS_PROFILE = "weatherbot"` with
+    `derandomize=True`, `database=None`, `deadline=None`;
+    `tests/test_architecture.py` defines
+    `DETERMINISM_BANNED_IMPORTS`, `DETERMINISM_BANNED_CALLS`,
+    `PYPROJ_ALLOWED`, and `nondeterminism()`; and
+    `verify_phase02.py` defines `PHASE_2_TAG`, and check 31's
+    label names it. Check 31 compares blob ids (`git
+    hash-object` against the tagged blob), because Windows CI
+    checks text out with CRLF. The engine test modules are
+    `tests/engine/test_geodesy.py`, `test_engine_geometry.py`,
+    `test_tracks.py`, and `test_engine_properties.py`, with
+    `engine_support.py` beside them.
+
     Files to read:
     - scripts/verify_phase02.py (primary structural template)
       and tests/test_phase02_verification.py.
@@ -4950,7 +5013,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                         | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #29 |
 | 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |

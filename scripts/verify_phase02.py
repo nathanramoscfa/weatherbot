@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "nathanramoscfa/weatherbot"
 PHASE_1_TAG = "v2.0.0-phase-1"
+PHASE_2_TAG = "v2.0.0-phase-2"
 REGISTER = "docs/DATA_SOURCES.md"
 CI_WORKFLOW = ".github/workflows/ci.yml"
 PHASE_WORKFLOW = ".github/workflows/phase-verify.yml"
@@ -198,9 +199,9 @@ def capture(
     )
 
 
-def git(*args: str) -> str:
+def git(*args: str, root: Path = REPO_ROOT) -> str:
     """Read Git metadata, failing closed on an unsuccessful command."""
-    result = capture(["git", *args])
+    result = capture(["git", *args], cwd=root)
     result.check_returncode()
     return result.stdout.strip()
 
@@ -583,24 +584,45 @@ def point_strings_confined() -> bool:
     return f"{SOURCES}/nws.py" in holders and holders <= allowed
 
 
+def is_revision(relative: str) -> bool:
+    """Whether a path under the versions directory is a revision module."""
+    return relative.endswith(".py") and not relative.endswith("__init__.py")
+
+
+def revision_record(tree: ast.Module) -> tuple[str, str | None, set[str]]:
+    """One revision module's id, its parent, and the tables it creates."""
+    revision = ast.literal_eval(assigned(tree, "revision"))
+    parent = ast.literal_eval(assigned(tree, "down_revision"))
+    tables = {
+        str(cast("ast.Constant", node.args[0]).value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "create_table"
+    }
+    return cast("str", revision), cast("str | None", parent), tables
+
+
 def revisions() -> dict[str, tuple[str | None, set[str]]]:
-    """Each migration revision's parent and the tables it creates."""
+    """Each migration revision's parent and the tables it creates, in the working tree."""
     found: dict[str, tuple[str | None, set[str]]] = {}
     for relative in sorted(tracked(VERSIONS)):
-        if not relative.endswith(".py") or relative.endswith("__init__.py"):
-            continue
-        tree = syntax(relative)
-        revision = ast.literal_eval(assigned(tree, "revision"))
-        parent = ast.literal_eval(assigned(tree, "down_revision"))
-        tables = {
-            str(cast("ast.Constant", node.args[0]).value)
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Attribute)
-            and node.func.attr == "create_table"
-        }
-        found[cast("str", revision)] = (cast("str | None", parent), tables)
+        if is_revision(relative):
+            revision, parent, tables = revision_record(syntax(relative))
+            found[revision] = (parent, tables)
     return found
+
+
+def tagged(relative: str, root: Path = REPO_ROOT) -> str:
+    """Read one file as Phase 2's tag recorded it; a missing tag or path raises."""
+    return git("show", f"{PHASE_2_TAG}:{relative}", root=root)
+
+
+def tagged_tree(prefix: str, root: Path = REPO_ROOT) -> set[str]:
+    """List the files under ``prefix`` in Phase 2's tagged tree; a missing tag raises."""
+    return set(
+        git("ls-tree", "-r", "--name-only", PHASE_2_TAG, "--", prefix, root=root).splitlines()
+    )
 
 
 def migration_tables() -> bool:
@@ -614,12 +636,24 @@ def migration_tables() -> bool:
     )
 
 
-def no_later_tables() -> bool:
-    """Check 31: no revision creates a later phase's table."""
-    history = revisions()
-    return bool(history) and not any(
-        LATER_TABLES.search(table) for _, tables in history.values() for table in tables
-    )
+def no_later_tables(root: Path = REPO_ROOT) -> bool:
+    """Check 31: Phase 2's revisions, read at its tag, create no later phase's table.
+
+    Later phases add their tables in revisions of their own, so the check reads the
+    revisions Phase 2 shipped, at ``v2.0.0-phase-2``, with the same AST reading as check
+    30, and requires each to be unchanged in the working tree: the blob Git would store
+    for the file today is the tagged blob, whatever line endings the checkout wrote.
+    """
+    shipped = sorted(name for name in tagged_tree(VERSIONS, root) if is_revision(name))
+    for relative in shipped:
+        _, _, tables = revision_record(ast.parse(tagged(relative, root), filename=relative))
+        if any(LATER_TABLES.search(table) for table in tables):
+            return False
+        if git("hash-object", "--", relative, root=root) != git(
+            "rev-parse", f"{PHASE_2_TAG}:{relative}", root=root
+        ):
+            return False
+    return bool(shipped)
 
 
 def isolation_fixture() -> bool:
@@ -805,7 +839,7 @@ STATIC_CHECKS: tuple[Check, ...] = (
         lambda: {"sqlalchemy", "alembic", "platformdirs"} <= runtime_dependencies(),
     ),
     ("baseline tables and revision 0002", migration_tables),
-    ("no later phase's table", no_later_tables),
+    (f"no later phase's table in the revisions at {PHASE_2_TAG}", no_later_tables),
     ("test isolation fixture", isolation_fixture),
     ("database contract keeps sqlalchemy in services", database_contract),
     (

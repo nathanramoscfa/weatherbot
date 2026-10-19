@@ -2,6 +2,7 @@
 """Phase 2 verifier integration and failure-reporting regressions."""
 
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -14,6 +15,15 @@ ROOT = Path(__file__).resolve().parents[1]
 STATIC_COUNT = 47
 V_ROWS = 26
 USAGE_ERROR = 2
+CHECK_31 = 31
+REVISION = """# {name}
+revision = "{revision}"
+down_revision = {parent}
+
+
+def upgrade() -> None:
+    op.create_table("{table}")
+"""
 
 
 def test_roadmap_doc_exists() -> None:
@@ -217,3 +227,132 @@ def test_a_changed_deliverable_turns_its_check_red(
         verification.syntax.cache_clear()
 
     assert len(failed) == 1
+
+
+class Repository:
+    """A throwaway Git repository holding migration revisions, tagged like Phase 2."""
+
+    def __init__(self, root: Path) -> None:
+        """Remember the repository root."""
+        self.root = root
+
+    def git(self, *args: str) -> None:
+        """Run Git in the repository with a fixed identity."""
+        executable = shutil.which("git")
+        assert executable is not None
+        subprocess.run(  # noqa: S603 - fixed argument list, no shell
+            [
+                executable,
+                "-c",
+                "user.name=Verifier Test",
+                "-c",
+                "user.email=test@example.invalid",
+                *args,
+            ],
+            cwd=self.root,
+            check=True,
+            capture_output=True,
+        )
+
+    def revision(self, revision: str, parent: str | None, table: str) -> str:
+        """Write and stage one revision module; return its path."""
+        relative = f"{verification.VERSIONS}/{revision}_{table}.py"
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        text = REVISION.format(name=relative, revision=revision, parent=repr(parent), table=table)
+        path.write_text(text, encoding="utf-8")
+        self.git("add", relative)
+        return relative
+
+    def commit_and_tag(self) -> None:
+        """Commit everything staged and tag it as Phase 2."""
+        self.git("commit", "-q", "-m", "phase 2")
+        self.git("tag", "-a", verification.PHASE_2_TAG, "-m", "phase 2")
+
+
+@pytest.fixture
+def repository(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Repository:
+    """Return an untagged repository holding Phase 2's two revisions.
+
+    The user's and the system's Git configuration are replaced by an empty file, so no
+    signing, hook path, or line-ending setting of the machine reaches the repository.
+    """
+    empty = tmp_path / "gitconfig"
+    empty.write_text("", encoding="utf-8")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(empty))
+    monkeypatch.setenv("GIT_CONFIG_SYSTEM", str(empty))
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    root = tmp_path / "repository"
+    root.mkdir()
+    repo = Repository(root)
+    repo.git("init", "-q", "-b", "main")
+    repo.revision("0001", None, "locations")
+    repo.revision("0002", "0001", "drift_warnings")
+    return repo
+
+
+def test_check_31_passes_on_a_grown_tree_whose_new_revision_creates_assessments(
+    repository: Repository,
+) -> None:
+    repository.commit_and_tag()
+    repository.revision("0003", "0002", "assessments")
+
+    assert verification.no_later_tables(repository.root)
+
+
+def test_check_31_fails_when_a_tagged_revision_creates_a_later_table(
+    repository: Repository,
+) -> None:
+    repository.revision("0003", "0002", "evidence")
+    repository.commit_and_tag()
+
+    assert not verification.no_later_tables(repository.root)
+
+
+def test_check_31_fails_when_a_tagged_revision_changed_after_the_tag(
+    repository: Repository,
+) -> None:
+    repository.commit_and_tag()
+    path = repository.root / f"{verification.VERSIONS}/0002_drift_warnings.py"
+    path.write_text(path.read_text(encoding="utf-8") + "# edited\n", encoding="utf-8")
+
+    assert not verification.no_later_tables(repository.root)
+
+
+def test_check_31_fails_when_a_tagged_revision_is_gone(repository: Repository) -> None:
+    repository.commit_and_tag()
+    repository.git("rm", "-q", f"{verification.VERSIONS}/0001_locations.py")
+
+    with pytest.raises(subprocess.CalledProcessError):
+        verification.no_later_tables(repository.root)
+
+
+def test_check_31_fails_when_the_tag_holds_no_revision(repository: Repository) -> None:
+    repository.git("rm", "-q", "-r", "--cached", "src")
+    repository.git("commit", "-q", "--allow-empty", "-m", "empty")
+    repository.git("tag", "-a", verification.PHASE_2_TAG, "-m", "phase 2")
+
+    assert not verification.no_later_tables(repository.root)
+
+
+def test_check_31_fails_closed_without_the_tag(
+    repository: Repository, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repository.git("commit", "-q", "-m", "untagged")
+    root = repository.root
+    monkeypatch.setattr(
+        verification,
+        "STATIC_CHECKS",
+        (("check 31", lambda: verification.no_later_tables(root)),),
+    )
+
+    outcomes = verification.run_static_checks()
+
+    assert [(o.status, o.reason) for o in outcomes] == [("FAIL", "CalledProcessError")]
+
+
+def test_check_31_s_label_names_the_tag() -> None:
+    description, check = verification.STATIC_CHECKS[CHECK_31 - 1]
+
+    assert check is verification.no_later_tables
+    assert verification.PHASE_2_TAG in description

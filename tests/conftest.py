@@ -6,11 +6,19 @@ from pathlib import Path
 from typing import Final
 
 import pytest
+from hypothesis import settings
 
 # Development-tool variables, read by scripts and the corpus tests, never by the
 # application: the personal-data denylist's path and the replay-corpus cache. Every other
 # WEATHERBOT_* variable is cleared for each test.
 TOOL_VARIABLES: Final = frozenset({"WEATHERBOT_DENYLIST", "WEATHERBOT_CORPUS_CACHE"})
+
+# Every property test runs under one profile: derandomized, so each run tries the same
+# examples; with no example database, so a run writes nothing; and with no deadline, so a
+# slow runner never fails a correct test.
+HYPOTHESIS_PROFILE: Final = "weatherbot"
+settings.register_profile(HYPOTHESIS_PROFILE, derandomize=True, database=None, deadline=None)
+settings.load_profile(HYPOTHESIS_PROFILE)
 
 
 @pytest.fixture(autouse=True)

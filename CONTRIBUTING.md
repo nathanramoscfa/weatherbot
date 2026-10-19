@@ -35,6 +35,26 @@ uv run lint-imports        # layer contracts (see AGENTS.md)
 uv run pytest              # tests: no network, each in a temporary directory
 ```
 
+CI's `test` job runs the suite with a coverage floor: at least 90 percent
+branch coverage of `weatherbot.engine`, for every engine module from Phase 3
+on. Run the same locally with the coverage data file in a temporary directory,
+never the checkout:
+
+```sh
+COVERAGE_FILE="$(mktemp -d)/.coverage" uv run pytest --cov=weatherbot.engine \
+  --cov-branch --cov-report=term-missing:skip-covered --cov-fail-under=90
+```
+
+In PowerShell, set `$env:COVERAGE_FILE = Join-Path $env:TEMP "weatherbot.coverage"`
+first, then run the same `uv run pytest` command.
+
+The engine's property tests use Hypothesis under one profile, `weatherbot`,
+that `tests/conftest.py` registers and loads for the whole suite:
+`derandomize=True` (every run tries the same examples, so a failure reproduces),
+`database=None` (a run writes no example database), and `deadline=None` (a slow
+runner never fails a correct test). Generate positions and shapes in a strategy,
+or as offsets from the public landmarks, never as coordinate literals.
+
 Phase 1's repeatable verification is `uv run python scripts/verify_phase01.py`:
 
 - `--fast`: 50 numbered, independent checks, offline and standard-library only.
