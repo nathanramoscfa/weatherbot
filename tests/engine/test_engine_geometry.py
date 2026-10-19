@@ -1,10 +1,9 @@
 # tests/engine/test_engine_geometry.py
 """Containment, intersection, repair, and nearest points, on replay and synthetic geometry.
 
-The replay anchors read the corpus through the same parsing the models do
-(``Geometry.from_geojson`` with ``Crs.native(source_crs)``) and test the public
-landmarks; the synthetic shapes are built from the landmarks, the antimeridian, and
-whole-degree offsets.
+The replay anchors read the corpus through the archive parser replay snapshots use
+(``weatherbot.sources.nhc_gis_archive``) and test the public landmarks; the synthetic
+shapes are built from the landmarks, the antimeridian, and whole-degree offsets.
 """
 
 from itertools import pairwise
@@ -15,8 +14,9 @@ from engine_support import (
     DORIAN,
     IRMA,
     advisories,
-    features,
+    cone,
     landmark,
+    segments,
     square,
     wrap,
     wrapped_polygon,
@@ -41,22 +41,22 @@ DENSE_TOLERANCE_KM = 0.05
 ROUNDING_KM = 1e-9
 
 
-def cone(storm: str, advisory: str) -> Geometry | None:
-    found = features(storm, advisory, "cone")
-    return found[0][1] if found else None
+def cone_shape(storm: str, advisory: str) -> Geometry | None:
+    found = cone(storm, advisory)
+    return found.geometry if found is not None else None
 
 
 def covered_advisories(storm: str, point: LatLon) -> list[str]:
     covered: list[str] = []
     for advisory in advisories(storm):
-        shape = cone(storm, advisory)
+        shape = cone_shape(storm, advisory)
         if shape is not None and covers(shape, place(point, shape.crs)):
             covered.append(advisory)
     return covered
 
 
 def test_every_replay_cone_of_irma_is_valid_on_the_archive_sphere() -> None:
-    shapes = [shape for a in advisories(IRMA) if (shape := cone(IRMA, a)) is not None]
+    shapes = [shape for a in advisories(IRMA) if (shape := cone_shape(IRMA, a)) is not None]
 
     assert shapes
     assert all(repair(shape).note is None for shape in shapes)
@@ -86,18 +86,14 @@ def test_the_nassau_landmark_is_inside_exactly_20_irma_cones_not_in_a_row() -> N
     assert covered != order[order.index("019") : order.index("031A") + 1]
 
 
-def segments(storm: str, advisory: str, code: str) -> list[Geometry]:
-    return [
-        shape
-        for properties, shape in features(storm, advisory, "watch-warning")
-        if properties["TCWW"] == code
-    ]
+def coded(storm: str, advisory: str, code: str) -> list[Geometry]:
+    return [segment.geometry for segment in segments(storm, advisory) if segment.tcww.raw == code]
 
 
 def nearest_segment(storm: str, advisory: str, code: str, key: str) -> tuple[Geometry, float, bool]:
     point = landmark(key)
     measured: list[tuple[float, bool, Geometry]] = []
-    for shape in segments(storm, advisory, code):
+    for shape in coded(storm, advisory, code):
         found = nearest_on_line(place(point, shape.crs), shape, figure_of(shape.crs))
         measured.append((found.distance_km, found.at_end, shape))
     distance, at_end, shape = min(measured, key=lambda item: item[0])
@@ -150,7 +146,7 @@ def test_every_replay_segment_agrees_with_dense_sampling_within_50_m(
     advisory: str, key: str
 ) -> None:
     point = landmark(key)
-    shapes = [shape for _, shape in features(DORIAN, advisory, "watch-warning")]
+    shapes = [segment.geometry for segment in segments(DORIAN, advisory)]
     assert shapes
 
     for shape in shapes:
@@ -409,7 +405,7 @@ def test_a_line_is_measured_only_on_its_own_figure_and_type() -> None:
         coordinates=((point.longitude, point.latitude), (point.longitude + 1.0, point.latitude)),
         crs=WGS84,
     )
-    sphere_crs = features(DORIAN, "030", "watch-warning")[0][1].crs
+    sphere_crs = segments(DORIAN, "030")[0].geometry.crs
 
     with pytest.raises(ValueError, match="figure of its own CRS"):
         nearest_on_line(place(point, WGS84), line, figure_of(sphere_crs))

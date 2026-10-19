@@ -16,6 +16,7 @@ def test_manifest_covers_the_four_storms_and_all_archive_products() -> None:
     manifest = corpus.load_manifest()
     assert manifest.schema == 1
     assert manifest.coordinate_policy == corpus.COORDINATE_POLICY
+    assert manifest.recorded_on == "2026-10-15"
     assert manifest.files
     assert manifest.subset
     for storm, info in manifest.storms.items():
@@ -74,10 +75,14 @@ def test_every_subset_file_matches_its_manifest_and_original_archive_member() ->
         assert body[4:8] == bytes(4), "gzip mtime must be zero"
         collection = as_object(json.loads(gzip.decompress(body)), output.file)
         source = archives[output.source]
-        assert source.product == "5day"
         assert collection["source"] == source.file
         assert collection["storm"] == source.storm
-        assert collection["advisory"] == source.advisories[0]
+        if output.product.startswith("wsp-"):
+            assert source.product == corpus.WSP_ARCHIVE
+            assert collection["synoptic_time"] == source.synoptic_time
+        else:
+            assert source.product == "5day"
+            assert collection["advisory"] == source.advisories[0]
         crs = as_object(collection["source_crs"], "source CRS")
         original = source.prj[output.member.removesuffix(".shp") + ".prj"]
         assert crs == {"datum": original.datum, "wkt": original.wkt}

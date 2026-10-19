@@ -11,7 +11,11 @@ GIS feeds. Amended again 2026-10-17, live, between 16:15 and 16:18 UTC, for
 Phase 2 Step 4: the point precision under [Points](#points), the first
 recorded alert under [Alerts for a zone](#alerts-for-a-zone), and the
 "Fields v2 uses" lists of the NWS points, the alerts, and Nominatim, which
-now name nested members as `object.member`. Every other statement keeps
+now name nested members as `object.member`. Amended again 2026-10-19, from
+the pinned replay cache, for Phase 3 Step 2: the "Fields v2 uses" lists of
+the converted archive collections and the landmark windows under
+[GIS archive](#gis-archive), and the one-vertex watch-warning count (36
+records in 12 advisories, not 39 in 13). Every other statement keeps
 2026-10-12, or the date its own amendment names.
 
 ## Purpose
@@ -864,6 +868,29 @@ last `fcst` package):
 | AL092022 Ian | 68: 001–038, 30 intermediates | 65: 001–035 | complete, 2022092306–2022100106 (33 times) | 35 advisories, 001–035, both kinds | 20 advisories, 12–33 except 21 and 23 | 29 `Experimental` files, 011–033A |
 | AL142024 Milton | 41: 001–023, 18 intermediates | 41, as `_5day_` | complete, 2024100512–2024101018 (22 times) | 23 advisories, 001–023, both kinds | 17 advisories, 05–22 except 09 | 22 files, 008–023 |
 
+### Converted collections
+
+`weatherbot.sources.nhc_gis_archive` reads the collections the replay
+script converts (amended 2026-10-19). Each keeps the archive's
+attributes in upper case, and the parser reads only the fields below,
+through the same field contract as the live layers. `ADVDATE` dates the
+advisory, `VALIDTIME` resolves against it, 9999 in `MSLP`, `TCDIR`, or
+`TCSPD` means no value, and `BASIN` with `STORMNUM` must name the
+manifest's storm. A 5 km wind-speed-probability file takes its synoptic
+time and threshold from its shapefile's name
+(`{yyyymmddhh}_wsp{34,50,64}knt120hr_5km.shp`).
+
+- **Cone fields v2 uses:** `BASIN`, `STORMNUM`, `ADVISNUM`, `ADVDATE`,
+  `FCSTPRD`, `STORMNAME`, and `STORMTYPE`.
+- **Track fields v2 uses:** `BASIN`, `STORMNUM`, `ADVISNUM`, and
+  `ADVDATE`.
+- **Points fields v2 uses:** `BASIN`, `STORMNUM`, `ADVISNUM`, `ADVDATE`,
+  `TAU`, `VALIDTIME`, `FLDATELBL`, `MAXWIND`, `GUST`, `MSLP`, `TCDIR`,
+  `TCSPD`, `TCDVLP`, `STORMTYPE`, `SSNUM`, and `DVLBL`.
+- **Watch-warning fields v2 uses:** `BASIN`, `STORMNUM`, `ADVISNUM`,
+  `ADVDATE`, and `TCWW`.
+- **WSP extract fields v2 uses:** `PERCENTAGE`.
+
 ### Replay corpus recorded 2026-10-15
 
 `tests/fixtures/replay/corpus-manifest.json` pins 1,199 original archive
@@ -893,12 +920,35 @@ other packages lack that product. The manifest records these gaps;
 no absent product is fabricated. Inundation and peak surge are outside
 this corpus.
 
-The committed subset contains 1,201 compressed FeatureCollections,
-5,435,928 bytes (5.18 MiB), covering **all 310 advisories**. With the
-manifest and notice, the replay tree is about 6.68 MiB, below its
-10 MiB cap. Every cone is a valid polygon; source attributes are
-preserved, keys sorted, floats fixed to seven decimals, and gzip
-`mtime` fixed to zero. The regional fallback rule was not needed.
+The committed subset contains 1,201 compressed forecast FeatureCollections,
+5,435,928 bytes (5.18 MiB), covering **all 310 advisories**, and 507
+landmark-window extracts of the wind-speed probabilities, 782,734 bytes
+(0.75 MiB): 1,708 files, 6,218,662 bytes. With the manifest and notice, the
+replay tree is about 7.6 MiB, below its 10 MiB cap. Every cone is a valid
+polygon; source attributes are preserved, keys sorted, floats fixed to
+seven decimals, and gzip `mtime` fixed to zero. The regional fallback rule
+was not needed.
+
+**Landmark windows** (added 2026-10-19, Phase 3 Step 2). The full 5 km
+probability products would take 52.9 MiB as GeoJSON, and 12.1 MiB even as
+only the unmodified bands that contain a landmark, so the subset holds each
+of the 169 synoptic times' 34-, 50-, and 64-kt products clipped
+(`shapely.clip_by_rect`) to two boxes, one degree of latitude and longitude
+on each side of each landmark in `scripts/public_landmarks.toml`, in the
+products' own coordinates. Each file is written at
+`<storm>/wsp/<yyyymmddhh>/wsp-<34|50|64>kt.geojson.gz`, even when no band
+reaches a window (142 files hold no band), and records `source_crs`,
+`storm`, `synoptic_time`, `source`, `threshold_kt`, and a `window` member
+naming both landmarks, the one-degree half-width, and the covered
+MultiPolygon, which becomes the product's `coverage`. A windowed product is
+read only at a point inside its window. 319 source bands are invalid
+(`Ring Self-intersection`); a band is made valid before clipping and its
+feature records the reason in `geometry_note`, and the 9 clipped parts that
+`clip_by_rect` left self-touching are made valid again (the result equals
+the exact intersection). The 259 records with a NULL shape have no area and
+are omitted. The manifest records `recorded_on` (2026-10-15, the day the
+originals were fetched); a replay record's `fetched_at` is that day at
+00:00 UTC.
 
 Every archived `.prj` in this corpus declares geographic `D_Sphere`,
 radius 6,371,200 m. With operator approval on 2026-10-15, conversion
@@ -908,8 +958,10 @@ transformed to WGS84; the output is GeoJSON-shaped native-CRS data,
 not RFC 7946 WGS84 GeoJSON. Consumers must honor this provenance.
 Projected or unsupported datums still stop conversion.
 
-Dorian 056–062A has 39 one-vertex watch-warning records across 13
-advisories. Conversion represents those as Points, retains the source
+Dorian 056–062A has 36 one-vertex watch-warning records across 12
+advisories (three in each of 056 to 062A; 057A has no watch-warning
+product). Conversion
+represents those as Points, retains the source
 line in `source_geometry`, and adds `geometry_note`; it invents no line
 segment. pyshp also preserves rings when the source has only interior
 winding by treating them as exterior rings; all resulting cones pass
@@ -921,6 +973,18 @@ uv run python scripts/fetch_replay_corpus.py verify
 uv run python scripts/fetch_replay_corpus.py convert
 uv run pytest -m corpus
 ```
+
+`convert --full --out DIR` writes a complete conversion to a directory
+outside the checkout (it refuses one inside): every forecast product,
+every 5 km probability product unclipped, and every arrival-time KMZ as
+received, about 70 MiB, with its own `corpus-manifest.json`, so
+`weatherbot.services.replay.ReplayCorpus` reads it like the committed
+subset. The 5 km grid runs west past the antimeridian (to -260 degrees);
+a full product brings those longitudes into [-180, 180] by adding 360
+degrees, the same points on the same sphere, and says so in the band's
+`geometry_note`. `convert --refresh-subset` deliberately rewrites only the
+manifest's `subset` and `subset_rule` from the verified cache, for a
+change to the conversion; review its diff before committing.
 
 `manifest` deliberately refreshes the trust baseline from a fresh
 download; review its diff before committing. `manifest --reuse-downloads`

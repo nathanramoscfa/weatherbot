@@ -25,6 +25,7 @@ from weatherbot.models import (
     AlertSeverity,
     AlertStatus,
     AlertUrgency,
+    ArchiveStorm,
     ArrivalResolution,
     ArrivalTimeLine,
     ArrivalTimeProduct,
@@ -157,6 +158,13 @@ def recorded_storm() -> dict[str, object]:
         "list[dict[str, object]]", json.loads(path.read_text(encoding="utf-8"))["activeStorms"]
     )
     return storms[0]
+
+
+def archive_storm() -> ArchiveStorm:
+    """Return a replay storm header, spelled as the archive spells a cone's storm."""
+    return ArchiveStorm(
+        atcf_id=ATCF_ID, name="Simon", storm_type="HU", provenance=provenance("nhc-gis-archive")
+    )
 
 
 def summary() -> StormSummary:
@@ -557,6 +565,7 @@ SAMPLES: dict[type[DomainModel], Callable[[], DomainModel]] = {
     AlertSeverity: lambda: AlertSeverity.parse("Minor"),
     AlertStatus: lambda: AlertStatus.parse("Actual"),
     AlertUrgency: lambda: AlertUrgency.parse("Expected"),
+    ArchiveStorm: archive_storm,
     ArrivalResolution: lambda: ArrivalResolution(valid_at=FETCHED_AT, reason=None),
     ArrivalTimeLine: lambda: arrival_product().lines[0],
     ArrivalTimeProduct: arrival_product,

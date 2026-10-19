@@ -81,6 +81,28 @@ class StormSummary(DomainModel):
         return self
 
 
+class ArchiveStorm(DomainModel):
+    """A replayed storm, as the GIS archive's forecast cone spells it.
+
+    The archive states no slot, no roster classification, and no speed in miles per
+    hour, so a replay storm carries none: only its ATCF id, its ``STORMNAME`` and
+    ``STORMTYPE`` as the archive writes them (a depression's number spelled out, a type
+    such as ``HU`` or ``PTC``), and the provenance of the collection they were read from.
+    """
+
+    atcf_id: AtcfId
+    name: str = Field(min_length=1, description="STORMNAME, as the archive spells it.")
+    storm_type: str = Field(min_length=1, description="STORMTYPE, such as HU or PTC.")
+    provenance: Provenance
+
+    @model_validator(mode="after")
+    def _from_the_archive(self) -> Self:
+        if self.provenance.source_id != "nhc-gis-archive":
+            message = "an archive storm comes from the GIS archive"
+            raise ValueError(message)
+        return self
+
+
 class Advisory(DomainModel):
     """An advisory of one storm, as a product's ``advisnum`` and ``advdate`` state it.
 

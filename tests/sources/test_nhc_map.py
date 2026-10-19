@@ -342,6 +342,7 @@ async def test_both_tropical_services_fetch_the_same_products(
             outlook = await nhc_map.fetch_outlook(fetcher, catalog)
             winds = await nhc_map.fetch_wind_probabilities(fetcher, catalog, storms)
     (products,) = fetched.records
+    assert products.summary is not None
     assert products.summary.atcf_id == "EP202026"
     assert products.cone is not None
     assert products.track is not None

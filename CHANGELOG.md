@@ -31,6 +31,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `scripts/verify_phase02.py` check 31 reads the migration revisions at
   `v2.0.0-phase-2` and requires them unchanged, so a later phase's revision
   leaves `phase-verify (02)` green.
+- Replay snapshots. `Snapshot.origin` is `live` or `replay`; a replay snapshot
+  has an `nhc-gis-archive` outcome and no roster outcome, its storms carry an
+  `ArchiveStorm` (the ATCF id, name, and type as the archive spells them) in
+  place of the roster's `StormSummary`, and its records cite only the archive
+  and `nhc-arrival-times`. `StormProducts` holds exactly one header and reads
+  `atcf_id` and `name` from it. `WindProbabilityProduct.coverage` records the
+  area an extract covers, and `WindProbabilityBand.geometry_note` says how a
+  band's shape differs from the source's. `SnapshotRepository.save` refuses a
+  replay snapshot: history is live only.
+- Add `weatherbot.sources.nhc_gis_archive`: `parse_manifest` and parsers from a
+  converted collection's bytes and its manifest entries to cones, tracks,
+  points, watch-warning segments, wind-speed-probability products, and
+  `ArchiveStorm`, through a declared `FIELDS_READ` per kind that a contract
+  test keeps equal to the register's lists.
+- Add `weatherbot.services.replay`: `ReplayCorpus.open(directory)`, `storms()`,
+  and `snapshots(atcf_id)`, one replay snapshot per advisory with its
+  associated probabilities and, where the corpus holds them, the arrival-time
+  pair of the latest full advisory; every file's path, size, and SHA-256 are
+  checked before it is parsed (`ReplayError`).
+- The committed replay subset gains 507 landmark-window extracts of the 5 km
+  wind-speed probabilities (0.75 MiB), and the manifest records
+  `recorded_on`. `fetch_replay_corpus.py convert --full --out DIR` writes a
+  complete conversion outside the checkout, and `convert --refresh-subset`
+  rewrites only the manifest's subset deliberately. `replay-corpus.yml` also
+  runs on changes to the models, the archive parser, and the replay reader.
+- Correct the one-vertex watch-warning count in the register and the replay
+  notice: 36 records in 12 Dorian advisories, not 39 in 13.
 
 ### Phase 1 verification
 - Add the 50-check foundation verifier, full V1-V7 post sweep, QA findings ledger,

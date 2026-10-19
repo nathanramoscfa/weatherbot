@@ -60,6 +60,7 @@ from weatherbot.models.snapshot import Snapshot, SourceOutcome, StormProducts
 from weatherbot.models.storms import (
     Advisory,
     AdvisoryRecord,
+    ArchiveStorm,
     AtcfId,
     ConeGeometry,
     ForecastTrack,
@@ -102,6 +103,7 @@ __all__ = [
     "AlertStatusCode",
     "AlertUrgency",
     "AlertUrgencyCode",
+    "ArchiveStorm",
     "ArrivalResolution",
     "ArrivalTimeLine",
     "ArrivalTimeProduct",

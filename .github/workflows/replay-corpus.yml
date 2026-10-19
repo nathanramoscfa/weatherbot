@@ -7,6 +7,9 @@ on:
     branches: [main]
     paths:
       - scripts/fetch_replay_corpus.py
+      - src/weatherbot/models/**
+      - src/weatherbot/sources/nhc_gis_archive.py
+      - src/weatherbot/services/replay.py
       - tests/fixtures/replay/**
       - tests/replay/**
       - .github/workflows/replay-corpus.yml
@@ -15,6 +18,9 @@ on:
   pull_request:
     paths:
       - scripts/fetch_replay_corpus.py
+      - src/weatherbot/models/**
+      - src/weatherbot/sources/nhc_gis_archive.py
+      - src/weatherbot/services/replay.py
       - tests/fixtures/replay/**
       - tests/replay/**
       - .github/workflows/replay-corpus.yml
