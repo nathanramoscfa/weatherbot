@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 3 — Threat engine
+- Add `weatherbot.engine.geodesy`: `Figure` and `figure_of`, which gives each CRS
+  its figure (WGS 84 for `EPSG:4326`; for a native CRS, the one spheroid its WKT
+  names, read by a strict parser that refuses a projected CRS, a missing or
+  repeated spheroid, a unit other than the degree, or a meridian other than
+  Greenwich), and `distance_km` and `initial_bearing_deg` through `pyproj.Geod`.
+  `pyproj` joins the runtime dependencies.
+- Add `weatherbot.engine.geometry`: `place` (a location's WGS 84 point is used
+  unchanged in both geographic CRSs, as PROJ's own ballpark transformation
+  shows), antimeridian-safe `covers` and `intersects`, `repair` (polygonal
+  parts of `shapely.make_valid`, with the reason and no coordinate in its
+  note), `nearest_on_line` (geodesic edges, and whether the nearest point is
+  the line's end), and `closest_approach` (the forecast track's nearest
+  instant, interpolated along each geodesic in time).
+- Test them on the replay corpus against the public landmarks and with
+  Hypothesis property tests under a derandomized `weatherbot` profile; CI's
+  `test` job now fails below 90 percent branch coverage of `weatherbot.engine`.
+  Hypothesis and `pytest-cov` join the dev dependencies.
+- `tests/test_architecture.py` scans the engine for clock, random,
+  filesystem, environment, and logging use, and allows `pyproj` only as
+  `from pyproj import Geod`.
+- `scripts/verify_phase02.py` check 31 reads the migration revisions at
+  `v2.0.0-phase-2` and requires them unchanged, so a later phase's revision
+  leaves `phase-verify (02)` green.
+
 ### Phase 1 verification
 - Add the 50-check foundation verifier, full V1-V7 post sweep, QA findings ledger,
   and the required aggregate phase-verify workflow. Keep fixture bytes unchanged
