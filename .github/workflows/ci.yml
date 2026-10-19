@@ -101,8 +101,18 @@ jobs:
       - name: Install (locked)
         run: uv sync --locked
 
-      - name: Pytest
-        run: uv run pytest
+      # The engine's branch coverage floor holds for every engine module from Phase 3
+      # Step 1 on. The coverage data file goes to the runner's temporary directory,
+      # never the checkout.
+      - name: Pytest (engine branch coverage at least 90 percent)
+        env:
+          COVERAGE_FILE: ${{ runner.temp }}/.coverage
+        run: >-
+          uv run pytest
+          --cov=weatherbot.engine
+          --cov-branch
+          --cov-report=term-missing:skip-covered
+          --cov-fail-under=90
 
   package:
     name: package (${{ matrix.os }})

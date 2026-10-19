@@ -7,7 +7,8 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .cache/
-.coverage*
+.coverage
+.coverage.*
 htmlcov/
 dist/
 build/
