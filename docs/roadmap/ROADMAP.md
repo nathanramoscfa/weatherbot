@@ -173,6 +173,24 @@ These gaps drive the phase ordering below.
   snapshot, the per-storm threat record carries no wind-probability
   field, and the ladder's probability triggers read the location's band
   (issue #12; `phase02-roadmap.md`, "Design rationale").
+- **NHC segments count for every location.** The brief's §7 reads NHC's
+  watch-warning segments for non-US locations. v2 reads them for every
+  location, by a geometric coverage rule calibrated on the replay
+  corpus, beside the NWS alerts that cover it. A county-zone alert
+  outside the location's zones is context that never sets the level
+  (issue #10). Replay holds no NWS alerts, so this is also what gives
+  the Miami-Dade golden replays an official ladder (`phase03-roadmap.md`,
+  "Design rationale").
+- **Level 2 covers every cone below level 3.** The brief's level 2
+  names the cone of "a tropical storm or depression". v2 extends it to
+  the cone of any storm that does not reach level 3, so a hurricane's
+  cone beyond the level-3 horizon is never All Clear.
+- **Level 3's timing comes from the forecast track.** The brief's
+  "arrival inside the forecast window" is read as the forecast track's
+  closest approach within the cone horizon, which every advisory
+  carries, live or replayed. The arrival-time products exist only for
+  full advisories, and only since 2018 (Irma 2017 has none), so they
+  feed the per-storm threats instead.
 
 Everything else in the brief applies unchanged: the decisions D1–D10,
 the data sources (with the graphic names, the text-product path, and
@@ -484,23 +502,36 @@ checks 7, 9, and 12; the other Phase 2 checks stay live. Keep the `"01"` and
 
 #### 3.1 Geodesy and geometry
 - Point-in-polygon and polygon-intersection tests, geodesic distance
-  and bearing (`pyproj.Geod`), antimeridian-safe handling for the
-  Central Pacific, cone validity repair, nearest point on a track.
+  and bearing (`pyproj.Geod`) on the figure of each geometry's own CRS
+  (WGS 84 for live geometry, the archive's 6,371,200 m sphere for
+  replay), antimeridian-safe handling for the Central Pacific, cone
+  validity repair, nearest point on a line, and a forecast track's
+  closest approach.
 
 #### 3.2 Rules and evidence
 - The ladder from the brief's §7 as ordered rules that stop at the
   first match; each match emits an `Evidence` record naming the
   product, issuance time, advisory number, geometry test, distance,
-  and time estimate.
+  and time estimate. The eleven rules, their order, and the exact
+  triggers are in `phase03-roadmap.md` ("Design rationale").
 - Thresholds (wind-probability floors, cone horizon, development-area
-  chance) as configuration with defaults chosen in this phase from
-  replay calibration; the brief fixes none, and this roadmap marks
-  them TBD until then.
-- Per-storm threats: category, in-cone, distance, bearing, earliest and
-  most-likely arrival from the arrival-time layers, with a track-based
-  fallback when a layer is absent.
-- Non-US watches and warnings: map a location to its coastal breakpoint
-  span and read the storm's watch-warning segments against it.
+  chance, and a watch-warning segment's coastal reach and end
+  tolerance) as configuration with defaults chosen in this phase from
+  replay calibration; the brief fixes none, and they stay TBD until
+  the phase roadmap's Step 5 records each default with its calibration
+  interval.
+- Per-storm threats: category, in-cone, distance, bearing, closest
+  approach, and earliest and most-likely arrival from the arrival-time
+  products, with the closest approach as the labelled fallback when a
+  product is absent.
+- Watches and warnings for every location from both official sources:
+  NWS alerts that cover the location (issue #10: the point query found
+  the alert, or its UGC list names the location's forecast or county
+  zone; a county alert outside them is context that never sets the
+  level) and NHC watch-warning segments within the calibrated coastal
+  reach. A location's breakpoint span names its coast.
+- An assessment names every input it lacked, and its level then reads
+  as a floor.
 - The diff between consecutive assessments as typed change events
   (level up or down, new advisory, new or changed alert, cone entered
   or left).
@@ -512,7 +543,11 @@ checks 7, 9, and 12; the other Phase 2 checks stay live. Keep the `"01"` and
   Geometry/geodesy must account for this CRS before comparing locations.
 - Load the Phase 1 replay corpus as a sequence of snapshots and run the
   engine over time; `weatherbot replay <storm> --location <name>`
-  prints the ladder timeline.
+  prints the ladder timeline. A replayed advisory is a `Snapshot` with
+  origin `replay` that invents no roster record, and the committed
+  subset gains each storm's 5 km wind-speed probabilities clipped to a
+  window around each public landmark (about 0.6 MiB), so the goldens
+  replay every product the ladder reads on every pull request.
 - Golden expectation files for Irma, Dorian, Ian, and Milton against a
   Miami-Dade landmark and a Nassau landmark, reviewed by the operator
   once and then frozen.
@@ -524,15 +559,30 @@ checks 7, 9, and 12; the other Phase 2 checks stay live. Keep the `"01"` and
   thresholds with their calibration evidence, and the actions text,
   as the single source the UI, the CLI, and the Claude prompts quote.
 
+#### 3.5 Stored assessments and the first assessment commands
+- Alembic revision `0003` creates the assessment, evidence, and change
+  tables with their writer, `weatherbot status`, which assesses every
+  location against a fresh or stored snapshot; `weatherbot replay`;
+  `weatherbot locations evacuation` sets the operator's toggle; the
+  breakpoint span is filled and shown. Replay assessments are never
+  stored.
+
 **Acceptance criteria**
-- All golden replays pass; changing any threshold or rule order breaks
-  at least one golden test.
+- All golden replays pass; removing or reordering a rule, or moving a
+  threshold past a finite end of its recorded calibration interval,
+  breaks at least one golden test (an open end of an interval, or a
+  pair of rules the corpus never sees matching together, is recorded
+  with its reason).
 - The import-linter contract proves `weatherbot.engine` imports no
   I/O layer; engine coverage is at least 90 percent.
-- `replay` runs each of the four storms end to end in under a time
-  budget set in the phase roadmap (TBD) on the operator's machine.
+- `replay` runs each of the four storms against each landmark end to
+  end in under 10 seconds on the operator's machine.
 - `docs/ALERT-LADDER.md` matches the implemented rules (a test renders
   the rules table from code and diffs it against the document).
+- `weatherbot status` stores and prints an assessment for each landmark
+  against the live services, `doctor` reports revision `0003` at the
+  head on the operator's database, and issue #10 is closed by a rule
+  with a golden scenario built from the recorded zone-alert capture.
 - **Security:** gate green; no fixture or golden file contains a
   coordinate of the operator's; the personal-data check covers the new
   test data.
