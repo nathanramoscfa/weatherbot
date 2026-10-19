@@ -1380,9 +1380,9 @@ hygiene.
 
 ---
 
-## Step 2 — Replay snapshots
+## Step 2 — Replay snapshots ✅
 
-**Status:** Not started
+**Status:** Complete — PR #32 (2026-10-19)
 
 > **Goal:** Make a replayed advisory an honest `Snapshot`, and give every pull
 > request every product the ladder reads. `weatherbot.models` gains a snapshot
@@ -1423,6 +1423,8 @@ green, because Phase 1's V6.4 reads it.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-19: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 2 is coding with knowledge as its secondary category:
 a model change that every layer reads, a parser over the archive's own field
@@ -5102,7 +5104,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                         | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #29 |
-| 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #32 |
 | 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
