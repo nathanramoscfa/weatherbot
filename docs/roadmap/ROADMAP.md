@@ -475,6 +475,13 @@ the replay harness decide whether the product can be trusted. Opus 5.5
 at `Max` on Claude Code (Max subscription), GPT-6 Astra on Codex as the
 funded backup, per the `roadmodel score` PRIMARY and BACKUP lines.
 
+Phase 3 also adapts Phase 2 verification when it adds the engine's tables:
+`verify_phase02.py` check 31 (no revision creates an assessment, evidence,
+notification, heartbeat, briefing, or ledger table) becomes a historical check
+that reads the revisions at `v2.0.0-phase-2`, as Phase 2 Step 1 did for Phase 1's
+checks 7, 9, and 12; the other Phase 2 checks stay live. Keep the `"01"` and
+`"02"` matrix entries rather than dropping a phase from required verification.
+
 #### 3.1 Geodesy and geometry
 - Point-in-polygon and polygon-intersection tests, geodesic distance
   and bearing (`pyproj.Geod`), antimeridian-safe handling for the
