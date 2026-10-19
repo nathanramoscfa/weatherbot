@@ -28137,6 +28137,7 @@
     }
   ],
   "float_decimals": 7,
+  "recorded_on": "2026-10-15",
   "schema": 1,
   "storms": {
     "AL052019": {
@@ -32517,6 +32518,1518 @@
       "source": "AL052019/al052019_5day_064.zip"
     },
     {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082412/wsp-34kt.geojson.gz",
+      "member": "2019082412_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "2af86a4d65d05ae852a528c2a5dd3ca274f6cf58454e02aa00b5df953897ae22",
+      "source": "AL052019/2019082412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082412/wsp-50kt.geojson.gz",
+      "member": "2019082412_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "3288d137992a58857eb35c8d76a0765239980df30eb93a9b2b4fa3e6f7f7abfc",
+      "source": "AL052019/2019082412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082412/wsp-64kt.geojson.gz",
+      "member": "2019082412_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "77a50d074f257934199d58715b78864b7997478b0e28501aed1ba56a1c3f1475",
+      "source": "AL052019/2019082412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 399,
+      "file": "AL052019/wsp/2019082418/wsp-34kt.geojson.gz",
+      "member": "2019082418_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "63205540775ad0f265e55c6c89b21347e87851ef193bcb85833646db96e6c45f",
+      "source": "AL052019/2019082418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082418/wsp-50kt.geojson.gz",
+      "member": "2019082418_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b083e93d0d83601ee2cea04d7e549087d034b7d7bc5c81b8a5d38225619a83ba",
+      "source": "AL052019/2019082418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082418/wsp-64kt.geojson.gz",
+      "member": "2019082418_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "cba5d08044b04094ef37f84119af0a4b864ea509462d1dc54998d3abc2ab087a",
+      "source": "AL052019/2019082418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 457,
+      "file": "AL052019/wsp/2019082500/wsp-34kt.geojson.gz",
+      "member": "2019082500_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "5147685517000cde9cf3f1f123c78b5f7f14bda47e21f77f2ad7e5f4b4f8a983",
+      "source": "AL052019/2019082500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082500/wsp-50kt.geojson.gz",
+      "member": "2019082500_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "21bbe51737e1d74924543e0fc32e60583893735d66564e0cf1e701f9c4a55e12",
+      "source": "AL052019/2019082500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082500/wsp-64kt.geojson.gz",
+      "member": "2019082500_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "3b66ee698eebdd34263c3d6660dd978c9f9483cb6c4bdf71a47514043a43ca17",
+      "source": "AL052019/2019082500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 708,
+      "file": "AL052019/wsp/2019082506/wsp-34kt.geojson.gz",
+      "member": "2019082506_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a8d6b94cd34308a908ae0e4415e6ab9eae014208750e74eb20145cc2d3335430",
+      "source": "AL052019/2019082506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082506/wsp-50kt.geojson.gz",
+      "member": "2019082506_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "f9153cde70913f506382fb2bfbd87d99e5f671babcdc91c25803d975ecdc185a",
+      "source": "AL052019/2019082506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082506/wsp-64kt.geojson.gz",
+      "member": "2019082506_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "148f68ef104a9f0e39c1fbe9f6c2ef016e27af0f4f8db63a0278e7284c079881",
+      "source": "AL052019/2019082506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 560,
+      "file": "AL052019/wsp/2019082512/wsp-34kt.geojson.gz",
+      "member": "2019082512_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "1050c54d5d7eadbfaa29341e01d0e16f0335ce7d53c17f87939ab0140586c3df",
+      "source": "AL052019/2019082512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082512/wsp-50kt.geojson.gz",
+      "member": "2019082512_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "5652e1f439d6444169e8e968583e6535ea507aa9966a0b8d4bcd113f3d61b2ec",
+      "source": "AL052019/2019082512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082512/wsp-64kt.geojson.gz",
+      "member": "2019082512_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "ac4806dc9cb2e9fce904339f1af881888d2b6753ff6c18fb8ccf59215b01d1ca",
+      "source": "AL052019/2019082512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 619,
+      "file": "AL052019/wsp/2019082518/wsp-34kt.geojson.gz",
+      "member": "2019082518_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "10b85c2576b5646863c7fbb4c000fab03ce8660e262483931b65dbf4348ba6ab",
+      "source": "AL052019/2019082518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082518/wsp-50kt.geojson.gz",
+      "member": "2019082518_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "caac15b5bbd3be61f67cb308f89086801566fbdb9e7c7e7918de9fe157a8d055",
+      "source": "AL052019/2019082518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082518/wsp-64kt.geojson.gz",
+      "member": "2019082518_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "8ab662f488c5c9890980fae8d1ae4e86ed4e7f489efc6501d2c7d3604989460f",
+      "source": "AL052019/2019082518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 714,
+      "file": "AL052019/wsp/2019082600/wsp-34kt.geojson.gz",
+      "member": "2019082600_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "64478b04abf6fcaecf1d49eb221e192e0055dcbf56a92b2b14b052cfaebe8da8",
+      "source": "AL052019/2019082600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082600/wsp-50kt.geojson.gz",
+      "member": "2019082600_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "86a3961b29e60816c78b1faf954f94a4f7204f12dbfbb6d4bd9b7f70e27da489",
+      "source": "AL052019/2019082600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082600/wsp-64kt.geojson.gz",
+      "member": "2019082600_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "8e77302f3930120b19b3347e7ee1759ac5fffbb5999854f93aeda39269768c23",
+      "source": "AL052019/2019082600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 698,
+      "file": "AL052019/wsp/2019082606/wsp-34kt.geojson.gz",
+      "member": "2019082606_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "71508e1383e02da2bbc2d4776772ed32f3934fc0b721347ac81c886e75cf1b39",
+      "source": "AL052019/2019082606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082606/wsp-50kt.geojson.gz",
+      "member": "2019082606_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "7ed2b50dd111f6265bbbd7ee104779f4a26bb6440fd00deebe55da5bb7ef3b92",
+      "source": "AL052019/2019082606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 399,
+      "file": "AL052019/wsp/2019082606/wsp-64kt.geojson.gz",
+      "member": "2019082606_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "5722d0b25537c77dbdea19c8186a7d9531a6bbf4b98de971ee7a8686ca408624",
+      "source": "AL052019/2019082606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 835,
+      "file": "AL052019/wsp/2019082612/wsp-34kt.geojson.gz",
+      "member": "2019082612_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "e1313f29939412889029723f2dca1c82610c9f4b592958ff3eef4756e45ea1f7",
+      "source": "AL052019/2019082612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 856,
+      "file": "AL052019/wsp/2019082612/wsp-50kt.geojson.gz",
+      "member": "2019082612_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "23849a452256dcceacd09706826bfc0a1654a0a4661bad98f154d1d653e5b539",
+      "source": "AL052019/2019082612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019082612/wsp-64kt.geojson.gz",
+      "member": "2019082612_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "a525ea4e4e9af3d0a84e81db38cb4d409a57f53fee3997c7232984ef7553eb66",
+      "source": "AL052019/2019082612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1342,
+      "file": "AL052019/wsp/2019082618/wsp-34kt.geojson.gz",
+      "member": "2019082618_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "2a5588ff18427fe17e1204b5b92f3bf8ab3eea5eb647d0b6846c4e1ebc3e5edc",
+      "source": "AL052019/2019082618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 808,
+      "file": "AL052019/wsp/2019082618/wsp-50kt.geojson.gz",
+      "member": "2019082618_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "31ce790fcc76483fce9e010c7fc1d1c485cbb10fdb73ea3fd63acb96f15a2e3c",
+      "source": "AL052019/2019082618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 793,
+      "file": "AL052019/wsp/2019082618/wsp-64kt.geojson.gz",
+      "member": "2019082618_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "6635dd22f1ecc4ff6313d8b17025cca41611bc394945cafec676aa963b5fb85d",
+      "source": "AL052019/2019082618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1564,
+      "file": "AL052019/wsp/2019082700/wsp-34kt.geojson.gz",
+      "member": "2019082700_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "db92785307630bb9b1580f3d5b8ae3ad9e2a5921f9d8fcf28bdeb634db5a2310",
+      "source": "AL052019/2019082700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 998,
+      "file": "AL052019/wsp/2019082700/wsp-50kt.geojson.gz",
+      "member": "2019082700_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "9c63c0d90595fde3e72f347e1545d6319b58344a5ba6aa39778ecd6141be761b",
+      "source": "AL052019/2019082700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 807,
+      "file": "AL052019/wsp/2019082700/wsp-64kt.geojson.gz",
+      "member": "2019082700_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "bd664cee03f1a6562051ab0370010f8926ecee664fa92779f549137051cb247c",
+      "source": "AL052019/2019082700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2393,
+      "file": "AL052019/wsp/2019082706/wsp-34kt.geojson.gz",
+      "member": "2019082706_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "3f3a17a109349b439a9e490529a0ea6a65343b646bacc277a592b023655a8771",
+      "source": "AL052019/2019082706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1742,
+      "file": "AL052019/wsp/2019082706/wsp-50kt.geojson.gz",
+      "member": "2019082706_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "d03ced180da9b5f7ab1fc5fd123d78e20a930bb43d49a71fb0e5e3fd0fec5f29",
+      "source": "AL052019/2019082706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1271,
+      "file": "AL052019/wsp/2019082706/wsp-64kt.geojson.gz",
+      "member": "2019082706_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "4cf3856b35f956fd091bbd5e1c0203a164981594841664783f75b24114a2a4d1",
+      "source": "AL052019/2019082706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2713,
+      "file": "AL052019/wsp/2019082712/wsp-34kt.geojson.gz",
+      "member": "2019082712_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "5588624d1d68ba9dfeca38573ea3c8a157eb9f231f805e20473a27d9fa3487a0",
+      "source": "AL052019/2019082712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1855,
+      "file": "AL052019/wsp/2019082712/wsp-50kt.geojson.gz",
+      "member": "2019082712_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "ae517ca9ae12574fba4f9cae56a509a2c2a12594eaf993273ec3161fe8604286",
+      "source": "AL052019/2019082712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1271,
+      "file": "AL052019/wsp/2019082712/wsp-64kt.geojson.gz",
+      "member": "2019082712_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "b0e3a18391bca03e86b96f311b09a201bd0f00c5e41aa5177e1a57028f6cca97",
+      "source": "AL052019/2019082712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2364,
+      "file": "AL052019/wsp/2019082718/wsp-34kt.geojson.gz",
+      "member": "2019082718_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "24309d84d0b876cb59d97ee6ebbd12dab18b617ef2144755ca6427bfba302a8b",
+      "source": "AL052019/2019082718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2028,
+      "file": "AL052019/wsp/2019082718/wsp-50kt.geojson.gz",
+      "member": "2019082718_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "4aac982ee6fda2a2c264b859c9996c9e8ca2e83884a99d9219ad52c556f81500",
+      "source": "AL052019/2019082718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 824,
+      "file": "AL052019/wsp/2019082718/wsp-64kt.geojson.gz",
+      "member": "2019082718_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c3532b1e36b9d8eae50ce7ebe858b683de9bbd74cf38428d5b93524ff1b00228",
+      "source": "AL052019/2019082718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2565,
+      "file": "AL052019/wsp/2019082800/wsp-34kt.geojson.gz",
+      "member": "2019082800_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "c98e7596f92379d83306f95e1d3b320420ef22796c0ddaab7bdf4a6b12b6d581",
+      "source": "AL052019/2019082800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2246,
+      "file": "AL052019/wsp/2019082800/wsp-50kt.geojson.gz",
+      "member": "2019082800_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "a84735bd55a36356c63db7164e39cd859e92afb2b67d09a2528c96a391f472b3",
+      "source": "AL052019/2019082800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1153,
+      "file": "AL052019/wsp/2019082800/wsp-64kt.geojson.gz",
+      "member": "2019082800_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "df1dc465853c5c69d7d73adafab68a2333e23fa8b8ec334bb0bc62e25140d5ac",
+      "source": "AL052019/2019082800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2865,
+      "file": "AL052019/wsp/2019082806/wsp-34kt.geojson.gz",
+      "member": "2019082806_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "f460c82a943846650c388c85a506469bdd6972c3f7cfbb7ed841fbd44c697ca9",
+      "source": "AL052019/2019082806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2361,
+      "file": "AL052019/wsp/2019082806/wsp-50kt.geojson.gz",
+      "member": "2019082806_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "09471b4974459ad0227760a0cb608b1cc4512a499bde90f2883443ccf1c8addd",
+      "source": "AL052019/2019082806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1640,
+      "file": "AL052019/wsp/2019082806/wsp-64kt.geojson.gz",
+      "member": "2019082806_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "d8077049dcffe6b1d6b433b07da493701f6d2d6819b97c4d0b0cabb8470262d4",
+      "source": "AL052019/2019082806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2951,
+      "file": "AL052019/wsp/2019082812/wsp-34kt.geojson.gz",
+      "member": "2019082812_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "697d42f1c5fc57aa9277f7928c31825bbbaff70ba9f8132e650cce8e55408fb5",
+      "source": "AL052019/2019082812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2200,
+      "file": "AL052019/wsp/2019082812/wsp-50kt.geojson.gz",
+      "member": "2019082812_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "45f472eeaa80601f8e219b99584d0b2962044d3680fe0cd7a40fa7a4783e4245",
+      "source": "AL052019/2019082812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1932,
+      "file": "AL052019/wsp/2019082812/wsp-64kt.geojson.gz",
+      "member": "2019082812_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "7dc3bfe927e175afec50846ac4f93bceb080108d6d9ced554c864d4e6b34334e",
+      "source": "AL052019/2019082812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2462,
+      "file": "AL052019/wsp/2019082818/wsp-34kt.geojson.gz",
+      "member": "2019082818_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "1440304a9dd8b82464b82e0d6bc8d4ddb2b91295af8ca3aaa6b2712617ba13d8",
+      "source": "AL052019/2019082818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1992,
+      "file": "AL052019/wsp/2019082818/wsp-50kt.geojson.gz",
+      "member": "2019082818_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "900c22df4f89c9412d6acbeb97ebca471a67cc01aab2a8e13ff79be52dd1bae7",
+      "source": "AL052019/2019082818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1704,
+      "file": "AL052019/wsp/2019082818/wsp-64kt.geojson.gz",
+      "member": "2019082818_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "aa13768232f5542208f3b2ad43cd654c7bfd55d0a8803026587a2aaefd8dd112",
+      "source": "AL052019/2019082818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2517,
+      "file": "AL052019/wsp/2019082900/wsp-34kt.geojson.gz",
+      "member": "2019082900_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "4bae70fa74bb728476366157e2753ef522bc84327693740be590bf7b3a749baf",
+      "source": "AL052019/2019082900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2171,
+      "file": "AL052019/wsp/2019082900/wsp-50kt.geojson.gz",
+      "member": "2019082900_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "3a95feca80ca44c6840b01b9b30481d46f24fe6bcb476d25e699eb90d9f71590",
+      "source": "AL052019/2019082900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1763,
+      "file": "AL052019/wsp/2019082900/wsp-64kt.geojson.gz",
+      "member": "2019082900_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "60703a9514dfb48f26194ab3d93e796e965d50fdd9c55983ccacf10dd4336d2e",
+      "source": "AL052019/2019082900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2329,
+      "file": "AL052019/wsp/2019082906/wsp-34kt.geojson.gz",
+      "member": "2019082906_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "de60aec658ce1f63463a037ab4bdbfa567235a8d41f086097ee0b0e0b05491dd",
+      "source": "AL052019/2019082906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2467,
+      "file": "AL052019/wsp/2019082906/wsp-50kt.geojson.gz",
+      "member": "2019082906_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "e42fdeeafdd3a2ad8df20521b762ab874fdc5eccc2770d373aaf8cbbb58947ce",
+      "source": "AL052019/2019082906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1918,
+      "file": "AL052019/wsp/2019082906/wsp-64kt.geojson.gz",
+      "member": "2019082906_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "2467b7ff14d00e17e5d94243ae68f8318a0d365df03db47886ba96a9745c1231",
+      "source": "AL052019/2019082906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2250,
+      "file": "AL052019/wsp/2019082912/wsp-34kt.geojson.gz",
+      "member": "2019082912_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "702e1d6685e9d09521ef872e0f2e28e97912a224569c96cb0b527b1366cd261e",
+      "source": "AL052019/2019082912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2444,
+      "file": "AL052019/wsp/2019082912/wsp-50kt.geojson.gz",
+      "member": "2019082912_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "2747a385e1adb1844eeb5610b980dc03000010a9be3fa99d001be0fd874b51fd",
+      "source": "AL052019/2019082912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2062,
+      "file": "AL052019/wsp/2019082912/wsp-64kt.geojson.gz",
+      "member": "2019082912_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "19b8500f68c43eab9b61fcbd5b7bbac32f65f8858bc7dbaa5ee4e53996414029",
+      "source": "AL052019/2019082912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2242,
+      "file": "AL052019/wsp/2019082918/wsp-34kt.geojson.gz",
+      "member": "2019082918_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "d9f43bc3d3be4b8f935b1a3d3858776ccd80127d80fe2860dc52984138bb4f23",
+      "source": "AL052019/2019082918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2569,
+      "file": "AL052019/wsp/2019082918/wsp-50kt.geojson.gz",
+      "member": "2019082918_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "a1d5268af8c4fffc5743225c6091057a048e9ea13e08491e876cb5c745b37435",
+      "source": "AL052019/2019082918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2028,
+      "file": "AL052019/wsp/2019082918/wsp-64kt.geojson.gz",
+      "member": "2019082918_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "988e56ea7d29ffc791bc28404e1f0d32127b2ac91babeaf3b2032ae777d0eeb2",
+      "source": "AL052019/2019082918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1929,
+      "file": "AL052019/wsp/2019083000/wsp-34kt.geojson.gz",
+      "member": "2019083000_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "acd0fda0ead4f361fd643192d423a036459fdef0e5c99245e4f619d4b1c83e6a",
+      "source": "AL052019/2019083000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2401,
+      "file": "AL052019/wsp/2019083000/wsp-50kt.geojson.gz",
+      "member": "2019083000_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "c1f0a2b9e0429998d3d40da221604fa1dc0fc7caa3736ac629c7ab360f2965ae",
+      "source": "AL052019/2019083000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2109,
+      "file": "AL052019/wsp/2019083000/wsp-64kt.geojson.gz",
+      "member": "2019083000_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "d433909f6eb4daf001fb533adfdc783e6e1144e91b83683fd61ac87c3f65336c",
+      "source": "AL052019/2019083000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1820,
+      "file": "AL052019/wsp/2019083006/wsp-34kt.geojson.gz",
+      "member": "2019083006_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "21111458fa78bcff9b382a598ad3c4de7832208892d51ae21de27ded0d33f49c",
+      "source": "AL052019/2019083006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2464,
+      "file": "AL052019/wsp/2019083006/wsp-50kt.geojson.gz",
+      "member": "2019083006_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "ed9bb25b43e8a81dff5bf7e4bf9c54d3ddf4a1f58b40c8ed5e3008df8f0fd20b",
+      "source": "AL052019/2019083006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2053,
+      "file": "AL052019/wsp/2019083006/wsp-64kt.geojson.gz",
+      "member": "2019083006_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "d1d1ccc52482310026be27c2284bbd48f6ab647df86b0359b82a0707edabba18",
+      "source": "AL052019/2019083006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1808,
+      "file": "AL052019/wsp/2019083012/wsp-34kt.geojson.gz",
+      "member": "2019083012_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "37d2ecdf168621a650eae7c970365ffb373597105b9152bfc05cadc9bbf1c679",
+      "source": "AL052019/2019083012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2345,
+      "file": "AL052019/wsp/2019083012/wsp-50kt.geojson.gz",
+      "member": "2019083012_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "2b03ab5266197e4ca4c07b5b7415a37598c21e71f580a04c681cfcf34c248eaf",
+      "source": "AL052019/2019083012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2310,
+      "file": "AL052019/wsp/2019083012/wsp-64kt.geojson.gz",
+      "member": "2019083012_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "1756f826ae1c55e8d810fe2da93dd2008d70aa092936d0881c3c375e977889ce",
+      "source": "AL052019/2019083012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1957,
+      "file": "AL052019/wsp/2019083018/wsp-34kt.geojson.gz",
+      "member": "2019083018_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "0424a25aaa54b18df156c54318c777dfff05079b7fc0e889a44ba1f7ee9d0e98",
+      "source": "AL052019/2019083018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2866,
+      "file": "AL052019/wsp/2019083018/wsp-50kt.geojson.gz",
+      "member": "2019083018_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "4999fe27c108a20fad9537b9e9e888281f16385442c7465e5ab5e6392d348ddb",
+      "source": "AL052019/2019083018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2509,
+      "file": "AL052019/wsp/2019083018/wsp-64kt.geojson.gz",
+      "member": "2019083018_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "a0f7ca21028e7f066980910a69de98062c4317ce1114c2c243dbf6c3d8b33fd9",
+      "source": "AL052019/2019083018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2544,
+      "file": "AL052019/wsp/2019083100/wsp-34kt.geojson.gz",
+      "member": "2019083100_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "3d5986e63994d81681945175dcc588acf78ea822c6dfbd02c1c66024a70233af",
+      "source": "AL052019/2019083100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3113,
+      "file": "AL052019/wsp/2019083100/wsp-50kt.geojson.gz",
+      "member": "2019083100_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "4279a86b338ca37407dfa3ef8cdcc8b6edcec707eb0035833289da17afb32bfb",
+      "source": "AL052019/2019083100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2676,
+      "file": "AL052019/wsp/2019083100/wsp-64kt.geojson.gz",
+      "member": "2019083100_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "cb3b8026c44b87503ee3c7266e8c882f456696907c1016bb770e8b79a70ba67e",
+      "source": "AL052019/2019083100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2765,
+      "file": "AL052019/wsp/2019083106/wsp-34kt.geojson.gz",
+      "member": "2019083106_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "758f8f062b699609cfd9550c88f996113bcd8a058e8c85b09b9728aa35703db1",
+      "source": "AL052019/2019083106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3506,
+      "file": "AL052019/wsp/2019083106/wsp-50kt.geojson.gz",
+      "member": "2019083106_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "aef87c88044804a920e672f535932bf7147baee5d1dd51e17fe5ac29bd9875b7",
+      "source": "AL052019/2019083106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2811,
+      "file": "AL052019/wsp/2019083106/wsp-64kt.geojson.gz",
+      "member": "2019083106_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "90f6f696a8de3637c26910e6a44134cc97fce3a9191b091aefc90c188f818f64",
+      "source": "AL052019/2019083106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3346,
+      "file": "AL052019/wsp/2019083112/wsp-34kt.geojson.gz",
+      "member": "2019083112_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "4e7a3b753ce66a011e669816c2068ec534b82da17e4614dda4cfd46b903f0740",
+      "source": "AL052019/2019083112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3634,
+      "file": "AL052019/wsp/2019083112/wsp-50kt.geojson.gz",
+      "member": "2019083112_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "64fe3524c6c2f21b65286e0c3eee841c42523428a55290409dc18f33b480b0ba",
+      "source": "AL052019/2019083112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2664,
+      "file": "AL052019/wsp/2019083112/wsp-64kt.geojson.gz",
+      "member": "2019083112_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "ecc37c861b881089f91156151eb046b25db0e126d74f05b6715c675b4aebe793",
+      "source": "AL052019/2019083112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3271,
+      "file": "AL052019/wsp/2019083118/wsp-34kt.geojson.gz",
+      "member": "2019083118_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "57091cce827714ddceb2b406f742a10d6929ca6ec0c481b1fccbdc70064af79b",
+      "source": "AL052019/2019083118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3666,
+      "file": "AL052019/wsp/2019083118/wsp-50kt.geojson.gz",
+      "member": "2019083118_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "da6d1b6a038c05b437fec20ed7bf658d5c3aebc7be5c44fc3d16a32dd58ca6e3",
+      "source": "AL052019/2019083118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2849,
+      "file": "AL052019/wsp/2019083118/wsp-64kt.geojson.gz",
+      "member": "2019083118_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "e00ab142985d28effc0431e9726c42853a4a7cf4d66aa3b9618be18c9e4a34d0",
+      "source": "AL052019/2019083118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3193,
+      "file": "AL052019/wsp/2019090100/wsp-34kt.geojson.gz",
+      "member": "2019090100_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "48604144a265c77dd16371141bdbdf3164a11aa1e6b62692aac22ad61ec981ac",
+      "source": "AL052019/2019090100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3778,
+      "file": "AL052019/wsp/2019090100/wsp-50kt.geojson.gz",
+      "member": "2019090100_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "80a6647e9b1cb32d0ac5ce947da87322dad93c264cd34de2c04e25b8c82973e8",
+      "source": "AL052019/2019090100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3024,
+      "file": "AL052019/wsp/2019090100/wsp-64kt.geojson.gz",
+      "member": "2019090100_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "72c9da8caf4f1bc959fbcbd2c5d1005b708fd51c9e70c6d522bcd6431f266b69",
+      "source": "AL052019/2019090100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3243,
+      "file": "AL052019/wsp/2019090106/wsp-34kt.geojson.gz",
+      "member": "2019090106_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "b0a9c9bd4be715d00164001d5553721d633a267b19c07b71270daa6be5e81cc2",
+      "source": "AL052019/2019090106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3675,
+      "file": "AL052019/wsp/2019090106/wsp-50kt.geojson.gz",
+      "member": "2019090106_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "3611cda4b3674ec8e581c5c78a28ebdf09f802752ae7b5c1f7d9c6c0cb730696",
+      "source": "AL052019/2019090106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3298,
+      "file": "AL052019/wsp/2019090106/wsp-64kt.geojson.gz",
+      "member": "2019090106_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c8ea2de23a066099b9a8af1bee3b6f0d95998ca0e792098f6547a56ca34167df",
+      "source": "AL052019/2019090106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3535,
+      "file": "AL052019/wsp/2019090112/wsp-34kt.geojson.gz",
+      "member": "2019090112_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "226017d8a5812415df5a00e7c7375fae85526b76353144f7901f795ee1501779",
+      "source": "AL052019/2019090112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3976,
+      "file": "AL052019/wsp/2019090112/wsp-50kt.geojson.gz",
+      "member": "2019090112_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "ab1152fc707b3e9796cb263cd86237f39f7b29273fb91c8ad90f162404538adf",
+      "source": "AL052019/2019090112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3438,
+      "file": "AL052019/wsp/2019090112/wsp-64kt.geojson.gz",
+      "member": "2019090112_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "797f5a659e79905395797d9671bea1174d715d30a2f85be6536d642bea1f7e46",
+      "source": "AL052019/2019090112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3657,
+      "file": "AL052019/wsp/2019090118/wsp-34kt.geojson.gz",
+      "member": "2019090118_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "98f5a3823ddba2c90024930751d9219d69731da931e2fbbce5d19f2052b2e693",
+      "source": "AL052019/2019090118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 4912,
+      "file": "AL052019/wsp/2019090118/wsp-50kt.geojson.gz",
+      "member": "2019090118_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "fffee1cdf9b4b92d595c095d68c0748b2787a02fe978baf1745be6054f646d15",
+      "source": "AL052019/2019090118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3800,
+      "file": "AL052019/wsp/2019090118/wsp-64kt.geojson.gz",
+      "member": "2019090118_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "26a42a558ec365adbe36c4a51856056205906050d709e1d2aca23ef219a2c9bc",
+      "source": "AL052019/2019090118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3944,
+      "file": "AL052019/wsp/2019090200/wsp-34kt.geojson.gz",
+      "member": "2019090200_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "2185bb87ad4674302ccddec6a203fa56492b046b64b3d2ef1f8fea2ea0b5c4d6",
+      "source": "AL052019/2019090200_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 5010,
+      "file": "AL052019/wsp/2019090200/wsp-50kt.geojson.gz",
+      "member": "2019090200_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "1c9715755864d5dc628d982d72a28d67ecced16b3917d3bf29008b2447cc9ca3",
+      "source": "AL052019/2019090200_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3564,
+      "file": "AL052019/wsp/2019090200/wsp-64kt.geojson.gz",
+      "member": "2019090200_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "8e34349f173904dbaf8aaf2c6a4d131429690d357456a96ce4fc1cc3c92af4c6",
+      "source": "AL052019/2019090200_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 5017,
+      "file": "AL052019/wsp/2019090206/wsp-34kt.geojson.gz",
+      "member": "2019090206_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "f2d75a588f65b73dbbcf261777f414b29d3ca99b377259a472f0089ec749459a",
+      "source": "AL052019/2019090206_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 5135,
+      "file": "AL052019/wsp/2019090206/wsp-50kt.geojson.gz",
+      "member": "2019090206_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "832cb5e634f69c373bf43c793a36ae7e9ca42a4dccb43d269f79809fd8c1d67f",
+      "source": "AL052019/2019090206_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3450,
+      "file": "AL052019/wsp/2019090206/wsp-64kt.geojson.gz",
+      "member": "2019090206_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "10dd24790a8206755c4dcc52666636965ab6501e5df22920059111aa2ddbfc4a",
+      "source": "AL052019/2019090206_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 5475,
+      "file": "AL052019/wsp/2019090212/wsp-34kt.geojson.gz",
+      "member": "2019090212_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "ef26259252d992a3c6da40ddf113d0cbf781f52cf036730461d47cd9eb407737",
+      "source": "AL052019/2019090212_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 4889,
+      "file": "AL052019/wsp/2019090212/wsp-50kt.geojson.gz",
+      "member": "2019090212_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "5585a81c4aab26327926e43a26683bc4223357f15ecfa0ea5f51dfff5d86cb0d",
+      "source": "AL052019/2019090212_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2943,
+      "file": "AL052019/wsp/2019090212/wsp-64kt.geojson.gz",
+      "member": "2019090212_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "14f7a63f95dc8aab7f8ff0577925f0c1927129b4d456e804273b5449cb808f58",
+      "source": "AL052019/2019090212_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 4862,
+      "file": "AL052019/wsp/2019090218/wsp-34kt.geojson.gz",
+      "member": "2019090218_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "def716eb6262970fb13418f2835bd8f269fb0bddad16e7e3d4a5af37e455470e",
+      "source": "AL052019/2019090218_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 4332,
+      "file": "AL052019/wsp/2019090218/wsp-50kt.geojson.gz",
+      "member": "2019090218_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b81a5eb0cb7d5b245ffd65ce4394b35c3b67d62860894534fd7962dfbb8fe2ae",
+      "source": "AL052019/2019090218_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2165,
+      "file": "AL052019/wsp/2019090218/wsp-64kt.geojson.gz",
+      "member": "2019090218_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "660b9d8c1ef0782a85a877f540b2a7ea2991c04ac0991e6c21614583f4c061e3",
+      "source": "AL052019/2019090218_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 4859,
+      "file": "AL052019/wsp/2019090300/wsp-34kt.geojson.gz",
+      "member": "2019090300_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "3bc63e25d457455892de89784de9a150cf902b71a3c7b44762eb3ec5783acb01",
+      "source": "AL052019/2019090300_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 4199,
+      "file": "AL052019/wsp/2019090300/wsp-50kt.geojson.gz",
+      "member": "2019090300_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "bad1c7616afe30e3bd712b2c4a2630722b35d02da236cd265bbd366921f4b88d",
+      "source": "AL052019/2019090300_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1956,
+      "file": "AL052019/wsp/2019090300/wsp-64kt.geojson.gz",
+      "member": "2019090300_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "643df7bb99c71482f5c57e641a604d25c9f910ad9772f5ff29b8941941ba7afb",
+      "source": "AL052019/2019090300_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 5533,
+      "file": "AL052019/wsp/2019090306/wsp-34kt.geojson.gz",
+      "member": "2019090306_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "34b9e4a2dbe88bfe4746015e1c83c1ea625b83dbf6308554b63d582509791df5",
+      "source": "AL052019/2019090306_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2916,
+      "file": "AL052019/wsp/2019090306/wsp-50kt.geojson.gz",
+      "member": "2019090306_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "e961c7d494c54ff6680ee845efab357cfdb4a0963a4a74ea3529acc0b1d6b3d5",
+      "source": "AL052019/2019090306_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1303,
+      "file": "AL052019/wsp/2019090306/wsp-64kt.geojson.gz",
+      "member": "2019090306_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "9e2bc680d53ab71d17c3331cb1fd6e72a7d4ed40a46c1f865aa75903249bcee7",
+      "source": "AL052019/2019090306_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 4483,
+      "file": "AL052019/wsp/2019090312/wsp-34kt.geojson.gz",
+      "member": "2019090312_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "8c0cbc3bc3abc91a20a83bced4f4efd9ac718b187528aabd66e9525351b995cc",
+      "source": "AL052019/2019090312_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2422,
+      "file": "AL052019/wsp/2019090312/wsp-50kt.geojson.gz",
+      "member": "2019090312_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "40246d6322ae9db2b13fa9bceb2114c7c97cbe53c276d61a8bedf22de640d6d1",
+      "source": "AL052019/2019090312_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1002,
+      "file": "AL052019/wsp/2019090312/wsp-64kt.geojson.gz",
+      "member": "2019090312_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "e1b109d3b9f7cc8f71ceec65690c6f2f7747fd96c086b02568fc740927765de1",
+      "source": "AL052019/2019090312_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 4946,
+      "file": "AL052019/wsp/2019090318/wsp-34kt.geojson.gz",
+      "member": "2019090318_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "ac68dabae352c6d516e8e7046dda47ef893a848d3d35d134b0fbb6ff56ea7780",
+      "source": "AL052019/2019090318_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1592,
+      "file": "AL052019/wsp/2019090318/wsp-50kt.geojson.gz",
+      "member": "2019090318_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "d0ef5c515bb2476473612d824070ad13ae3291c1be1917ff0cfba179340fb5b7",
+      "source": "AL052019/2019090318_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 667,
+      "file": "AL052019/wsp/2019090318/wsp-64kt.geojson.gz",
+      "member": "2019090318_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "626d5e0268812a55b1cc13e3004c82109e35e7528407ef3005dd9f7df1dcdedd",
+      "source": "AL052019/2019090318_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2509,
+      "file": "AL052019/wsp/2019090400/wsp-34kt.geojson.gz",
+      "member": "2019090400_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a3373f6ca6917f5327d7eb37df07d70e8efdf44f63806c5980f2d0f1818e11ab",
+      "source": "AL052019/2019090400_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 714,
+      "file": "AL052019/wsp/2019090400/wsp-50kt.geojson.gz",
+      "member": "2019090400_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "65da79405ca44fafc802553354bb6d4def5e8b3c1f8285fd316635a2471c21e5",
+      "source": "AL052019/2019090400_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090400/wsp-64kt.geojson.gz",
+      "member": "2019090400_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "4b11a7637ac63212fe61136255b2c7f37e4f669b15ab9145d6f38ee28ffa465d",
+      "source": "AL052019/2019090400_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1175,
+      "file": "AL052019/wsp/2019090406/wsp-34kt.geojson.gz",
+      "member": "2019090406_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "e62758b2978e8d6bed857e859e4aa34f42cf01a55420201060a013af36940800",
+      "source": "AL052019/2019090406_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090406/wsp-50kt.geojson.gz",
+      "member": "2019090406_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "262a055cd2452f2edf0e93775826215f00e00625ffe12702c1095d0b9e923b18",
+      "source": "AL052019/2019090406_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090406/wsp-64kt.geojson.gz",
+      "member": "2019090406_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "da3e1671ac97cd07b7805300fc3cf35d716c5af7adb4b3df66960720f194a60a",
+      "source": "AL052019/2019090406_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 823,
+      "file": "AL052019/wsp/2019090412/wsp-34kt.geojson.gz",
+      "member": "2019090412_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "1c4c2725b062e2ffbb7913a53dc1a6ad6670ed050f4787bff75e71d8b85afcd8",
+      "source": "AL052019/2019090412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090412/wsp-50kt.geojson.gz",
+      "member": "2019090412_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "6a5f61484d00a20445274797b3e5f31bc39eb97d9e38af6c973637841c4d79d6",
+      "source": "AL052019/2019090412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090412/wsp-64kt.geojson.gz",
+      "member": "2019090412_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "48db679d8b66e495bbd6baa9f8d5c1b4e0579eadcc58f347e77c6a4fc0095eca",
+      "source": "AL052019/2019090412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 663,
+      "file": "AL052019/wsp/2019090418/wsp-34kt.geojson.gz",
+      "member": "2019090418_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "d59e4ac9c97d6ff23ed85effd02d9935046c4a4dc2fb20931a3afb5db66eb6e4",
+      "source": "AL052019/2019090418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090418/wsp-50kt.geojson.gz",
+      "member": "2019090418_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "48150bca92c708efaf97e744824c1dbebfc202c7966813b5d236764d73addc91",
+      "source": "AL052019/2019090418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090418/wsp-64kt.geojson.gz",
+      "member": "2019090418_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "f30691820f19f1a631ca1435c5900cc8d7f39eb3f677cf5e7acfce1b5e34a4bd",
+      "source": "AL052019/2019090418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 463,
+      "file": "AL052019/wsp/2019090500/wsp-34kt.geojson.gz",
+      "member": "2019090500_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "ff90deb93228000c48c7e4bdb1dd6fbbace0f637d9ebd37629d741221f8cbda0",
+      "source": "AL052019/2019090500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL052019/wsp/2019090500/wsp-50kt.geojson.gz",
+      "member": "2019090500_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "1550b6387eb474f5c79434be153941d4366440d3ea3b30274a2674cb47f16060",
+      "source": "AL052019/2019090500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL052019/wsp/2019090500/wsp-64kt.geojson.gz",
+      "member": "2019090500_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "894c3dad87d622b1310710e742bbaec887b9fab6b0793830fbbf066b7d9e5b98",
+      "source": "AL052019/2019090500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090506/wsp-34kt.geojson.gz",
+      "member": "2019090506_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "cdd9a493550a2e65d67cc60ff7511c284be7da0b4e7f751e1cfbff5623709893",
+      "source": "AL052019/2019090506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090506/wsp-50kt.geojson.gz",
+      "member": "2019090506_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "58d7a9a82da41d0eefba328d2080877f7bb8cec0527af33e26c90caada15d12b",
+      "source": "AL052019/2019090506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090506/wsp-64kt.geojson.gz",
+      "member": "2019090506_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "d0471dee57b30af3470b85f9fdc032395d986b426309cb9eae45dc2f3ed6521f",
+      "source": "AL052019/2019090506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090512/wsp-34kt.geojson.gz",
+      "member": "2019090512_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "08039afc98cb3afd6c1151ca49cdb970c341d43b62d10f7415196cd28e927920",
+      "source": "AL052019/2019090512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090512/wsp-50kt.geojson.gz",
+      "member": "2019090512_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "df77f1c21f614b4f363ef319bfa91518db38be39c0a0cc55975e981791cf1c83",
+      "source": "AL052019/2019090512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090512/wsp-64kt.geojson.gz",
+      "member": "2019090512_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "15184ec862c2f66ca812a8d8a451390a949c9da3b4e6bd647a5e969ef8f88050",
+      "source": "AL052019/2019090512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090518/wsp-34kt.geojson.gz",
+      "member": "2019090518_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a3661c5c47729cc9c5e2a70e0737b2febf19021309d445e2b4e89760eb185074",
+      "source": "AL052019/2019090518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090518/wsp-50kt.geojson.gz",
+      "member": "2019090518_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "75f68f78ce4c6d243bb406039f3767f4b35a4fb40e5e854ea029af642e43fbcc",
+      "source": "AL052019/2019090518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090518/wsp-64kt.geojson.gz",
+      "member": "2019090518_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "0771376156acc4825c5c62324a8a974169bce5360382ec12d4ec24cbce1780a9",
+      "source": "AL052019/2019090518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090600/wsp-34kt.geojson.gz",
+      "member": "2019090600_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "162e37cb26a25c0106ca5b6471e67319d1441596c99b1e219a7e0dc6ec410048",
+      "source": "AL052019/2019090600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090600/wsp-50kt.geojson.gz",
+      "member": "2019090600_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "6b0a2b1175b06f7ef0792e15b400e4ce7cdafae0a8d48668ba9a497ffc6eea8b",
+      "source": "AL052019/2019090600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090600/wsp-64kt.geojson.gz",
+      "member": "2019090600_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "7283f1d8a218cd7e40753b72580fb7a112e2f9baa2bf2237e2fc65f5bf3fbc0a",
+      "source": "AL052019/2019090600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090606/wsp-34kt.geojson.gz",
+      "member": "2019090606_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "16301a5c6a4ef69e159fa074540bce320b48acca37531f89bde1cb2c006fd309",
+      "source": "AL052019/2019090606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090606/wsp-50kt.geojson.gz",
+      "member": "2019090606_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "8d41acb057d95ae504dedd4e9d550e509bd1dac68b8c54ea934e921b65033f9e",
+      "source": "AL052019/2019090606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 399,
+      "file": "AL052019/wsp/2019090606/wsp-64kt.geojson.gz",
+      "member": "2019090606_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "93b046a231ff53922b66c13d69a51f6bed7063ba818145e69e1b6aebec4df686",
+      "source": "AL052019/2019090606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090612/wsp-34kt.geojson.gz",
+      "member": "2019090612_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a42bba4dd420849392725c565512afb65c577f000c4e27524820ae3b435abd39",
+      "source": "AL052019/2019090612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090612/wsp-50kt.geojson.gz",
+      "member": "2019090612_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "fcc1efcd4b7f8b5d3991601e692b79481601f1fbb17d38796e650c60357936c3",
+      "source": "AL052019/2019090612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090612/wsp-64kt.geojson.gz",
+      "member": "2019090612_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "1a5e5fc8de46d10c11142191cc0039dfe9ebde403dca8dba663bc681e81831a0",
+      "source": "AL052019/2019090612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090618/wsp-34kt.geojson.gz",
+      "member": "2019090618_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "4c3d032cb870dcc3a3127ff0639c8afdab49bd708b620629885071021fe902e5",
+      "source": "AL052019/2019090618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090618/wsp-50kt.geojson.gz",
+      "member": "2019090618_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "dcf3ed227f31102dea74c6dfb08c1c9beefd9e626fe9a348d4d8a39401d7c0cf",
+      "source": "AL052019/2019090618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090618/wsp-64kt.geojson.gz",
+      "member": "2019090618_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "a38de799c2a8aa999639616e122631bdc2369ed40b902549aab00de6be95ac3a",
+      "source": "AL052019/2019090618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090700/wsp-34kt.geojson.gz",
+      "member": "2019090700_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "682edc541079c5e506f7b8b9dde735b766d8092af9f1adc4aab0958f18a1f035",
+      "source": "AL052019/2019090700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090700/wsp-50kt.geojson.gz",
+      "member": "2019090700_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b5f85289c1fb22a2c51f17e9b452774812d1ac1564af6cf03aad7403a00785f4",
+      "source": "AL052019/2019090700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090700/wsp-64kt.geojson.gz",
+      "member": "2019090700_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "0b5a87a65969ada5a67e03e526a8ad80a4eb9ba86269a4f241e28db82c271b63",
+      "source": "AL052019/2019090700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090706/wsp-34kt.geojson.gz",
+      "member": "2019090706_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "1f0169fabe49147b75ff3b4c505c6513a0821f6d9cb89a5995927b568e80557c",
+      "source": "AL052019/2019090706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090706/wsp-50kt.geojson.gz",
+      "member": "2019090706_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "4aaaa20a3743b47cbd1b8e27675b883cdab77e240aa5ad43666f49d6535a4ad2",
+      "source": "AL052019/2019090706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090706/wsp-64kt.geojson.gz",
+      "member": "2019090706_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "2c632a53f332a2229c48c0dec8b01f3f248ac6a1c4155e9e1d69c13629b99349",
+      "source": "AL052019/2019090706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090712/wsp-34kt.geojson.gz",
+      "member": "2019090712_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "47ba7c18538620710c84e412aa185cc7ecdb28b92088ca6c63878a8afc7e4795",
+      "source": "AL052019/2019090712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090712/wsp-50kt.geojson.gz",
+      "member": "2019090712_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "ace9223dd0a388770deae0dbd19a3e838689e534d2235189c8170055b0177293",
+      "source": "AL052019/2019090712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090712/wsp-64kt.geojson.gz",
+      "member": "2019090712_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "1b754466cbfb1472da93adeb7cbce063aad6ae72c5ec528279f98a2301f69670",
+      "source": "AL052019/2019090712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090718/wsp-34kt.geojson.gz",
+      "member": "2019090718_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "5a7078f60ef66d4b2dbd63a771cd8e186e24efed08cc985be6b7b65b33c5ac8e",
+      "source": "AL052019/2019090718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090718/wsp-50kt.geojson.gz",
+      "member": "2019090718_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b3648b738465ab68f4d6508ef001139bb5b38914469a622a88c3416ab00066d1",
+      "source": "AL052019/2019090718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090718/wsp-64kt.geojson.gz",
+      "member": "2019090718_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "4f185535b3191741d8158ed4a92e94132d1bc2483f543776e643852fe5155133",
+      "source": "AL052019/2019090718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL052019/wsp/2019090800/wsp-34kt.geojson.gz",
+      "member": "2019090800_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "0ec7a179eddd5f7d494386bcb04cc4dd05031e7712cc20019970dc754db72a39",
+      "source": "AL052019/2019090800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL052019/wsp/2019090800/wsp-50kt.geojson.gz",
+      "member": "2019090800_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "1f1eea331de6f2701e08bb66ff8766de5267a339559c19f1ac6c061af3953e0a",
+      "source": "AL052019/2019090800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL052019/wsp/2019090800/wsp-64kt.geojson.gz",
+      "member": "2019090800_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "6c49f032049cdd59da015c0c61b66e1c495a0d7e571d53eaad9405168f263afa",
+      "source": "AL052019/2019090800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090806/wsp-34kt.geojson.gz",
+      "member": "2019090806_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "2c6edb8122e108cdba366ae6fe43a335df2f4f337c0aab030cfe2648d906c62d",
+      "source": "AL052019/2019090806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090806/wsp-50kt.geojson.gz",
+      "member": "2019090806_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "941d19e08f169c45f47aa780bc2c09e3756d1cbda7f25c5a59362aaa9eec0d6e",
+      "source": "AL052019/2019090806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090806/wsp-64kt.geojson.gz",
+      "member": "2019090806_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c031d34d3f300b539416bbb561f41a0f0a28a1dfb2a92aa588c1a5e40a2ee9c4",
+      "source": "AL052019/2019090806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090812/wsp-34kt.geojson.gz",
+      "member": "2019090812_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "9577789c9799da63b37fb723b8308f9dcf36ea0bfd9113a97b3f3a1c9d72fd02",
+      "source": "AL052019/2019090812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090812/wsp-50kt.geojson.gz",
+      "member": "2019090812_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "9869adeff80dd6cec491917d0fb8a6af7ddab6495c52b1b963c5dcb87a383fd0",
+      "source": "AL052019/2019090812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090812/wsp-64kt.geojson.gz",
+      "member": "2019090812_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "7b4ca8d72c2f155c20632b8a2e8b9b74640b9a98d1653ff7dab1c9b8d505a5c1",
+      "source": "AL052019/2019090812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090818/wsp-34kt.geojson.gz",
+      "member": "2019090818_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "15d1af5d1eb1fa21635a0b34fa4be18af051d16ed5146319bef8aa3ee81528ed",
+      "source": "AL052019/2019090818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090818/wsp-50kt.geojson.gz",
+      "member": "2019090818_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "3559b9405b60f9e5948c7ecd9bb07ae0da26a36b6e3c2390b11c0f09ec21e60d",
+      "source": "AL052019/2019090818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL052019/wsp/2019090818/wsp-64kt.geojson.gz",
+      "member": "2019090818_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "8f5b19318554f3e140521df87cce33006f371b82063de6d5db0682bd4012c055",
+      "source": "AL052019/2019090818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL052019/wsp/2019090900/wsp-34kt.geojson.gz",
+      "member": "2019090900_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "81de9557ea91d8279ee672a10e22756107b434e1d5ba8696b9de7e43fee9cb28",
+      "source": "AL052019/2019090900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL052019/wsp/2019090900/wsp-50kt.geojson.gz",
+      "member": "2019090900_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "f9790aa5ea33757d3ad7c2d9730844662300b98f251eb6d8d6a55e7ce8914404",
+      "source": "AL052019/2019090900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL052019/wsp/2019090900/wsp-64kt.geojson.gz",
+      "member": "2019090900_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "3ef591b87e37440a07236772cf9574bb0f5c69a7587887c3897820090a47d23a",
+      "source": "AL052019/2019090900_wsp_120hr5km.zip"
+    },
+    {
       "bytes": 15788,
       "file": "AL092022/001/cone.geojson.gz",
       "member": "al092022-001_5day_pgn.shp",
@@ -34627,6 +36140,798 @@
       "product": "track",
       "sha256": "7fe29a4ff392a2b31541b90cf366a5e60475b8f7cc7dc09cf0cbe1af7de9f21c",
       "source": "AL092022/al092022_5day_038.zip"
+    },
+    {
+      "bytes": 1495,
+      "file": "AL092022/wsp/2022092306/wsp-34kt.geojson.gz",
+      "member": "2022092306_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "ab7c047dc1bc5fcdb4c9b5ac43d8ba4ca1e34b26d724a11c589e429df10c392d",
+      "source": "AL092022/2022092306_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1021,
+      "file": "AL092022/wsp/2022092306/wsp-50kt.geojson.gz",
+      "member": "2022092306_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "161fb7b0e6dc3bbc42d3ba3105b1fc081a5db96157c035f0b5e8cca406f21317",
+      "source": "AL092022/2022092306_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1099,
+      "file": "AL092022/wsp/2022092306/wsp-64kt.geojson.gz",
+      "member": "2022092306_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "a5b03a41d798cecdbadb5167ede68c46e733d550c1a864bcd7e7945619bded8e",
+      "source": "AL092022/2022092306_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1524,
+      "file": "AL092022/wsp/2022092312/wsp-34kt.geojson.gz",
+      "member": "2022092312_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "80ede19f7d34e1b195f3b7a1698e089d38a019852478f123fb7a590f7bb886aa",
+      "source": "AL092022/2022092312_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1113,
+      "file": "AL092022/wsp/2022092312/wsp-50kt.geojson.gz",
+      "member": "2022092312_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "2adbb524702addf0e91c4fb4a15e5d89e049fc9dda0c4f0827286d9810e2b01b",
+      "source": "AL092022/2022092312_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1264,
+      "file": "AL092022/wsp/2022092312/wsp-64kt.geojson.gz",
+      "member": "2022092312_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "6bc59099031cf1d865e2dda003cae525be3ecc36e20d5b57f5f689cf8b580e50",
+      "source": "AL092022/2022092312_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1284,
+      "file": "AL092022/wsp/2022092318/wsp-34kt.geojson.gz",
+      "member": "2022092318_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "da61411439972cc43510219a6035ce01504163b265d571d78ebdf5e37dc58d86",
+      "source": "AL092022/2022092318_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1168,
+      "file": "AL092022/wsp/2022092318/wsp-50kt.geojson.gz",
+      "member": "2022092318_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "fe233dcfa9e8a85144b4cde21ea9d196c89d5578524beeaa486bbc391758477d",
+      "source": "AL092022/2022092318_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 924,
+      "file": "AL092022/wsp/2022092318/wsp-64kt.geojson.gz",
+      "member": "2022092318_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "23e3aac9d7955b00475e6937a68957d47fca5bdb1e641501795459c7b6ec16dd",
+      "source": "AL092022/2022092318_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1505,
+      "file": "AL092022/wsp/2022092400/wsp-34kt.geojson.gz",
+      "member": "2022092400_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "78d2e2865065255a245af8c22e9c609d68dfdc1ef1945de6ea39dda5bc476ef3",
+      "source": "AL092022/2022092400_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1269,
+      "file": "AL092022/wsp/2022092400/wsp-50kt.geojson.gz",
+      "member": "2022092400_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "e09d678b38d7d337209f043b7ee24f832ad31c6c63722c118d8982df94537599",
+      "source": "AL092022/2022092400_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1134,
+      "file": "AL092022/wsp/2022092400/wsp-64kt.geojson.gz",
+      "member": "2022092400_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "d64b4af0ddae4e49bb78c619f1e5dd972072ab8ee55189ef7b366bd72b27f457",
+      "source": "AL092022/2022092400_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1651,
+      "file": "AL092022/wsp/2022092406/wsp-34kt.geojson.gz",
+      "member": "2022092406_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "5bc21b22fded9a6ffdb2e7f10142fbb7df3bf53f9342d570fb2aafe4dad41584",
+      "source": "AL092022/2022092406_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1389,
+      "file": "AL092022/wsp/2022092406/wsp-50kt.geojson.gz",
+      "member": "2022092406_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "5b8eb70a3d8f048a70b5caeb6e47c977c3f0155a87a46940cfa537fdb431f007",
+      "source": "AL092022/2022092406_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 948,
+      "file": "AL092022/wsp/2022092406/wsp-64kt.geojson.gz",
+      "member": "2022092406_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "91d4f1d0bb06ddbddad4780eb56dbbec85becf64cf9867c8b08680a0b7a84499",
+      "source": "AL092022/2022092406_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1490,
+      "file": "AL092022/wsp/2022092412/wsp-34kt.geojson.gz",
+      "member": "2022092412_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "6f4098f77c9742cbd06a04f60b6196eb078398d61dae14b90eaca4b1f6b98476",
+      "source": "AL092022/2022092412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1114,
+      "file": "AL092022/wsp/2022092412/wsp-50kt.geojson.gz",
+      "member": "2022092412_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b712f2c5978a68b85daafc21406ff5405635badcd3938e8f60f512a99059bc8e",
+      "source": "AL092022/2022092412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 585,
+      "file": "AL092022/wsp/2022092412/wsp-64kt.geojson.gz",
+      "member": "2022092412_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "38e657fbfce3ca324db3a708b8c90984fe8ad6e07d5320636bb357786fcf1450",
+      "source": "AL092022/2022092412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1400,
+      "file": "AL092022/wsp/2022092418/wsp-34kt.geojson.gz",
+      "member": "2022092418_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "60213b63f8aebc0a6731ff7e929c4bb46adcbf1ed5c5e6d33e05cb5030fbb6b7",
+      "source": "AL092022/2022092418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 723,
+      "file": "AL092022/wsp/2022092418/wsp-50kt.geojson.gz",
+      "member": "2022092418_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "21c9686a01fd5e9011cacd1ed095dae9e4ce41af0537fe626f697441799f870e",
+      "source": "AL092022/2022092418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 659,
+      "file": "AL092022/wsp/2022092418/wsp-64kt.geojson.gz",
+      "member": "2022092418_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "66fb0599a624c8f57de862e0df2c11acf5c5c0980bf19bd60232811b6176f596",
+      "source": "AL092022/2022092418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1318,
+      "file": "AL092022/wsp/2022092500/wsp-34kt.geojson.gz",
+      "member": "2022092500_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "f91d1ef64d00707b08eda5dc26506bc6964ebf12d2be8eadc7914ea873751190",
+      "source": "AL092022/2022092500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 789,
+      "file": "AL092022/wsp/2022092500/wsp-50kt.geojson.gz",
+      "member": "2022092500_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "aa1e055270b2cd02b17b57a759a29a3edcc678a4c7ea307422e9956fa8058703",
+      "source": "AL092022/2022092500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 650,
+      "file": "AL092022/wsp/2022092500/wsp-64kt.geojson.gz",
+      "member": "2022092500_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "b7c2d9ece4ceea503b4c0ab22fe8fe073f57f34b2f39fcaf35848cf539a51c3e",
+      "source": "AL092022/2022092500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1307,
+      "file": "AL092022/wsp/2022092506/wsp-34kt.geojson.gz",
+      "member": "2022092506_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "4093a1765e9b589469e50de82574fbf4927d5d21944f958b4e2de81b4b703bec",
+      "source": "AL092022/2022092506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 741,
+      "file": "AL092022/wsp/2022092506/wsp-50kt.geojson.gz",
+      "member": "2022092506_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "f71654b4856f0426ef18fc10d6a73155e0fe577dff4d073fa45856cd2480cc2e",
+      "source": "AL092022/2022092506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 581,
+      "file": "AL092022/wsp/2022092506/wsp-64kt.geojson.gz",
+      "member": "2022092506_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "f496f43c05b770b44369fc41a304c118f0520fcf7b7f953642308237f2df07a5",
+      "source": "AL092022/2022092506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1596,
+      "file": "AL092022/wsp/2022092512/wsp-34kt.geojson.gz",
+      "member": "2022092512_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "672d49c6864aea435fe777ffca039e25318a3c33bd58dfb6a6463f0715eee292",
+      "source": "AL092022/2022092512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 775,
+      "file": "AL092022/wsp/2022092512/wsp-50kt.geojson.gz",
+      "member": "2022092512_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "4bc7cf2b04bc46db563e79fb9c6e07af43f38652b2198c9ff8e2e29bfd3ad1d5",
+      "source": "AL092022/2022092512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 614,
+      "file": "AL092022/wsp/2022092512/wsp-64kt.geojson.gz",
+      "member": "2022092512_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "63f6fa3a464742df86a968f9b1f6f0e0ecb3d3192e5edd9b4eac6867b9c1a1e0",
+      "source": "AL092022/2022092512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1516,
+      "file": "AL092022/wsp/2022092518/wsp-34kt.geojson.gz",
+      "member": "2022092518_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "e11e5e0a2d2f61ecff1620408ea48d8a2e33c83e7b5cf2f75e34ca77686a2065",
+      "source": "AL092022/2022092518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 742,
+      "file": "AL092022/wsp/2022092518/wsp-50kt.geojson.gz",
+      "member": "2022092518_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "d1e67d6a4bdf980ded73c91c225de565e92d217a94cc6170b872b7e06cbf0cc2",
+      "source": "AL092022/2022092518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 547,
+      "file": "AL092022/wsp/2022092518/wsp-64kt.geojson.gz",
+      "member": "2022092518_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "21140b1cd39d73c368f27b2a65d3a956612d26589880160ab5c68639a7766243",
+      "source": "AL092022/2022092518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2020,
+      "file": "AL092022/wsp/2022092600/wsp-34kt.geojson.gz",
+      "member": "2022092600_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a439c5aa99ae90da3ceec87daae47e33eeeb0341a6e6df38cbd3a8ffafa28dab",
+      "source": "AL092022/2022092600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 959,
+      "file": "AL092022/wsp/2022092600/wsp-50kt.geojson.gz",
+      "member": "2022092600_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "e059f2ef5e47adb74d3168a19b56aa405089761ab763df5a9b241897bccbd73b",
+      "source": "AL092022/2022092600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 701,
+      "file": "AL092022/wsp/2022092600/wsp-64kt.geojson.gz",
+      "member": "2022092600_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "b45c950670e2e1ae492c0890d9d2eb30fbd88e5c7f0b61e66ca0dca3a8b3077e",
+      "source": "AL092022/2022092600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2295,
+      "file": "AL092022/wsp/2022092606/wsp-34kt.geojson.gz",
+      "member": "2022092606_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "4b840652b481a1b56de724cd19fbb38c41edfa000da6abd15e06918916966ee7",
+      "source": "AL092022/2022092606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1145,
+      "file": "AL092022/wsp/2022092606/wsp-50kt.geojson.gz",
+      "member": "2022092606_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "1deaee8647a73fa04d20c23a998ad1f2890c3c0ddab0b575ead3e43c391d398e",
+      "source": "AL092022/2022092606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 850,
+      "file": "AL092022/wsp/2022092606/wsp-64kt.geojson.gz",
+      "member": "2022092606_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "ca450678671302cbaa2ddc5bffcf15b106db64bb37105705e707ba041c2ece37",
+      "source": "AL092022/2022092606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2320,
+      "file": "AL092022/wsp/2022092612/wsp-34kt.geojson.gz",
+      "member": "2022092612_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "0f3fc0fe12253f80278ce1dedfca27bf8cde121da28a98afea5b6d793a461afc",
+      "source": "AL092022/2022092612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1101,
+      "file": "AL092022/wsp/2022092612/wsp-50kt.geojson.gz",
+      "member": "2022092612_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "4f3be9cfcc170d8465fba0a8ed9c3fb7896175bca13077c2ced58d0c9be6d647",
+      "source": "AL092022/2022092612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 739,
+      "file": "AL092022/wsp/2022092612/wsp-64kt.geojson.gz",
+      "member": "2022092612_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "4bc1d73ffae54bcc165e930e7ca7776ef503b6912df98675f84d71524a68fee2",
+      "source": "AL092022/2022092612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2380,
+      "file": "AL092022/wsp/2022092618/wsp-34kt.geojson.gz",
+      "member": "2022092618_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "306d91bc9247b87a1b269fc677f4ec6df7e64bcb1a8fdf4b33a8127fe2724101",
+      "source": "AL092022/2022092618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1321,
+      "file": "AL092022/wsp/2022092618/wsp-50kt.geojson.gz",
+      "member": "2022092618_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "69e58b65d6896f8bd94e6ac7c9396543746fb1914baa7ebdd19ed34350db0a69",
+      "source": "AL092022/2022092618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 849,
+      "file": "AL092022/wsp/2022092618/wsp-64kt.geojson.gz",
+      "member": "2022092618_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "ebbf67a451f610c270658a9967c683b359fb4da628fa788a0ff2b361102a94ce",
+      "source": "AL092022/2022092618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2684,
+      "file": "AL092022/wsp/2022092700/wsp-34kt.geojson.gz",
+      "member": "2022092700_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "64ec652df2db5953bacf1036be215ea5faa100204ce6df16840aa0ca3a99f3a6",
+      "source": "AL092022/2022092700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1428,
+      "file": "AL092022/wsp/2022092700/wsp-50kt.geojson.gz",
+      "member": "2022092700_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "44f80779a629e14d78f48f92750429da0a5c5c8de35b91851c918def8cd1e52d",
+      "source": "AL092022/2022092700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 995,
+      "file": "AL092022/wsp/2022092700/wsp-64kt.geojson.gz",
+      "member": "2022092700_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "1add4da53d22e0e15318684600e4c37963110ead00c4d458f80eaf0a618ff4c7",
+      "source": "AL092022/2022092700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2762,
+      "file": "AL092022/wsp/2022092706/wsp-34kt.geojson.gz",
+      "member": "2022092706_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "355430c69b314b638edd0efc1abbab5432ce146f17a3412ef45bf644e8641e9d",
+      "source": "AL092022/2022092706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1499,
+      "file": "AL092022/wsp/2022092706/wsp-50kt.geojson.gz",
+      "member": "2022092706_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "4d8fcae68776e276bbba1b2bbce26d08a25721b78f7fc2d1834a9ca6e46542e3",
+      "source": "AL092022/2022092706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 928,
+      "file": "AL092022/wsp/2022092706/wsp-64kt.geojson.gz",
+      "member": "2022092706_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "bb48cfc74d15c1dc7b40d022e95769e9ca10966d077c35040366879c7d463a93",
+      "source": "AL092022/2022092706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3181,
+      "file": "AL092022/wsp/2022092712/wsp-34kt.geojson.gz",
+      "member": "2022092712_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "0b49fabd65749751b56f0eb91df9607c838f2ac10d14f46a573682e67f7b3a5b",
+      "source": "AL092022/2022092712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1755,
+      "file": "AL092022/wsp/2022092712/wsp-50kt.geojson.gz",
+      "member": "2022092712_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "024465cb984ad756f7892ef603e927619c5444f67a5421435b92779021782f2a",
+      "source": "AL092022/2022092712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1066,
+      "file": "AL092022/wsp/2022092712/wsp-64kt.geojson.gz",
+      "member": "2022092712_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "b2b89091dcee351d1f032374e422a8f078cb3063e8d9fbd98340a54e243d9713",
+      "source": "AL092022/2022092712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3097,
+      "file": "AL092022/wsp/2022092718/wsp-34kt.geojson.gz",
+      "member": "2022092718_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a03d788397713b770c51ce93e40fed06a5db6aab5594cb07c03e3ea3c179fb53",
+      "source": "AL092022/2022092718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1879,
+      "file": "AL092022/wsp/2022092718/wsp-50kt.geojson.gz",
+      "member": "2022092718_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "2088e0cc265307aad47928270caf2f3d0ba1571247449bfa1eb08880d123baec",
+      "source": "AL092022/2022092718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1180,
+      "file": "AL092022/wsp/2022092718/wsp-64kt.geojson.gz",
+      "member": "2022092718_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "fcf40ede94236a7d15697f2ce6c80515a0b25fe8861bb6184913bcd40826118f",
+      "source": "AL092022/2022092718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3441,
+      "file": "AL092022/wsp/2022092800/wsp-34kt.geojson.gz",
+      "member": "2022092800_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "638ca5886b9d643919c089359d34272b673f303ebdde199e6e149b0ace40e5ae",
+      "source": "AL092022/2022092800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2439,
+      "file": "AL092022/wsp/2022092800/wsp-50kt.geojson.gz",
+      "member": "2022092800_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "21ea103aee694724aabc80814714bc10dcaba58acbc08fb620938e1eab1b0736",
+      "source": "AL092022/2022092800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1640,
+      "file": "AL092022/wsp/2022092800/wsp-64kt.geojson.gz",
+      "member": "2022092800_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "e63708f3a367e2ab596c5fbb7680cbc758d77b4aa8839810e67b8f6ac9a1563e",
+      "source": "AL092022/2022092800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3629,
+      "file": "AL092022/wsp/2022092806/wsp-34kt.geojson.gz",
+      "member": "2022092806_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "b2db8f27936b1de872b1bb505dbc27bd1ac50d8c995483f361460751ee2a13d2",
+      "source": "AL092022/2022092806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2004,
+      "file": "AL092022/wsp/2022092806/wsp-50kt.geojson.gz",
+      "member": "2022092806_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "dbdf44cf49db6c9c174e15aef4e3edb1b0800b3719fd5b6dbc571d1572532d41",
+      "source": "AL092022/2022092806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1245,
+      "file": "AL092022/wsp/2022092806/wsp-64kt.geojson.gz",
+      "member": "2022092806_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "608b8c698a4e89908880b00018130c5db062b28705623fb42fcd8e856fd727a1",
+      "source": "AL092022/2022092806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3766,
+      "file": "AL092022/wsp/2022092812/wsp-34kt.geojson.gz",
+      "member": "2022092812_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "29db8de70c4f018d0b8488e5cc4eff6453f4e7a955ff2f7808b747164686cecd",
+      "source": "AL092022/2022092812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1963,
+      "file": "AL092022/wsp/2022092812/wsp-50kt.geojson.gz",
+      "member": "2022092812_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "fca98b03126250dfcaba71ee2cfe66a2947b608ffcc781d6cf06d427238b2202",
+      "source": "AL092022/2022092812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1230,
+      "file": "AL092022/wsp/2022092812/wsp-64kt.geojson.gz",
+      "member": "2022092812_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "bca22691f30af80f1320ef0d795596d46af51b25fc5ed97bbdd938dc62ae7b6e",
+      "source": "AL092022/2022092812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3811,
+      "file": "AL092022/wsp/2022092818/wsp-34kt.geojson.gz",
+      "member": "2022092818_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "f23601a12b9889e655a2336c854bcc46de2e74c507341f589b441016de7d8371",
+      "source": "AL092022/2022092818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1840,
+      "file": "AL092022/wsp/2022092818/wsp-50kt.geojson.gz",
+      "member": "2022092818_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "026025775ecb328f94858a3fb11a8ccd614b1e7518c2d7b331e4dc4cdde4b4c3",
+      "source": "AL092022/2022092818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1145,
+      "file": "AL092022/wsp/2022092818/wsp-64kt.geojson.gz",
+      "member": "2022092818_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "dad073744f692a806e92c4256c6c67e048104e891f159399e64e16400e134b5f",
+      "source": "AL092022/2022092818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3352,
+      "file": "AL092022/wsp/2022092900/wsp-34kt.geojson.gz",
+      "member": "2022092900_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "71b33e38c36c42cfc5e3fc0d673f894eb7c4ca25bf14935a56d40ad5bf8b9aa0",
+      "source": "AL092022/2022092900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1980,
+      "file": "AL092022/wsp/2022092900/wsp-50kt.geojson.gz",
+      "member": "2022092900_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "343a861ba3084229e097d3bb08fa9995124d3298ed61238b315527aed136eb4d",
+      "source": "AL092022/2022092900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1092,
+      "file": "AL092022/wsp/2022092900/wsp-64kt.geojson.gz",
+      "member": "2022092900_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "df74610878da92e98114a52641fa8fe5afb21448bbeb30a125c30046ec5a0899",
+      "source": "AL092022/2022092900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2937,
+      "file": "AL092022/wsp/2022092906/wsp-34kt.geojson.gz",
+      "member": "2022092906_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "0edfd43352c4b5a61de1ad4ac61aa361cd53f9d1fca3449362f37c25cf5d6a17",
+      "source": "AL092022/2022092906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 752,
+      "file": "AL092022/wsp/2022092906/wsp-50kt.geojson.gz",
+      "member": "2022092906_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "ce1e7c14ead6152b4ca72d1666da65d55e799b4a0aa615d12f0ed83198fa2c82",
+      "source": "AL092022/2022092906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL092022/wsp/2022092906/wsp-64kt.geojson.gz",
+      "member": "2022092906_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "ca2345c3353be8c93391c01b3ab37b0b773c0bfed7fcd8235892c9046c6bd799",
+      "source": "AL092022/2022092906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1719,
+      "file": "AL092022/wsp/2022092912/wsp-34kt.geojson.gz",
+      "member": "2022092912_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "de0df5956943302259193e95587527b3e1efb44742250d46f703e3a7002cda9e",
+      "source": "AL092022/2022092912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022092912/wsp-50kt.geojson.gz",
+      "member": "2022092912_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "45faaa4a6fd56307cd8464165678beb0de67e2469ca0205049646ef8cb0e142d",
+      "source": "AL092022/2022092912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL092022/wsp/2022092912/wsp-64kt.geojson.gz",
+      "member": "2022092912_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "e10633bcf8fd4d0c9cd665cac75c9fbd0720b5b9f3e46f1388c32b2bd1dbdcc2",
+      "source": "AL092022/2022092912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2022,
+      "file": "AL092022/wsp/2022092918/wsp-34kt.geojson.gz",
+      "member": "2022092918_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "64994f061a6adb5e77d1a2b28b670ce7a95d94ddd336f4dbc3d66e019d4cf0c5",
+      "source": "AL092022/2022092918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022092918/wsp-50kt.geojson.gz",
+      "member": "2022092918_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "1b7e383a2bf4febfa9c3d825f7dee4b2d4bebafe49661899bf013667a9ea6c89",
+      "source": "AL092022/2022092918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022092918/wsp-64kt.geojson.gz",
+      "member": "2022092918_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "0ec49c38142eb95177f51661fd8f16200fcd1276fe646a2374d049899c3e7325",
+      "source": "AL092022/2022092918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1009,
+      "file": "AL092022/wsp/2022093000/wsp-34kt.geojson.gz",
+      "member": "2022093000_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "2f2e7bdef107a22acaead8bdf7c0c5c649f18d27263b1337845473b97f1022ac",
+      "source": "AL092022/2022093000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093000/wsp-50kt.geojson.gz",
+      "member": "2022093000_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "68f8cb759cefd52b95a6ae06feabab928b4b2e743ef1a6c71bd9da080166427a",
+      "source": "AL092022/2022093000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093000/wsp-64kt.geojson.gz",
+      "member": "2022093000_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "45cef80b629bf7c590a633746569729557733ceb44a1b17be553bb031e1e8521",
+      "source": "AL092022/2022093000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 607,
+      "file": "AL092022/wsp/2022093006/wsp-34kt.geojson.gz",
+      "member": "2022093006_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "c40b3fc050cec987e9e187bc12101e9a9413120609a39ffe3599ed4079466afb",
+      "source": "AL092022/2022093006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093006/wsp-50kt.geojson.gz",
+      "member": "2022093006_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "a3daa66730415ddfee376018815229f873c763ca499638036b8510890bdfe4a3",
+      "source": "AL092022/2022093006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093006/wsp-64kt.geojson.gz",
+      "member": "2022093006_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "05cf66037120e4cf0c633b79cf622086e71d5a3d4068c4439b7fb74135bbfc94",
+      "source": "AL092022/2022093006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093012/wsp-34kt.geojson.gz",
+      "member": "2022093012_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "8a3ca35bc798c6a3359357640fb73e633b706ad421554665b07f43de6d3dd462",
+      "source": "AL092022/2022093012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093012/wsp-50kt.geojson.gz",
+      "member": "2022093012_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "0a34ff1f25281499535817e25a5fc544e1852b414271c0e32ff8763344efb46c",
+      "source": "AL092022/2022093012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093012/wsp-64kt.geojson.gz",
+      "member": "2022093012_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "093b4474a8c7cb082bdd2319268d3a166bff8e1c275185bf78c0eaeaabd78e1e",
+      "source": "AL092022/2022093012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093018/wsp-34kt.geojson.gz",
+      "member": "2022093018_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "3e9f076fa4fbd40fc2ab276374f1efd9248e1a3444e1f3dd1e9ad86017e966cb",
+      "source": "AL092022/2022093018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093018/wsp-50kt.geojson.gz",
+      "member": "2022093018_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "c1281eaab461f53ddceeeebba8672e43a1eedc296d98b9c99835e00a59cb0f80",
+      "source": "AL092022/2022093018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022093018/wsp-64kt.geojson.gz",
+      "member": "2022093018_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "1d7a9aa78aae8db997dd3f0c7800c5266286c2746eeefd2620d12ccd4f8d0269",
+      "source": "AL092022/2022093018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL092022/wsp/2022100100/wsp-34kt.geojson.gz",
+      "member": "2022100100_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "00f75a2923f010a580c3241320f3b199e88518f889b79a6757278198d2a7fab6",
+      "source": "AL092022/2022100100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL092022/wsp/2022100100/wsp-50kt.geojson.gz",
+      "member": "2022100100_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "cb6ee416b280ec224a570d38fbb515ee3f88f7aa8150bc0f9a103e3f4653f9d6",
+      "source": "AL092022/2022100100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL092022/wsp/2022100100/wsp-64kt.geojson.gz",
+      "member": "2022100100_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "ecda84bf3e04a7b88605893264601ea9e74fdc3bec1d53947bf5f301dac8ca88",
+      "source": "AL092022/2022100100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022100106/wsp-34kt.geojson.gz",
+      "member": "2022100106_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "27388aa9d3b01b5be0f26e56f9593d84356fb9d29212fad3036ebb1b7a156e68",
+      "source": "AL092022/2022100106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022100106/wsp-50kt.geojson.gz",
+      "member": "2022100106_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b759577196f333e708556547c4dedb0d3782201dcee2cf05cd947cdad59df1b5",
+      "source": "AL092022/2022100106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL092022/wsp/2022100106/wsp-64kt.geojson.gz",
+      "member": "2022100106_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "10e62db7858b270b6fc5ee9de810a2c97e036bdd8f6d420879bfaa6ae49aebda",
+      "source": "AL092022/2022100106_wsp_120hr5km.zip"
     },
     {
       "bytes": 18873,
@@ -37173,6 +39478,1230 @@
       "source": "AL112017/al112017_5day_052.zip"
     },
     {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083012/wsp-34kt.geojson.gz",
+      "member": "2017083012_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "e33e437e21ebd033f9b6cc29187ff86f68898718e3e4dfc4cc37483331d216d8",
+      "source": "AL112017/2017083012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017083012/wsp-50kt.geojson.gz",
+      "member": "2017083012_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "636eccf3e386577a6196bdbc12c0cddc27ab22d8dcfe63731e7252e0fd458166",
+      "source": "AL112017/2017083012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083012/wsp-64kt.geojson.gz",
+      "member": "2017083012_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "e6905f7be0d5f3cb1544aa863974c7db4d7c61f314c8a4cdce912cca98f2d500",
+      "source": "AL112017/2017083012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083018/wsp-34kt.geojson.gz",
+      "member": "2017083018_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "ba5eacbb474fd0bc79f571976c71a9118f684d74e2d4e8cb1b0ba1b93d3f5402",
+      "source": "AL112017/2017083018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017083018/wsp-50kt.geojson.gz",
+      "member": "2017083018_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "4d07d1d870f4fb264fec2980165d92c270ca88d0faf4f074e08ce67ee5749b90",
+      "source": "AL112017/2017083018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083018/wsp-64kt.geojson.gz",
+      "member": "2017083018_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "a6d614b837bc6f530fab59a71a89273e60336d696b40aab6043424899caa7519",
+      "source": "AL112017/2017083018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083100/wsp-34kt.geojson.gz",
+      "member": "2017083100_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "779053e84c952174f2a2785fc59b5d056eedbefd1c4a87f1d3b97469de87a226",
+      "source": "AL112017/2017083100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017083100/wsp-50kt.geojson.gz",
+      "member": "2017083100_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "2077ddd3e6248354e485ef3533d638a3a551d84e8cc9b992912cfba8552ff5aa",
+      "source": "AL112017/2017083100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083100/wsp-64kt.geojson.gz",
+      "member": "2017083100_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c04e9a69d9b4b01dcc5849146d311864a3e1b19198a3513da164f2a1414bc354",
+      "source": "AL112017/2017083100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083106/wsp-34kt.geojson.gz",
+      "member": "2017083106_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "073040dba33e9e62bf23c2b052945045cd9e393c3dc042feb7fac1f554e42108",
+      "source": "AL112017/2017083106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017083106/wsp-50kt.geojson.gz",
+      "member": "2017083106_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "39a86d1ca11be63f0b7162a3f246273888b2f6a1bd6e2665518a34c1ca2b4cf6",
+      "source": "AL112017/2017083106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083106/wsp-64kt.geojson.gz",
+      "member": "2017083106_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "806bcea649ec330beded1ae75226f1d2b734768e952c235301aea44f8800fae6",
+      "source": "AL112017/2017083106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017083112/wsp-34kt.geojson.gz",
+      "member": "2017083112_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a31d05d4444adf2cd3624480859a12cdc32fa92075493a775395f5f51f6c3c6c",
+      "source": "AL112017/2017083112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017083112/wsp-50kt.geojson.gz",
+      "member": "2017083112_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "e62e12486393a16526ba30fb10ca6b6df5625294a85340644ba58c0f34ffbe14",
+      "source": "AL112017/2017083112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017083112/wsp-64kt.geojson.gz",
+      "member": "2017083112_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "9b5b3fd778ffcfcf963082ca8d349dc8f0e293c4f182f3440b66171deeacd74b",
+      "source": "AL112017/2017083112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083118/wsp-34kt.geojson.gz",
+      "member": "2017083118_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "9ab379afd12c660e967dbc213ea49008ce600ebe705b2ad5480830cda31a1b51",
+      "source": "AL112017/2017083118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017083118/wsp-50kt.geojson.gz",
+      "member": "2017083118_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "d535323d7c089d7b989c9fbc6c0d5072ffa7c401ff6dfdde2d6e81eb4e5a9c36",
+      "source": "AL112017/2017083118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017083118/wsp-64kt.geojson.gz",
+      "member": "2017083118_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "683a0df0e7561413ca21d8b0a67eaa4ae282dcc9fe6cba04405a960abbbeb2d2",
+      "source": "AL112017/2017083118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017090100/wsp-34kt.geojson.gz",
+      "member": "2017090100_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "92e0805fbe6f75d8919f784941799dfdb500278fec003ef0dd53c8837fb9024e",
+      "source": "AL112017/2017090100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090100/wsp-50kt.geojson.gz",
+      "member": "2017090100_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "86cdad52b60fd9c7b9954e98c96ffc0606115b2c5c7a8ac247e72014397d7a5d",
+      "source": "AL112017/2017090100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017090100/wsp-64kt.geojson.gz",
+      "member": "2017090100_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "9d3d2017ec1773c3c7707bbeaad55b54e8e84e70aa9bad51807c0c79d93ad056",
+      "source": "AL112017/2017090100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017090106/wsp-34kt.geojson.gz",
+      "member": "2017090106_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "949af98495f1f0aac3c842a64b53bab0a26db41cc3ebe582ce94ffff2bc21165",
+      "source": "AL112017/2017090106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090106/wsp-50kt.geojson.gz",
+      "member": "2017090106_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "9555d81928f95979cd9ea03303b2122cfb9e355bfccbe7e7309f712c56f4f60b",
+      "source": "AL112017/2017090106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017090106/wsp-64kt.geojson.gz",
+      "member": "2017090106_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "cf2a790da8359c749496a96a54900350e8de321ce237f754e241656d4b176417",
+      "source": "AL112017/2017090106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090112/wsp-34kt.geojson.gz",
+      "member": "2017090112_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "6224b027ceaee0c98ae3b083e6ffb55b75994ca7247be659e21ac211f42ededb",
+      "source": "AL112017/2017090112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090112/wsp-50kt.geojson.gz",
+      "member": "2017090112_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "da2c50d583b1bae22121e9f26aab7178e2751997d6c91639f3cd949379e51e97",
+      "source": "AL112017/2017090112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090112/wsp-64kt.geojson.gz",
+      "member": "2017090112_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "0ab2fe0ad27444f9892c051f2275f523da3dc052894db9131e117acffa68ac1e",
+      "source": "AL112017/2017090112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017090118/wsp-34kt.geojson.gz",
+      "member": "2017090118_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "4a1bc336eb2dda1500567d6548553f54c69c0595927ce91ef4c4fc25d54a0634",
+      "source": "AL112017/2017090118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090118/wsp-50kt.geojson.gz",
+      "member": "2017090118_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "c68e10f1e79c732ac0e4b19151ce54938f173a4c4222e945215fdb00c3bc99dd",
+      "source": "AL112017/2017090118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017090118/wsp-64kt.geojson.gz",
+      "member": "2017090118_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "1d501033878e50703abe466781302fcee641d3b8928214227c0ce119748ab581",
+      "source": "AL112017/2017090118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090200/wsp-34kt.geojson.gz",
+      "member": "2017090200_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "b211b510a492fd005884adc08777e26a93e0f35054dcef9bf03e9fc886393b51",
+      "source": "AL112017/2017090200_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090200/wsp-50kt.geojson.gz",
+      "member": "2017090200_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "9ebc1600ea0c0d351859f28a59bad61c2b9aa580fbd3079ce107e70e0fb707d7",
+      "source": "AL112017/2017090200_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090200/wsp-64kt.geojson.gz",
+      "member": "2017090200_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "aa4bbb61e635fbaeb7bc2024da7b622b4fb2a5e6a1b6fc2ea42092cc52c8c273",
+      "source": "AL112017/2017090200_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090206/wsp-34kt.geojson.gz",
+      "member": "2017090206_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "4123717adabd230458b6b7dad6a3328ef0504f224c43532a23497b0970208833",
+      "source": "AL112017/2017090206_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090206/wsp-50kt.geojson.gz",
+      "member": "2017090206_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "3c84e8e2e47058b73ef9a3743992ef4f750927c6f61748b22d41b33175c6146c",
+      "source": "AL112017/2017090206_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090206/wsp-64kt.geojson.gz",
+      "member": "2017090206_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "ee3533bd2b96d35f349092208ad8a1d0cfbe094729b05d37a3fefaca5f74969a",
+      "source": "AL112017/2017090206_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 671,
+      "file": "AL112017/wsp/2017090212/wsp-34kt.geojson.gz",
+      "member": "2017090212_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "db5d1a55e51b7041d61284b69e9df103170163f6f99cac0d1a6a25e5881f6df3",
+      "source": "AL112017/2017090212_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090212/wsp-50kt.geojson.gz",
+      "member": "2017090212_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "9ea72582caed919c49a22bfb4987653c3490505947346f4568c555b353556d84",
+      "source": "AL112017/2017090212_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL112017/wsp/2017090212/wsp-64kt.geojson.gz",
+      "member": "2017090212_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "e7899062da84d79783cdc1a6127bc4a6c2a9cf771d160cb0ae614c0399ef9b2c",
+      "source": "AL112017/2017090212_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 437,
+      "file": "AL112017/wsp/2017090218/wsp-34kt.geojson.gz",
+      "member": "2017090218_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "bbbdf3f8c2708759c6620d9707d41713f162735f952e51dc720692bba39e6c0d",
+      "source": "AL112017/2017090218_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 548,
+      "file": "AL112017/wsp/2017090218/wsp-50kt.geojson.gz",
+      "member": "2017090218_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "edec8aa4ac5d9961b3d99f2d6c0f3c532783f46ba22093bfcd897800de1d8a42",
+      "source": "AL112017/2017090218_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL112017/wsp/2017090218/wsp-64kt.geojson.gz",
+      "member": "2017090218_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "9d9c6ab1f32b13b0294ab35c3a06e125af01c3f0257d0964a97d2e4bab2037bc",
+      "source": "AL112017/2017090218_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 813,
+      "file": "AL112017/wsp/2017090300/wsp-34kt.geojson.gz",
+      "member": "2017090300_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "da677928c0c28a1c996fc5793488f452c1396575731005c0cf1c5e2a42a36ae8",
+      "source": "AL112017/2017090300_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 603,
+      "file": "AL112017/wsp/2017090300/wsp-50kt.geojson.gz",
+      "member": "2017090300_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "75e3311be3027c7af71c956de46357f3a92a4fae8ae2b64863008d992696e75e",
+      "source": "AL112017/2017090300_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 615,
+      "file": "AL112017/wsp/2017090300/wsp-64kt.geojson.gz",
+      "member": "2017090300_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "602e7fb8eb20d20f3a6def2a837faad99c7356d31e806003e4e343181095ad24",
+      "source": "AL112017/2017090300_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 654,
+      "file": "AL112017/wsp/2017090306/wsp-34kt.geojson.gz",
+      "member": "2017090306_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "4bc00fa65a54f79a0a351a0f8cd6731c691729ddceeb6988ec01717d771e1d51",
+      "source": "AL112017/2017090306_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 885,
+      "file": "AL112017/wsp/2017090306/wsp-50kt.geojson.gz",
+      "member": "2017090306_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "cdcf6d934c81ff34368134de39088c7ea74a7efc49691d6d820cd3808809a8ba",
+      "source": "AL112017/2017090306_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 437,
+      "file": "AL112017/wsp/2017090306/wsp-64kt.geojson.gz",
+      "member": "2017090306_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "d36a443f44839e64a1a22ae4590b69962762649cdd081c211c4dbf3d7710bae1",
+      "source": "AL112017/2017090306_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 769,
+      "file": "AL112017/wsp/2017090312/wsp-34kt.geojson.gz",
+      "member": "2017090312_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "db43acb110a163a557c65fa83032dcd1e88eafc0b48f4d50a4d77f5a9b9ce3b6",
+      "source": "AL112017/2017090312_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 908,
+      "file": "AL112017/wsp/2017090312/wsp-50kt.geojson.gz",
+      "member": "2017090312_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "a4d06dfac34de23ff9625605bae8ff2dc58a3338291c127ddb1e9a9108d48250",
+      "source": "AL112017/2017090312_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 576,
+      "file": "AL112017/wsp/2017090312/wsp-64kt.geojson.gz",
+      "member": "2017090312_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "8df4fd4ae2b2ec5af015794995c630c8a7b3b9acc09b599fa017045875c9acb2",
+      "source": "AL112017/2017090312_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1151,
+      "file": "AL112017/wsp/2017090318/wsp-34kt.geojson.gz",
+      "member": "2017090318_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "360582030e1d7f895380349ffe77580f9ce8ce09fc669363e497a3d952072070",
+      "source": "AL112017/2017090318_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 822,
+      "file": "AL112017/wsp/2017090318/wsp-50kt.geojson.gz",
+      "member": "2017090318_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "89e81aa0999c1aa71a4bbfa7c32bb51e47c8e5783cad9909ef502259a2fbbd53",
+      "source": "AL112017/2017090318_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1131,
+      "file": "AL112017/wsp/2017090318/wsp-64kt.geojson.gz",
+      "member": "2017090318_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "e23d51538eebd2108bb850039daf3d527f584e8a688845a6b126122a9469aef5",
+      "source": "AL112017/2017090318_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1397,
+      "file": "AL112017/wsp/2017090400/wsp-34kt.geojson.gz",
+      "member": "2017090400_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "64a5f3e699530f9e336348d77a98dd29a82411dc994dc17ef6fdb4d1e2e0bb15",
+      "source": "AL112017/2017090400_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1230,
+      "file": "AL112017/wsp/2017090400/wsp-50kt.geojson.gz",
+      "member": "2017090400_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "dd58cb54b9bff3e640de7f0f0904d147445eeb64c4e9e851d18c943da7a7462c",
+      "source": "AL112017/2017090400_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1259,
+      "file": "AL112017/wsp/2017090400/wsp-64kt.geojson.gz",
+      "member": "2017090400_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "f7f3b4ead371a7ea1a0fd97af46d78915bb1182b58f69ae7fa3b0b26102920cb",
+      "source": "AL112017/2017090400_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1627,
+      "file": "AL112017/wsp/2017090406/wsp-34kt.geojson.gz",
+      "member": "2017090406_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "deef78a599b544c6220c419ed24c47c402982dfec9dc39ea2f157157f7e40d97",
+      "source": "AL112017/2017090406_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1219,
+      "file": "AL112017/wsp/2017090406/wsp-50kt.geojson.gz",
+      "member": "2017090406_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "605b03384f4f66f72268595b6f8ecdf5bdc8285fe1d32ae64b77e80c9752ccb7",
+      "source": "AL112017/2017090406_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 907,
+      "file": "AL112017/wsp/2017090406/wsp-64kt.geojson.gz",
+      "member": "2017090406_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "49bace6bb5a7f351c045b88cf58dc4f778897d3f1baffcbe3e3b6739016314ec",
+      "source": "AL112017/2017090406_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1457,
+      "file": "AL112017/wsp/2017090412/wsp-34kt.geojson.gz",
+      "member": "2017090412_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "e59b9424a6a1c6ab61aca6e2ff8fecea9690b1e8c61f2ca091b1d4877e145ee4",
+      "source": "AL112017/2017090412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1274,
+      "file": "AL112017/wsp/2017090412/wsp-50kt.geojson.gz",
+      "member": "2017090412_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "3053fe42bf442299c859ed4a70ec38c63410cb0f4dc033d146b88c39c77342a1",
+      "source": "AL112017/2017090412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 966,
+      "file": "AL112017/wsp/2017090412/wsp-64kt.geojson.gz",
+      "member": "2017090412_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "19f99a5f8d345c9d3479fbb7c693e861f6f8c6527d6c154ae14117985a7d122a",
+      "source": "AL112017/2017090412_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1371,
+      "file": "AL112017/wsp/2017090418/wsp-34kt.geojson.gz",
+      "member": "2017090418_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "7668a17789cdf6a21ab3ef0ede44657ed3c156062427a2aa92accc32d1fc70a3",
+      "source": "AL112017/2017090418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1159,
+      "file": "AL112017/wsp/2017090418/wsp-50kt.geojson.gz",
+      "member": "2017090418_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "141e6f51448b088485f63874833bdf256d4e8d715fb372de8a50f9dfe15af6d4",
+      "source": "AL112017/2017090418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1219,
+      "file": "AL112017/wsp/2017090418/wsp-64kt.geojson.gz",
+      "member": "2017090418_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "5d7dd9f4c6c409df83e36178e26ea451cb650108b0858402b1a4852a8c305def",
+      "source": "AL112017/2017090418_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1601,
+      "file": "AL112017/wsp/2017090500/wsp-34kt.geojson.gz",
+      "member": "2017090500_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "7bed2fadf39a13290cc1364c5d2e0e1084bd640117a91cc04d079c25002a6dd6",
+      "source": "AL112017/2017090500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1468,
+      "file": "AL112017/wsp/2017090500/wsp-50kt.geojson.gz",
+      "member": "2017090500_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "f319f34d049fe524111be87914249397915fdabf7e51496ff5c4c4165f1f63f9",
+      "source": "AL112017/2017090500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1364,
+      "file": "AL112017/wsp/2017090500/wsp-64kt.geojson.gz",
+      "member": "2017090500_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "6000f049d83ae815be76197bb7e3fb50cc28f642bf5e9504f12e8b58480169d2",
+      "source": "AL112017/2017090500_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1663,
+      "file": "AL112017/wsp/2017090506/wsp-34kt.geojson.gz",
+      "member": "2017090506_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "822ac72588fff5671587d7ae806e4a2847064e1ddb5462068b94b7a22001bba2",
+      "source": "AL112017/2017090506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1640,
+      "file": "AL112017/wsp/2017090506/wsp-50kt.geojson.gz",
+      "member": "2017090506_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "05e599efa999282c92d1d42dc28514110bb79d31ca3378e0105c4806dabae19a",
+      "source": "AL112017/2017090506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1523,
+      "file": "AL112017/wsp/2017090506/wsp-64kt.geojson.gz",
+      "member": "2017090506_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c5220ac81778d10f2da35db50db82d616c7f57dd29a8cfe69075324841b56985",
+      "source": "AL112017/2017090506_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1961,
+      "file": "AL112017/wsp/2017090512/wsp-34kt.geojson.gz",
+      "member": "2017090512_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "01a7775768d20b85a0e0d534c09d864394695dfebc9c45eabd06c36d645a2cae",
+      "source": "AL112017/2017090512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2038,
+      "file": "AL112017/wsp/2017090512/wsp-50kt.geojson.gz",
+      "member": "2017090512_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "224d3c27927c6af91f6b71299b30010fe4e8e25a24f6986fccd4a69b8ab48591",
+      "source": "AL112017/2017090512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1563,
+      "file": "AL112017/wsp/2017090512/wsp-64kt.geojson.gz",
+      "member": "2017090512_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "d1aea4aba9b8f9a3e5080c6f62b47a69b760add39ea396d834266bfd6087b432",
+      "source": "AL112017/2017090512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2087,
+      "file": "AL112017/wsp/2017090518/wsp-34kt.geojson.gz",
+      "member": "2017090518_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "8e870ef55a035c68c53befc54fbd64a316b667cd167533d851c011b4077b7fa3",
+      "source": "AL112017/2017090518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2059,
+      "file": "AL112017/wsp/2017090518/wsp-50kt.geojson.gz",
+      "member": "2017090518_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "2d3d0b22beb232efa6af3dace70907eadee4aa4af48f8188d44a7574215af5ab",
+      "source": "AL112017/2017090518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1681,
+      "file": "AL112017/wsp/2017090518/wsp-64kt.geojson.gz",
+      "member": "2017090518_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "cc2656ba34270f80fac972a8dbf6eb2b659534f1beb87c51d24689bd7584681b",
+      "source": "AL112017/2017090518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2226,
+      "file": "AL112017/wsp/2017090600/wsp-34kt.geojson.gz",
+      "member": "2017090600_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "85f6e04e8b917ed3dcfab984393f6951818535017faf76e5e3e2c3ffa0fe7e29",
+      "source": "AL112017/2017090600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2301,
+      "file": "AL112017/wsp/2017090600/wsp-50kt.geojson.gz",
+      "member": "2017090600_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "db341ae1a6bb0f35d0d6e274b6c6845ddfc4781d3492fb7017eaa7c720a32407",
+      "source": "AL112017/2017090600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1902,
+      "file": "AL112017/wsp/2017090600/wsp-64kt.geojson.gz",
+      "member": "2017090600_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "8e4c9dabbc74d47cdc1dba1439e197ee75805cb7538a2b59e7e938e98fad7275",
+      "source": "AL112017/2017090600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2395,
+      "file": "AL112017/wsp/2017090606/wsp-34kt.geojson.gz",
+      "member": "2017090606_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "ef699286d40a0f240aa1b1f0540d010270f1a1d7c850b669117041581c3b0c89",
+      "source": "AL112017/2017090606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2785,
+      "file": "AL112017/wsp/2017090606/wsp-50kt.geojson.gz",
+      "member": "2017090606_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "fa65fb3a99d14440a80c3d470335e060e41c100ad791e938c90db0fde6565f7d",
+      "source": "AL112017/2017090606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1969,
+      "file": "AL112017/wsp/2017090606/wsp-64kt.geojson.gz",
+      "member": "2017090606_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "d788ae2f2471c648794cbca63abb5fdeff0a7a82e86c792e18e25a3e4e39a50a",
+      "source": "AL112017/2017090606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2032,
+      "file": "AL112017/wsp/2017090612/wsp-34kt.geojson.gz",
+      "member": "2017090612_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "ea0b900f080074f68b68f051f6581e8badc71090baead469c3c01a7fbf822712",
+      "source": "AL112017/2017090612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2585,
+      "file": "AL112017/wsp/2017090612/wsp-50kt.geojson.gz",
+      "member": "2017090612_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b80546e4cba9eade78a6eb98bb2270ec16d89ea6dfd687674eb99d8da6ba819d",
+      "source": "AL112017/2017090612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2118,
+      "file": "AL112017/wsp/2017090612/wsp-64kt.geojson.gz",
+      "member": "2017090612_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "66bda16ea5e1c5a10ee8b1c160453ee9a5194cc5ef523d0176edca0d213838f7",
+      "source": "AL112017/2017090612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1969,
+      "file": "AL112017/wsp/2017090618/wsp-34kt.geojson.gz",
+      "member": "2017090618_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "8a8d9cdeeabc1e7929308944fd3451126a9908eb0285c14ad56dc1690ee527e7",
+      "source": "AL112017/2017090618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2635,
+      "file": "AL112017/wsp/2017090618/wsp-50kt.geojson.gz",
+      "member": "2017090618_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "58d703a3aee64e8201302363d2dc63977ae918f2457c6c36302b5a8c72b646eb",
+      "source": "AL112017/2017090618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2146,
+      "file": "AL112017/wsp/2017090618/wsp-64kt.geojson.gz",
+      "member": "2017090618_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c71a2a34ec050c7d62cebf34022c5eb82c068a48f60888c10f67ce35390629d2",
+      "source": "AL112017/2017090618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2001,
+      "file": "AL112017/wsp/2017090700/wsp-34kt.geojson.gz",
+      "member": "2017090700_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "6295a49077735845de218c229c9c2ed049ee49b59877da52bf7293f268276027",
+      "source": "AL112017/2017090700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2801,
+      "file": "AL112017/wsp/2017090700/wsp-50kt.geojson.gz",
+      "member": "2017090700_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "cdee3e23b7893b4a529b2094403c84343bfefc046ab12a3c87b1ddb168132301",
+      "source": "AL112017/2017090700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2436,
+      "file": "AL112017/wsp/2017090700/wsp-64kt.geojson.gz",
+      "member": "2017090700_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c0d48e5d80d8baca839a4f8731f0bf5d23e5428d6032e21dcd6a3136e93d5a98",
+      "source": "AL112017/2017090700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2481,
+      "file": "AL112017/wsp/2017090706/wsp-34kt.geojson.gz",
+      "member": "2017090706_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "2a5c28317d321fd1b19ed273ccb764f0062cb6b582a56ed441da46b14e3f942e",
+      "source": "AL112017/2017090706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3182,
+      "file": "AL112017/wsp/2017090706/wsp-50kt.geojson.gz",
+      "member": "2017090706_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b0b1cca352772570dd6355ea4a2e145d4a084a07ab723fc6cbfa2a64c179289e",
+      "source": "AL112017/2017090706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2800,
+      "file": "AL112017/wsp/2017090706/wsp-64kt.geojson.gz",
+      "member": "2017090706_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "df1eb12c98f33bd11f74925bc3711899bd2dab4670c86b545fd557a9687827da",
+      "source": "AL112017/2017090706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2422,
+      "file": "AL112017/wsp/2017090712/wsp-34kt.geojson.gz",
+      "member": "2017090712_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a4a416130c43a5847373fd7bab0083bdcf4dfba56575fe2984008a7d6e41b34d",
+      "source": "AL112017/2017090712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3145,
+      "file": "AL112017/wsp/2017090712/wsp-50kt.geojson.gz",
+      "member": "2017090712_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "c98948e64e71a7819e0157c83a8614546b0180014490f50bd04f86141484c1cd",
+      "source": "AL112017/2017090712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2540,
+      "file": "AL112017/wsp/2017090712/wsp-64kt.geojson.gz",
+      "member": "2017090712_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "d6b3e91738882e5efb498d40bc4ec3aa675309d5e69a2bb0ec174c6355346b2a",
+      "source": "AL112017/2017090712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2527,
+      "file": "AL112017/wsp/2017090718/wsp-34kt.geojson.gz",
+      "member": "2017090718_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "5cdc9fcc0f23a4e61f3ede5f904d69bf3f745a77778a883f9ec5892e60276182",
+      "source": "AL112017/2017090718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3415,
+      "file": "AL112017/wsp/2017090718/wsp-50kt.geojson.gz",
+      "member": "2017090718_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "d6b37a22ace96818ff9420e033cda824f0168020636e319f36c6fabc1daa28cc",
+      "source": "AL112017/2017090718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2572,
+      "file": "AL112017/wsp/2017090718/wsp-64kt.geojson.gz",
+      "member": "2017090718_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "e3dde810f70a8b631d8f685cde0449e785f9a41f6da852d3d2fa45ed8e9db492",
+      "source": "AL112017/2017090718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2548,
+      "file": "AL112017/wsp/2017090800/wsp-34kt.geojson.gz",
+      "member": "2017090800_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "32ef06d444f0a54acb02a8a055f88662cd89d7db9bd94fa67be4a55617bf56e4",
+      "source": "AL112017/2017090800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3356,
+      "file": "AL112017/wsp/2017090800/wsp-50kt.geojson.gz",
+      "member": "2017090800_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "a7938fda11734f461b71960c14b19f5613741205e463585796a674cee914983e",
+      "source": "AL112017/2017090800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2598,
+      "file": "AL112017/wsp/2017090800/wsp-64kt.geojson.gz",
+      "member": "2017090800_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "711199a63af95b02f7b3bb4448e7f293ed1ff8e7b753713e9731a1bd1b5f003f",
+      "source": "AL112017/2017090800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2619,
+      "file": "AL112017/wsp/2017090806/wsp-34kt.geojson.gz",
+      "member": "2017090806_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "d39a625ae0bf271d5569b0e9a098e4376d69bc6bea697e7eb7022ee52abd8170",
+      "source": "AL112017/2017090806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3619,
+      "file": "AL112017/wsp/2017090806/wsp-50kt.geojson.gz",
+      "member": "2017090806_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "85d8def68e9a3ffe6ded609fc2301551243932d986cde8be19590aa86187f130",
+      "source": "AL112017/2017090806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2682,
+      "file": "AL112017/wsp/2017090806/wsp-64kt.geojson.gz",
+      "member": "2017090806_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "4c6ece43c5350e2bd399daf68f88dbe55c768595a438b1605fa567899c8d5f27",
+      "source": "AL112017/2017090806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3007,
+      "file": "AL112017/wsp/2017090812/wsp-34kt.geojson.gz",
+      "member": "2017090812_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "e71defbb8cc92565cc384b920366610bc5074b804289d52c982ce18326df33f6",
+      "source": "AL112017/2017090812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3657,
+      "file": "AL112017/wsp/2017090812/wsp-50kt.geojson.gz",
+      "member": "2017090812_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "8d1c9c239a834da9a395ee4f008f1fedbf92d4710c516a59dc15dc2f4e46612a",
+      "source": "AL112017/2017090812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2709,
+      "file": "AL112017/wsp/2017090812/wsp-64kt.geojson.gz",
+      "member": "2017090812_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "db413ceea1c7df3d1c55f4317ab1d1d0b2f431aeeb280125f10b3bda9205aeb6",
+      "source": "AL112017/2017090812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3150,
+      "file": "AL112017/wsp/2017090818/wsp-34kt.geojson.gz",
+      "member": "2017090818_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "c24820f25b791a0750420dfaa47a68cccfede7690d28963a627094b61c877ce2",
+      "source": "AL112017/2017090818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3398,
+      "file": "AL112017/wsp/2017090818/wsp-50kt.geojson.gz",
+      "member": "2017090818_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "fbff6d19fa5ccecab2aa25a421671040ae51cd42e0e5605f94e954fa06524dc7",
+      "source": "AL112017/2017090818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2149,
+      "file": "AL112017/wsp/2017090818/wsp-64kt.geojson.gz",
+      "member": "2017090818_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "09e3fa3546e2cef72656b560a05bc2684e02f9f7cec80fc8e902e51bc09f816d",
+      "source": "AL112017/2017090818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3322,
+      "file": "AL112017/wsp/2017090900/wsp-34kt.geojson.gz",
+      "member": "2017090900_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "cc0124ced5b5360bfb99ce6096d9567fc75e3de254fc2bd5409155cbecc4549c",
+      "source": "AL112017/2017090900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3032,
+      "file": "AL112017/wsp/2017090900/wsp-50kt.geojson.gz",
+      "member": "2017090900_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "144c40007e78932fd2da54664b650120f839d53edef6947f2267d36816a22807",
+      "source": "AL112017/2017090900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1854,
+      "file": "AL112017/wsp/2017090900/wsp-64kt.geojson.gz",
+      "member": "2017090900_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "98df09e593d19fe4038315ee72d972ddf3b4cd161d91ae6c29e3de10b1e7c64d",
+      "source": "AL112017/2017090900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 4065,
+      "file": "AL112017/wsp/2017090906/wsp-34kt.geojson.gz",
+      "member": "2017090906_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "2df3f0ea82d66b4e70ac169559b67ce5dea9ce4578bfe929a406b5c735f0356a",
+      "source": "AL112017/2017090906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3241,
+      "file": "AL112017/wsp/2017090906/wsp-50kt.geojson.gz",
+      "member": "2017090906_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "ba531862bc68e266cb21ee9e5d897ee81680d6c02f1babe2479ddb91452b39ba",
+      "source": "AL112017/2017090906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2075,
+      "file": "AL112017/wsp/2017090906/wsp-64kt.geojson.gz",
+      "member": "2017090906_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "7eb127ac9b6ccdb41a02a75807fc91670daae7e6dd3e677be3f76676d79f911d",
+      "source": "AL112017/2017090906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3696,
+      "file": "AL112017/wsp/2017090912/wsp-34kt.geojson.gz",
+      "member": "2017090912_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "732c1cb58e26381cf5536dea374796a94a6b9c0d4037d506409e9f1f290e51f7",
+      "source": "AL112017/2017090912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3003,
+      "file": "AL112017/wsp/2017090912/wsp-50kt.geojson.gz",
+      "member": "2017090912_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "7258e6a2204c9885de9cd0667b41023f3cd13adce8eba75bc4874dcb28c82f7b",
+      "source": "AL112017/2017090912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2293,
+      "file": "AL112017/wsp/2017090912/wsp-64kt.geojson.gz",
+      "member": "2017090912_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "44468bd072677c9dbe313a9e3c35d1b330416a95fe13106a7eb4cf7dc42f51a4",
+      "source": "AL112017/2017090912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2932,
+      "file": "AL112017/wsp/2017090918/wsp-34kt.geojson.gz",
+      "member": "2017090918_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "d1a84e8c71a16a5899629fb91d45b28389789065b32b37e5b72655aba318d764",
+      "source": "AL112017/2017090918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2905,
+      "file": "AL112017/wsp/2017090918/wsp-50kt.geojson.gz",
+      "member": "2017090918_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "03e4f5b5803514deb624860421c02d9fd12d6f65142fad9d4fc6fd8bfe5e298f",
+      "source": "AL112017/2017090918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2447,
+      "file": "AL112017/wsp/2017090918/wsp-64kt.geojson.gz",
+      "member": "2017090918_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "aead69bb228f253aea582526b08e0e6a8878b691be6809d6741d12c63a456daf",
+      "source": "AL112017/2017090918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2098,
+      "file": "AL112017/wsp/2017091000/wsp-34kt.geojson.gz",
+      "member": "2017091000_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "fc3a33bb494bc50b7ff9fe0df314ee19854590e6cb135c40646995ebc76136a1",
+      "source": "AL112017/2017091000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3126,
+      "file": "AL112017/wsp/2017091000/wsp-50kt.geojson.gz",
+      "member": "2017091000_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "9b5654d76b0dc64e5d7378278642348967f87446251a28d2949d643da948d11c",
+      "source": "AL112017/2017091000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2425,
+      "file": "AL112017/wsp/2017091000/wsp-64kt.geojson.gz",
+      "member": "2017091000_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "a0ba4a5838a337de83492894703c12b2f37e5e03f472646eae89dc204916606b",
+      "source": "AL112017/2017091000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1417,
+      "file": "AL112017/wsp/2017091006/wsp-34kt.geojson.gz",
+      "member": "2017091006_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "805940787a303592921020584431cd80f1797ae16b1b3b6e0256efb819d780bc",
+      "source": "AL112017/2017091006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2871,
+      "file": "AL112017/wsp/2017091006/wsp-50kt.geojson.gz",
+      "member": "2017091006_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "0b2f1cced281c6e8246056ba128119cc54d8b89e7b74ce4f1eef2552af091363",
+      "source": "AL112017/2017091006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2472,
+      "file": "AL112017/wsp/2017091006/wsp-64kt.geojson.gz",
+      "member": "2017091006_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "588cfe8f9d567c759c28c415aaba155cec3d9159d341f9c87b29e6da3b30e8c3",
+      "source": "AL112017/2017091006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1125,
+      "file": "AL112017/wsp/2017091012/wsp-34kt.geojson.gz",
+      "member": "2017091012_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "e2ddb08b32bd39bdc2c7b141d03b4bee7244e6ca229f6c03d490def3edece7c3",
+      "source": "AL112017/2017091012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2583,
+      "file": "AL112017/wsp/2017091012/wsp-50kt.geojson.gz",
+      "member": "2017091012_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "4e031c16d70dea21a20b9a789b6cda3d9a3c97cfe1777a34d6982b680532b0e6",
+      "source": "AL112017/2017091012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2105,
+      "file": "AL112017/wsp/2017091012/wsp-64kt.geojson.gz",
+      "member": "2017091012_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "03440f7e24d5196ada3ca2ec9c853cb14670eefe6923a1e538d65246616fb36b",
+      "source": "AL112017/2017091012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1230,
+      "file": "AL112017/wsp/2017091018/wsp-34kt.geojson.gz",
+      "member": "2017091018_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "446e6a015e01844935c5cac08b9bbd26e9a5c4d4bcfc031ff353782966c3e210",
+      "source": "AL112017/2017091018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1869,
+      "file": "AL112017/wsp/2017091018/wsp-50kt.geojson.gz",
+      "member": "2017091018_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "2229110e0fdfad059d04f5d5b4857c295e6cfd9fe08883e371f6086dcb61b886",
+      "source": "AL112017/2017091018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2840,
+      "file": "AL112017/wsp/2017091018/wsp-64kt.geojson.gz",
+      "member": "2017091018_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "0e3bb446ee9e4bc70fae9c41f02cc676c6ebecdace0ece6df0990b8dfe877c12",
+      "source": "AL112017/2017091018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2798,
+      "file": "AL112017/wsp/2017091100/wsp-34kt.geojson.gz",
+      "member": "2017091100_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "7cabed52c796ec2902e8bd9a7b1e257720e39ca04ba04853cf3176060b345b97",
+      "source": "AL112017/2017091100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3459,
+      "file": "AL112017/wsp/2017091100/wsp-50kt.geojson.gz",
+      "member": "2017091100_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "8f757182579c15f8c4e3b5f6227dc8af0abf1ff0fc0dac694947499704686ba5",
+      "source": "AL112017/2017091100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2186,
+      "file": "AL112017/wsp/2017091100/wsp-64kt.geojson.gz",
+      "member": "2017091100_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "b1f43b00690c765ccc6c28c4e63d4961acc86ef9c26f44462cf939f29617ef21",
+      "source": "AL112017/2017091100_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2787,
+      "file": "AL112017/wsp/2017091106/wsp-34kt.geojson.gz",
+      "member": "2017091106_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "0703657c83d2a4133b5f24fd514bddca8c0ab4845afa2d34e1d4f6af6751c58c",
+      "source": "AL112017/2017091106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1730,
+      "file": "AL112017/wsp/2017091106/wsp-50kt.geojson.gz",
+      "member": "2017091106_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b07b0171b50c4d905a6e84ef77aaf111b1e2c82bf16d4611128d6be144536522",
+      "source": "AL112017/2017091106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 658,
+      "file": "AL112017/wsp/2017091106/wsp-64kt.geojson.gz",
+      "member": "2017091106_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c669b1af4d949cf59a882d3dfeebc4e1c659f39db8c5a9e7efa1cce7782e7c0b",
+      "source": "AL112017/2017091106_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2193,
+      "file": "AL112017/wsp/2017091112/wsp-34kt.geojson.gz",
+      "member": "2017091112_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a384a0fb84b022d3ba2e93a0f59f80fc37ae21b35cc5eb67788d56280811046e",
+      "source": "AL112017/2017091112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1283,
+      "file": "AL112017/wsp/2017091112/wsp-50kt.geojson.gz",
+      "member": "2017091112_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "2d5416380691ff1597e7163f8f82053d282ad665ab3f6f763c1cd85539d5198a",
+      "source": "AL112017/2017091112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 697,
+      "file": "AL112017/wsp/2017091112/wsp-64kt.geojson.gz",
+      "member": "2017091112_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "b809edbbb4f38ecba8ac9a19ef56f2f784147165d1d9427003826dc9a7bf79a3",
+      "source": "AL112017/2017091112_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1611,
+      "file": "AL112017/wsp/2017091118/wsp-34kt.geojson.gz",
+      "member": "2017091118_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a000c864704156732b158f3775143bd795eade871f3b5fa8acf6c9890e9a9a31",
+      "source": "AL112017/2017091118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 859,
+      "file": "AL112017/wsp/2017091118/wsp-50kt.geojson.gz",
+      "member": "2017091118_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "3e15701100d98eef51919d348c0811558462e431d0113f51bbd476098f28f7b1",
+      "source": "AL112017/2017091118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 692,
+      "file": "AL112017/wsp/2017091118/wsp-64kt.geojson.gz",
+      "member": "2017091118_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c7e169b467c024d86f598ac8540f641d5f61b71d7d6fe09f2cc0a6b2eda22f61",
+      "source": "AL112017/2017091118_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1701,
+      "file": "AL112017/wsp/2017091200/wsp-34kt.geojson.gz",
+      "member": "2017091200_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "a189db6c53b61699fd72926852118bc5ca988487df5489f7191b571c4df2ab95",
+      "source": "AL112017/2017091200_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 965,
+      "file": "AL112017/wsp/2017091200/wsp-50kt.geojson.gz",
+      "member": "2017091200_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "c50f45e7674ef83328c54e4bcffa04d71f33442a4206fb0161a347017240bb65",
+      "source": "AL112017/2017091200_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 634,
+      "file": "AL112017/wsp/2017091200/wsp-64kt.geojson.gz",
+      "member": "2017091200_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "112423480c8424041d2b2a745fa134df2dcd43034f73d78e9c2d384725b0c9e8",
+      "source": "AL112017/2017091200_wsp_120hr5km.zip"
+    },
+    {
       "bytes": 17218,
       "file": "AL142024/001/cone.geojson.gz",
       "member": "al142024-001_5day_pgn.shp",
@@ -38459,8 +41988,536 @@
       "product": "track",
       "sha256": "47d2001ec9eabd735d689c993d0b2c2023519bb2c6d3662d2e29fc8fde593ce9",
       "source": "AL142024/al142024_5day_023.zip"
+    },
+    {
+      "bytes": 2515,
+      "file": "AL142024/wsp/2024100512/wsp-34kt.geojson.gz",
+      "member": "2024100512_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "5d82d340c9bb9381436e6944c509e0d0103c89913c0cb97a4ed72093c2477762",
+      "source": "AL142024/2024100512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1391,
+      "file": "AL142024/wsp/2024100512/wsp-50kt.geojson.gz",
+      "member": "2024100512_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "feb1299cdc5439b740e4c4a87bc32affb9624481033c9d28ba12a11216039b51",
+      "source": "AL142024/2024100512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 681,
+      "file": "AL142024/wsp/2024100512/wsp-64kt.geojson.gz",
+      "member": "2024100512_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "931f2ba1c4cd64003b827a4104ef46f40fb817aa18737ed158d8b65a85e145fa",
+      "source": "AL142024/2024100512_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2322,
+      "file": "AL142024/wsp/2024100518/wsp-34kt.geojson.gz",
+      "member": "2024100518_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "bab114e72eb2c438d4ec3e02ddd8478e803576e4c40e24ccc8f6665e2d2a6e80",
+      "source": "AL142024/2024100518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1330,
+      "file": "AL142024/wsp/2024100518/wsp-50kt.geojson.gz",
+      "member": "2024100518_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "03270105791110f32503b0fbae6a1ff4b0138a62dfe89942a49db5f6cdd5ea98",
+      "source": "AL142024/2024100518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 700,
+      "file": "AL142024/wsp/2024100518/wsp-64kt.geojson.gz",
+      "member": "2024100518_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "824bfb2459bf90ad1c5ddf6606081fa497e940412621267de23b5f508d97562a",
+      "source": "AL142024/2024100518_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2534,
+      "file": "AL142024/wsp/2024100600/wsp-34kt.geojson.gz",
+      "member": "2024100600_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "1bf923c534d5fd0685b99f06f4850acbec7805525f9dca61052901b13e71ae93",
+      "source": "AL142024/2024100600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1475,
+      "file": "AL142024/wsp/2024100600/wsp-50kt.geojson.gz",
+      "member": "2024100600_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "118205a9a3b38729f1374f06b0179177890927023d68293833fa0e099b4aa120",
+      "source": "AL142024/2024100600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 821,
+      "file": "AL142024/wsp/2024100600/wsp-64kt.geojson.gz",
+      "member": "2024100600_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "140e46f454bd2f45eafc8269af05e7fc1d6cba6d2ed07ff492572fbce25f071a",
+      "source": "AL142024/2024100600_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1994,
+      "file": "AL142024/wsp/2024100606/wsp-34kt.geojson.gz",
+      "member": "2024100606_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "832dcdc4e38ee1f490f32ca429150b84d13c9ef972fecde6899eccdd5109687c",
+      "source": "AL142024/2024100606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1376,
+      "file": "AL142024/wsp/2024100606/wsp-50kt.geojson.gz",
+      "member": "2024100606_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "667cc9c37cfcd1d5b8ce8a85c7b1f4b0ce485dcd97dd9d157df54ee19f65cace",
+      "source": "AL142024/2024100606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 948,
+      "file": "AL142024/wsp/2024100606/wsp-64kt.geojson.gz",
+      "member": "2024100606_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "21c787991757204769c952dadfeb0b20ec6ac3a5d5c6285d5351fe1efbbc7ec1",
+      "source": "AL142024/2024100606_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2538,
+      "file": "AL142024/wsp/2024100612/wsp-34kt.geojson.gz",
+      "member": "2024100612_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "51e27835e87914d18a8b3ee72f16988d62569e9c1c2a8556496015e1b77f3c41",
+      "source": "AL142024/2024100612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1455,
+      "file": "AL142024/wsp/2024100612/wsp-50kt.geojson.gz",
+      "member": "2024100612_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "8c71697564e0f52f6f2ce474cba38b826910bc0147644b0a92006dbb255c8800",
+      "source": "AL142024/2024100612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1227,
+      "file": "AL142024/wsp/2024100612/wsp-64kt.geojson.gz",
+      "member": "2024100612_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "3cd0aade7282898a5abf2bbd19382cebad7478a100487c77268041f874e662f6",
+      "source": "AL142024/2024100612_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2686,
+      "file": "AL142024/wsp/2024100618/wsp-34kt.geojson.gz",
+      "member": "2024100618_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "3787da6366f21216409fa3832d3738145d87302ee365deca8e9fed34e5620465",
+      "source": "AL142024/2024100618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1594,
+      "file": "AL142024/wsp/2024100618/wsp-50kt.geojson.gz",
+      "member": "2024100618_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "9a49f98cb701a2636e79002096a9f328d6287f1377b6ebf4aa2a974539d995f5",
+      "source": "AL142024/2024100618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1222,
+      "file": "AL142024/wsp/2024100618/wsp-64kt.geojson.gz",
+      "member": "2024100618_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "c3b9e9ba77e7b061b68cfd79936908e97abf74d6d90c3a93778657b2d89a4491",
+      "source": "AL142024/2024100618_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2680,
+      "file": "AL142024/wsp/2024100700/wsp-34kt.geojson.gz",
+      "member": "2024100700_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "75a37bb43114c2dfcac86c810d3cafc79255e8c8cad313b298d214b76fca12ad",
+      "source": "AL142024/2024100700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1643,
+      "file": "AL142024/wsp/2024100700/wsp-50kt.geojson.gz",
+      "member": "2024100700_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "08a3d60f5d166f3338e25e666985b728aa830f3414650dbcbad13dd4382cd3a3",
+      "source": "AL142024/2024100700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1013,
+      "file": "AL142024/wsp/2024100700/wsp-64kt.geojson.gz",
+      "member": "2024100700_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "a9d72037c579de02e196f7c411a8c85bbeacd8d54070b89af9bd532a00f60017",
+      "source": "AL142024/2024100700_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2883,
+      "file": "AL142024/wsp/2024100706/wsp-34kt.geojson.gz",
+      "member": "2024100706_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "00cc781b490cb2bf201182712f0dc4a60b518e2aa25bea9d528518825d91d758",
+      "source": "AL142024/2024100706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1466,
+      "file": "AL142024/wsp/2024100706/wsp-50kt.geojson.gz",
+      "member": "2024100706_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "b21fc7605cf9b075d00bbda049a82f686e393544b68a35e35be8d175608fcb03",
+      "source": "AL142024/2024100706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 991,
+      "file": "AL142024/wsp/2024100706/wsp-64kt.geojson.gz",
+      "member": "2024100706_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "0a48e684a3defc2cc80bf80e7fba382a044074166d8b8663f10bab75584a2969",
+      "source": "AL142024/2024100706_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2904,
+      "file": "AL142024/wsp/2024100712/wsp-34kt.geojson.gz",
+      "member": "2024100712_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "1a1460aec871e938034a6545d262066996cf5fc4681be9da89610d2cbf76e39e",
+      "source": "AL142024/2024100712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1342,
+      "file": "AL142024/wsp/2024100712/wsp-50kt.geojson.gz",
+      "member": "2024100712_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "3701b3128794c6fbc896b56428d0222e0fd39bd54451640bd2d32b3dd664b2c9",
+      "source": "AL142024/2024100712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 885,
+      "file": "AL142024/wsp/2024100712/wsp-64kt.geojson.gz",
+      "member": "2024100712_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "0ebc4741562e3bf986dc65361b38234b21dfe2fa232712c8ce0212c7af114238",
+      "source": "AL142024/2024100712_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2947,
+      "file": "AL142024/wsp/2024100718/wsp-34kt.geojson.gz",
+      "member": "2024100718_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "9fbcd1572a54c68af99cea79ff02a6984cda6605fb1f554e331eb176983ae7a7",
+      "source": "AL142024/2024100718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1277,
+      "file": "AL142024/wsp/2024100718/wsp-50kt.geojson.gz",
+      "member": "2024100718_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "fd5080a0d1ee92e34b2ddf13772d0d239e6c6c98716fcd28ad1ffb2c789464b0",
+      "source": "AL142024/2024100718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 772,
+      "file": "AL142024/wsp/2024100718/wsp-64kt.geojson.gz",
+      "member": "2024100718_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "6f663cc37095056c3370f69dee5e7f9356f26ec25a4fe520ecd0233a453072fe",
+      "source": "AL142024/2024100718_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2932,
+      "file": "AL142024/wsp/2024100800/wsp-34kt.geojson.gz",
+      "member": "2024100800_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "71a7d940fcb74a4014c628f0eefafe3ee2b836d08823403fd45d7442bba558e4",
+      "source": "AL142024/2024100800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1202,
+      "file": "AL142024/wsp/2024100800/wsp-50kt.geojson.gz",
+      "member": "2024100800_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "922b74f356f614f5304fcbe0991dcf1e868d7369c37197d8e03f520e33f15ad0",
+      "source": "AL142024/2024100800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 683,
+      "file": "AL142024/wsp/2024100800/wsp-64kt.geojson.gz",
+      "member": "2024100800_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "644aac26894ee4b36fbc79ba3c9c86edd5f50e99b549345b363ebb64780454ba",
+      "source": "AL142024/2024100800_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3107,
+      "file": "AL142024/wsp/2024100806/wsp-34kt.geojson.gz",
+      "member": "2024100806_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "e6ddffd059f2c5b0489b9180815c50fec85af6f1a9c775f775dcc35a0c3d779e",
+      "source": "AL142024/2024100806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1452,
+      "file": "AL142024/wsp/2024100806/wsp-50kt.geojson.gz",
+      "member": "2024100806_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "f9ace11b374d2c75f639b9e7a76fcb88a6bf4e5d803583b31784ca3ae4f78f67",
+      "source": "AL142024/2024100806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 789,
+      "file": "AL142024/wsp/2024100806/wsp-64kt.geojson.gz",
+      "member": "2024100806_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "e3f2d3cb76599e4030e3a41441c7715c11c873882aaeb63992ce1ad5ff58a2e2",
+      "source": "AL142024/2024100806_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2955,
+      "file": "AL142024/wsp/2024100812/wsp-34kt.geojson.gz",
+      "member": "2024100812_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "fc992fd184bb31f39f02460964c5e1b9d7aebf9785584b58a429431dacdf5fbe",
+      "source": "AL142024/2024100812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1429,
+      "file": "AL142024/wsp/2024100812/wsp-50kt.geojson.gz",
+      "member": "2024100812_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "cbd3f60167e5d49d35b12d0a40e253125e70c7ac7aefa479652546109c7bee15",
+      "source": "AL142024/2024100812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 781,
+      "file": "AL142024/wsp/2024100812/wsp-64kt.geojson.gz",
+      "member": "2024100812_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "b096c3c53b1ad76aca021ad48dce0c8a610e1e38ec55c604861a1933dd829459",
+      "source": "AL142024/2024100812_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2927,
+      "file": "AL142024/wsp/2024100818/wsp-34kt.geojson.gz",
+      "member": "2024100818_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "74e0d640efaca930622a424e0bd19470c03505766aa8556983990aee1c0bbdf7",
+      "source": "AL142024/2024100818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1608,
+      "file": "AL142024/wsp/2024100818/wsp-50kt.geojson.gz",
+      "member": "2024100818_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "9c4df86756e49dabe593eb3294eaf583d9994d297f5675819e27ab903a30ab18",
+      "source": "AL142024/2024100818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1116,
+      "file": "AL142024/wsp/2024100818/wsp-64kt.geojson.gz",
+      "member": "2024100818_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "63fe23b619ad475cd12b545241bd6602611c67a349b0022df60d36aca7999371",
+      "source": "AL142024/2024100818_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2507,
+      "file": "AL142024/wsp/2024100900/wsp-34kt.geojson.gz",
+      "member": "2024100900_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "78251fac72df1bf8ad331d8128dc38d0442dd53e7e6fe39ae80560f0023683e7",
+      "source": "AL142024/2024100900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1305,
+      "file": "AL142024/wsp/2024100900/wsp-50kt.geojson.gz",
+      "member": "2024100900_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "9ba803a26322de81f2080620c7da7dd4ae4b97d2abea864b233af9dcf3ddb939",
+      "source": "AL142024/2024100900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 662,
+      "file": "AL142024/wsp/2024100900/wsp-64kt.geojson.gz",
+      "member": "2024100900_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "5a8a32851e6ad5fbcda76c54365d3482446efba0e9173405c049c93122cfb751",
+      "source": "AL142024/2024100900_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2646,
+      "file": "AL142024/wsp/2024100906/wsp-34kt.geojson.gz",
+      "member": "2024100906_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "f4e1912bb8064cfe431e8c80f1d627a402fdaf17e1602bab615e39f1569a4edb",
+      "source": "AL142024/2024100906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1299,
+      "file": "AL142024/wsp/2024100906/wsp-50kt.geojson.gz",
+      "member": "2024100906_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "f5c488d3275b40ebacc9985f159bf889c25fc71a240cd7bab6f9f81796463c95",
+      "source": "AL142024/2024100906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 677,
+      "file": "AL142024/wsp/2024100906/wsp-64kt.geojson.gz",
+      "member": "2024100906_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "14799f5ed706af5907b0a165dd9200e6262c9a06ca6a8556bf930f48d9e41363",
+      "source": "AL142024/2024100906_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2669,
+      "file": "AL142024/wsp/2024100912/wsp-34kt.geojson.gz",
+      "member": "2024100912_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "5547965c0bc4e41f45e8a2dd88328010db4f650ac177781a584696cc47594ebe",
+      "source": "AL142024/2024100912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1307,
+      "file": "AL142024/wsp/2024100912/wsp-50kt.geojson.gz",
+      "member": "2024100912_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "d81961773a3749965ac3f2141bf85757e10e04c195f5b029254daf431f1c7a18",
+      "source": "AL142024/2024100912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 656,
+      "file": "AL142024/wsp/2024100912/wsp-64kt.geojson.gz",
+      "member": "2024100912_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "7c0a726101aaf3acde10438a4047c143304a1dc51ba3152df0f54079dfde23c0",
+      "source": "AL142024/2024100912_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3471,
+      "file": "AL142024/wsp/2024100918/wsp-34kt.geojson.gz",
+      "member": "2024100918_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "36f9487f842baf886737efaca1b98097bd55b6f29aa632f9288196ecf070e4b1",
+      "source": "AL142024/2024100918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 948,
+      "file": "AL142024/wsp/2024100918/wsp-50kt.geojson.gz",
+      "member": "2024100918_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "366de63d3f1557206fd15106a5c4b1a9ab78fab0cc87c83a8df5a3fec8640a5a",
+      "source": "AL142024/2024100918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 399,
+      "file": "AL142024/wsp/2024100918/wsp-64kt.geojson.gz",
+      "member": "2024100918_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "594a089cb883d303891025a32c4b56c2dbc0341ff880fd98b9ae227625e9c1f5",
+      "source": "AL142024/2024100918_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 3866,
+      "file": "AL142024/wsp/2024101000/wsp-34kt.geojson.gz",
+      "member": "2024101000_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "8c69ad152bd8b72a8f984f0a8cc3adf5cd39c61196598c10777812798da1f0a6",
+      "source": "AL142024/2024101000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 971,
+      "file": "AL142024/wsp/2024101000/wsp-50kt.geojson.gz",
+      "member": "2024101000_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "51647808ddeab08368663eabc87f3860f2075c05b11edd2b6a8b418b064f8cca",
+      "source": "AL142024/2024101000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 399,
+      "file": "AL142024/wsp/2024101000/wsp-64kt.geojson.gz",
+      "member": "2024101000_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "fd96e8ee7ba57912451b4e9dd27384d0a71107fdaa5e74a4a8437b0019bf997a",
+      "source": "AL142024/2024101000_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1678,
+      "file": "AL142024/wsp/2024101006/wsp-34kt.geojson.gz",
+      "member": "2024101006_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "8796d7b1a3131a45d8dd959d3a1c688dd7c3cbfb72fe26f128cf27354257ed09",
+      "source": "AL142024/2024101006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 648,
+      "file": "AL142024/wsp/2024101006/wsp-50kt.geojson.gz",
+      "member": "2024101006_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "fd26c32e362614d040a99a45c24fe7f3dd504ba28c24bf939b4d02210e51be7b",
+      "source": "AL142024/2024101006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 399,
+      "file": "AL142024/wsp/2024101006/wsp-64kt.geojson.gz",
+      "member": "2024101006_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "bb9057b0d513fde7cae0a63eb50853ad66c0fb456c8c4a3e8416e3c9d795cba8",
+      "source": "AL142024/2024101006_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 2243,
+      "file": "AL142024/wsp/2024101012/wsp-34kt.geojson.gz",
+      "member": "2024101012_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "b52dbd3c477bd0a487cc01a125bf120a84d98eee089d34bf8c08955fc18a4561",
+      "source": "AL142024/2024101012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 482,
+      "file": "AL142024/wsp/2024101012/wsp-50kt.geojson.gz",
+      "member": "2024101012_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "eaed6ce2be69dae6e4ce60368983cbc6b8e8d9a0c0748d5c943143bb9e80d414",
+      "source": "AL142024/2024101012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL142024/wsp/2024101012/wsp-64kt.geojson.gz",
+      "member": "2024101012_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "df4035572de176113c182cad890fde9720be6a5d02a4727d8013934abc1939a7",
+      "source": "AL142024/2024101012_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 1013,
+      "file": "AL142024/wsp/2024101018/wsp-34kt.geojson.gz",
+      "member": "2024101018_wsp34knt120hr_5km.shp",
+      "product": "wsp-34kt",
+      "sha256": "b4060f86dd4c561d2ada228ee03a2a8a21ac337792ae69876bbba03a51b1e18d",
+      "source": "AL142024/2024101018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 397,
+      "file": "AL142024/wsp/2024101018/wsp-50kt.geojson.gz",
+      "member": "2024101018_wsp50knt120hr_5km.shp",
+      "product": "wsp-50kt",
+      "sha256": "d321dbb8ac6bd8b48eccd7cad8bfbeb44e5d62e1d3a86be34927fa79293c6135",
+      "source": "AL142024/2024101018_wsp_120hr5km.zip"
+    },
+    {
+      "bytes": 398,
+      "file": "AL142024/wsp/2024101018/wsp-64kt.geojson.gz",
+      "member": "2024101018_wsp64knt120hr_5km.shp",
+      "product": "wsp-64kt",
+      "sha256": "74ddf9b8aea4c45c6fed34cab63c495bfd80c8049c12f2e67f41912c923f1794",
+      "source": "AL142024/2024101018_wsp_120hr5km.zip"
     }
   ],
-  "subset_rule": "Every forecast advisory and every available forecast geometry product.",
+  "subset_rule": "Every forecast advisory and every available forecast geometry product. Plus each 5 km wind-speed-probability product, clipped to the boxes reaching one degree of latitude and longitude on each side of each public landmark.",
   "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)"
 }

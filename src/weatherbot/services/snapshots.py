@@ -188,13 +188,14 @@ def merge_arrivals(
     Returns:
         The storm's KMZ products, then the map-layer products no KMZ product replaces.
     """
-    mine = [product for product in kmz if product.atcf_id == storm.summary.atcf_id]
+    mine = [product for product in kmz if product.atcf_id == storm.atcf_id]
     return nhc_arrival_times.prefer_kmz((*mine, *storm.arrival_times))
 
 
 def _with_arrivals(storm: StormProducts, arrivals: tuple[ArrivalTimeProduct, ...]) -> StormProducts:
     return StormProducts(
         summary=storm.summary,
+        archived=storm.archived,
         cone=storm.cone,
         track_points=storm.track_points,
         track=storm.track,
@@ -317,7 +318,7 @@ def assemble_snapshot(  # noqa: PLR0913 - one run's parts, keyword-only
     ok = ledger.ok
     summary = parts.summary if ok(SUMMARY) else _Summary()
     kmz = parts.arrivals if ok(ARRIVALS) else ()
-    mapped = {products.summary.atcf_id: products for products in summary.storms}
+    mapped = {products.atcf_id: products for products in summary.storms}
     storm_products = tuple(
         _with_arrivals(products, merge_arrivals(products, kmz))
         for storm in storms or ()

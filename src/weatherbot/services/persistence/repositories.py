@@ -2,7 +2,8 @@
 """Repositories: the domain models in, the same models out.
 
 ``LocationRepository`` keeps the watched locations, ``SnapshotRepository`` stores a whole
-``Snapshot`` with its raw responses in one transaction and loads it back equal, and
+live ``Snapshot`` with its raw responses in one transaction and loads it back equal (a
+replay snapshot is never stored: history is live only), and
 ``SettingsRepository`` keeps application state such as when the disclaimer was shown.
 """
 
@@ -375,9 +376,13 @@ class SnapshotRepository:
             drift_warnings: The Source-drift warnings its fetch logged, in order.
 
         Raises:
-            SnapshotStoreError: The snapshot is stored already, an answer's source has no
-                outcome, or an alert names a location that is not stored.
+            SnapshotStoreError: The snapshot is a replay (history is live only), it is
+                stored already, an answer's source has no outcome, or an alert names a
+                location that is not stored.
         """
+        if snapshot.origin != "live":
+            message = "a replay snapshot is never stored: history is live only"
+            raise SnapshotStoreError(message)
         with Session(self._engine) as session, session.begin():
             if session.get(SnapshotRow, snapshot.snapshot_id) is not None:
                 message = "that snapshot is stored already"
@@ -449,7 +454,7 @@ class SnapshotRepository:
     def _save_storms(session: Session, snapshot: Snapshot) -> None:
         storm_ids: dict[str, int] = {}
         for position, products in enumerate(snapshot.storms):
-            summary = products.summary
+            summary = cast("StormSummary", products.summary)  # a live storm's roster record
             storm_id = _storm_id(session, summary, snapshot.completed_at)
             storm_ids[summary.atcf_id] = storm_id
             session.add(

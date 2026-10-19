@@ -233,24 +233,26 @@ def storm_entries(snapshot: Snapshot) -> tuple[StormEntry, ...]:
         snapshot: The snapshot.
 
     Returns:
-        One entry per active storm, in the roster's order.
+        One entry per active roster storm, in the roster's order. A replay storm has no
+        roster record to describe, so it has no entry.
     """
     return tuple(
         StormEntry(
-            atcf_id=s.summary.atcf_id,
-            slot=s.summary.slot,
-            name=s.summary.name,
-            classification=s.summary.classification,
-            intensity_kt=s.summary.intensity_kt,
-            pressure_mb=s.summary.pressure_mb,
-            movement_dir_deg=s.summary.movement_dir_deg,
-            movement_speed_mph=s.summary.movement_speed_mph,
-            advisory=str(s.summary.public_advisory.advisory),
-            advisory_issued_at=s.summary.public_advisory.issued_at,
-            last_update=s.summary.last_update,
+            atcf_id=summary.atcf_id,
+            slot=summary.slot,
+            name=summary.name,
+            classification=summary.classification,
+            intensity_kt=summary.intensity_kt,
+            pressure_mb=summary.pressure_mb,
+            movement_dir_deg=summary.movement_dir_deg,
+            movement_speed_mph=summary.movement_speed_mph,
+            advisory=str(summary.public_advisory.advisory),
+            advisory_issued_at=summary.public_advisory.issued_at,
+            last_update=summary.last_update,
             products=_products(s),
         )
         for s in snapshot.storms
+        if (summary := s.summary) is not None
     )
 
 
@@ -433,8 +435,8 @@ def segment_entries(snapshot: Snapshot) -> tuple[SegmentEntry, ...]:
     """
     return tuple(
         SegmentEntry(
-            atcf_id=storm.summary.atcf_id,
-            storm_name=storm.summary.name,
+            atcf_id=storm.atcf_id,
+            storm_name=storm.name,
             tcww=segment.tcww,
             advisory=str(segment.advisory.number),
         )

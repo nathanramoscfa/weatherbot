@@ -6,6 +6,15 @@ trust-on-first-record operation: discover links from GIS listings, fetch bytes,
 record hashes, then inspect those verified bytes. No archive is extracted.
 GeoJSON-shaped output preserves the native geographic CRS; in particular D_Sphere
 is NOT RFC 7946 WGS84. Consumers must read ``source_crs`` before using coordinates.
+
+``convert`` rebuilds the committed subset: every forecast product, plus each 5 km
+wind-speed-probability product clipped to the landmark windows (one degree of latitude
+and longitude on each side of each landmark in ``scripts/public_landmarks.toml``).
+``convert --refresh-subset`` deliberately rewrites the manifest's ``subset`` and
+``subset_rule`` from the verified cache; the originals' checksums never change.
+``convert --full --out DIR`` writes a complete conversion (every forecast product, every
+probability product unclipped, every arrival-time KMZ as received) with its own manifest
+to a directory outside the checkout, for the operator's own locations.
 """
 
 import argparse
@@ -21,8 +30,9 @@ import zipfile
 from collections import defaultdict
 from collections.abc import Generator, Sequence
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass, field
-from datetime import date
+from dataclasses import asdict, dataclass, field, replace
+from datetime import UTC, date, datetime
+from decimal import Decimal
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from typing import NoReturn, cast
@@ -30,8 +40,11 @@ from urllib.parse import urljoin, urlsplit
 
 import httpx
 import shapefile  # pyright: ignore[reportMissingTypeStubs] - pyshp has inline types, no py.typed
-from shapely.geometry import box, shape
+import shapely
+from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box, mapping, shape
+from shapely.geometry.base import BaseGeometry
 
+from check_personal_data import Landmark, load_landmarks
 from record_fixtures import (
     NHC_ROOT,
     REPOSITORY_ROOT,
@@ -69,6 +82,23 @@ REGION_RULE = (
     "Keep advisories whose cone or watch-warning intersects 20N-31N, 88W-72W, "
     "plus each storm's first and last advisory."
 )
+WSP_ARCHIVE = "wsp_120hr5km"
+WSP_THRESHOLDS = (34, 50, 64)
+WINDOW_HALF_WIDTH_DEG = 1
+WINDOW_RULE = (
+    "Plus each 5 km wind-speed-probability product, clipped to the boxes reaching one degree "
+    "of latitude and longitude on each side of each public landmark."
+)
+FULL_RULE = (
+    "A complete conversion: every forecast product, every 5 km wind-speed-probability "
+    "product unclipped, and every arrival-time KMZ as received."
+)
+MANIFEST_NAME = "corpus-manifest.json"
+
+
+def subset_rule(forecast_rule: str) -> str:
+    """Name the committed subset: its forecast rule, then the landmark windows."""
+    return f"{forecast_rule} {WINDOW_RULE}"
 
 
 def fail(message: str) -> NoReturn:
@@ -215,6 +245,7 @@ class Manifest:
     files: list[Archive]
     subset: list[Output] = field(default_factory=list[Output])
     subset_rule: str = ALL_ADVISORIES
+    recorded_on: str = ""
     schema: int = 1
     user_agent: str = USER_AGENT
     coordinate_policy: str = COORDINATE_POLICY
@@ -224,6 +255,16 @@ class Manifest:
 def write_manifest(manifest: Manifest, path: Path) -> None:
     """Atomically write a sorted, platform-independent JSON manifest."""
     atomic_write(path, (json.dumps(asdict(manifest), sort_keys=True, indent=2) + "\n").encode())
+
+
+def recorded_day(obj: dict[str, object]) -> str:
+    """Validate the day the originals were recorded, ``YYYY-MM-DD``."""
+    recorded_on = text_value(obj.get("recorded_on"))
+    try:
+        date.fromisoformat(recorded_on)
+    except ValueError:
+        fail("manifest recorded_on is not a YYYY-MM-DD date")
+    return recorded_on
 
 
 def load_manifest(path: Path = DEFAULT_MANIFEST) -> Manifest:
@@ -296,7 +337,7 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> Manifest:
     names = [entry.file for entry in files]
     if not files or len(set(names)) != len(names):
         fail("empty inventory or duplicate cache filenames")
-    return Manifest(storms, files, subset, text_value(obj.get("subset_rule")))
+    return Manifest(storms, files, subset, text_value(obj.get("subset_rule")), recorded_day(obj))
 
 
 def atomic_write(path: Path, body: bytes) -> None:
@@ -430,7 +471,7 @@ def record_archive(  # noqa: PLR0913 - explicit archive identity and recording d
 
 def discover(fetcher: Fetcher, cache: Path, *, reuse_downloads: bool = False) -> Manifest:  # noqa: C901 - explicit product discovery gates
     """Discover all forecast, shapefile WSP, and available KMZ arrival products."""
-    manifest = Manifest({}, [])
+    manifest = Manifest({}, [], recorded_on=datetime.now(UTC).date().isoformat())
     # This results endpoint ignores its filters; fetch the complete list just once.
     arrival = listing_links(fetcher, f"{GIS_ROOT}archive_toa_results.php")
     for storm in STORMS:
@@ -623,41 +664,262 @@ def forecast_collections(entry: Archive, cache: Path) -> list[tuple[str, str, di
     return result
 
 
-def build_subset(manifest: Manifest, cache: Path) -> tuple[dict[str, bytes], list[Output], str]:
-    """Build all advisory products, falling back to the documented region only if needed."""
+def window_boxes(landmarks: Sequence[Landmark]) -> list[tuple[float, float, float, float]]:
+    """Each landmark's window: the box one degree of latitude and longitude on each side."""
+    half = Decimal(WINDOW_HALF_WIDTH_DEG)
+    return [
+        (
+            float(landmark.lon - half),
+            float(landmark.lat - half),
+            float(landmark.lon + half),
+            float(landmark.lat + half),
+        )
+        for landmark in landmarks
+    ]
+
+
+def window_member(landmarks: Sequence[Landmark]) -> dict[str, object]:
+    """Describe the windows a windowed collection covers: the landmarks, width, and boxes."""
+    covered = shapely.normalize(MultiPolygon([box(*bounds) for bounds in window_boxes(landmarks)]))
+    if not covered.is_valid:
+        fail("the landmark windows overlap; they cannot form one coverage")
+    return {
+        "landmarks": [landmark.key for landmark in landmarks],
+        "half_width_deg": float(WINDOW_HALF_WIDTH_DEG),
+        "geometry": as_object(mapping(covered), "window geometry"),
+    }
+
+
+def polygons(geometry: BaseGeometry) -> list[Polygon]:
+    """Return a shape's non-empty polygons, from a collection's areal parts too."""
+    if isinstance(geometry, Polygon):
+        return [] if geometry.is_empty else [geometry]
+    if isinstance(geometry, MultiPolygon):
+        return [part for part in geometry.geoms if not part.is_empty]
+    if isinstance(geometry, GeometryCollection):
+        collection = cast("GeometryCollection[BaseGeometry]", geometry)
+        return [part for item in collection.geoms for part in polygons(item)]
+    return []
+
+
+def validity_reason(geometry: BaseGeometry) -> str:
+    """Shapely's reason a shape is invalid, without its bracketed location (a coordinate)."""
+    return str(shapely.is_valid_reason(geometry)).split("[", 1)[0].strip()
+
+
+def clip_band(
+    band: BaseGeometry, boxes: Sequence[tuple[float, float, float, float]]
+) -> tuple[MultiPolygon | None, str | None]:
+    """Clip one probability band to the windows; ``None`` when nothing of it is inside.
+
+    A band Shapely finds invalid is made valid before clipping, and the note records the
+    original reason. ``clip_by_rect`` can turn such a band's touching parts into one
+    self-touching ring; that clipped part is made valid again, which equals the exact
+    intersection.
+    """
+    note = None
+    if not band.is_valid:
+        note = f"Source band invalid ({validity_reason(band)}); made valid before clipping."
+        band = shapely.make_valid(band)
+    parts: list[Polygon] = []
+    for bounds in boxes:
+        for piece in polygons(shapely.clip_by_rect(band, *bounds)):
+            if piece.is_valid:
+                parts.append(piece)
+                continue
+            parts.extend(polygons(shapely.make_valid(piece)))
+            note = f"{note or ''} A clipped part was made valid again.".strip()
+    if not parts:
+        return None, None
+    clipped = shapely.normalize(MultiPolygon(parts))
+    rounded = shape(json.loads(fixed_json(mapping(clipped))))
+    if not clipped.is_valid or not rounded.is_valid:
+        fail("a clipped probability band is not valid")
+    return clipped, note
+
+
+WRAP_NOTE = (
+    "Longitudes west of -180 degrees brought into [-180, 180] by adding 360 degrees: "
+    "the same points, otherwise as received."
+)
+
+
+def wrapped(value: object) -> tuple[object, bool]:
+    """Bring each longitude outside [-180, 180] into it by a whole turn; say if any moved.
+
+    The 5 km probability grid runs west past the antimeridian (to -260 degrees). A turn of
+    360 degrees names the same point on the same sphere, so nothing is transformed or
+    relabeled; a ring that crosses the antimeridian then steps more than 180 degrees,
+    which the engine unwraps.
+    """
+    if isinstance(value, list | tuple):
+        items = cast("Sequence[object]", value)
+        if len(items) >= 2 and all(isinstance(n, int | float) for n in items):  # noqa: PLR2004 - a position
+            longitude = cast("float", items[0])
+            turn = 360.0 if longitude < -180.0 else -360.0 if longitude > 180.0 else 0.0  # noqa: PLR2004 - the antimeridian
+            return (longitude + turn, *items[1:]), turn != 0.0
+        parts = [wrapped(item) for item in items]
+        return [part for part, _ in parts], any(moved for _, moved in parts)
+    return value, False
+
+
+def band_feature(
+    properties: dict[str, object],
+    geometry: dict[str, object],
+    boxes: Sequence[tuple[float, float, float, float]] | None,
+) -> dict[str, object] | None:
+    """One probability band as a feature: whole (no ``boxes``) or clipped to the windows."""
+    note: str | None
+    if boxes is None:
+        coordinates, moved = wrapped(geometry["coordinates"])
+        geometry = {**geometry, "coordinates": coordinates}
+        note = WRAP_NOTE if moved else None
+    else:
+        clipped, note = clip_band(shape(geometry), boxes)
+        if clipped is None:
+            return None
+        geometry = as_object(mapping(clipped), "clipped geometry")
+    feature: dict[str, object] = {"type": "Feature", "properties": properties, "geometry": geometry}
+    if note is not None:
+        feature["geometry_note"] = note
+    return feature
+
+
+def wsp_collections(
+    entry: Archive, cache: Path, window: dict[str, object] | None
+) -> list[tuple[str, str, dict[str, object]]]:
+    """Convert a 5 km probability archive: one collection per threshold, windowed or full.
+
+    A record with a NULL shape is a band with no area, and is omitted. A full product keeps
+    every other band as received, its longitudes brought into [-180, 180]; a windowed one
+    clips each band to the windows.
+    """
+    if entry.product != WSP_ARCHIVE or entry.synoptic_time is None:
+        fail(f"not a 5 km wind-speed-probability archive: {entry.file}")
+    boxes = window_boxes(load_landmarks()) if window is not None else None
+    result: list[tuple[str, str, dict[str, object]]] = []
+    with archive_members(read_verified(entry, cache)) as archive:
+        for threshold in WSP_THRESHOLDS:
+            stem = f"{entry.synoptic_time}_wsp{threshold}knt120hr_5km"
+            crs = geographic_crs(archive.read(stem + ".prj").decode("utf-8").strip())
+            if entry.prj.get(stem + ".prj") != crs:
+                fail(f"CRS differs from manifest: {entry.file}")
+            features: list[dict[str, object]] = []
+            with shape_reader(archive, stem + ".shp") as reader:
+                for item in reader.iterShapeRecords():
+                    if item.record is None or item.shape is None:
+                        fail(f"missing shape or record: {entry.file}")
+                    if item.shape.shapeType == shapefile.NULL:
+                        continue
+                    feature = band_feature(
+                        as_object(item.record.as_dict(), "shapefile attributes"),
+                        as_object(item.shape.__geo_interface__, "shapefile geometry"),
+                        boxes,
+                    )
+                    if feature is not None:
+                        features.append(feature)
+            result.append(
+                (
+                    stem + ".shp",
+                    f"wsp-{threshold}kt",
+                    {
+                        "type": "FeatureCollection",
+                        "features": features,
+                        "source_crs": asdict(crs),
+                        "storm": entry.storm,
+                        "synoptic_time": entry.synoptic_time,
+                        "source": entry.file,
+                        "threshold_kt": threshold,
+                        "window": window,
+                    },
+                )
+            )
+    return result
+
+
+def wsp_name(entry: Archive, product: str) -> str:
+    """Where a probability collection lives: ``<storm>/wsp/<YYYYMMDDHH>/<product>``."""
+    return f"{entry.storm}/wsp/{entry.synoptic_time}/{product}.geojson.gz"
+
+
+def _output(name: str, entry: Archive, member: str, product: str, body: bytes) -> Output:
+    return Output(name, entry.file, member, product, hashlib.sha256(body).hexdigest(), len(body))
+
+
+def forecast_outputs(manifest: Manifest, cache: Path) -> tuple[dict[str, bytes], list[Output]]:
+    """Convert every forecast package's products."""
     bodies: dict[str, bytes] = {}
     outputs: list[Output] = []
-    regional: set[tuple[str, str]] = set()
-    region = box(-88, 20, -72, 31)
-    for storm, info in manifest.storms.items():
-        regional.update((storm, adv) for adv in (info.advisories[0], info.advisories[-1]))
     for entry in manifest.files:
         if entry.product != "5day":
             continue
         for member, product, collection in forecast_collections(entry, cache):
             name = f"{entry.storm}/{entry.advisories[0]}/{product}.geojson.gz"
-            body = compressed_json(collection)
-            bodies[name] = body
-            outputs.append(
-                Output(
-                    name, entry.file, member, product, hashlib.sha256(body).hexdigest(), len(body)
-                )
-            )
-            if product in {"cone", "watch-warning"}:
-                for feature in as_list(collection["features"], "features"):
-                    geometry = as_object(as_object(feature, "feature")["geometry"], "geometry")
-                    if shape(geometry).intersects(region):
-                        regional.add((entry.storm, entry.advisories[0]))
+            bodies[name] = compressed_json(collection)
+            outputs.append(_output(name, entry, member, product, bodies[name]))
+    return bodies, outputs
+
+
+def wsp_outputs(
+    manifest: Manifest, cache: Path, window: dict[str, object] | None
+) -> tuple[dict[str, bytes], list[Output]]:
+    """Convert every 5 km probability archive, windowed or full."""
+    bodies: dict[str, bytes] = {}
+    outputs: list[Output] = []
+    for entry in manifest.files:
+        if entry.product != WSP_ARCHIVE:
+            continue
+        for member, product, collection in wsp_collections(entry, cache, window):
+            name = wsp_name(entry, product)
+            bodies[name] = compressed_json(collection)
+            outputs.append(_output(name, entry, member, product, bodies[name]))
+    return bodies, outputs
+
+
+def regional_advisories(manifest: Manifest, bodies: dict[str, bytes]) -> set[tuple[str, str]]:
+    """The advisories the regional fallback keeps: in the region, or first or last."""
+    regional: set[tuple[str, str]] = set()
+    region = box(-88, 20, -72, 31)
+    for storm, info in manifest.storms.items():
+        regional.update((storm, adv) for adv in (info.advisories[0], info.advisories[-1]))
+    for name, body in bodies.items():
+        storm, advisory, file = name.split("/")
+        if file not in {"cone.geojson.gz", "watch-warning.geojson.gz"}:
+            continue
+        collection = as_object(json.loads(gzip.decompress(body)), name)
+        for feature in as_list(collection["features"], "features"):
+            geometry = as_object(as_object(feature, "feature")["geometry"], "geometry")
+            if shape(geometry).intersects(region):
+                regional.add((storm, advisory))
+    return regional
+
+
+def build_subset(manifest: Manifest, cache: Path) -> tuple[dict[str, bytes], list[Output], str]:
+    """Build every forecast product and window, falling back to the documented region."""
+    bodies, outputs = forecast_outputs(manifest, cache)
+    windows, window_files = wsp_outputs(manifest, cache, window_member(load_landmarks()))
+    window_bytes = sum(map(len, windows.values()))
     rule = ALL_ADVISORIES
-    if sum(map(len, bodies.values())) > MAX_SUBSET_BYTES:
+    if sum(map(len, bodies.values())) + window_bytes > MAX_SUBSET_BYTES:
         rule = REGION_RULE
+        regional = regional_advisories(manifest, bodies)
         bodies = {
             name: body for name, body in bodies.items() if tuple(name.split("/")[:2]) in regional
         }
         outputs = [output for output in outputs if output.file in bodies]
-    if sum(map(len, bodies.values())) > MAX_SUBSET_BYTES:
+    if sum(map(len, bodies.values())) + window_bytes > MAX_SUBSET_BYTES:
         fail("the documented regional subset still exceeds 10 MiB")
-    return bodies, sorted(outputs, key=lambda output: output.file), rule
+    combined = sorted([*outputs, *window_files], key=lambda output: output.file)
+    return {**bodies, **windows}, combined, subset_rule(rule)
+
+
+def kept_advisories(bodies: dict[str, bytes], storm: str) -> set[str]:
+    """The advisories a subset keeps forecast products of."""
+    return {
+        name.split("/")[1]
+        for name in bodies
+        if name.startswith(storm + "/") and name.split("/")[1] != "wsp"
+    }
 
 
 def convert(manifest: Manifest, cache: Path, out: Path) -> None:
@@ -670,7 +932,53 @@ def convert(manifest: Manifest, cache: Path, out: Path) -> None:
     print(f"converted {len(bodies)} files, {sum(map(len, bodies.values()))} stored bytes")
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def refresh_subset(manifest: Manifest, cache: Path, manifest_path: Path, out: Path) -> None:
+    """Deliberately rewrite the manifest's subset and rule from the verified cache.
+
+    The originals, their checksums, the storms, and the recording date stay as recorded;
+    a refresh that would omit other advisories needs a new recording instead.
+    """
+    bodies, outputs, rule = build_subset(manifest, cache)
+    for storm, info in manifest.storms.items():
+        omitted = [adv for adv in info.advisories if adv not in kept_advisories(bodies, storm)]
+        if omitted != info.omitted_advisories:
+            fail("a refreshed subset would omit other advisories; record a new manifest")
+    for name, body in bodies.items():
+        atomic_write(safe_path(out, name), body)
+    write_manifest(replace(manifest, subset=outputs, subset_rule=rule), manifest_path)
+    print(f"refreshed the subset: {len(outputs)} files; review the manifest diff")
+
+
+def build_full(manifest: Manifest, cache: Path) -> tuple[dict[str, bytes], list[Output]]:
+    """Convert everything: forecast products, unclipped probabilities, and arrival KMZ."""
+    bodies, outputs = forecast_outputs(manifest, cache)
+    probabilities, probability_files = wsp_outputs(manifest, cache, None)
+    bodies.update(probabilities)
+    outputs.extend(probability_files)
+    for entry in manifest.files:
+        if not entry.product.startswith("toa_"):
+            continue
+        member = entry.file.rsplit("/", 1)[-1]
+        name = f"{entry.storm}/toa/{member}"
+        bodies[name] = read_verified(entry, cache)
+        outputs.append(_output(name, entry, member, entry.product, bodies[name]))
+    return bodies, sorted(outputs, key=lambda output: output.file)
+
+
+def convert_full(manifest: Manifest, cache: Path, out: Path) -> None:
+    """Write a complete conversion and its own manifest to a directory outside the checkout."""
+    if out.resolve().is_relative_to(REPOSITORY_ROOT.resolve()):
+        fail("--full writes outside the checkout; pass --out with a directory elsewhere")
+    bodies, outputs = build_full(manifest, cache)
+    storms = {key: replace(info, omitted_advisories=[]) for key, info in manifest.storms.items()}
+    full = replace(manifest, storms=storms, subset=outputs, subset_rule=FULL_RULE)
+    for name, body in bodies.items():
+        atomic_write(safe_path(out, name), body)
+    write_manifest(full, out / MANIFEST_NAME)
+    print(f"converted {len(bodies)} files, {sum(map(len, bodies.values()))} bytes, to {out}")
+
+
+def main(argv: Sequence[str] | None = None) -> int:  # noqa: C901 - one branch per command
     """Run a corpus command, returning nonzero on download, verification, or parse failure."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("fetch", "verify", "convert", "manifest"))
@@ -684,9 +992,25 @@ def main(argv: Sequence[str] | None = None) -> int:
         action="store_true",
         help="manifest only: resume explicit trust-on-first-record from retained downloads",
     )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="convert only: write a complete conversion and its manifest to --out, "
+        "a directory outside the checkout",
+    )
+    parser.add_argument(
+        "--refresh-subset",
+        action="store_true",
+        help="convert only: deliberately rewrite the manifest's subset from the verified "
+        "cache; review the diff",
+    )
     args = parser.parse_args(argv)
     if args.reuse_downloads and args.command != "manifest":
         parser.error("--reuse-downloads is allowed only for explicit manifest recording")
+    if (args.full or args.refresh_subset) and args.command != "convert":
+        parser.error("--full and --refresh-subset are options of convert")
+    if args.full and args.refresh_subset:
+        parser.error("--full and --refresh-subset do not combine")
     cache = cast("Path", args.cache).resolve()
     manifest_path = cast("Path", args.manifest).resolve()
     out = cast("Path", args.out).resolve()
@@ -698,7 +1022,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )
             bodies, manifest.subset, manifest.subset_rule = build_subset(manifest, cache)
             for storm, info in manifest.storms.items():
-                kept = {name.split("/")[1] for name in bodies if name.startswith(storm + "/")}
+                kept = kept_advisories(bodies, storm)
                 info.omitted_advisories = [adv for adv in info.advisories if adv not in kept]
             write_manifest(manifest, manifest_path)
             print(f"recorded manifest: {len(manifest.files)} archives; run verify then convert")
@@ -709,6 +1033,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                     fetch(manifest, cache, Fetcher(client, Pacer()))
             elif args.command == "verify":
                 verify(manifest, cache)
+            elif args.full:
+                convert_full(manifest, cache, out)
+            elif args.refresh_subset:
+                refresh_subset(manifest, cache, manifest_path, out)
             else:
                 convert(manifest, cache, out)
     except (

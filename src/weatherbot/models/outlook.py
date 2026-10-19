@@ -107,26 +107,39 @@ class OutlookArea(DomainModel):
 
 
 class WindProbabilityBand(DomainModel):
-    """One band of a wind-speed-probability product."""
+    """One band of a wind-speed-probability product.
+
+    ``geometry_note`` says how the shape differs from the source's, as when a replay
+    extract made an invalid source band valid before clipping it; ``None`` when the
+    shape is the source's own.
+    """
 
     lower_pct: int = Field(ge=0, le=100)
     upper_pct: int = Field(ge=0, le=100)
     label: str = Field(description="The layer's percentage, such as 5-10%.")
     geometry: Geometry
+    geometry_note: str | None = None
 
     @classmethod
-    def from_label(cls, label: str, geometry: Geometry) -> Self:
+    def from_label(cls, label: str, geometry: Geometry, geometry_note: str | None = None) -> Self:
         """Build a band from its label.
 
         Args:
             label: The band label.
             geometry: The band's shape.
+            geometry_note: How the shape differs from the source's, if it does.
 
         Returns:
             The band.
         """
         lower, upper = parse_band_label(label)
-        return cls(lower_pct=lower, upper_pct=upper, label=label, geometry=geometry)
+        return cls(
+            lower_pct=lower,
+            upper_pct=upper,
+            label=label,
+            geometry=geometry,
+            geometry_note=geometry_note,
+        )
 
     @model_validator(mode="after")
     def _known_band(self) -> Self:
@@ -150,6 +163,11 @@ class WindProbabilityProduct(DomainModel):
     storm, NHC publishes one combined product per synoptic time, and no official field
     attributes a band to a storm. So this product has no storm field, and the snapshot
     holds one per threshold.
+
+    ``coverage`` is ``None`` for a full product. An extract, such as the replay corpus's
+    landmark windows, records the areal geometry it covers, in the product's CRS, and
+    holds no band outside it: such a product says nothing about a point outside its
+    coverage.
     """
 
     threshold_kt: Literal[34, 50, 64]
@@ -157,4 +175,22 @@ class WindProbabilityProduct(DomainModel):
     horizon_h: Literal[120] = 120
     resolution: Literal["5km"] = "5km"
     bands: tuple[WindProbabilityBand, ...]
+    coverage: Geometry | None = Field(
+        default=None, description="None: a full product. An extract: the area it covers."
+    )
     provenance: Provenance
+
+    @model_validator(mode="after")
+    def _bands_inside_coverage(self) -> Self:
+        coverage = self.coverage
+        if coverage is None:
+            return self
+        require_geometry(coverage, ("Polygon", "MultiPolygon"), "a wind-probability coverage")
+        if any(band.geometry.crs != coverage.crs for band in self.bands):
+            message = "an extract's coverage is in its bands' CRS"
+            raise ValueError(message)
+        area = coverage.to_shapely()
+        if any(not area.covers(band.geometry.to_shapely()) for band in self.bands):
+            message = "every band of an extract lies inside its coverage"
+            raise ValueError(message)
+        return self
