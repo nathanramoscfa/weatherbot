@@ -551,8 +551,9 @@ declaring a step complete.
   notice, under the 10 MiB cap `MAX_SUBSET_BYTES` sets in
   `scripts/fetch_replay_corpus.py`). Each collection keeps the archive's
   attributes in upper case and its native `D_Sphere` CRS in `source_crs`;
-  Dorian 056–062A keeps 39 one-vertex segments as Points with their
-  `geometry_note`.
+  Dorian 056–062A keeps 36 one-vertex segments, in 12 advisories, as Points
+  with their `geometry_note` (corrected in Step 2: Phase 1's notes said 39 in
+  13; 057A has no watch-warning product).
 - `corpus-manifest.json` pins the 1,199 originals by URL, size, and SHA-256,
   with each file's advisories, each storm's synoptic times, the advisories that
   lack arrival or radii products, and one `subset` entry per committed file.
@@ -2363,12 +2364,37 @@ hygiene.
       remained (the product is unusable: an `UnavailableInput`);
       the note names the reason without its location. `covers`
       counts the boundary as inside. The engine's tests share
-      `tests/engine/engine_support.py` (`landmark`, `features`,
-      `advisories`, `replay_track`, `synthetic_track`,
-      `square`, `wrapped_polygon`); `tests/engine/scenarios.py`
-      imports from it as `tests/models/` imports
-      `model_samples`. Branch coverage of the engine stood at
-      98 percent after Step 1.
+      `tests/engine/engine_support.py` (`landmark`, `manifest`,
+      `advisories`, `cone`, `segments`, `replay_track`,
+      `synthetic_track`, `square`, `wrapped_polygon`; Step 2
+      replaced `features` with the archive parser's records);
+      `tests/engine/scenarios.py` imports from it as
+      `tests/models/` imports `model_samples`. Branch coverage of
+      the engine stood at 98 percent after Steps 1 and 2.
+    - Carry-over from Step 2 (the replay input the rules read):
+      a replay `Snapshot` has `origin="replay"`, outcomes
+      `nhc-gis-archive` `ok` and `nhc-arrival-times` (`skipped`
+      in the committed subset: "the corpus holds no arrival-time
+      products"), and no NWS alerts, outlook areas, or
+      breakpoint catalogue: each an input the assessment names
+      as missing. Its storms carry `archived: ArchiveStorm`
+      (`storm_type` as the archive spells it: `HU`, `TS`, `TD`,
+      `PTC` at the cone) with `summary=None`; read
+      `storm.atcf_id` and `storm.name`. A committed probability
+      product is a window extract: `coverage` is the two
+      landmark boxes in the product's native CRS, and 142 of
+      the 507 extracts hold no band at all, which inside the
+      coverage means no band reaches the point and outside it
+      means nothing. A band's `geometry_note` says when its
+      shape was made valid. A `convert --full` product has
+      `coverage=None`, keeps invalid source bands as published
+      (`is_valid` false: read them through `repair`), and has its
+      longitudes brought into [-180, 180], so a band that crosses
+      the antimeridian steps more than 180 degrees, which
+      `covers` unwraps. Ian 036 to 038 have no probability
+      product. `ReplayCorpus.open(directory).snapshots(atcf_id)`
+      (`weatherbot.services.replay`) yields whole snapshots for
+      the scenarios.
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -2968,6 +2994,19 @@ per phase-boundary hygiene.
       to the earliest instant. `initial_bearing_deg` is in [0,
       360). Pass `figure_of(point.position.crs)`: a mismatched
       figure is refused.
+    - Carry-over from Step 2: a replay snapshot holds arrival
+      products only when its corpus directory holds the KMZ (a
+      `convert --full` directory, never the committed subset):
+      the earliest-reasonable and most-likely pair of the latest
+      full advisory at or before the snapshot's advisory, parsed
+      by `parse_arrival_kmz` against the archive URL (none is
+      withheld). Otherwise `nhc-arrival-times` is `skipped`,
+      "the corpus holds no arrival-time products", or "... for
+      <ATCF id> advisory <n>" (Irma; Ian 036 to 038). A replay
+      storm has no roster classification: its category comes
+      from the track points (`saffir_simpson`, `max_wind_kt`).
+      The recorded Dorian 036 pair stands in for the archive's
+      in `tests/services/test_replay.py` (same bytes).
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -3450,6 +3489,22 @@ conversation is new per phase-boundary hygiene.
     - The corpus holds no outlook areas, so only the recorded
       scenarios bind `development_chance_floor_pct`: the
       recorded Atlantic region's seven-day chance is 20 percent.
+    - Carry-over from Step 2: `ReplayCorpus.storms()` gives
+      `ReplayStorm` (`atcf_id`, `name` (the last advisory's
+      `STORMNAME`), `advisories`, `first_issued_at`,
+      `last_issued_at`); snapshot ids are
+      `replay.snapshot_id(atcf_id, advisory)`, a UUID 5. The
+      committed subset replays in 1 to 3 s per storm on the
+      operator's machine. The cached cross-check converts with
+      `fetch_replay_corpus.convert_full(load_manifest(), cache,
+      tmp_path)` (about 45 s; replaying all four storms from it
+      took about 5 minutes on Windows) and runs under
+      `@pytest.mark.corpus` beside
+      `tests/replay/test_full_conversion.py`. When it lands, add
+      `src/weatherbot/engine/**` to both `replay-corpus.yml` path
+      filters: Step 2 added the models, the archive parser, and
+      the replay reader, and Step 7's check 16 also expects the
+      engine.
     - The project roadmap's acceptance: all golden replays pass;
       changing any threshold or rule order breaks at least one
       golden; `docs/ALERT-LADDER.md` matches the implemented
@@ -3986,6 +4041,17 @@ The conversation is new per phase-boundary hygiene.
       unique; Alembic autogenerate writes package types into
       revisions (replace them); a `/abs` path is not absolute on
       Windows (use `tmp_path`).
+    - Carry-over from Step 2: `replay --corpus DIR` opens
+      `ReplayCorpus.open(DIR)`; the committed subset lives under
+      `tests/fixtures/replay/` and is not in the wheel, so the
+      command names its directory. `ReplayError` (`file`,
+      `rule`) is the corpus's refusal: a tampered, missing, or
+      escaping file, an unreadable manifest, or an unknown storm.
+      `ReplayCorpus.storms()` lists the storms a replay can name.
+      `SnapshotRepository.save` refuses a replay snapshot
+      ("history is live only"), and `cli/snapshots.py`'s
+      `storm_entries` describes roster storms only, so a replay
+      storm needs its own entry in the `replay` document.
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -4611,6 +4677,28 @@ The conversation is new per phase-boundary hygiene.
     `tests/engine/test_geodesy.py`, `test_engine_geometry.py`,
     `test_tracks.py`, and `test_engine_properties.py`, with
     `engine_support.py` beside them.
+
+    Carry-over from Step 2 (what checks 9-17 read):
+    `Snapshot.origin`, `StormProducts.summary` and `archived`,
+    and `ArchiveStorm` in `weatherbot.models.__all__`;
+    `WindProbabilityProduct.coverage` (and the new
+    `WindProbabilityBand.geometry_note`);
+    `nhc_gis_archive.FIELDS_READ` and
+    `tests/contract/test_archive_field_coverage.py`;
+    `services/replay.py`'s `ReplayCorpus` and `ReplayError`,
+    with `hashlib.sha256` checked in `_read` before any parser
+    runs; the manifest's 507 `wsp-<34|50|64>kt` subset entries
+    at `<storm>/wsp/<yyyymmddhh>/` and `recorded_on`
+    (`2026-10-15`); `convert --full` and `--refresh-subset`
+    beside the `choices` literal; `SnapshotRepository.save`
+    refusing `origin != "live"`. The engine path joins
+    `replay-corpus.yml`'s filters in Step 5 (check 16). The
+    V2 tests are `tests/models/test_origin.py`,
+    `tests/sources/test_nhc_gis_archive.py`,
+    `tests/services/test_replay.py`, the window tests in
+    `tests/replay/test_corpus_subset.py`, and, under the
+    `corpus` marker, `tests/replay/test_full_conversion.py`
+    (about 6 minutes with the byte-for-byte reconversion).
 
     Files to read:
     - scripts/verify_phase02.py (primary structural template)
