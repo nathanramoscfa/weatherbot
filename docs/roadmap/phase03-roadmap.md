@@ -1,6 +1,6 @@
 # Phase 3 Roadmap — Threat engine
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -758,9 +758,9 @@ parallel, and the Worktree rule permits no concurrent steps.
 
 ---
 
-## Step 1 — Geodesy and geometry
+## Step 1 — Geodesy and geometry ✅
 
-**Status:** Not started
+**Status:** Complete — PR #29 (2026-10-19)
 
 > **Goal:** Land the engine's measuring tools and the gates that keep the engine
 > honest. `src/weatherbot/engine/geodesy.py` gives every geometry the figure its
@@ -796,6 +796,8 @@ check; the first run of each on `main` must be green.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-19: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 1 is coding with knowledge as its secondary category:
 geodesy, coordinate reference systems, and computational geometry, where a wrong
@@ -5011,7 +5013,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                         | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #29 |
 | 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |

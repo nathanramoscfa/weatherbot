@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 2 Complete — 2026-10-18; PR #26; v2.0.0-phase-2. Phase 3 (Threat engine) is next.
+> **Status:** Phase 2 Complete — 2026-10-18; PR #26; v2.0.0-phase-2. Phase 3 (Threat engine) is in progress.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -466,7 +466,7 @@ from required verification.
 
 ### Phase 3 — Threat engine
 
-**Status:** Not started
+**Status:** In progress — phase03-roadmap.md
 
 **Goal:** A pure, deterministic engine that turns a snapshot and a
 location into a level with evidence, verified by golden replays of four
@@ -1562,7 +1562,7 @@ The following are deliberately deferred to a future version:
 |-------|-----------------------------------------------|------------|-------------|
 | 1     | Foundation and discovery                      | Medium     | Complete |
 | 2     | Sources and persistence                       | Medium     | Complete |
-| 3     | Threat engine                                 | High       | Not started |
+| 3     | Threat engine                                 | High       | In progress |
 | 4     | Monitoring and notifications                  | Medium     | Not started |
 | 5     | Web app MVP                                   | High       | Not started |
 | 6     | Claude layer                                  | High       | Not started |
