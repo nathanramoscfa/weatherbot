@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 1 Complete — 2026-10-15; PR #17; v2.0.0-phase-1. Phase 2 (Sources and persistence) is next.
+> **Status:** Phase 2 Complete — 2026-10-18; PR #26; v2.0.0-phase-2. Phase 3 (Threat engine) is next.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -346,9 +346,9 @@ the weekly Claude pool reads exhausted when the session opens.
 
 ---
 
-### Phase 2 — Sources and persistence
+### Phase 2 — Sources and persistence ✅
 
-**Status:** In progress — phase02-roadmap.md
+**Status:** Complete — 2026-10-18; PR #26; v2.0.0-phase-2; phase02-roadmap.md
 
 **Goal:** Typed, provenance-carrying clients for every official source,
 a SQLite schema with migrations, and CLI commands that print today's
@@ -1504,7 +1504,7 @@ The following are deliberately deferred to a future version:
 | Phase | Description                                   | Complexity | Status      |
 |-------|-----------------------------------------------|------------|-------------|
 | 1     | Foundation and discovery                      | Medium     | Complete |
-| 2     | Sources and persistence                       | Medium     | Not started |
+| 2     | Sources and persistence                       | Medium     | Complete |
 | 3     | Threat engine                                 | High       | Not started |
 | 4     | Monitoring and notifications                  | Medium     | Not started |
 | 5     | Web app MVP                                   | High       | Not started |
