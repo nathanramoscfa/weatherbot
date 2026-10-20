@@ -5,8 +5,14 @@ Evidence holds names, codes, instants, and distances, never a coordinate. It cit
 product through a ``Citation``, a provenance that drops the request URL of any source
 whose URLs carry a location: an NWS point query's URL holds the location's coordinates.
 An assessment names every input it lacked; its level then reads as a floor.
+
+A storm threat and the change events say what each storm means for the location and
+what changed since the previous assessment. A threat's distances, bearing, and instants
+locate the location as surely as its coordinates do, so they stay out of every ``repr``.
 """
 
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Final, Literal, Self
 from uuid import UUID
 
@@ -24,6 +30,9 @@ LOCATED_SOURCES: Final[frozenset[SourceId]] = frozenset(
 )
 """The sources whose request URLs carry a location's coordinates."""
 
+TRACK_FALLBACK_LABEL: Final = "track closest approach, not a wind arrival"
+"""The label of an arrival read from the forecast track because no product exists."""
+
 type WindThreshold = Literal[34, 50, 64]
 type EvidenceTest = Literal[
     "point_query", "zone_list", "segment_distance", "point_in_polygon", "band", "toggle"
@@ -37,8 +46,38 @@ type ProductKind = Literal[
     "evacuation_toggle",
 ]
 type MissingInput = Literal[
-    "nws_alerts", "source", "cone", "forecast_points", "wind_probabilities", "outlook_areas"
+    "nws_alerts",
+    "source",
+    "cone",
+    "forecast_points",
+    "wind_probabilities",
+    "outlook_areas",
+    "arrival_times",
 ]
+type ArrivalKind = Literal["earliest_reasonable", "most_likely"]
+type ArrivalOrigin = Literal["kmz", "map_layer", "track"]
+type ArrivalOutcome = Literal["before", "between", "after", "outside", "unresolved", "track"]
+type ChangeKind = Literal[
+    "level_changed",
+    "advisory_issued",
+    "official_added",
+    "official_changed",
+    "official_removed",
+    "cone_entered",
+    "cone_left",
+]
+type Direction = Literal["up", "down", "initial"]
+
+CHANGE_KINDS: Final[tuple[ChangeKind, ...]] = (
+    "level_changed",
+    "advisory_issued",
+    "official_added",
+    "official_changed",
+    "official_removed",
+    "cone_entered",
+    "cone_left",
+)
+"""The seven kinds of change event, in the order ``diff`` emits them."""
 
 
 class BreakpointSpan(DomainModel):
@@ -166,13 +205,17 @@ class OfficialProduct(DomainModel):
 
     ``covers`` says whether the product is in effect for the location, and ``reason``
     says why or why not. ``rule`` is the rule a covering product triggers, or ``None``
-    when it sets no level: an event or code outside the ladder.
+    when it sets no level: an event or code outside the ladder. ``references`` names the
+    alerts an alert updates, by id, so ``diff`` can tell a replacement from a new alert.
     """
 
     kind: Literal["nws_alert", "watch_warning_segment"]
     citation: Citation
     code: str = Field(description="The NWS event, or the NHC tcww code as received.")
     alert_id: str | None = None
+    references: tuple[str, ...] = Field(
+        default=(), description="The ids of the alerts an alert updates."
+    )
     issuer: str | None = Field(default=None, description="An alert's senderName.")
     atcf_id: AtcfId | None = None
     storm_name: str | None = None
@@ -199,6 +242,9 @@ class OfficialProduct(DomainModel):
         alert = self.kind == "nws_alert"
         if alert != (self.alert_id is not None) or alert == (self.atcf_id is not None):
             message = "an alert names its id, and a segment names its storm"
+            raise ValueError(message)
+        if self.references and not alert:
+            message = "only an alert references the alerts it updates"
             raise ValueError(message)
         return self
 
@@ -244,14 +290,255 @@ class UnavailableInput(DomainModel):
     reason: str = Field(min_length=1)
 
 
+# What each reading states: the fields it sets, of start, end, approach_at, and reason.
+_READING_FIELDS: Final[Mapping[ArrivalOutcome, frozenset[str]]] = MappingProxyType(
+    {
+        "before": frozenset({"end"}),
+        "between": frozenset({"start", "end"}),
+        "after": frozenset({"start"}),
+        "outside": frozenset(),
+        "unresolved": frozenset({"reason"}),
+        "track": frozenset({"approach_at"}),
+    }
+)
+
+
+class ArrivalReading(DomainModel):
+    """When tropical-storm-force winds arrive at the location, as one product says.
+
+    ``reading`` is exactly one of: ``before`` the product's earliest labelled instant
+    (``end``); ``between`` two labelled instants (``start``, ``end``); ``after`` its latest
+    labelled instant (``start``), inside the 5 percent contour; ``outside`` that contour,
+    so no arrival at that probability within the product's 120 hours; ``unresolved``, with
+    the ``reason``; or ``track``, when the storm has no product of this kind: the forecast
+    track's closest approach (``approach_at``), labelled ``TRACK_FALLBACK_LABEL`` because
+    it is not a wind arrival. ``origin`` is the product's, or ``track`` for the fallback.
+    The instants are times at the location, so they stay out of ``repr``.
+    """
+
+    kind: ArrivalKind
+    origin: ArrivalOrigin
+    reading: ArrivalOutcome
+    advisory: AdvisoryNumber | None = Field(
+        default=None, description="The product's advisory, or the forecast points'."
+    )
+    citation: Citation | None = Field(
+        default=None, description="The product, or the forecast points for the fallback."
+    )
+    start: UtcDatetime | None = Field(default=None, repr=False)
+    end: UtcDatetime | None = Field(default=None, repr=False)
+    approach_at: UtcDatetime | None = Field(default=None, repr=False)
+    label: str | None = Field(default=None, description="The fallback's label.")
+    reason: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def _one_reading(self) -> Self:
+        names = ("start", "end", "approach_at", "reason")
+        stated = frozenset(name for name in names if getattr(self, name))
+        if stated != _READING_FIELDS[self.reading]:
+            message = (
+                f"a {self.reading} reading states exactly {sorted(_READING_FIELDS[self.reading])}"
+            )
+            raise ValueError(message)
+        if self.start is not None and self.end is not None and self.start >= self.end:
+            message = "an interval starts before it ends"
+            raise ValueError(message)
+        fallback = self.origin == "track"
+        if fallback and self.reading not in {"track", "unresolved"}:
+            message = "the track fallback reads the closest approach, or nothing"
+            raise ValueError(message)
+        track = self.reading == "track"
+        if (
+            (track and not fallback)
+            or track != (self.label == TRACK_FALLBACK_LABEL)
+            or (not track and self.label is not None)
+        ):
+            message = "a closest-approach reading, and only that reading, carries its label"
+            raise ValueError(message)
+        if self.origin == "map_layer" and self.reading != "unresolved":
+            message = "a map-layer product carries no instant, so it reads nothing"
+            raise ValueError(message)
+        if self.citation is None and not fallback:
+            message = "a product's reading cites the product"
+            raise ValueError(message)
+        return self
+
+
+class StormThreat(DomainModel):
+    """What one storm means for the location, read from the storm's own advisory products.
+
+    ``advisory`` and ``issued_at`` are the storm's latest advisory: the roster's public
+    advisory in a live snapshot, the cone's advisory in a replay. ``category`` is the
+    Saffir-Simpson category NHC states for the advisory's tau-0 point (``ssnum`` 1 to 5),
+    and ``None`` below hurricane strength; ``development`` is that point's ``tcdvlp``
+    text, kept beside it because a post-tropical cyclone can carry a category too.
+    ``in_cone`` reads the repaired cone and is ``None`` without a usable one. From the
+    tau-0 center: the geodesic ``distance_km`` and initial ``bearing_deg`` to the
+    location, on the figure of the points' CRS (``crs``). From the forecast points: the
+    closest approach, its ``lead_h`` from the assessment's instant (an approach already
+    past counts as now), and whether a point at or before it is a hurricane. Every value
+    measured from the points is ``None`` when the storm has none. No field holds a
+    wind-speed probability: those belong to the snapshot (issue #12).
+    """
+
+    atcf_id: AtcfId
+    storm_name: str = Field(min_length=1)
+    advisory: AdvisoryNumber | None = None
+    issued_at: UtcDatetime | None = None
+    category: int | None = Field(default=None, ge=1, le=5)
+    development: str | None = None
+    in_cone: bool | None = None
+    crs: str | None = Field(default=None, description="The CRS of the forecast points.")
+    distance_km: float | None = Field(default=None, ge=0.0, repr=False)
+    bearing_deg: float | None = Field(default=None, ge=0.0, lt=360.0, repr=False)
+    closest_approach_at: UtcDatetime | None = Field(default=None, repr=False)
+    closest_approach_km: float | None = Field(default=None, ge=0.0, repr=False)
+    lead_h: float | None = Field(default=None, ge=0.0, repr=False)
+    hurricane_by_approach: bool | None = None
+    earliest_arrival: ArrivalReading
+    most_likely_arrival: ArrivalReading
+
+    @model_validator(mode="after")
+    def _measured_together(self) -> Self:
+        measured = (
+            self.development,
+            self.crs,
+            self.distance_km,
+            self.bearing_deg,
+            self.closest_approach_at,
+            self.closest_approach_km,
+            self.lead_h,
+            self.hurricane_by_approach,
+        )
+        if len({value is None for value in measured}) > 1 or (
+            self.category is not None and self.development is None
+        ):
+            message = "every value read from the forecast points is present, or none is"
+            raise ValueError(message)
+        if (self.earliest_arrival.kind, self.most_likely_arrival.kind) != (
+            "earliest_reasonable",
+            "most_likely",
+        ):
+            message = "a threat reads the earliest-reasonable and the most-likely arrival"
+            raise ValueError(message)
+        return self
+
+
+type _Shape = tuple[frozenset[str], frozenset[str]]
+type _Product = Literal["nws_alert", "watch_warning_segment"]
+
+
+def _shape(required: str, optional: str = "") -> _Shape:
+    return frozenset(required.split()), frozenset(optional.split())
+
+
+# The fields each kind of event (and, for an official one, each product) sets: those it
+# must set, and those it may.
+_EVENT_SHAPES: Final[Mapping[tuple[ChangeKind, _Product | None], _Shape]] = MappingProxyType(
+    {
+        ("level_changed", None): _shape("level direction rule", "previous_level"),
+        ("advisory_issued", None): _shape(
+            "atcf_id storm_name advisory", "previous_advisory in_cone"
+        ),
+        ("official_added", "nws_alert"): _shape("product alert_id codes"),
+        ("official_added", "watch_warning_segment"): _shape(
+            "product atcf_id storm_name codes", "advisory"
+        ),
+        ("official_changed", "nws_alert"): _shape(
+            "product previous_alert_id alert_id previous_codes codes"
+        ),
+        ("official_changed", "watch_warning_segment"): _shape(
+            "product atcf_id storm_name previous_codes codes", "advisory"
+        ),
+        ("official_removed", "nws_alert"): _shape("product alert_id codes"),
+        ("official_removed", "watch_warning_segment"): _shape(
+            "product atcf_id storm_name codes", "advisory"
+        ),
+        ("cone_entered", None): _shape("atcf_id storm_name", "advisory"),
+        ("cone_left", None): _shape("atcf_id storm_name", "advisory"),
+    }
+)
+_EVENT_FIELDS: Final = frozenset(
+    name for required, optional in _EVENT_SHAPES.values() for name in required | optional
+)
+
+
+class ChangeEvent(DomainModel):
+    """One typed change between two assessments of a location, for Phase 4's policy.
+
+    ``level_changed``: the level moved ``up`` or ``down``, or is the ``initial`` one.
+    ``advisory_issued``: a storm has a new advisory, with whether its cone covers the
+    location. ``official_added``, ``official_changed``, ``official_removed``: an official
+    product that covers the location appeared, was replaced, or no longer covers it; an
+    NWS alert by id (one whose ``references`` names a covering predecessor replaces it),
+    an NHC storm's covering watch-warning segments by storm and code. ``cone_entered``,
+    ``cone_left``: a storm's cone began or stopped covering the location. ``detail`` is a
+    plain sentence with names and codes, never a coordinate or a distance.
+    """
+
+    kind: ChangeKind
+    previous_level: AlertLevel | None = None
+    level: AlertLevel | None = None
+    direction: Direction | None = None
+    rule: RuleId | None = Field(default=None, description="The rule that decides the level.")
+    atcf_id: AtcfId | None = None
+    storm_name: str | None = None
+    previous_advisory: AdvisoryNumber | None = None
+    advisory: AdvisoryNumber | None = None
+    in_cone: bool | None = None
+    product: _Product | None = None
+    previous_alert_id: str | None = None
+    alert_id: str | None = None
+    previous_codes: tuple[str, ...] = ()
+    codes: tuple[str, ...] = ()
+    detail: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _fields_fit_the_kind(self) -> Self:
+        shape = _EVENT_SHAPES.get((self.kind, self.product))
+        if shape is None:
+            message = "an official event names its product, and no other event does"
+            raise ValueError(message)
+        required, optional = shape
+        stated = frozenset(n for n in _EVENT_FIELDS if getattr(self, n) not in (None, ()))
+        if not required <= stated <= required | optional:
+            message = f"a {self.kind} event sets {sorted(required)}, and may set {sorted(optional)}"
+            raise ValueError(message)
+        if self.kind == "level_changed" and self.direction != _direction(
+            self.previous_level, self.level
+        ):
+            message = "a level change moves up or down from the previous level, or is initial"
+            raise ValueError(message)
+        if self.kind == "advisory_issued" and self.previous_advisory == self.advisory:
+            message = "an advisory issued differs from the previous one"
+            raise ValueError(message)
+        if self.kind == "official_changed" and (self.previous_alert_id, self.previous_codes) == (
+            self.alert_id,
+            self.codes,
+        ):
+            message = "a changed product differs from its predecessor"
+            raise ValueError(message)
+        return self
+
+
+def _direction(previous: AlertLevel | None, level: AlertLevel | None) -> Direction | None:
+    """The direction from one level to another: ``None`` when they are equal."""
+    if previous is None:
+        return "initial"
+    if level is None or level == previous:
+        return None
+    return "up" if level > previous else "down"
+
+
 class Assessment(DomainModel):
     """The level one snapshot sets for one location, with its evidence.
 
     ``as_of`` is the snapshot's instant: a live snapshot's ``completed_at``, a replay
     snapshot's advisory issuance. ``evidence`` holds every match of the deciding
-    ``rule``, and ``official`` every official product considered. ``complete`` is false
-    whenever an input was unavailable, and the level then reads as "at least". ``ruleset``
-    is ``thresholds``' fingerprint with the rule order the assessment ran.
+    ``rule``, ``official`` every official product considered, and ``threats`` one threat
+    per storm, in the snapshot's order. ``complete`` is false whenever an input was
+    unavailable, and the level then reads as "at least". ``ruleset`` is ``thresholds``'
+    fingerprint with the rule order the assessment ran.
     """
 
     location_name: str = Field(min_length=1, max_length=64)
@@ -264,6 +551,7 @@ class Assessment(DomainModel):
     official: tuple[OfficialProduct, ...]
     wind_probabilities: tuple[LocationWindProbability, ...]
     breakpoint_span: BreakpointSpan | None
+    threats: tuple[StormThreat, ...]
     unavailable: tuple[UnavailableInput, ...]
     thresholds: Thresholds
     ruleset: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -281,5 +569,9 @@ class Assessment(DomainModel):
             raise ValueError(message)
         if self.complete == bool(self.unavailable):
             message = "an assessment is complete exactly when no input was unavailable"
+            raise ValueError(message)
+        storms = [threat.atcf_id for threat in self.threats]
+        if len(set(storms)) != len(storms):
+            message = "an assessment holds one threat per storm"
             raise ValueError(message)
         return self

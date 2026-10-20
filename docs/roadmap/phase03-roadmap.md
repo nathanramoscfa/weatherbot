@@ -2659,9 +2659,9 @@ hygiene.
 
 ---
 
-## Step 4 — Per-storm threats and change events
+## Step 4 — Per-storm threats and change events ✅
 
-**Status:** Not started
+**Status:** Complete — PR #35 (2026-10-19)
 
 > **Goal:** Say what each storm means for the location, and what changed.
 > `weatherbot.models.assessment` gains `StormThreat` — the storm's ATCF id and
@@ -2697,6 +2697,8 @@ runs the cached arrival-product test; its first run on `main` must be green.
 | Conversation | **New**                                  | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-19: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 4 is coding with knowledge as its secondary category,
 and it is the phase's first novel algorithm: NHC's arrival-time contours are
@@ -2985,6 +2987,20 @@ per phase-boundary hygiene.
       UTC 2 September and 00:00 UTC 3 September; the Miami-Dade
       landmark's are between 12:00 and 18:00 UTC 2 September and
       between 00:00 and 12:00 UTC 3 September.
+    - Amended 2026-10-19 by Step 4, measured on the same 244
+      products: the 488 readings above used a straight path in
+      the lines' longitude and latitude; a geodesic path differs
+      once (Ian 005 at the Nassau landmark slips past an open
+      isochrone's end and reads days too early). Every open
+      isochrone ends within 0.05 degrees of the outer contour,
+      so a path misses a line only by leaving the contour and
+      coming back: 22 readings, all Ian 001 to 007 at long range,
+      three of them `before` the first isochrone though the
+      landmark lies beside a later one. Such a path reads
+      `unresolved`, which leaves 186 outside, 43 before, 228
+      between, 9 after, and 22 unresolved. The recorded Simon 038
+      pair holds only a two-position outer contour and no
+      isochrone, so it has no area to read.
     - The committed corpus holds the archived Dorian 036 pair
       only under `tests/fixtures/recorded/nhc-arrival-times/`
       (with the 2026 Trudy 015 and Simon 038 pairs); the replay
@@ -3070,7 +3086,10 @@ per phase-boundary hygiene.
     <requirement>
       Models. `StormThreat`: ATCF id, name, category (the
       Saffir-Simpson category of the advisory's tau-0 point, or
-      its `development` text below hurricane strength),
+      its `development` text below hurricane strength; amended
+      2026-10-19: `category` holds `ssnum` 1 to 5 and
+      `development` the text beside it, because post-tropical
+      remnants carry an `ssnum` too),
       `in_cone`, `distance_km` and `bearing_deg` from the current
       center to the location (on the geometry's figure, with its
       CRS named), the closest approach (instant, distance,
@@ -3148,10 +3167,12 @@ per phase-boundary hygiene.
         Miami-Dade landmark); a storm without points.
       - `tests/engine/test_arrivals.py`: the archived Dorian 036
         pair at both landmarks reads the anchors above; the
-        Trudy 015 and Simon 038 pairs at a point derived at run
-        time inside each outer contour read a determinate
-        interval; a withheld product, a map-layer product, and
-        an unresolved line give `unresolved` with their reasons;
+        Trudy 015 pair at a point derived at run time inside its
+        outer contour reads a determinate interval, and the
+        Simon 038 pair, which has no closed outer contour,
+        reads `unresolved` (amended 2026-10-19); a withheld
+        product, a map-layer product, and an unresolved line
+        give `unresolved` with their reasons;
         synthetic isochrones cover `before`, `between`, `after`,
         `outside`, and a path across 180 degrees; Irma (no
         product) reads the fallback.
@@ -3532,11 +3553,9 @@ conversation is new per phase-boundary hygiene.
       tmp_path)` (about 45 s; replaying all four storms from it
       took about 5 minutes on Windows) and runs under
       `@pytest.mark.corpus` beside
-      `tests/replay/test_full_conversion.py`. When it lands, add
-      `src/weatherbot/engine/**` to both `replay-corpus.yml` path
-      filters: Step 2 added the models, the archive parser, and
-      the replay reader, and Step 7's check 16 also expects the
-      engine.
+      `tests/replay/test_full_conversion.py`. Step 4 already
+      added `src/weatherbot/engine/**` and `tests/engine/**` to
+      both `replay-corpus.yml` path filters (Step 7's check 16).
     - Carry-over from Step 3: `assess(snapshot, location,
       thresholds, *, rules=RULES)` runs any rule list, so a
       mutation removes or swaps entries of `RULES`; `ruleset` is
@@ -3554,6 +3573,24 @@ conversation is new per phase-boundary hygiene.
       `EngineSettings` (`services/config.py`) takes its defaults
       from `Thresholds()`, so calibrated defaults land in
       `models/ladder.py` alone.
+    - Carry-over from Step 4: `Assessment.threats` holds one
+      `StormThreat` per storm, and `weatherbot.engine.diff(
+      previous, current)` returns `ChangeEvent`s (`kind` one of
+      `CHANGE_KINDS`, each with a `detail` sentence) in the
+      order level, advisories, official products, cones; with
+      no previous assessment it returns the initial events, so
+      a timeline's first step carries `level_changed`
+      `initial`. Replaying Irma at the Miami-Dade landmark
+      gives one `cone_entered` (022), one `cone_left` (040),
+      and one `advisory_issued` per advisory. Threats never
+      change a level or a rule. Every replay assessment from
+      the committed subset lists two `arrival_times` inputs
+      per storm (the subset holds no KMZ).
+      `tests/engine/test_cached_arrivals.py` runs its own
+      `convert_full` (about 5 minutes locally with its reads);
+      the cross-check can share one session-scoped conversion
+      with it and `tests/replay/test_full_conversion.py` to keep
+      the `corpus` job short.
     - The project roadmap's acceptance: all golden replays pass;
       changing any threshold or rule order breaks at least one
       golden; `docs/ALERT-LADDER.md` matches the implemented
@@ -4118,6 +4155,25 @@ The conversation is new per phase-boundary hygiene.
       `wind_probabilities`, `outlook_areas`), and "at least"
       applies whenever `Assessment.complete` is false. The
       toggle is `Location.evacuation_order_in_effect`.
+    - Carry-over from Step 4: each `StormThreat` holds
+      `advisory`, `issued_at`, `category` (`ssnum` 1 to 5, or
+      `None`) beside `development` (the tau-0 text), `in_cone`
+      (`None` without a usable cone), and, all `None` without
+      forecast points, `crs`, `distance_km`, `bearing_deg`,
+      `closest_approach_at`, `closest_approach_km`, `lead_h`,
+      and `hurricane_by_approach`; and two `ArrivalReading`s
+      (`reading`: `before`, `between`, `after`, `outside`,
+      `unresolved` with its `reason`, or `track` with
+      `approach_at` and `TRACK_FALLBACK_LABEL`, which `status`
+      prints as given). The located fields are `repr=False`;
+      `model_dump` keeps them, as the local tables need.
+      `ChangeEvent` (one model, `kind` in `CHANGE_KINDS`, its
+      fields set per kind) is what `assessment_changes` stores,
+      and its `detail` is a printable sentence. `diff` refuses
+      two locations, or a current assessment older than the
+      previous one. `UnavailableInput.kind` gains
+      `arrival_times`, and a storm without forecast points is
+      listed once, as `forecast_points`.
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -4757,8 +4813,8 @@ The conversation is new per phase-boundary hygiene.
     at `<storm>/wsp/<yyyymmddhh>/` and `recorded_on`
     (`2026-10-15`); `convert --full` and `--refresh-subset`
     beside the `choices` literal; `SnapshotRepository.save`
-    refusing `origin != "live"`. The engine path joins
-    `replay-corpus.yml`'s filters in Step 5 (check 16). The
+    refusing `origin != "live"`. The engine path joined
+    `replay-corpus.yml`'s filters in Step 4 (check 16). The
     V2 tests are `tests/models/test_origin.py`,
     `tests/sources/test_nhc_gis_archive.py`,
     `tests/services/test_replay.py`, the window tests in
@@ -4785,6 +4841,22 @@ The conversation is new per phase-boundary hygiene.
     `test_outlook.py`, `test_assess.py`, and
     `tests/models/test_assessment.py`; the breakpoint parser now
     reads `objectid` and `idp_filedate`.
+
+    Carry-over from Step 4 (what checks 27-32 read):
+    `StormThreat`, `ArrivalReading`, `ChangeEvent`, and
+    `CHANGE_KINDS` in `weatherbot.models.__all__`;
+    `Assessment.threats`; `engine/threats.py` (`threats_for`),
+    `engine/arrivals.py` (`read_arrival`, which imports only
+    `MAP_LAYER_REASON` from `weatherbot.models.arrivals` and
+    calls no time parser), `engine/changes.py` (`diff`), and
+    `weatherbot.engine.__all__` with `diff`. Check 16 is already
+    met: Step 4 added `src/weatherbot/engine/**` and
+    `tests/engine/**` to both filters. The V4 tests are
+    `tests/engine/test_threats.py`, `test_arrivals.py`,
+    `test_changes.py`, and, under `corpus`,
+    `test_cached_arrivals.py` (about 5 minutes locally), whose
+    frozen readings are 186 outside, 43 before, 228 between,
+    9 after, and 22 unresolved.
 
     Files to read:
     - scripts/verify_phase02.py (primary structural template)
@@ -5190,7 +5262,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #29 |
 | 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #32 |
 | 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #34 |
-| 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #35 |
 | 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 7    | QA + verify_phase03.py        | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |

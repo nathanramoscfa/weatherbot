@@ -362,7 +362,11 @@ def test_a_cone_without_forecast_points_matches_only_the_storm_cone() -> None:
     assert not _rule(RuleId.HURRICANE_CONE).evaluate(readings)
     (match,) = _rule(RuleId.STORM_CONE).evaluate(readings)
     assert match.closest_approach_at is None
-    assert [item.kind for item in unavailable] == ["forecast_points"]
+    assert [item.kind for item in unavailable] == [
+        "forecast_points",
+        "arrival_times",
+        "arrival_times",
+    ]
 
 
 def test_an_approach_already_past_counts_as_now() -> None:

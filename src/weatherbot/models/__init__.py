@@ -12,13 +12,18 @@ from weatherbot.models.advisory_number import AdvisoryNumber
 from weatherbot.models.alerts import AlertQuery, GeocodeResult, NwsAlert, NwsZone
 from weatherbot.models.arrivals import ArrivalTimeLine, ArrivalTimeProduct
 from weatherbot.models.assessment import (
+    CHANGE_KINDS,
     LOCATED_SOURCES,
+    TRACK_FALLBACK_LABEL,
+    ArrivalReading,
     Assessment,
     BreakpointSpan,
+    ChangeEvent,
     Citation,
     Evidence,
     LocationWindProbability,
     OfficialProduct,
+    StormThreat,
     UnavailableInput,
 )
 from weatherbot.models.base import DomainModel
@@ -103,11 +108,13 @@ from weatherbot.models.times import (
 
 __all__ = [
     "BAND_FLOORS",
+    "CHANGE_KINDS",
     "LOCATED_SOURCES",
     "NHC_ZONE_OFFSETS",
     "NO_STORMS_TITLE",
     "RULE_LEVELS",
     "RULE_ORDER",
+    "TRACK_FALLBACK_LABEL",
     "WGS84",
     "WIND_PROBABILITY_BANDS",
     "Advisory",
@@ -128,6 +135,7 @@ __all__ = [
     "AlertUrgency",
     "AlertUrgencyCode",
     "ArchiveStorm",
+    "ArrivalReading",
     "ArrivalResolution",
     "ArrivalTimeLine",
     "ArrivalTimeProduct",
@@ -136,6 +144,7 @@ __all__ = [
     "BandFloor",
     "Breakpoint",
     "BreakpointSpan",
+    "ChangeEvent",
     "Citation",
     "CodedValue",
     "ConeGeometry",
@@ -174,6 +183,7 @@ __all__ = [
     "StormProducts",
     "StormSlot",
     "StormSummary",
+    "StormThreat",
     "TextProduct",
     "Thresholds",
     "TrackPoint",

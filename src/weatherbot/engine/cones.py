@@ -4,7 +4,8 @@
 A cone is repaired before it is tested, and a cone with no area left is an unavailable
 input. For a covering cone the forecast points give the closest approach, the lead from
 the snapshot's instant (an approach already past counts as now), and whether a forecast
-point at or before that approach is a hurricane.
+point at or before that approach is a hurricane. A storm without forecast points is an
+unavailable input of its threat (``weatherbot.engine.threats``), listed there once.
 """
 
 from collections.abc import Sequence
@@ -39,9 +40,30 @@ class ConeReading:
     hurricane: bool
 
 
-def _measure(
-    storm: StormProducts, location: Location, as_of: datetime
-) -> tuple[Approach, float, bool]:
+@dataclass(frozen=True, slots=True)
+class TrackReading:
+    """A storm's forecast track read at a location.
+
+    ``lead_h`` counts from the snapshot's instant, and an approach already past counts as
+    now; ``hurricane`` says whether a forecast point at or before the approach is one.
+    """
+
+    approach: Approach
+    lead_h: float
+    hurricane: bool
+
+
+def read_track(storm: StormProducts, location: Location, as_of: datetime) -> TrackReading:
+    """Read a storm's forecast points at a location: its closest approach and intensity.
+
+    Args:
+        storm: A storm with at least one forecast point.
+        location: The location.
+        as_of: The snapshot's instant.
+
+    Returns:
+        The closest approach, its lead, and whether the storm is a hurricane by then.
+    """
     points = storm.track_points
     crs = points[0].position.crs
     approach = closest_approach(points, place(location.point, crs), figure_of(crs))
@@ -52,7 +74,7 @@ def _measure(
         and point.valid_at <= approach.instant
         for point in points
     )
-    return approach, lead_h, hurricane
+    return TrackReading(approach, lead_h, hurricane)
 
 
 def read_cones(
@@ -101,30 +123,16 @@ def read_cones(
             )
             continue
         inside = covers(repaired.shape, place(location.point, repaired.shape.crs))
-        approach, lead_h, hurricane = None, None, False
-        if inside and storm.track_points:
-            approach, lead_h, hurricane = _measure(storm, location, as_of)
-        elif inside:
-            unavailable.append(
-                UnavailableInput(
-                    kind="forecast_points",
-                    atcf_id=storm.atcf_id,
-                    storm_name=storm.name,
-                    reason=(
-                        f"the snapshot holds no forecast points for {storm.name}, so its "
-                        "closest approach and intensity were not read"
-                    ),
-                )
-            )
+        track = read_track(storm, location, as_of) if inside and storm.track_points else None
         readings.append(
             ConeReading(
                 storm=storm,
                 cone=cone,
                 note=repaired.note,
                 covers=inside,
-                approach=approach,
-                lead_h=lead_h,
-                hurricane=hurricane,
+                approach=track.approach if track else None,
+                lead_h=track.lead_h if track else None,
+                hurricane=track.hurricane if track else False,
             )
         )
     return tuple(readings), tuple(unavailable)

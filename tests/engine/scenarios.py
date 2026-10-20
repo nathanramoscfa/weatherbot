@@ -25,6 +25,7 @@ from weatherbot.models import (
     RULE_LEVELS,
     AlertLevel,
     AlertQuery,
+    DomainModel,
     LatLon,
     Location,
     NwsAlert,
@@ -64,7 +65,7 @@ def recorded() -> RecordedSnapshot:
     return anyio.run(recorded_snapshot)
 
 
-def rebuilt[M: Snapshot | Location | NwsAlert](model: M, **changes: object) -> M:
+def rebuilt[M: DomainModel](model: M, **changes: object) -> M:
     """Return a model with some fields replaced, validated again."""
     fields = {name: getattr(model, name) for name in type(model).model_fields}
     return type(model).model_validate(fields | changes)

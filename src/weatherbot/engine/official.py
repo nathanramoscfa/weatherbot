@@ -128,6 +128,7 @@ def alert_product(alert: NwsAlert, location: Location, as_of: datetime) -> Offic
         citation=_cited(alert),
         code=alert.event,
         alert_id=alert.id,
+        references=alert.references,
         issuer=alert.sender_name,
         issued_at=alert.sent,
         expires_at=alert.expires,
