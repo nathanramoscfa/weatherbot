@@ -104,6 +104,10 @@ anything from the repository root that writes through a relative path;
 the test suite's working-directory guard exists because that is how
 version 1's recorded responses were lost.
 
+Before any coverage run, set `COVERAGE_FILE` to an absolute path in a
+temporary directory outside the checkout. Never let a coverage command
+erase or replace the checkout's ignored historical `.coverage` artifact.
+
 ## Rules that apply to every step
 
 - **Public repository.** No personal coordinates, API keys, tokens, or

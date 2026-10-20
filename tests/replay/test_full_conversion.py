@@ -5,12 +5,8 @@ It needs the pinned cache, so it runs with ``pytest -m corpus`` (``replay-corpus
 The conversion goes to a temporary directory outside the checkout; nothing is committed.
 """
 
-import os
-from pathlib import Path
-
 import pytest
 
-import fetch_replay_corpus as corpus
 from weatherbot.services.replay import NO_ARRIVAL_PRODUCTS, ReplayCorpus
 from weatherbot.sources.nhc_gis_archive import ARRIVAL_KINDS
 
@@ -21,21 +17,16 @@ WITH_ARRIVALS = {"AL112017": 0, "AL052019": 117, "AL092022": 65, "AL142024": 41}
 
 
 @pytest.mark.corpus
-def test_a_full_conversion_replays_every_storm_with_its_arrival_products(tmp_path: Path) -> None:
-    cache = Path(os.environ.get("WEATHERBOT_CORPUS_CACHE", corpus.DEFAULT_CACHE))
-    if not cache.is_dir():
-        pytest.skip("replay cache absent; run fetch explicitly")
-    out = tmp_path / "full"
-    corpus.convert_full(corpus.load_manifest(), cache, out)
-    replayed = ReplayCorpus.open(out)
-
+def test_a_full_conversion_replays_every_storm_with_its_arrival_products(
+    full_replay_corpus: ReplayCorpus,
+) -> None:
     counts: dict[str, int] = {}
     arrivals: dict[str, int] = {}
-    for storm in corpus.STORMS:
-        snapshots = list(replayed.snapshots(storm))
-        counts[storm] = len(snapshots)
+    for storm in SNAPSHOTS:
+        counts[storm] = 0
         arrivals[storm] = 0
-        for snapshot in snapshots:
+        for snapshot in full_replay_corpus.snapshots(storm):
+            counts[storm] += 1
             outcome = snapshot.source_outcomes[1]
             products = snapshot.storms[0].arrival_times
             if outcome.status == "ok":

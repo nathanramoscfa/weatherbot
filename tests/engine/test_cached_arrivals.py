@@ -9,17 +9,14 @@ center. The contradiction check here is independent of the engine's guard: it bu
 closed labelled contour with Shapely and tests the landmark itself.
 """
 
-import os
 from collections import Counter
 from datetime import datetime
-from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import pytest
 from engine_support import landmark
 from shapely.geometry import Point, Polygon
 
-import fetch_replay_corpus as corpus
 from weatherbot.engine.arrivals import PATH_LEAVES, read_arrival
 from weatherbot.engine.geodesy import Position, figure_of
 from weatherbot.engine.geometry import place
@@ -62,25 +59,25 @@ def check(reading: ArrivalReading, product: ArrivalTimeProduct, position: Positi
 
 
 @pytest.mark.corpus
-def test_every_cached_arrival_product_reads_at_both_landmarks(tmp_path: Path) -> None:
-    cache = Path(os.environ.get("WEATHERBOT_CORPUS_CACHE", corpus.DEFAULT_CACHE))
-    if not cache.is_dir():
-        pytest.skip("replay cache absent; run fetch explicitly")
-    out = tmp_path / "full"
-    corpus.convert_full(corpus.load_manifest(), cache, out)
-    replayed = ReplayCorpus.open(out)
+def test_every_cached_arrival_product_reads_at_both_landmarks(
+    full_replay_corpus: ReplayCorpus,
+) -> None:
     figure = figure_of(WGS84)
 
     pairs: dict[tuple[str, str, str], tuple[ArrivalTimeProduct, Position]] = {}
-    for storm in corpus.STORMS:
-        for snapshot in replayed.snapshots(storm):
-            (products,) = snapshot.storms
-            first = min(products.track_points, key=lambda point: point.valid_at)
-            coordinates = cast("Sequence[float]", first.position.coordinates)
-            for product in products.arrival_times:
-                # A full advisory's own snapshot comes first and holds its own pair.
-                key = (storm, str(product.advisory.number), product.kind)
-                pairs.setdefault(key, (product, (coordinates[0], coordinates[1])))
+    for snapshot in (
+        snapshot
+        for storm in full_replay_corpus.manifest.storms
+        for snapshot in full_replay_corpus.snapshots(storm)
+    ):
+        storm = snapshot.storms[0].atcf_id
+        (products,) = snapshot.storms
+        first = min(products.track_points, key=lambda point: point.valid_at)
+        coordinates = cast("Sequence[float]", first.position.coordinates)
+        for product in products.arrival_times:
+            # A full advisory's own snapshot comes first and holds its own pair.
+            key = (storm, str(product.advisory.number), product.kind)
+            pairs.setdefault(key, (product, (coordinates[0], coordinates[1])))
     readings: Counter[str] = Counter()
     for product, center in pairs.values():
         for key in LANDMARKS:

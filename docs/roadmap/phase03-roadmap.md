@@ -3225,9 +3225,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 5 — Calibration, golden replays, and the written ladder
+## Step 5 — Calibration, golden replays, and the written ladder ✅
 
-**Status:** Not started
+**Status:** Complete — PR #36 (2026-10-20)
 
 > **Goal:** Freeze the engine against history. `ReplayService.timeline(atcf_id,
 > location, thresholds)` in `src/weatherbot/services/replay.py` returns each
@@ -3263,6 +3263,8 @@ cross-check of the goldens; its first run on `main` must be green.
 | Effort       | Effort XHigh                            | Effort High                              | Effort XHigh                             |
 | Thinking     | On                                      | On                                       | On                                       |
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
+
+> Ran 2026-10-20: Balanced column’s Backup — gpt-6.1-sol · Intelligence XHigh. Operator selected the listed Codex backup; the expired pool reset selects Balanced.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -3660,6 +3662,16 @@ conversation is new per phase-boundary hygiene.
     <requirement>
       Defaults. Set each default by these criteria, and present
       the evidence with the goldens:
+      Operator amendment (2026-10-20, this session): retain the
+      48-hour watch lead target, but document measured exceptions
+      to the level-2-before-3 and reversal targets below. Milton
+      at Miami-Dade cannot satisfy both targets: its first cone
+      gives level 3 at a 54-hour lead, followed by level 2;
+      suppressing that first match loses the lead. List every
+      exception in the calibration evidence and written ladder;
+      add no smoothing or invented input. This amendment does
+      not approve the eight goldens, which require a separate
+      review and explicit approval in this session.
       - `coastal_reach_km` and `segment_end_tolerance_km`: inside
         the corpus gap with at least a factor of two to spare on
         each side (a reach from 7.6 to 29.1 km; an end tolerance
@@ -3722,7 +3734,7 @@ conversation is new per phase-boundary hygiene.
       and (c) moving each threshold one step past each finite end
       of its recorded interval, each change at least one
       reference outcome. A pair whose swap the corpus cannot
-      distinguish (both rules never match together) is listed by
+      distinguish (neither can become the first match together, including overlaps masked by a higher rule) is listed by
       name in `weatherbot.models.ladder` with that reason, and
       the test checks that the list is exactly the
       indistinguishable pairs. A meta-test proves that every rule
@@ -4174,6 +4186,22 @@ The conversation is new per phase-boundary hygiene.
       previous one. `UnavailableInput.kind` gains
       `arrival_times`, and a storm without forecast points is
       listed once, as `forecast_points`.
+
+    - Carry-over from Step 5: `ReplayService(corpus).timeline(
+      atcf_id, location, thresholds)` returns `tuple[ReplayStep,
+      ...]`; each step has `assessment` and `changes`. It
+      preserves the supplied evacuation toggle; the replay
+      command must turn it off as required below. Numerical
+      defaults remain 25/5/120/10/5/0 and now carry calibration
+      intervals/evidence in `models.ladder`. Golden files use
+      `timeline` entries with advisory, issued_at, level, rule,
+      changes, and official_codes. Their source and ruleset
+      fingerprints and per-timeline approval digests are frozen.
+      The public-landmark builder is a development helper in
+      `scripts/ladder_data.py`, not an installed application API.
+      The operator approved documented ordering/reversal
+      exceptions on 2026-10-20 while retaining the 48-hour
+      watch lead target; `docs/ALERT-LADDER.md` names them.
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -5263,7 +5291,7 @@ workflow above maps directly to the corresponding row below.
 | 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #32 |
 | 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #34 |
 | 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #35 |
-| 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #36 |
 | 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 7    | QA + verify_phase03.py        | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
 | V1   | Geodesy + geometry            | CI: ci.yml               | --           | --                  | --       | --   | --          |

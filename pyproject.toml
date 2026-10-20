@@ -123,7 +123,7 @@ include = ["src", "tests", "scripts"]
 # serves recorded answers through tests/sources/source_support.py, the service and
 # live tests run commands through tests/cli/cli_support.py, and tests/engine/ builds
 # the recorded snapshot through tests/services/snapshot_support.py.
-extraPaths = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services"]
+extraPaths = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services", "tests/engine"]
 venvPath = "."
 venv = ".venv"
 

@@ -8,6 +8,9 @@ from typing import Final
 import pytest
 from hypothesis import settings
 
+import fetch_replay_corpus as corpus
+from weatherbot.services.replay import ReplayCorpus
+
 # Development-tool variables, read by scripts and the corpus tests, never by the
 # application: the personal-data denylist's path and the replay-corpus cache. Every other
 # WEATHERBOT_* variable is cleared for each test.
@@ -19,6 +22,17 @@ TOOL_VARIABLES: Final = frozenset({"WEATHERBOT_DENYLIST", "WEATHERBOT_CORPUS_CAC
 HYPOTHESIS_PROFILE: Final = "weatherbot"
 settings.register_profile(HYPOTHESIS_PROFILE, derandomize=True, database=None, deadline=None)
 settings.load_profile(HYPOTHESIS_PROFILE)
+
+
+@pytest.fixture(scope="session")
+def full_replay_corpus(tmp_path_factory: pytest.TempPathFactory) -> ReplayCorpus:
+    """Share one verified conversion; consumers stream its snapshots to bound memory."""
+    cache = Path(os.environ.get("WEATHERBOT_CORPUS_CACHE", corpus.DEFAULT_CACHE))
+    if not cache.is_dir():
+        pytest.skip("replay cache absent; run fetch explicitly")
+    out = tmp_path_factory.mktemp("full-replay")
+    corpus.convert_full(corpus.load_manifest(), cache, out)
+    return ReplayCorpus.open(out)
 
 
 @pytest.fixture(autouse=True)

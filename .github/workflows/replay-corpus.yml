@@ -7,11 +7,16 @@ on:
     branches: [main]
     paths:
       - scripts/fetch_replay_corpus.py
+      - scripts/build_goldens.py
+      - scripts/ladder_data.py
+      - scripts/public_landmarks.toml
       - src/weatherbot/models/**
       - src/weatherbot/engine/**
       - src/weatherbot/sources/nhc_gis_archive.py
       - src/weatherbot/services/replay.py
       - tests/engine/**
+      - tests/conftest.py
+      - tests/golden/replay/**
       - tests/fixtures/replay/**
       - tests/replay/**
       - .github/workflows/replay-corpus.yml
@@ -20,11 +25,16 @@ on:
   pull_request:
     paths:
       - scripts/fetch_replay_corpus.py
+      - scripts/build_goldens.py
+      - scripts/ladder_data.py
+      - scripts/public_landmarks.toml
       - src/weatherbot/models/**
       - src/weatherbot/engine/**
       - src/weatherbot/sources/nhc_gis_archive.py
       - src/weatherbot/services/replay.py
       - tests/engine/**
+      - tests/conftest.py
+      - tests/golden/replay/**
       - tests/fixtures/replay/**
       - tests/replay/**
       - .github/workflows/replay-corpus.yml

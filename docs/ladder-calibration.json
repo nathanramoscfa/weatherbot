@@ -1,0 +1,493 @@
+{
+  "_file": "docs/ladder-calibration.json",
+  "criteria_decision": "Operator approved measured ordering/reversal exceptions on 2026-10-20; retain the 48-hour watch lead target.",
+  "date": "2026-10-20",
+  "indistinguishable_adjacent_pairs": [
+    [
+      "hurricane_warning",
+      "tropical_storm_warning"
+    ],
+    [
+      "tropical_storm_warning",
+      "hurricane_watch"
+    ],
+    [
+      "hurricane_watch",
+      "evacuation_order"
+    ],
+    [
+      "evacuation_order",
+      "tropical_storm_watch"
+    ],
+    [
+      "tropical_storm_watch",
+      "hurricane_cone"
+    ],
+    [
+      "storm_cone",
+      "development_region"
+    ],
+    [
+      "development_region",
+      "tropical_storm_wind_probability"
+    ],
+    [
+      "tropical_storm_wind_probability",
+      "all_clear"
+    ]
+  ],
+  "intervals": {
+    "coastal_reach_km": {
+      "above": {
+        "after": {
+          "level": 4,
+          "rule": "tropical_storm_warning"
+        },
+        "before": {
+          "level": 3,
+          "rule": "tropical_storm_watch"
+        },
+        "case": "AL092022-miami-dade/18",
+        "value": 112.160296
+      },
+      "below": {
+        "after": {
+          "level": 3,
+          "rule": "hurricane_wind_probability"
+        },
+        "before": {
+          "level": 4,
+          "rule": "hurricane_watch"
+        },
+        "case": "AL052019-nassau/24",
+        "value": 3.798558
+      },
+      "default": 25.0,
+      "lower": 3.799558,
+      "lower_open_reason": null,
+      "upper": 112.159296,
+      "upper_inclusive": false,
+      "upper_open_reason": null,
+      "values_examined": 12
+    },
+    "cone_horizon_h": {
+      "above": null,
+      "below": {
+        "after": {
+          "level": 2,
+          "rule": "storm_cone"
+        },
+        "before": {
+          "level": 3,
+          "rule": "hurricane_cone"
+        },
+        "case": "AL052019-miami-dade/10",
+        "value": 116
+      },
+      "default": 120,
+      "lower": 117,
+      "lower_open_reason": null,
+      "upper": null,
+      "upper_inclusive": true,
+      "upper_open_reason": "legal maximum 120; the corpus cannot bind above it",
+      "values_examined": 120
+    },
+    "development_chance_floor_pct": {
+      "above": {
+        "after": {
+          "level": 1,
+          "rule": "all_clear"
+        },
+        "before": {
+          "level": 2,
+          "rule": "development_region"
+        },
+        "case": "recorded-development-region",
+        "value": 30
+      },
+      "below": null,
+      "default": 0,
+      "lower": null,
+      "lower_open_reason": "legal minimum 0; the corpus cannot bind below it",
+      "upper": 20,
+      "upper_inclusive": true,
+      "upper_open_reason": null,
+      "values_examined": 11
+    },
+    "hurricane_wind_floor_pct": {
+      "above": {
+        "after": {
+          "level": 2,
+          "rule": "tropical_storm_wind_probability"
+        },
+        "before": {
+          "level": 3,
+          "rule": "hurricane_wind_probability"
+        },
+        "case": "AL052019-miami-dade/28",
+        "value": 20
+      },
+      "below": {
+        "after": {
+          "level": 3,
+          "rule": "hurricane_wind_probability"
+        },
+        "before": {
+          "level": 2,
+          "rule": "tropical_storm_wind_probability"
+        },
+        "case": "AL052019-miami-dade/29",
+        "value": 5
+      },
+      "default": 10,
+      "lower": 10,
+      "lower_open_reason": null,
+      "upper": 10,
+      "upper_inclusive": true,
+      "upper_open_reason": null,
+      "values_examined": 11
+    },
+    "segment_end_tolerance_km": {
+      "above": {
+        "after": {
+          "level": 3,
+          "rule": "tropical_storm_watch"
+        },
+        "before": {
+          "level": 3,
+          "rule": "hurricane_wind_probability"
+        },
+        "case": "AL052019-miami-dade/32",
+        "value": 22.611062
+      },
+      "below": null,
+      "default": 5.0,
+      "lower": null,
+      "lower_open_reason": "legal minimum 0; the corpus cannot bind below it",
+      "upper": 22.610062,
+      "upper_inclusive": false,
+      "upper_open_reason": null,
+      "values_examined": 6
+    },
+    "tropical_storm_wind_floor_pct": {
+      "above": {
+        "after": {
+          "level": 1,
+          "rule": "all_clear"
+        },
+        "before": {
+          "level": 2,
+          "rule": "tropical_storm_wind_probability"
+        },
+        "case": "AL052019-miami-dade/42",
+        "value": 10
+      },
+      "below": {
+        "after": {
+          "level": 2,
+          "rule": "tropical_storm_wind_probability"
+        },
+        "before": {
+          "level": 1,
+          "rule": "all_clear"
+        },
+        "case": "AL052019-miami-dade/9",
+        "value": 0
+      },
+      "default": 5,
+      "lower": 5,
+      "lower_open_reason": null,
+      "upper": 5,
+      "upper_inclusive": true,
+      "upper_open_reason": null,
+      "values_examined": 11
+    }
+  },
+  "pairs": [
+    {
+      "closest_forecast_approach": {
+        "advisory": "24",
+        "instant": "2019-09-03T05:20:21Z",
+        "km": 125.292
+      },
+      "first_levels": {
+        "1": {
+          "advisory": "1",
+          "issued_at": "2019-08-24T15:00:00Z"
+        },
+        "2": {
+          "advisory": "12",
+          "issued_at": "2019-08-27T09:00:00Z"
+        },
+        "3": {
+          "advisory": "10",
+          "issued_at": "2019-08-26T21:00:00Z"
+        }
+      },
+      "first_warning": null,
+      "first_watch": null,
+      "level_2_before_3": false,
+      "level_3_watch_lead_h": null,
+      "level_reversals": 5,
+      "official_reversals": 0,
+      "pair": "AL052019-miami-dade"
+    },
+    {
+      "closest_forecast_approach": {
+        "advisory": "10",
+        "instant": "2019-08-31T14:10:12Z",
+        "km": 4.106
+      },
+      "first_levels": {
+        "1": {
+          "advisory": "1",
+          "issued_at": "2019-08-24T15:00:00Z"
+        },
+        "2": {
+          "advisory": "12",
+          "issued_at": "2019-08-27T09:00:00Z"
+        },
+        "3": {
+          "advisory": "8",
+          "issued_at": "2019-08-26T09:00:00Z"
+        },
+        "4": {
+          "advisory": "24",
+          "issued_at": "2019-08-30T09:00:00Z"
+        },
+        "5": {
+          "advisory": "26",
+          "issued_at": "2019-08-30T21:00:00Z"
+        }
+      },
+      "first_warning": {
+        "advisory": "26",
+        "issued_at": "2019-08-30T21:00:00Z"
+      },
+      "first_watch": {
+        "advisory": "24",
+        "issued_at": "2019-08-30T09:00:00Z"
+      },
+      "level_2_before_3": false,
+      "level_3_watch_lead_h": 96.0,
+      "level_reversals": 7,
+      "official_reversals": 1,
+      "pair": "AL052019-nassau"
+    },
+    {
+      "closest_forecast_approach": {
+        "advisory": "2",
+        "instant": "2022-09-28T07:54:20Z",
+        "km": 206.823
+      },
+      "first_levels": {
+        "1": {
+          "advisory": "30",
+          "issued_at": "2022-09-30T03:00:00Z"
+        },
+        "2": {
+          "advisory": "6",
+          "issued_at": "2022-09-24T15:00:00Z"
+        },
+        "3": {
+          "advisory": "1",
+          "issued_at": "2022-09-23T09:00:00Z"
+        },
+        "4": {
+          "advisory": "19",
+          "issued_at": "2022-09-27T21:00:00Z"
+        }
+      },
+      "first_warning": {
+        "advisory": "19",
+        "issued_at": "2022-09-27T21:00:00Z"
+      },
+      "first_watch": {
+        "advisory": "18",
+        "issued_at": "2022-09-27T15:00:00Z"
+      },
+      "level_2_before_3": false,
+      "level_3_watch_lead_h": 102.0,
+      "level_reversals": 2,
+      "official_reversals": 1,
+      "pair": "AL092022-miami-dade"
+    },
+    {
+      "closest_forecast_approach": {
+        "advisory": "26A",
+        "instant": "2022-09-29T03:00:00Z",
+        "km": 474.564
+      },
+      "first_levels": {
+        "1": {
+          "advisory": "6",
+          "issued_at": "2022-09-24T15:00:00Z"
+        },
+        "2": {
+          "advisory": "1",
+          "issued_at": "2022-09-23T09:00:00Z"
+        },
+        "4": {
+          "advisory": "19",
+          "issued_at": "2022-09-27T21:00:00Z"
+        }
+      },
+      "first_warning": {
+        "advisory": "19",
+        "issued_at": "2022-09-27T21:00:00Z"
+      },
+      "first_watch": null,
+      "level_2_before_3": null,
+      "level_3_watch_lead_h": null,
+      "level_reversals": 2,
+      "official_reversals": 1,
+      "pair": "AL092022-nassau"
+    },
+    {
+      "closest_forecast_approach": {
+        "advisory": "33",
+        "instant": "2017-09-10T13:40:38Z",
+        "km": 4.069
+      },
+      "first_levels": {
+        "1": {
+          "advisory": "1",
+          "issued_at": "2017-08-30T15:00:00Z"
+        },
+        "2": {
+          "advisory": "18",
+          "issued_at": "2017-09-03T21:00:00Z"
+        },
+        "3": {
+          "advisory": "22",
+          "issued_at": "2017-09-04T21:00:00Z"
+        },
+        "4": {
+          "advisory": "34",
+          "issued_at": "2017-09-07T15:00:00Z"
+        },
+        "5": {
+          "advisory": "36",
+          "issued_at": "2017-09-08T03:00:00Z"
+        }
+      },
+      "first_warning": {
+        "advisory": "36",
+        "issued_at": "2017-09-08T03:00:00Z"
+      },
+      "first_watch": {
+        "advisory": "34",
+        "issued_at": "2017-09-07T15:00:00Z"
+      },
+      "level_2_before_3": true,
+      "level_3_watch_lead_h": 66.0,
+      "level_reversals": 1,
+      "official_reversals": 1,
+      "pair": "AL112017-miami-dade"
+    },
+    {
+      "closest_forecast_approach": {
+        "advisory": "32",
+        "instant": "2017-09-09T14:52:22Z",
+        "km": 192.53
+      },
+      "first_levels": {
+        "1": {
+          "advisory": "1",
+          "issued_at": "2017-08-30T15:00:00Z"
+        },
+        "2": {
+          "advisory": "16",
+          "issued_at": "2017-09-03T09:00:00Z"
+        },
+        "3": {
+          "advisory": "19",
+          "issued_at": "2017-09-04T03:00:00Z"
+        },
+        "4": {
+          "advisory": "31",
+          "issued_at": "2017-09-06T21:00:00Z"
+        },
+        "5": {
+          "advisory": "33",
+          "issued_at": "2017-09-07T09:00:00Z"
+        }
+      },
+      "first_warning": {
+        "advisory": "33",
+        "issued_at": "2017-09-07T09:00:00Z"
+      },
+      "first_watch": {
+        "advisory": "31",
+        "issued_at": "2017-09-06T21:00:00Z"
+      },
+      "level_2_before_3": true,
+      "level_3_watch_lead_h": 66.0,
+      "level_reversals": 5,
+      "official_reversals": 3,
+      "pair": "AL112017-nassau"
+    },
+    {
+      "closest_forecast_approach": {
+        "advisory": "15",
+        "instant": "2024-10-10T14:36:21Z",
+        "km": 255.087
+      },
+      "first_levels": {
+        "1": {
+          "advisory": "22",
+          "issued_at": "2024-10-10T15:00:00Z"
+        },
+        "2": {
+          "advisory": "2",
+          "issued_at": "2024-10-05T21:00:00Z"
+        },
+        "3": {
+          "advisory": "1",
+          "issued_at": "2024-10-05T15:00:00Z"
+        },
+        "4": {
+          "advisory": "13A",
+          "issued_at": "2024-10-08T12:00:00Z"
+        }
+      },
+      "first_warning": {
+        "advisory": "13A",
+        "issued_at": "2024-10-08T12:00:00Z"
+      },
+      "first_watch": {
+        "advisory": "11",
+        "issued_at": "2024-10-07T21:00:00Z"
+      },
+      "level_2_before_3": false,
+      "level_3_watch_lead_h": 54.0,
+      "level_reversals": 2,
+      "official_reversals": 1,
+      "pair": "AL142024-miami-dade"
+    },
+    {
+      "closest_forecast_approach": {
+        "advisory": "15",
+        "instant": "2024-10-11T05:13:35Z",
+        "km": 395.165
+      },
+      "first_levels": {
+        "1": {
+          "advisory": "22",
+          "issued_at": "2024-10-10T15:00:00Z"
+        },
+        "2": {
+          "advisory": "1",
+          "issued_at": "2024-10-05T15:00:00Z"
+        }
+      },
+      "first_warning": null,
+      "first_watch": null,
+      "level_2_before_3": null,
+      "level_3_watch_lead_h": null,
+      "level_reversals": 0,
+      "official_reversals": 0,
+      "pair": "AL142024-nassau"
+    }
+  ]
+}
