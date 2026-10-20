@@ -1989,9 +1989,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 3 — Ladder rules and evidence
+## Step 3 — Ladder rules and evidence ✅
 
-**Status:** Not started
+**Status:** Complete — PR #34 (2026-10-19)
 
 > **Goal:** Decide the level. `weatherbot.models.ladder` defines the five levels
 > with the brief's names and actions, the eleven rule ids, and `Thresholds` (the
@@ -2030,6 +2030,8 @@ per phase-boundary hygiene.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-19: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 3 is coding with planning as its secondary category:
 it encodes the ladder that every later phase shows, notifies on, and narrates,
@@ -5187,7 +5189,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #29 |
 | 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #32 |
-| 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #34 |
 | 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
