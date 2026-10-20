@@ -237,6 +237,51 @@ def intersects(a: Geometry, b: Geometry) -> bool:
     return any(first.intersects(translate(second, xoff=shift)) for shift in _SHIFTS)
 
 
+def _strings(shape: BaseGeometry) -> Iterator[LineString]:
+    if isinstance(shape, LineString):
+        if shape.length > 0.0:
+            yield shape
+    elif isinstance(shape, MultiLineString | GeometryCollection):
+        for part in cast("MultiLineString | GeometryCollection[BaseGeometry]", shape).geoms:
+            yield from _strings(part)
+
+
+def stretches_inside(line: Geometry, areas: Sequence[Geometry]) -> int:
+    """Count the separate stretches of a line that lie inside a union of areas.
+
+    The line and the areas are unwrapped as ``covers`` unwraps a ring, and the line is
+    tested at its longitudes and at plus and minus 360 degrees. A stretch is a connected
+    part of the line, of positive length, inside the areas or on their boundary, so a
+    line that leaves the areas and comes back has two.
+
+    Args:
+        line: A LineString or MultiLineString, in a geographic CRS.
+        areas: Polygons or MultiPolygons, in a geographic CRS.
+
+    Returns:
+        The number of stretches; zero when the line never runs inside the areas.
+    """
+    require_geometry(line, ("LineString", "MultiLineString"), "a line with stretches")
+    if not areas:
+        return 0
+    shape = _unwrapped(line)
+    union = shapely.union_all([_unwrapped(area) for area in areas])
+    count = 0
+    for shift in _SHIFTS:
+        moved = translate(shape, xoff=shift)
+        # Each inside piece as an interval along the line; pieces that meet are one stretch.
+        spans = sorted(
+            sorted((moved.project(Point(piece.coords[0])), moved.project(Point(piece.coords[-1]))))
+            for piece in _strings(union.intersection(moved))
+        )
+        reach = -math.inf
+        for low, high in spans:
+            if low > reach:
+                count += 1
+            reach = max(reach, high)
+    return count
+
+
 def _polygons(shape: BaseGeometry) -> Iterator[Polygon]:
     if isinstance(shape, Polygon):
         if not shape.is_empty:

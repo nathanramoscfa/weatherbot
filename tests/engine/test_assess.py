@@ -207,11 +207,15 @@ def test_a_failed_roster_or_map_source_is_unavailable(source: str) -> None:
     )
 
     assessment = assess(snapshot, location, Thresholds())
-    (missing,) = assessment.unavailable
+    (missing,) = [item for item in assessment.unavailable if item.kind == "source"]
+    others = {item.kind for item in assessment.unavailable} - {"source"}
 
     assert (missing.kind, missing.source_id) == ("source", source)
     assert missing.reason.startswith(f"{source} failed (SourceHttpError), so ")
     assert (assessment.rule, assessment.complete) == (RuleId.ALL_CLEAR, False)
+    # A storm the failed map source drew nothing for lacks its arrival products, but its
+    # forecast points are not listed again.
+    assert others == ({"arrival_times"} if source == "nhc-map-tropical-summary" else set())
 
 
 def test_a_failed_breakpoint_catalogue_leaves_the_level_complete() -> None:
@@ -223,13 +227,18 @@ def test_a_failed_breakpoint_catalogue_leaves_the_level_complete() -> None:
     assert (assessment.complete, assessment.breakpoint_span) == (True, None)
 
 
+THREAT_INPUTS = ["forecast_points", "arrival_times", "arrival_times"]
+"""What a storm with no forecast points and no arrival products also lacks."""
+
+
 def test_a_storm_without_a_cone_is_unavailable() -> None:
     location = landmark_location()
     snapshot = synthetic_snapshot(storms=[synthetic_storm()], alerts=_alerted(location))
 
-    (missing,) = assess(snapshot, location, Thresholds()).unavailable
+    missing, *rest = assess(snapshot, location, Thresholds()).unavailable
 
     assert (missing.kind, missing.atcf_id, missing.storm_name) == ("cone", "CP012026", "Synthetic")
+    assert [item.kind for item in rest] == THREAT_INPUTS
 
 
 def test_a_cone_left_with_no_area_is_unavailable() -> None:
@@ -242,10 +251,11 @@ def test_a_cone_left_with_no_area_is_unavailable() -> None:
     )
     snapshot = synthetic_snapshot(storms=[synthetic_storm(cone=flat)], alerts=_alerted(location))
 
-    (missing,) = assess(snapshot, location, Thresholds()).unavailable
+    missing, *rest = assess(snapshot, location, Thresholds()).unavailable
 
     assert missing.kind == "cone"
     assert "is unusable: repaired by shapely.make_valid" in missing.reason
+    assert [item.kind for item in rest] == THREAT_INPUTS
 
 
 @pytest.mark.parametrize(
@@ -289,12 +299,25 @@ def test_a_location_outside_nws_coverage_needs_no_alerts() -> None:
     assert (assessment.unavailable, assessment.complete) == ((), True)
 
 
-def test_a_replay_assessment_names_the_alerts_and_the_outlook_it_could_not_check() -> None:
-    assessment = assess(replay(IRMA, "36"), replay_miami_dade(), Thresholds())
+def test_a_replay_assessment_names_the_alerts_outlook_and_arrivals_it_could_not_check() -> None:
+    snapshot = replay(IRMA, "36")
+    name = snapshot.storms[0].name
+    assessment = assess(snapshot, replay_miami_dade(), Thresholds())
+    track = "so that arrival reads the forecast track's closest approach"
 
     assert [(item.kind, item.reason) for item in assessment.unavailable] == [
         ("nws_alerts", "NWS alerts were not checked: a replay snapshot holds no NWS alerts"),
         ("outlook_areas", "a replay snapshot holds no tropical weather outlook"),
+        *(
+            (
+                "arrival_times",
+                (
+                    f"the snapshot holds no {kind} arrival-time product for {name} "
+                    f"(the corpus holds no arrival-time products), {track}"
+                ),
+            )
+            for kind in ("earliest-reasonable", "most-likely")
+        ),
     ]
 
 

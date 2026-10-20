@@ -14,6 +14,7 @@ from uuid import UUID
 
 from check_personal_data import load_landmarks
 from weatherbot.models import (
+    TRACK_FALLBACK_LABEL,
     WGS84,
     Advisory,
     AdvisoryNumber,
@@ -27,12 +28,14 @@ from weatherbot.models import (
     AlertStatus,
     AlertUrgency,
     ArchiveStorm,
+    ArrivalReading,
     ArrivalResolution,
     ArrivalTimeLine,
     ArrivalTimeProduct,
     Assessment,
     Breakpoint,
     BreakpointSpan,
+    ChangeEvent,
     Citation,
     ConeGeometry,
     Crs,
@@ -66,6 +69,7 @@ from weatherbot.models import (
     StormClassification,
     StormProducts,
     StormSummary,
+    StormThreat,
     TextProduct,
     Thresholds,
     TrackPoint,
@@ -637,6 +641,64 @@ def unavailable_input() -> UnavailableInput:
     )
 
 
+def arrival_reading() -> ArrivalReading:
+    """Return an earliest-reasonable arrival between two of the recorded lines' instants."""
+    product = arrival_product()
+    return ArrivalReading(
+        kind="earliest_reasonable",
+        origin="kmz",
+        reading="between",
+        advisory=product.advisory.number,
+        citation=Citation.of(product.provenance),
+        start=FETCHED_AT,
+        end=FETCHED_AT + timedelta(hours=6),
+    )
+
+
+def storm_threat() -> StormThreat:
+    """Return Simon's threat: in the cone, with one arrival read and one from the track."""
+    return StormThreat(
+        atcf_id=ATCF_ID,
+        storm_name="Simon",
+        advisory=AdvisoryNumber.parse("22A"),
+        issued_at=advisory().issued_at,
+        category=2,
+        development="Hurricane",
+        in_cone=True,
+        crs="EPSG:4326",
+        distance_km=310.0,
+        bearing_deg=45.0,
+        closest_approach_at=FETCHED_AT + timedelta(hours=30),
+        closest_approach_km=40.0,
+        lead_h=30.0,
+        hurricane_by_approach=True,
+        earliest_arrival=arrival_reading(),
+        most_likely_arrival=ArrivalReading(
+            kind="most_likely",
+            origin="track",
+            reading="track",
+            advisory=AdvisoryNumber.parse("22A"),
+            citation=citation(),
+            approach_at=FETCHED_AT + timedelta(hours=30),
+            label=TRACK_FALLBACK_LABEL,
+        ),
+    )
+
+
+def change_event() -> ChangeEvent:
+    """Return a Hurricane Watch upgraded to a Hurricane Warning for Simon."""
+    return ChangeEvent(
+        kind="official_changed",
+        product="watch_warning_segment",
+        atcf_id=ATCF_ID,
+        storm_name="Simon",
+        advisory=AdvisoryNumber.parse("22A"),
+        previous_codes=("HWA",),
+        codes=("HWR",),
+        detail="NHC replaced the Hurricane Watch with the Hurricane Warning for Simon.",
+    )
+
+
 def assessment() -> Assessment:
     """Return an incomplete Hurricane Warning assessment."""
     thresholds = Thresholds()
@@ -651,6 +713,7 @@ def assessment() -> Assessment:
         official=(official_product(),),
         wind_probabilities=(location_wind_probability(),),
         breakpoint_span=breakpoint_span(),
+        threats=(storm_threat(),),
         unavailable=(unavailable_input(),),
         thresholds=thresholds,
         ruleset=thresholds.fingerprint(),
@@ -673,11 +736,13 @@ SAMPLES: dict[type[DomainModel], Callable[[], DomainModel]] = {
     AlertUrgency: lambda: AlertUrgency.parse("Expected"),
     ArchiveStorm: archive_storm,
     Assessment: assessment,
+    ArrivalReading: arrival_reading,
     ArrivalResolution: lambda: ArrivalResolution(valid_at=FETCHED_AT, reason=None),
     ArrivalTimeLine: lambda: arrival_product().lines[0],
     ArrivalTimeProduct: arrival_product,
     Breakpoint: breakpoint_record,
     BreakpointSpan: breakpoint_span,
+    ChangeEvent: change_event,
     Citation: citation,
     ConeGeometry: cone,
     Crs: lambda: Crs.native({"datum": "D_Sphere", "wkt": 'GEOGCS["GCS_Sphere",DATUM["D_Sphere"]]'}),
@@ -708,6 +773,7 @@ SAMPLES: dict[type[DomainModel], Callable[[], DomainModel]] = {
     StormClassification: lambda: StormClassification.parse("HU"),
     StormProducts: storm_products,
     StormSummary: summary,
+    StormThreat: storm_threat,
     TextProduct: text_product,
     Thresholds: Thresholds,
     TrackPoint: track_point,

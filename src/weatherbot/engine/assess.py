@@ -3,7 +3,8 @@
 
 The engine's clock is the snapshot's: a live snapshot's ``completed_at``, a replay
 snapshot's advisory issuance (which is its ``completed_at``). Every input the rules lack
-is named in the assessment, whose level then reads as a floor.
+is named in the assessment, whose level then reads as a floor, and so is every input a
+storm's threat lacks. The threats never change the level.
 """
 
 from collections.abc import Mapping, Sequence
@@ -17,6 +18,7 @@ from weatherbot.engine.official import alert_products, segment_products
 from weatherbot.engine.outlook import read_regions
 from weatherbot.engine.probabilities import read_probabilities
 from weatherbot.engine.rules import RULES, Readings, Rule
+from weatherbot.engine.threats import missing_inputs, storm_threats
 from weatherbot.models import (
     RULE_LEVELS,
     Assessment,
@@ -115,11 +117,12 @@ def read(
         thresholds: The coastal reach and end tolerance the segments are read with.
 
     Returns:
-        The readings, and every input the rules lack: NWS alerts for a location inside
-        NWS coverage when the snapshot holds no alert list for it, a failed roster or map
-        source, a storm without a usable cone, a covering cone without forecast points, a
-        missing or uncovering probability product or an unusable band, and the outlook of
-        a replay snapshot.
+        The readings, and every input the rules and the threats lack: NWS alerts for a
+        location inside NWS coverage when the snapshot holds no alert list for it, a
+        failed roster or map source, a storm without a usable cone, a missing or
+        uncovering probability product or an unusable band, the outlook of a replay
+        snapshot, a storm without forecast points, and each arrival-time product a
+        storm lacks.
     """
     as_of = snapshot.completed_at
     failed = {outcome.source_id for outcome in _failed(snapshot)}
@@ -128,12 +131,13 @@ def read(
         *alert_products(snapshot.alerts.get(location.name, ()), location, as_of),
         *segment_products(snapshot.storms, location, thresholds, snapshot.breakpoints),
     )
-    cones, missing_cones = read_cones(
-        snapshot.storms, location, as_of, cones_failed=bool(failed & CONE_SOURCES)
-    )
+    cones_failed = bool(failed & CONE_SOURCES)
+    cones, missing_cones = read_cones(snapshot.storms, location, as_of, cones_failed=cones_failed)
     probabilities, missing_probabilities = read_probabilities(snapshot, location)
     regions, missing_regions = read_regions(snapshot, location)
-    unavailable += [*missing_cones, *missing_probabilities, *missing_regions]
+    threats = storm_threats(snapshot.storms, location, as_of, cones)
+    missing_threats = missing_inputs(snapshot, threats, points_failed=cones_failed)
+    unavailable += [*missing_cones, *missing_probabilities, *missing_regions, *missing_threats]
     readings = Readings(
         as_of=as_of,
         location=location,
@@ -142,6 +146,7 @@ def read(
         cones=cones,
         probabilities=probabilities,
         regions=regions,
+        threats=threats,
     )
     return readings, tuple(unavailable)
 
@@ -158,8 +163,8 @@ def assess(
     Each rule reads every source it names (``read``); the first rule with a match decides
     the level and the rule, its matches are the evidence, and ``all_clear`` decides when
     none does. The assessment lists every official product considered, the location's
-    band of each wind-speed-probability product, its breakpoint span, and every input
-    the rules lacked.
+    band of each wind-speed-probability product, its breakpoint span, one threat per
+    storm, and every input the rules and the threats lacked.
 
     Args:
         snapshot: The snapshot, live or replayed; its instant is the assessment's.
@@ -183,6 +188,7 @@ def assess(
         official=readings.official,
         wind_probabilities=tuple(item.reading for item in readings.probabilities),
         breakpoint_span=_span(snapshot, location),
+        threats=readings.threats,
         unavailable=unavailable,
         thresholds=thresholds,
         ruleset=thresholds.fingerprint(item.id for item in rules),

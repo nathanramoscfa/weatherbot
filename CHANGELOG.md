@@ -87,6 +87,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `idp_filedate` (its load date); the register's field list is amended.
 - `tests/engine/scenarios.py` names the scenarios the engine tests and Phase
   3's mutation suite share, from the recorded fixtures and the replay corpus.
+- Storm threats. `weatherbot.models.assessment` gains `StormThreat` (a storm's
+  advisory, its Saffir-Simpson category and development text at tau 0,
+  whether its cone covers the location, the distance and initial bearing from
+  its tau-0 center, the forecast track's closest approach and its lead, and
+  whether it is a hurricane by then), `ArrivalReading`, and `ChangeEvent`;
+  `Assessment.threats` holds one threat per storm, and `OfficialProduct`
+  records an alert's `references`. A threat's distances, bearing, and instants
+  stay out of every `repr`, and no threat holds a wind-speed probability
+  (issue #12). `engine.threats` builds the threats; a storm without forecast
+  points, or without an arrival-time product of a kind, is an unavailable
+  input of its assessment. The level's rules do not change.
+- Add `weatherbot.engine.arrivals`: `read_arrival` reads an arrival-time product
+  along the straight path from the storm's tau-0 center to the location — the
+  latest labelled isochrone the path crosses starts the interval, the next
+  ends it — and gives `before`, `between`, `after`, `outside` the 5 percent
+  contour, or `unresolved` with the product's own reason (a map layer, a
+  withheld KMZ, an unresolved line), never parsing a label (issue #11). A path
+  that leaves the 5 percent contour and comes back, or a reading later than a
+  closed isochrone that holds the location, is unresolved. A storm with no
+  product reads the forecast track's closest approach, labelled "track closest
+  approach, not a wind arrival". `engine.geometry` gains `stretches_inside`.
+- Add `weatherbot.engine.changes`: `diff(previous, current)`, exported from
+  `weatherbot.engine`, returns the typed change events in a fixed order — the
+  level (up, down, or initial), each new advisory, each covering official
+  product added, replaced, or removed (an NWS alert by id and its
+  `references`; NHC segments by storm and code, so a Hurricane Watch upgraded
+  to a Warning is one change), and each cone entered or left — and refuses two
+  locations or a current assessment older than the previous one.
+- `tests/engine/test_cached_arrivals.py` (`pytest -m corpus`) reads every
+  cached arrival product at both landmarks through a full conversion, and
+  `replay-corpus.yml` now also runs on changes to the engine and its tests.
 
 ### Phase 1 verification
 - Add the 50-check foundation verifier, full V1-V7 post sweep, QA findings ledger,

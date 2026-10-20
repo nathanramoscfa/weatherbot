@@ -7,9 +7,12 @@ or schedulers), so recorded and replayed data fully exercise it.
 
 ``assess(snapshot, location, thresholds)`` decides a location's level from one snapshot:
 ``RULES`` holds the ladder's eleven rules in order, and the first with a match decides.
+The assessment also holds one threat per storm. ``diff(previous, current)`` returns the
+typed change events between two assessments of one location.
 """
 
 from weatherbot.engine.assess import assess
+from weatherbot.engine.changes import diff
 from weatherbot.engine.rules import RULES, Rule
 
-__all__ = ["RULES", "Rule", "assess"]
+__all__ = ["RULES", "Rule", "assess", "diff"]

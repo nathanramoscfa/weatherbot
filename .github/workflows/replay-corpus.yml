@@ -8,8 +8,10 @@ on:
     paths:
       - scripts/fetch_replay_corpus.py
       - src/weatherbot/models/**
+      - src/weatherbot/engine/**
       - src/weatherbot/sources/nhc_gis_archive.py
       - src/weatherbot/services/replay.py
+      - tests/engine/**
       - tests/fixtures/replay/**
       - tests/replay/**
       - .github/workflows/replay-corpus.yml
@@ -19,8 +21,10 @@ on:
     paths:
       - scripts/fetch_replay_corpus.py
       - src/weatherbot/models/**
+      - src/weatherbot/engine/**
       - src/weatherbot/sources/nhc_gis_archive.py
       - src/weatherbot/services/replay.py
+      - tests/engine/**
       - tests/fixtures/replay/**
       - tests/replay/**
       - .github/workflows/replay-corpus.yml

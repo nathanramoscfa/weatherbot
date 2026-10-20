@@ -5,9 +5,10 @@ Coordinates come from the public landmarks in ``scripts/public_landmarks.toml`` 
 the replay corpus, read at run time through ``weatherbot.sources.nhc_gis_archive``, the
 parser replay snapshots use, so the engine tests read replay data exactly as snapshots
 do; synthetic shapes are built from the landmarks, the antimeridian, and whole-degree
-offsets. The synthetic live products (a storm, its cone, segments, and forecast points,
-wind-speed probabilities, an outlook region, an NWS alert, and the snapshot holding
-them) carry ``example.invalid`` provenance. This module holds no coordinate literal.
+offsets. The synthetic live products (a storm, its cone, segments, forecast points, and
+arrival-time products, wind-speed probabilities, an outlook region, an NWS alert, and the
+snapshot holding them) carry ``example.invalid`` provenance. This module holds no
+coordinate literal.
 """
 
 import json
@@ -30,6 +31,8 @@ from weatherbot.models import (
     AlertSeverity,
     AlertStatus,
     AlertUrgency,
+    ArrivalTimeLine,
+    ArrivalTimeProduct,
     ConeGeometry,
     Crs,
     Geometry,
@@ -51,6 +54,7 @@ from weatherbot.models import (
     WatchWarningType,
     WindProbabilityBand,
     WindProbabilityProduct,
+    parse_nhc_local_time,
 )
 from weatherbot.sources import nhc_gis_archive
 from weatherbot.sources.nhc_gis_archive import CorpusEntry, CorpusManifest
@@ -62,6 +66,8 @@ DORIAN: Final = "AL052019"
 SYNTHETIC_STORM: Final = "CP012026"
 SYNTHETIC_AT: Final = datetime(2026, 10, 13, 12, tzinfo=UTC)
 SYNTHETIC_SNAPSHOT: Final = UUID("5e0c4d1e-5b7a-4c2e-9d3f-1a2b3c4d5e6f")
+# The synthetic arrival products' pubAdvTime: SYNTHETIC_AT, 12:00 UTC.
+ARRIVAL_PUBLISHED: Final = "800 AM EDT Tue Oct 13 2026"
 MIAMI_DADE: Final = "miami-dade"
 NASSAU: Final = "nassau"
 # The Miami-Dade landmark's NWS coverage, as the recorded /points answer gives it.
@@ -261,10 +267,10 @@ def line(*positions: tuple[float, float], crs: Crs = WGS84) -> Geometry:
     return Geometry(type="LineString", coordinates=tuple(positions), crs=crs)
 
 
-def synthetic_summary(at: datetime = SYNTHETIC_AT) -> StormSummary:
+def synthetic_summary(at: datetime = SYNTHETIC_AT, advisory: str = "1") -> StormSummary:
     """Return the synthetic storm's roster entry; its center is the Nassau landmark."""
     lon, lat = landmark_xy(NASSAU)
-    product = RosterProduct(advisory=AdvisoryNumber.parse("1"), issued_at=at)
+    product = RosterProduct(advisory=AdvisoryNumber.parse(advisory), issued_at=at)
     return StormSummary(
         atcf_id=SYNTHETIC_STORM,
         slot="CP1",
@@ -309,19 +315,69 @@ def synthetic_segment(
     )
 
 
-def synthetic_storm(
+def synthetic_arrivals(
+    lines: Sequence[tuple[str | None, Geometry]],
+    *,
+    kind: Literal["earliest_reasonable", "most_likely"] = "earliest_reasonable",
+    withheld_reason: str | None = None,
+) -> ArrivalTimeProduct:
+    """Return a KMZ arrival-time product of the synthetic storm, published at SYNTHETIC_AT.
+
+    Args:
+        lines: Each line's label (such as ``Tue 2 pm``; ``None`` for the outer contour)
+            and geometry. The models resolve each label against the publication.
+        kind: The product's kind.
+        withheld_reason: Why every instant is withheld, for a withheld product.
+
+    Returns:
+        The product.
+    """
+    published = parse_nhc_local_time(ARRIVAL_PUBLISHED)
+    return ArrivalTimeProduct(
+        atcf_id=SYNTHETIC_STORM,
+        advisory=Advisory(
+            atcf_id=SYNTHETIC_STORM,
+            number=AdvisoryNumber.parse("1"),
+            issued_at=published,
+            local_text=ARRIVAL_PUBLISHED,
+        ),
+        provenance=synthetic_provenance("nhc-arrival-times"),
+        kind=kind,
+        time_zone="EDT",
+        published_at=published,
+        published_local_text=ARRIVAL_PUBLISHED,
+        origin="kmz",
+        lines=tuple(
+            ArrivalTimeLine.resolve(
+                label,
+                geometry,
+                origin="kmz",
+                published_at=published,
+                time_zone="EDT",
+                withheld_reason=withheld_reason,
+            )
+            for label, geometry in lines
+        ),
+        withheld_reason=withheld_reason,
+    )
+
+
+def synthetic_storm(  # noqa: PLR0913 - one keyword per kind of product
     *,
     cone: Geometry | None = None,
     points: Sequence[TrackPoint] = (),
     segments: Sequence[WatchWarningSegment] = (),
+    arrivals: Sequence[ArrivalTimeProduct] = (),
     at: datetime = SYNTHETIC_AT,
+    summary: StormSummary | None = None,
 ) -> StormProducts:
     """Return the synthetic storm with whichever products are given."""
     return StormProducts(
-        summary=synthetic_summary(at),
+        summary=summary or synthetic_summary(at),
         cone=synthetic_cone(cone, at) if cone is not None else None,
         track_points=tuple(points),
         watch_warnings=tuple(segments),
+        arrival_times=tuple(arrivals),
     )
 
 
@@ -413,6 +469,7 @@ SYNTHETIC_SOURCES: Final[tuple[SourceId, ...]] = (
     "nhc-current-storms",
     "nhc-map-tropical-summary",
     "nhc-map-breakpoints",
+    "nhc-arrival-times",
     "nws-alerts-point",
     "nws-alerts-zone",
 )

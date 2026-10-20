@@ -24,6 +24,7 @@ from weatherbot.models import (
     Location,
     OfficialProduct,
     RuleId,
+    StormThreat,
     Thresholds,
     WatchWarningCode,
 )
@@ -42,6 +43,8 @@ class Readings:
     cones: tuple[ConeReading, ...]
     probabilities: tuple[ProbabilityReading, ...]
     regions: tuple[RegionReading, ...]
+    threats: tuple[StormThreat, ...] = ()
+    """One per storm; no rule reads them, so the level never depends on them."""
 
 
 type Evaluate = Callable[[Readings], tuple[Evidence, ...]]
