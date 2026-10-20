@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 
 from weatherbot.models import (
     WGS84,
+    BreakpointSpan,
     Crs,
     Geometry,
     Snapshot,
@@ -220,6 +221,25 @@ def test_a_location_round_trips_with_its_polygon_and_crs(database: Database, crs
 
     assert repository.get(LANDMARK_NAME) == location
     assert repository.list() == (location,)
+
+
+def test_a_location_round_trips_with_its_breakpoint_span(database: Database) -> None:
+    span = BreakpointSpan(
+        names=("Ocean Reef", "Miami-Dade/Broward County Line"),
+        country="United States",
+        is_region=False,
+        catalog_loaded_at=datetime(2026, 4, 30, 18, 42, 35, tzinfo=UTC),
+    )
+    spanned = landmark_location().model_copy(update={"breakpoint_span": span})
+    bare = landmark_location().model_copy(update={"name": "No span"})
+    repository = LocationRepository(database.engine)
+
+    repository.add(spanned)
+    repository.add(bare)
+
+    assert repository.get(LANDMARK_NAME) == spanned
+    assert repository.get("No span") == bare
+    assert bare.breakpoint_span is None
 
 
 async def test_a_covered_location_round_trips_with_its_coverage(

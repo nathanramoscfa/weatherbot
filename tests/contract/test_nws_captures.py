@@ -20,10 +20,13 @@ import httpx
 import pytest
 import respx
 from fixture_support import (
+    REGISTER_AFFECTED,
+    REGISTER_SAME,
     CaptureDirectory,
     as_list,
     as_object,
     capture_directories,
+    register_alert,
     register_section_fields,
 )
 
@@ -46,9 +49,6 @@ FIRST_DAY = "2026-10-12"
 FIRST_ALERT_DAY = "2026-10-17"
 COUNTY = "FLC086"
 FORECAST_ZONE = "FLZ173"
-# The register's FLC086 alert of 2026-10-12 ("Alerts for a zone").
-REGISTER_AFFECTED = ("FLZ069", "FLZ075", "FLZ174")
-REGISTER_SAME = "012086"
 
 type Capture = tuple[CaptureDirectory, dict[str, object]]
 
@@ -146,44 +146,6 @@ def _miami_location() -> Location:
         point=LatLon(latitude=lat, longitude=lon),
         nws=_miami_coverage(),
     )
-
-
-def _register_alert(sent: datetime) -> dict[str, object]:
-    """An alert built from the register's FLC086 description of 2026-10-12, in the API's shape."""
-    zones = [f"https://api.weather.gov/zones/forecast/{zone}" for zone in REGISTER_AFFECTED]
-    stamp = sent.isoformat()
-    return {
-        "id": "https://api.weather.gov/alerts/urn:oid:register-example.FLC086",
-        "type": "Feature",
-        "geometry": None,
-        "properties": {
-            "id": "urn:oid:register-example.FLC086",
-            "areaDesc": "Coastal Collier County; Mainland Monroe; Far South Miami-Dade County",
-            "geocode": {
-                "SAME": ["012021", "012087", REGISTER_SAME],
-                "UGC": list(REGISTER_AFFECTED),
-            },
-            "affectedZones": zones,
-            "references": [],
-            "sent": stamp,
-            "effective": stamp,
-            "onset": None,
-            "expires": (sent + timedelta(hours=12)).isoformat(),
-            "ends": None,
-            "status": "Actual",
-            "messageType": "Alert",
-            "category": "Met",
-            "severity": "Minor",
-            "certainty": "Likely",
-            "urgency": "Expected",
-            "event": "Coastal Flood Statement",
-            "senderName": "NWS Miami FL",
-            "headline": "Coastal Flood Statement issued by NWS Miami FL",
-            "description": "Built from the register's description; not a recorded text.",
-            "instruction": None,
-            "parameters": {},
-        },
-    }
 
 
 # Every capture parses ----------------------------------------------------------------------
@@ -335,7 +297,7 @@ async def test_the_registers_flc086_alert_merges_into_one_alert_found_by_the_cou
     county = _capture("nws-alerts-zone", FIRST_DAY, f"alerts-zone-{COUNTY}.geojson")
     document = _document(county)
     sent = datetime.fromisoformat(str(county[1]["fetched_at"])) - timedelta(hours=6)
-    document["features"] = [_register_alert(sent)]
+    document["features"] = [register_alert(sent)]
     with respx.mock(assert_all_called=True) as router:
         _respond(router, _capture("nws-alerts-point", FIRST_DAY, "alerts-point-miami-dade.geojson"))
         _respond(router, county, json.dumps(document).encode())
@@ -387,7 +349,7 @@ def _alert_features() -> list[tuple[str, dict[str, Any]]]:
         for capture in ALERT_CAPTURES
         for feature in cast("list[dict[str, Any]]", _document(capture)["features"])
     ]
-    built = _register_alert(datetime.fromisoformat("2026-10-12T19:39:00+00:00"))
+    built = register_alert(datetime.fromisoformat("2026-10-12T19:39:00+00:00"))
     return [*recorded, ("register-FLC086", cast("dict[str, Any]", built))]
 
 

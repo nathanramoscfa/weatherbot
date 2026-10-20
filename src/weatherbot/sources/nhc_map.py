@@ -166,7 +166,9 @@ FIELDS_READ: Final[Mapping[str, frozenset[str]]] = MappingProxyType(
         EARLIEST_ARRIVAL: _ARRIVAL_FIELDS,
         MOST_LIKELY_ARRIVAL: _ARRIVAL_FIELDS,
         **dict.fromkeys(WIND_PROBABILITY_THRESHOLDS, frozenset({"percentage", "idp_source"})),
-        BREAKPOINT_LAYER: frozenset({"name", "lat", "lon", "state", "country"}),
+        BREAKPOINT_LAYER: frozenset(
+            {"objectid", "name", "lat", "lon", "state", "country", "idp_filedate"}
+        ),
     }
 )
 """The fields each typed layer's parser reads, by the layer's name without its slot."""
@@ -744,7 +746,8 @@ def parse_breakpoints(
 ) -> tuple[Breakpoint, ...]:
     """Parse ``Watch_Warning_Breakpoints``, positioned from ``lat`` and ``lon``.
 
-    The features' geometry is null, so the position comes from the fields.
+    The features' geometry is null, so the position comes from the fields. ``objectid``
+    orders the catalogue along the coast, and ``idp_filedate`` dates it.
 
     Args:
         layer: The layer name.
@@ -766,6 +769,8 @@ def parse_breakpoints(
                     state=fields.optional_text("state"),
                     country=fields.text("country"),
                     position=Geometry(type="Point", coordinates=(longitude, latitude), crs=WGS84),
+                    objectid=fields.integer("objectid"),
+                    loaded_at=from_epoch_ms(fields.integer("idp_filedate")),
                     provenance=provenance,
                 )
             )

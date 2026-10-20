@@ -80,6 +80,13 @@ class Crs(DomainModel):
         return self
 
     @property
+    def label(self) -> str:
+        """The CRS as evidence names it: ``EPSG:4326``, or ``native`` with its datum."""
+        if self.name == "native" and self.datum:
+            return f"native ({self.datum})"
+        return self.name
+
+    @property
     def is_geographic(self) -> bool:
         """Whether coordinates are longitude and latitude in degrees."""
         if self.name == "EPSG:4326":

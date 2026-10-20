@@ -201,9 +201,13 @@ Weatherbot keeps its state outside the repository, in your user directories:
 | Data: the database `weatherbot.sqlite3` and `backups/` | `%LOCALAPPDATA%\weatherbot\` | `${XDG_DATA_HOME:-~/.local/share}/weatherbot/` |
 
 `WEATHERBOT_CONFIG_DIR` and `WEATHERBOT_DATA_DIR` override the two
-directories. Each must be an absolute path. `weatherbot.toml` holds Phase 2's
-two settings, and `WEATHERBOT_LOG_LEVEL` and `WEATHERBOT_HTTP_TIMEOUT_SECONDS`
-override them (environment, then file, then default):
+directories. Each must be an absolute path. `weatherbot.toml` holds the
+settings below, and an environment variable overrides each one (environment,
+then file, then default): `WEATHERBOT_LOG_LEVEL`,
+`WEATHERBOT_HTTP_TIMEOUT_SECONDS`, and `WEATHERBOT_ENGINE_<KEY>` for each key
+of `[engine]`, such as `WEATHERBOT_ENGINE_COASTAL_REACH_KM`. The `[engine]`
+values are the alert ladder's thresholds at their provisional defaults; Phase
+3 Step 5 calibrates them.
 
 ```toml
 [logging]
@@ -211,6 +215,14 @@ level = "INFO"          # DEBUG, INFO, WARNING, ERROR, or CRITICAL
 
 [http]
 timeout_seconds = 30    # more than 0, at most 300
+
+[engine]
+coastal_reach_km = 25               # 0 to 200
+segment_end_tolerance_km = 5        # 0 to 50
+cone_horizon_h = 120                # 1 to 120
+hurricane_wind_floor_pct = 10       # a band lower bound: 0, 5, 10, 20, ..., 90
+tropical_storm_wind_floor_pct = 5   # a band lower bound
+development_chance_floor_pct = 0    # a band lower bound
 ```
 
 An unknown key or a bad value stops the program with a message that names the

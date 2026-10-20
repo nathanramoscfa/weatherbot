@@ -6,9 +6,10 @@ and ``WEATHERBOT_DATA_DIR`` when set, else the operating system's user directori
 through ``platformdirs``. The database and its backups live in the data directory;
 ``weatherbot.toml`` lives in the configuration directory.
 
-``Settings`` holds Phase 2's keys only, with the precedence environment, then file, then
-default. A setting is never a secret, a location, or a coordinate: locations live in the
-database. An error names the key that is wrong and never repeats its value.
+``Settings`` holds the logging, HTTP, and engine keys, with the precedence environment,
+then file, then default. A setting is never a secret, a location, or a coordinate:
+locations live in the database. An error names the key that is wrong and never repeats
+its value.
 """
 
 import os
@@ -23,6 +24,18 @@ from typing import Final, Literal, Self, cast
 import platformdirs
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from weatherbot.models import (
+    BAND_FLOORS,
+    BandFloor,
+    Thresholds,
+)
+from weatherbot.models.ladder import (
+    COASTAL_REACH_MAX_KM,
+    CONE_HORIZON_MAX_H,
+    CONE_HORIZON_MIN_H,
+    SEGMENT_END_TOLERANCE_MAX_KM,
+)
+
 APP_NAME: Final = "weatherbot"
 CONFIG_DIR_VARIABLE: Final = "WEATHERBOT_CONFIG_DIR"
 DATA_DIR_VARIABLE: Final = "WEATHERBOT_DATA_DIR"
@@ -35,6 +48,12 @@ OWNER_ONLY: Final = 0o700
 ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("logging", "level"): "WEATHERBOT_LOG_LEVEL",
     ("http", "timeout_seconds"): "WEATHERBOT_HTTP_TIMEOUT_SECONDS",
+    ("engine", "coastal_reach_km"): "WEATHERBOT_ENGINE_COASTAL_REACH_KM",
+    ("engine", "segment_end_tolerance_km"): "WEATHERBOT_ENGINE_SEGMENT_END_TOLERANCE_KM",
+    ("engine", "cone_horizon_h"): "WEATHERBOT_ENGINE_CONE_HORIZON_H",
+    ("engine", "hurricane_wind_floor_pct"): "WEATHERBOT_ENGINE_HURRICANE_WIND_FLOOR_PCT",
+    ("engine", "tropical_storm_wind_floor_pct"): "WEATHERBOT_ENGINE_TROPICAL_STORM_WIND_FLOOR_PCT",
+    ("engine", "development_chance_floor_pct"): "WEATHERBOT_ENGINE_DEVELOPMENT_CHANCE_FLOOR_PCT",
 }
 _TOML_POSITION: Final = re.compile(r"\(at line \d+, column \d+\)|\(at end of document\)")
 
@@ -144,11 +163,68 @@ class HttpSettings(_Section):
     timeout_seconds: float = Field(default=30.0, gt=0, le=300)
 
 
+_DEFAULT_THRESHOLDS: Final = Thresholds()
+
+
+def _band_floor(value: int) -> int:
+    if value not in BAND_FLOORS:
+        message = f"must be a band lower bound: {', '.join(map(str, BAND_FLOORS))}"
+        raise ValueError(message)
+    return value
+
+
+class EngineSettings(_Section):
+    """``[engine]``: the ladder's six thresholds, with ``Thresholds``' defaults and ranges.
+
+    A floor is one of the wind-speed-probability band lower bounds.
+    """
+
+    coastal_reach_km: float = Field(
+        default=_DEFAULT_THRESHOLDS.coastal_reach_km, ge=0, le=COASTAL_REACH_MAX_KM
+    )
+    segment_end_tolerance_km: float = Field(
+        default=_DEFAULT_THRESHOLDS.segment_end_tolerance_km,
+        ge=0,
+        le=SEGMENT_END_TOLERANCE_MAX_KM,
+    )
+    cone_horizon_h: int = Field(
+        default=_DEFAULT_THRESHOLDS.cone_horizon_h, ge=CONE_HORIZON_MIN_H, le=CONE_HORIZON_MAX_H
+    )
+    hurricane_wind_floor_pct: int = _DEFAULT_THRESHOLDS.hurricane_wind_floor_pct
+    tropical_storm_wind_floor_pct: int = _DEFAULT_THRESHOLDS.tropical_storm_wind_floor_pct
+    development_chance_floor_pct: int = _DEFAULT_THRESHOLDS.development_chance_floor_pct
+
+    @field_validator(
+        "hurricane_wind_floor_pct",
+        "tropical_storm_wind_floor_pct",
+        "development_chance_floor_pct",
+    )
+    @classmethod
+    def _floor(cls, value: int) -> int:
+        return _band_floor(value)
+
+    def thresholds(self) -> Thresholds:
+        """Build the engine's thresholds from this table.
+
+        Returns:
+            The thresholds.
+        """
+        return Thresholds(
+            coastal_reach_km=float(self.coastal_reach_km),
+            segment_end_tolerance_km=float(self.segment_end_tolerance_km),
+            cone_horizon_h=self.cone_horizon_h,
+            hurricane_wind_floor_pct=cast("BandFloor", self.hurricane_wind_floor_pct),
+            tropical_storm_wind_floor_pct=cast("BandFloor", self.tropical_storm_wind_floor_pct),
+            development_chance_floor_pct=cast("BandFloor", self.development_chance_floor_pct),
+        )
+
+
 class Settings(_Section):
-    """Phase 2's settings: ``[logging] level`` and ``[http] timeout_seconds``."""
+    """The settings: ``[logging] level``, ``[http] timeout_seconds``, and ``[engine]``."""
 
     logging: LoggingSettings = LoggingSettings()
     http: HttpSettings = HttpSettings()
+    engine: EngineSettings = EngineSettings()
 
 
 def _key(location: tuple[str | int, ...]) -> str:

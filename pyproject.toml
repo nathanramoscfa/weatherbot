@@ -120,9 +120,10 @@ pythonVersion = "3.13"
 include = ["src", "tests", "scripts"]
 # tests/scripts/ import the development scripts as top-level modules, tests/live/
 # reads the register through tests/contract/fixture_support.py, tests/services/
-# serves recorded answers through tests/sources/source_support.py, and the service and
-# live tests run commands through tests/cli/cli_support.py.
-extraPaths = ["scripts", "tests/contract", "tests/sources", "tests/cli"]
+# serves recorded answers through tests/sources/source_support.py, the service and
+# live tests run commands through tests/cli/cli_support.py, and tests/engine/ builds
+# the recorded snapshot through tests/services/snapshot_support.py.
+extraPaths = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services"]
 venvPath = "."
 venv = ".venv"
 
@@ -137,9 +138,10 @@ exclude_dirs = ["tests", ".venv", ".worktrees"]
 testpaths = ["tests"]
 # tests/scripts/ import the development scripts as top-level modules, tests/live/
 # reads the register through tests/contract/fixture_support.py, tests/services/
-# serves recorded answers through tests/sources/source_support.py, and the service and
-# live tests run commands through tests/cli/cli_support.py.
-pythonpath = ["scripts", "tests/contract", "tests/sources", "tests/cli"]
+# serves recorded answers through tests/sources/source_support.py, the service and
+# live tests run commands through tests/cli/cli_support.py, and tests/engine/ builds
+# the recorded snapshot through tests/services/snapshot_support.py.
+pythonpath = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services"]
 # `--allow-hosts`, not `--disable-socket`: asyncio on Windows opens a loopback
 # socket pair that `--disable-socket` would block. Selecting `-m live` does
 # not lift the guard, so every `live` test also carries pytest-socket's

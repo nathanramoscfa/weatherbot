@@ -15,8 +15,12 @@ now name nested members as `object.member`. Amended again 2026-10-19, from
 the pinned replay cache, for Phase 3 Step 2: the "Fields v2 uses" lists of
 the converted archive collections and the landmark windows under
 [GIS archive](#gis-archive), and the one-vertex watch-warning count (36
-records in 12 advisories, not 39 in 13). Every other statement keeps
-2026-10-12, or the date its own amendment names.
+records in 12 advisories, not 39 in 13). Amended again 2026-10-19, from the
+recorded 2026-10-12 capture, for Phase 3 Step 3: the "Fields v2 uses" list of
+`Watch_Warning_Breakpoints` under
+[`tropical/NHC_Breakpoints`](#tropicalnhc_breakpoints), which now reads
+`objectid` and `idp_filedate` for the breakpoint span. Every other statement
+keeps 2026-10-12, or the date its own amendment names.
 
 ## Purpose
 
@@ -456,14 +460,17 @@ and every feature layer.
 ### `tropical/NHC_Breakpoints`
 
 `nhc-map-breakpoints`. The coastal breakpoint catalogue, used to name the
-segment a watch or warning covers in evidence text, and to give a non-US
-location its nearest breakpoint span (brief §5 and D3). Both layers were
-loaded on 2026-04-30 (`idp_filedate`). The recorder records the catalog
-and both layers.
+segment a watch or warning covers in evidence text, and to give a location
+its breakpoint span (brief §5 and D3). Both layers were loaded on 2026-04-30
+(`idp_filedate`). The recorder records the catalog and both layers. The
+span (amended 2026-10-19) is the pair of breakpoints, in `objectid` order,
+that brackets a location's coast, or the `country (region)` entry that holds
+it; `objectid` follows the coast, and the span quotes `idp_filedate` as the
+catalogue's load date.
 
 | Layer name | Geometry | Fields present | Fields v2 uses | Notes |
 | --- | --- | --- | --- | --- |
-| `Watch_Warning_Breakpoints` | point | `objectid`, `name`, `lat`, `lon`, `state`, `country`, `idp_filedate`, `idp_ingestdate` | `name`, `lat`, `lon`, `state`, `country` | Features carry `geometry: null`; the position is in `lat` and `lon`. Six Bahamas regions, such as `Bahamas (NW)`. |
+| `Watch_Warning_Breakpoints` | point | `objectid`, `name`, `lat`, `lon`, `state`, `country`, `idp_filedate`, `idp_ingestdate` | `objectid`, `name`, `lat`, `lon`, `state`, `country`, `idp_filedate` | Features carry `geometry: null`; the position is in `lat` and `lon`. Six Bahamas regions, such as `Bahamas (NW)`. |
 | `StormSurge_Communication_Points` | point | `objectid`, `name`, `latitude`, `longitude`, `shape`, `idp_filedate`, `idp_ingestdate` | — | Not used in 2.0. |
 
 ### `tropical/NHC_PeakStormSurge`

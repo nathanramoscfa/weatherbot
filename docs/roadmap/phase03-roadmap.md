@@ -1989,9 +1989,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 3 — Ladder rules and evidence
+## Step 3 — Ladder rules and evidence ✅
 
-**Status:** Not started
+**Status:** Complete — PR #34 (2026-10-19)
 
 > **Goal:** Decide the level. `weatherbot.models.ladder` defines the five levels
 > with the brief's names and actions, the eleven rule ids, and `Thresholds` (the
@@ -2030,6 +2030,8 @@ per phase-boundary hygiene.
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-19: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 3 is coding with planning as its secondary category:
 it encodes the ladder that every later phase shows, notifies on, and narrates,
@@ -2378,9 +2380,12 @@ hygiene.
       `nhc-gis-archive` `ok` and `nhc-arrival-times` (`skipped`
       in the committed subset: "the corpus holds no arrival-time
       products"), and no NWS alerts, outlook areas, or
-      breakpoint catalogue: each an input the assessment names
-      as missing. Its storms carry `archived: ArchiveStorm`
-      (`storm_type` as the archive spells it: `HU`, `TS`, `TD`,
+      breakpoint catalogue: the alerts and the outlook are
+      inputs the assessment names as missing (as built: the
+      catalogue decides no level, so its absence leaves the
+      span to the location's stored one). Its storms carry
+      `archived: ArchiveStorm` (`storm_type` as the archive
+      spells it: `HU`, `TS`, `TD`,
       `PTC` at the cone) with `summary=None`; read
       `storm.atcf_id` and `storm.name`. A committed probability
       product is a window extract: `coverage` is the two
@@ -3009,6 +3014,31 @@ per phase-boundary hygiene.
       from the track points (`saffir_simpson`, `max_wind_kt`).
       The recorded Dorian 036 pair stands in for the archive's
       in `tests/services/test_replay.py` (same bytes).
+    - Carry-over from Step 3 (the shapes the threats extend):
+      `weatherbot.engine.assess.read(snapshot, location,
+      thresholds)` returns `(Readings, unavailable)`; `assess`
+      takes `rules=` (default `RULES`) and records
+      `thresholds.fingerprint(rule ids)` as `ruleset`.
+      `engine/cones.py`'s `ConeReading` measures the closest
+      approach, its lead from the snapshot's instant, and the
+      hurricane flag only for a covering cone whose storm has
+      forecast points; a threat for every storm calls
+      `closest_approach` itself. Evidence and official products
+      cite a `Citation` (`Citation.of(provenance)`), which drops
+      the URL of `nws-points`, `nws-alerts-point`, and
+      `geocode-nominatim`: never put a `Provenance` with a
+      located URL in an assessment. An `OfficialProduct` is
+      identified for `diff` by its `alert_id` (an alert) or by
+      `atcf_id`, `code`, and `advisory` (a segment); `covers`
+      and `rule` say whether it is in effect and what it
+      triggers. Adding `threats` to `Assessment` must update the
+      `assessment()` sample in `tests/models/model_samples.py`.
+      `tests/engine/engine_support.py` builds synthetic live
+      storms, cones, segments, tracks (`winds_kt=`), probability
+      products, regions, alerts, and snapshots; `scenarios.py`'s
+      `recorded_maps()` drops `snapshot_support`'s cone-less
+      Dorian roster stand-in, so the recorded KMZ pair is on
+      that stand-in in `recorded().snapshot` only.
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -3507,6 +3537,23 @@ conversation is new per phase-boundary hygiene.
       filters: Step 2 added the models, the archive parser, and
       the replay reader, and Step 7's check 16 also expects the
       engine.
+    - Carry-over from Step 3: `assess(snapshot, location,
+      thresholds, *, rules=RULES)` runs any rule list, so a
+      mutation removes or swaps entries of `RULES`; `ruleset` is
+      `Thresholds.fingerprint(rule ids in the order run)`. Each
+      `Rule` carries `id`, `level`, `trigger` (one sentence), and
+      `reads` (the products it reads) for the rules table.
+      `tests/engine/scenarios.py` holds 13 `SCENARIOS` (`name`,
+      `inputs()`, `level`, `rule`, `complete`);
+      `replay_snapshots(atcf_id)` caches one storm's snapshots by
+      the advisory number as NHC prints it (`36`, not `036`), in
+      about 2.5 to 4 s per storm. The evacuation toggle and the
+      development region are bound only by scenarios (the corpus
+      holds neither). `docs/ALERT-LADDER.md`'s "what does not
+      move the ladder" links #33, the storm-surge question.
+      `EngineSettings` (`services/config.py`) takes its defaults
+      from `Thresholds()`, so calibrated defaults land in
+      `models/ladder.py` alone.
     - The project roadmap's acceptance: all golden replays pass;
       changing any threshold or rule order breaks at least one
       golden; `docs/ALERT-LADDER.md` matches the implemented
@@ -4054,6 +4101,23 @@ The conversation is new per phase-boundary hygiene.
       ("history is live only"), and `cli/snapshots.py`'s
       `storm_entries` describes roster storms only, so a replay
       storm needs its own entry in the `replay` document.
+    - Carry-over from Step 3: `Location.breakpoint_span` is a
+      `BreakpointSpan` (`names`, `country`, `is_region`,
+      `catalog_loaded_at`), and `LocationRepository` already
+      writes and reads it in the JSON column, so
+      `set_breakpoint_span` only updates it. The engine computes
+      the span from the snapshot's catalogue and falls back to
+      the location's stored span (every replay snapshot); a
+      catalogue stored before Step 3 has no `objectid` and gives
+      no span. `Settings.engine.thresholds()` builds the
+      configured `Thresholds`. Evidence cites a `Citation`: the
+      evidence table's source column is `citation.source_id`,
+      and the toggle's evidence has none.
+      `UnavailableInput.kind` names what was missing
+      (`nws_alerts`, `source`, `cone`, `forecast_points`,
+      `wind_probabilities`, `outlook_areas`), and "at least"
+      applies whenever `Assessment.complete` is false. The
+      toggle is `Location.evacuation_order_in_effect`.
 
     Files to read (every file before drafting):
     - docs/roadmap/phase03-roadmap.md (Overview and its design
@@ -4702,6 +4766,26 @@ The conversation is new per phase-boundary hygiene.
     `corpus` marker, `tests/replay/test_full_conversion.py`
     (about 6 minutes with the byte-for-byte reconversion).
 
+    Carry-over from Step 3 (what checks 18-26 read):
+    `models/ladder.py` (`AlertLevel`, `RuleId`, `Thresholds`)
+    and `models/assessment.py` (also `Citation` and
+    `LOCATED_SOURCES`); `RULES` in `engine/rules.py`;
+    `engine/official.py`'s `LADDER_EVENTS` and
+    `OUTSIDE_ZONES`; `engine/probabilities.py` reading
+    `snapshot.wind_probabilities` and `product.coverage`;
+    `ENVIRONMENT_OVERRIDES` with six `WEATHERBOT_ENGINE_*`
+    names; the four `issue-10-*` scenarios in
+    `tests/engine/scenarios.py`. Check 25's field scan should
+    also cover `Citation`, which keeps no `url` for a source in
+    `LOCATED_SOURCES`. V3.3's storm-surge issue is #33; #10 was
+    closed on 2026-10-19 when PR #28 merged and carries the
+    decision comment for PR #34. The V3.2 tests are
+    `tests/engine/test_rules.py`, `test_official.py`,
+    `test_breakpoints.py`, `test_probabilities.py`,
+    `test_outlook.py`, `test_assess.py`, and
+    `tests/models/test_assessment.py`; the breakpoint parser now
+    reads `objectid` and `idp_filedate`.
+
     Files to read:
     - scripts/verify_phase02.py (primary structural template)
       and tests/test_phase02_verification.py.
@@ -5105,7 +5189,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #29 |
 | 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #32 |
-| 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #34 |
 | 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
