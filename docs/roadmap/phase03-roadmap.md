@@ -2659,9 +2659,9 @@ hygiene.
 
 ---
 
-## Step 4 — Per-storm threats and change events
+## Step 4 — Per-storm threats and change events ✅
 
-**Status:** Not started
+**Status:** Complete — PR #35 (2026-10-19)
 
 > **Goal:** Say what each storm means for the location, and what changed.
 > `weatherbot.models.assessment` gains `StormThreat` — the storm's ATCF id and
@@ -2697,6 +2697,8 @@ runs the cached arrival-product test; its first run on `main` must be green.
 | Conversation | **New**                                  | **New**                                  | **New**                                  |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-19: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Model rationale:** Step 4 is coding with knowledge as its secondary category,
 and it is the phase's first novel algorithm: NHC's arrival-time contours are
@@ -5260,7 +5262,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #29 |
 | 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #32 |
 | 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #34 |
-| 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #35 |
 | 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
 | 7    | QA + verify_phase03.py        | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
