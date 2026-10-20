@@ -58,6 +58,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   runs on changes to the models, the archive parser, and the replay reader.
 - Correct the one-vertex watch-warning count in the register and the replay
   notice: 36 records in 12 Dorian advisories, not 39 in 13.
+- The alert ladder. `weatherbot.models.ladder` defines `AlertLevel` (the
+  brief's five levels with their names and actions), `RuleId` (the eleven
+  rules in their fixed order), and `Thresholds` (coastal reach, segment end
+  tolerance, cone horizon, and three floors, at provisional defaults, with
+  ranges and a SHA-256 `fingerprint()` over the thresholds and the rule
+  order). `weatherbot.models.assessment` defines `Assessment`, `Evidence`,
+  `OfficialProduct`, `LocationWindProbability`, `UnavailableInput`,
+  `BreakpointSpan`, and `Citation`, a provenance that drops the request URL of
+  a source whose URLs carry a location, so no evidence holds a coordinate.
+  `Location.breakpoint_span` is a `BreakpointSpan`, and the location
+  repository stores it.
+- Add `weatherbot.engine.assess` (`assess(snapshot, location, thresholds)` and
+  `read`) and `weatherbot.engine.rules` (`RULES`): the first rule with a match
+  decides the level, its matches are the evidence, every official product
+  considered is listed, and every input the rules lacked (NWS alerts, a failed
+  roster or map source, a cone, forecast points, a probability product, the
+  outlook) is named, making the level a floor. `engine.official` applies issue
+  #10's rule to NWS alerts (a county query's alert outside the location's
+  zones is context and sets no level) and the coverage rule to NHC segments;
+  `engine.breakpoints` gives a location's breakpoint span and names a
+  segment's ends; `engine.cones`, `engine.probabilities`, and `engine.outlook`
+  read the cones, the location's wind-speed-probability bands, and the
+  seven-day development regions.
+- `weatherbot.toml` gains the `[engine]` table, with a
+  `WEATHERBOT_ENGINE_<KEY>` override for each threshold.
+- The breakpoint parser reads `objectid` (the catalogue's coastal order) and
+  `idp_filedate` (its load date); the register's field list is amended.
+- `tests/engine/scenarios.py` names the scenarios the engine tests and Phase
+  3's mutation suite share, from the recorded fixtures and the replay corpus.
 
 ### Phase 1 verification
 - Add the 50-check foundation verifier, full V1-V7 post sweep, QA findings ledger,

@@ -139,7 +139,7 @@ def _location_row(location: Location, now: datetime) -> LocationRow:
         nws_time_zone=nws.time_zone if nws else None,
         nws_city=nws.city if nws else None,
         nws_state=nws.state if nws else None,
-        breakpoint_span=None,
+        breakpoint_span=dump(location.breakpoint_span) if location.breakpoint_span else None,
         evacuation_order_in_effect=location.evacuation_order_in_effect,
         geocoding=dump(location.geocoding) if location.geocoding else None,
         created_at=now,

@@ -10,6 +10,7 @@ from typing import Self
 
 from pydantic import Field, field_validator, model_validator
 
+from weatherbot.models.assessment import BreakpointSpan
 from weatherbot.models.base import DomainModel
 from weatherbot.models.geometry import Geometry
 from weatherbot.models.provenance import Provenance
@@ -50,7 +51,9 @@ class Location(DomainModel):
     )
     display_name: str | None = None
     nws: NwsCoverage | None = None
-    breakpoint_span: None = Field(default=None, description="Phase 3 defines and fills it.")
+    breakpoint_span: BreakpointSpan | None = Field(
+        default=None, description="The coast the location sits on, from NHC's catalogue."
+    )
     evacuation_order_in_effect: bool = Field(
         default=False, description="The operator's toggle (brief §4), read by level 4."
     )

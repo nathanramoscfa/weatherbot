@@ -83,13 +83,17 @@ class Breakpoint(DomainModel):
     """A coastal watch-warning breakpoint.
 
     Its position comes from the layer's ``lat`` and ``lon`` fields, because the features'
-    geometry is null.
+    geometry is null. ``objectid`` orders the catalogue along the coast, and ``loaded_at``
+    is the catalogue's ``idp_filedate``; both are ``None`` in a snapshot stored before
+    they were read.
     """
 
     name: str
     state: str | None
     country: str
     position: Geometry
+    objectid: int | None = Field(default=None, ge=0, description="The catalogue's order.")
+    loaded_at: UtcDatetime | None = Field(default=None, description="From idp_filedate.")
     provenance: Provenance
 
     @model_validator(mode="after")

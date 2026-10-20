@@ -12,6 +12,7 @@ from pathlib import Path
 import platformdirs
 import pytest
 
+from weatherbot.models import Thresholds
 from weatherbot.services import config
 from weatherbot.services.config import (
     AppPaths,
@@ -251,3 +252,103 @@ def test_the_configuration_never_reads_a_dotenv_file(tmp_path: Path) -> None:
     (paths.config_dir / ".env").write_text("WEATHERBOT_LOG_LEVEL=DEBUG\n", encoding="utf-8")
 
     assert load_settings(paths).logging.level == "INFO"
+
+
+# The [engine] table ------------------------------------------------------------------------
+
+
+def test_the_engine_table_defaults_to_the_provisional_thresholds() -> None:
+    assert load_settings(AppPaths.resolve(), {}).engine.thresholds() == Thresholds()
+
+
+def test_each_threshold_has_its_override_variable() -> None:
+    engine = {
+        key: variable
+        for (table, key), variable in config.ENVIRONMENT_OVERRIDES.items()
+        if table == "engine"
+    }
+
+    assert engine == {name: f"WEATHERBOT_ENGINE_{name.upper()}" for name in Thresholds.model_fields}
+
+
+def test_the_engine_table_and_its_overrides_set_the_thresholds() -> None:
+    paths = AppPaths.resolve()
+    _write(
+        paths,
+        "[engine]\n"
+        "coastal_reach_km = 30\n"
+        "segment_end_tolerance_km = 4.5\n"
+        "cone_horizon_h = 96\n"
+        "hurricane_wind_floor_pct = 20\n"
+        "tropical_storm_wind_floor_pct = 10\n"
+        "development_chance_floor_pct = 30\n",
+    )
+    overrides = {
+        "WEATHERBOT_ENGINE_CONE_HORIZON_H": "72",
+        "WEATHERBOT_ENGINE_HURRICANE_WIND_FLOOR_PCT": "40",
+        "WEATHERBOT_ENGINE_COASTAL_REACH_KM": "12.5",
+    }
+
+    from_file = load_settings(paths, {}).engine.thresholds()
+    overridden = load_settings(paths, overrides).engine.thresholds()
+
+    assert from_file == Thresholds(
+        coastal_reach_km=30.0,
+        segment_end_tolerance_km=4.5,
+        cone_horizon_h=96,
+        hurricane_wind_floor_pct=20,
+        tropical_storm_wind_floor_pct=10,
+        development_chance_floor_pct=30,
+    )
+    assert overridden == from_file.model_copy(
+        update={"cone_horizon_h": 72, "hurricane_wind_floor_pct": 40, "coastal_reach_km": 12.5}
+    )
+
+
+@pytest.mark.parametrize(
+    ("text", "key", "value"),
+    [
+        ("[engine]\ncoastal_reach_km = 201\n", "[engine] coastal_reach_km", "201"),
+        ("[engine]\nsegment_end_tolerance_km = -1\n", "[engine] segment_end_tolerance_km", "-1"),
+        ("[engine]\ncone_horizon_h = 121\n", "[engine] cone_horizon_h", "121"),
+        ("[engine]\ncone_horizon_h = 0\n", "[engine] cone_horizon_h", "= 0"),
+        ("[engine]\nhurricane_wind_floor_pct = 17\n", "[engine] hurricane_wind_floor_pct", "17"),
+        (
+            f'[engine]\ntropical_storm_wind_floor_pct = "{UNECHOED}"\n',
+            "[engine] tropical_storm_wind_floor_pct",
+            UNECHOED,
+        ),
+        (f'[engine]\nspeed = "{UNECHOED}"\n', "[engine] speed", UNECHOED),
+    ],
+    ids=["reach", "tolerance", "horizon-high", "horizon-zero", "floor", "floor-text", "unknown"],
+)
+def test_a_bad_engine_value_names_its_key_and_never_its_value(
+    text: str, key: str, value: str
+) -> None:
+    paths = AppPaths.resolve()
+    _write(paths, text)
+
+    with pytest.raises(ConfigError) as failure:
+        load_settings(paths, {})
+
+    assert key in str(failure.value)
+    assert value not in str(failure.value)
+
+
+@pytest.mark.parametrize(
+    ("variable", "value"),
+    [
+        ("WEATHERBOT_ENGINE_COASTAL_REACH_KM", "nan"),
+        ("WEATHERBOT_ENGINE_CONE_HORIZON_H", "72.5"),
+        ("WEATHERBOT_ENGINE_DEVELOPMENT_CHANCE_FLOOR_PCT", "33"),
+        ("WEATHERBOT_ENGINE_SEGMENT_END_TOLERANCE_KM", UNECHOED),
+    ],
+)
+def test_a_bad_engine_override_names_its_variable_and_never_its_value(
+    variable: str, value: str
+) -> None:
+    with pytest.raises(ConfigError) as failure:
+        load_settings(AppPaths.resolve(), {variable: value})
+
+    assert variable in str(failure.value)
+    assert value not in str(failure.value)

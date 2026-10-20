@@ -10,6 +10,7 @@ import gzip
 import json
 import re
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import cast
 
@@ -29,6 +30,9 @@ CATALOG_GEOMETRY = {
     "esriGeometryPolygon": "polygon",
 }
 CATALOG_KINDS = {"Group Layer": "group", "Mosaic Layer": "mosaic", "Raster Layer": "raster"}
+# The register's FLC086 alert of 2026-10-12 ("Alerts for a zone").
+REGISTER_AFFECTED = ("FLZ069", "FLZ075", "FLZ174")
+REGISTER_SAME = "012086"
 
 
 def as_object(value: object) -> dict[str, object]:
@@ -290,3 +294,48 @@ def register_user_agent() -> str:
     )
     assert block is not None, "the register's User-Agent block is missing"
     return block[1]
+
+
+def register_alert(sent: datetime) -> dict[str, object]:
+    """Return an alert built from the register's FLC086 description of 2026-10-12.
+
+    Args:
+        sent: Its ``sent`` and ``effective`` instant; it expires 12 hours later.
+
+    Returns:
+        The alert as one feature of the API's answer. It is built, not recorded.
+    """
+    zones = [f"https://api.weather.gov/zones/forecast/{zone}" for zone in REGISTER_AFFECTED]
+    stamp = sent.isoformat()
+    return {
+        "id": "https://api.weather.gov/alerts/urn:oid:register-example.FLC086",
+        "type": "Feature",
+        "geometry": None,
+        "properties": {
+            "id": "urn:oid:register-example.FLC086",
+            "areaDesc": "Coastal Collier County; Mainland Monroe; Far South Miami-Dade County",
+            "geocode": {
+                "SAME": ["012021", "012087", REGISTER_SAME],
+                "UGC": list(REGISTER_AFFECTED),
+            },
+            "affectedZones": zones,
+            "references": [],
+            "sent": stamp,
+            "effective": stamp,
+            "onset": None,
+            "expires": (sent + timedelta(hours=12)).isoformat(),
+            "ends": None,
+            "status": "Actual",
+            "messageType": "Alert",
+            "category": "Met",
+            "severity": "Minor",
+            "certainty": "Likely",
+            "urgency": "Expected",
+            "event": "Coastal Flood Statement",
+            "senderName": "NWS Miami FL",
+            "headline": "Coastal Flood Statement issued by NWS Miami FL",
+            "description": "Built from the register's description; not a recorded text.",
+            "instruction": None,
+            "parameters": {},
+        },
+    }

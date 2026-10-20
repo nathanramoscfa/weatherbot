@@ -63,7 +63,15 @@ shared `models` package. Each layer's `__init__.py` states its rule;
   for each. Its geodesy follows each geometry's CRS — WGS 84 for
   `EPSG:4326`, the archive's 6,371,200 m sphere for replay geometry, never
   relabelled — through `pyproj.Geod` only (no `Transformer`, CRS database,
-  or network). CI holds its branch coverage at 90 percent or more.
+  or network). CI holds its branch coverage at 90 percent or more. Its
+  public API is `assess(snapshot, location, thresholds)` and `RULES`
+  (`weatherbot.engine`): the eleven ladder rules in their fixed order, of
+  which the first with a match decides the level. Evidence holds names,
+  codes, instants, and distances, never a coordinate; an assessment names
+  every input it lacked, and its level is then a floor. The thresholds are
+  `weatherbot.models.ladder.Thresholds`, set by the `[engine]` table.
+  `tests/engine/scenarios.py` holds the named scenarios the engine's tests
+  share.
 - `services/` — time, state, and side effects: scheduling, change
   detection, notification, persistence, and the Claude integration.
 - `cli/` — Typer commands over the services.

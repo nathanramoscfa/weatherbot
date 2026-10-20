@@ -20,6 +20,7 @@ from weatherbot.models import (
     AdvisoryRecord,
     AlertCategory,
     AlertCertainty,
+    AlertLevel,
     AlertMessageType,
     AlertQuery,
     AlertSeverity,
@@ -29,22 +30,28 @@ from weatherbot.models import (
     ArrivalResolution,
     ArrivalTimeLine,
     ArrivalTimeProduct,
+    Assessment,
     Breakpoint,
+    BreakpointSpan,
+    Citation,
     ConeGeometry,
     Crs,
     DisplayLayer,
     DomainModel,
+    Evidence,
     ForecastTrack,
     GeocodeResult,
     Geometry,
     GisFeedItem,
     LatLon,
     Location,
+    LocationWindProbability,
     MapCatalog,
     MapLayer,
     NwsAlert,
     NwsCoverage,
     NwsZone,
+    OfficialProduct,
     OutlookArea,
     OutlookGraphic,
     OutlookRisk,
@@ -52,6 +59,7 @@ from weatherbot.models import (
     OverlayLayer,
     Provenance,
     RosterProduct,
+    RuleId,
     Snapshot,
     SourceId,
     SourceOutcome,
@@ -59,7 +67,9 @@ from weatherbot.models import (
     StormProducts,
     StormSummary,
     TextProduct,
+    Thresholds,
     TrackPoint,
+    UnavailableInput,
     WatchWarningSegment,
     WatchWarningType,
     WindProbabilityBand,
@@ -460,6 +470,8 @@ def breakpoint_record() -> Breakpoint:
         state=None,
         country="Bahamas",
         position=landmark_point("nassau"),
+        objectid=449,
+        loaded_at=FETCHED_AT,
         provenance=provenance("nhc-map-breakpoints"),
     )
 
@@ -552,6 +564,100 @@ def snapshot() -> Snapshot:
     )
 
 
+def breakpoint_span() -> BreakpointSpan:
+    """Return the span of the Miami-Dade landmark's coast."""
+    return BreakpointSpan(
+        names=("Ocean Reef", "Miami-Dade/Broward County Line"),
+        country="United States",
+        is_region=False,
+        catalog_loaded_at=FETCHED_AT,
+    )
+
+
+def citation(source_id: SourceId = "nhc-map-tropical-weather") -> Citation:
+    """Return the citation of one recorded response."""
+    return Citation.of(provenance(source_id))
+
+
+def evidence() -> Evidence:
+    """Return the evidence of a covering watch-warning segment."""
+    return Evidence(
+        rule=RuleId.HURRICANE_WARNING,
+        product="watch_warning_segment",
+        citation=citation(),
+        code="HWR",
+        atcf_id=ATCF_ID,
+        storm_name="Simon",
+        advisory=AdvisoryNumber.parse("22A"),
+        issued_at=advisory().issued_at,
+        test="segment_distance",
+        distance_km=1.5,
+        at_end=False,
+        crs="EPSG:4326",
+        breakpoints=("Ocean Reef", "Miami-Dade/Broward County Line"),
+        detail="A sample segment covers the location.",
+    )
+
+
+def official_product() -> OfficialProduct:
+    """Return a covering NWS alert that sets no level."""
+    return OfficialProduct(
+        kind="nws_alert",
+        citation=citation("nws-alerts-zone"),
+        code="Rip Current Statement",
+        alert_id="urn:oid:sample",
+        issuer="NWS Miami FL",
+        issued_at=FETCHED_AT,
+        expires_at=FETCHED_AT + timedelta(hours=12),
+        found_by=("zone FLZ173",),
+        zones=("FLZ173",),
+        covers=True,
+        reason="its zone list names this location's zone FLZ173; it sets no level",
+    )
+
+
+def location_wind_probability() -> LocationWindProbability:
+    """Return a 34-kt reading in the 5-10% band."""
+    return LocationWindProbability(
+        threshold_kt=34,
+        synoptic_at=FETCHED_AT,
+        reading="band",
+        label="5-10%",
+        lower_pct=5,
+        upper_pct=10,
+        crs="EPSG:4326",
+        citation=citation(),
+    )
+
+
+def unavailable_input() -> UnavailableInput:
+    """Return the NWS alerts a replay snapshot lacks."""
+    return UnavailableInput(
+        kind="nws_alerts", reason="NWS alerts were not checked: a replay snapshot holds none"
+    )
+
+
+def assessment() -> Assessment:
+    """Return an incomplete Hurricane Warning assessment."""
+    thresholds = Thresholds()
+    return Assessment(
+        location_name="Miami-Dade County Hall",
+        snapshot_id=SNAPSHOT_ID,
+        origin="live",
+        as_of=FETCHED_AT,
+        level=AlertLevel.HURRICANE_WARNING,
+        rule=RuleId.HURRICANE_WARNING,
+        evidence=(evidence(),),
+        official=(official_product(),),
+        wind_probabilities=(location_wind_probability(),),
+        breakpoint_span=breakpoint_span(),
+        unavailable=(unavailable_input(),),
+        thresholds=thresholds,
+        ruleset=thresholds.fingerprint(),
+        complete=False,
+    )
+
+
 SAMPLES: dict[type[DomainModel], Callable[[], DomainModel]] = {
     Advisory: advisory,
     AdvisoryNumber: lambda: AdvisoryNumber.parse("22A"),
@@ -566,24 +672,30 @@ SAMPLES: dict[type[DomainModel], Callable[[], DomainModel]] = {
     AlertStatus: lambda: AlertStatus.parse("Actual"),
     AlertUrgency: lambda: AlertUrgency.parse("Expected"),
     ArchiveStorm: archive_storm,
+    Assessment: assessment,
     ArrivalResolution: lambda: ArrivalResolution(valid_at=FETCHED_AT, reason=None),
     ArrivalTimeLine: lambda: arrival_product().lines[0],
     ArrivalTimeProduct: arrival_product,
     Breakpoint: breakpoint_record,
+    BreakpointSpan: breakpoint_span,
+    Citation: citation,
     ConeGeometry: cone,
     Crs: lambda: Crs.native({"datum": "D_Sphere", "wkt": 'GEOGCS["GCS_Sphere",DATUM["D_Sphere"]]'}),
     DisplayLayer: display_layer,
+    Evidence: evidence,
     ForecastTrack: track,
     GeocodeResult: geocode,
     Geometry: landmark_square,
     GisFeedItem: feed_item,
     LatLon: lambda: location().point,
     Location: location,
+    LocationWindProbability: location_wind_probability,
     MapCatalog: map_catalog,
     MapLayer: lambda: map_catalog().layers[0],
     NwsAlert: alert,
     NwsCoverage: lambda: cast("NwsCoverage", location().nws),
     NwsZone: zone,
+    OfficialProduct: official_product,
     OutlookArea: outlook_area,
     OutlookGraphic: graphic,
     OutlookRisk: lambda: OutlookRisk.parse("High"),
@@ -597,7 +709,9 @@ SAMPLES: dict[type[DomainModel], Callable[[], DomainModel]] = {
     StormProducts: storm_products,
     StormSummary: summary,
     TextProduct: text_product,
+    Thresholds: Thresholds,
     TrackPoint: track_point,
+    UnavailableInput: unavailable_input,
     WatchWarningSegment: watch_warning,
     WatchWarningType: lambda: WatchWarningType.parse("HWR"),
     WindProbabilityBand: wind_band,
