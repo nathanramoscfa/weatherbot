@@ -5,7 +5,7 @@ This step's tests and Step 5's mutation suite share them. The snapshots come fro
 recorded fixtures (``tests/services/snapshot_support.py``) and the committed replay
 corpus; the locations are the public landmarks, or a point derived at run time from a
 recorded public product (a development region's representative point), never a
-literal. The expected values use the provisional thresholds (``Thresholds()``).
+literal. The expected values use the calibrated thresholds (``Thresholds()``).
 """
 
 import hashlib

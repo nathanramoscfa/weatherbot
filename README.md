@@ -10,7 +10,8 @@ specifies both in [the project brief](docs/brief/weatherbot-v2-brief.md).
 ## Status
 
 Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
-discovery) is complete, and Phase 2 (sources and persistence) is in progress.
+discovery) and Phase 2 (sources and persistence) are complete; Phase 3 (the
+threat engine) is in progress.
 No version 2 package is released. The commands below read the official
 products and print them; they do not yet decide a threat level, which is
 Phase 3's work. The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
@@ -84,6 +85,8 @@ repository; "Local data" there lists the paths and the overrides.
 - [The data-source register](docs/DATA_SOURCES.md): every official
   source version 2 reads, verified live, with its endpoints, terms, and
   etiquette.
+- [The alert ladder](docs/ALERT-LADDER.md): levels, actions, ordered rules,
+  calibrated thresholds, and the historical replay evidence.
 - [CHANGELOG.md](CHANGELOG.md): what has changed.
 
 ## License

@@ -30,12 +30,17 @@ from pathlib import Path, PurePosixPath
 from typing import Final, Self
 from uuid import NAMESPACE_URL, UUID, uuid5
 
+from weatherbot.engine import assess, diff
 from weatherbot.models import (
     AdvisoryNumber,
     ArrivalTimeProduct,
+    Assessment,
+    ChangeEvent,
+    Location,
     Snapshot,
     SourceOutcome,
     StormProducts,
+    Thresholds,
     WindProbabilityProduct,
 )
 from weatherbot.sources import nhc_gis_archive
@@ -94,6 +99,54 @@ class ReplayStorm:
     advisories: int
     first_issued_at: datetime
     last_issued_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class ReplayStep:
+    """One advisory's assessment and its changes from the preceding advisory.
+
+    Replay steps are transient values. The service opens no database and writes no
+    history; the caller owns how a timeline is shown.
+    """
+
+    assessment: Assessment
+    changes: tuple[ChangeEvent, ...]
+
+
+class ReplayService:
+    """Assess the verified advisories of a corpus in their recorded order."""
+
+    def __init__(self, corpus: "ReplayCorpus") -> None:
+        """Use a corpus opened by ``ReplayCorpus.open``.
+
+        Args:
+            corpus: The verifying reader of the committed subset or a full conversion.
+        """
+        self._corpus = corpus
+
+    def timeline(
+        self, atcf_id: str, location: Location, thresholds: Thresholds
+    ) -> tuple[ReplayStep, ...]:
+        """Assess each advisory and compare it with the previous assessment.
+
+        Args:
+            atcf_id: A storm listed in the corpus manifest.
+            location: The location to assess; no present-day state is read implicitly.
+            thresholds: The thresholds to record in every assessment.
+
+        Returns:
+            The steps in advisory order, including the first assessment's initial events.
+
+        Raises:
+            ReplayError: The corpus refuses a storm or one of its product files.
+        """
+        steps: list[ReplayStep] = []
+        previous: Assessment | None = None
+        for snapshot in self._corpus.snapshots(atcf_id):
+            current = assess(snapshot, location, thresholds)
+            steps.append(ReplayStep(current, diff(previous, current)))
+            previous = current
+        return tuple(steps)
 
 
 def snapshot_id(atcf_id: str, advisory: str) -> UUID:

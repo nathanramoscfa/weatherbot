@@ -2,7 +2,7 @@
 """The ladder: its levels, its eleven rules in order, its thresholds, and each rule's test.
 
 Every rule is shown matching and not matching on synthetic live products built around
-the Miami-Dade landmark at run time; the thresholds are the provisional defaults.
+the Miami-Dade landmark at run time; the thresholds are the calibrated defaults.
 """
 
 import hashlib
@@ -121,7 +121,7 @@ def test_the_band_floors_are_the_band_lower_bounds() -> None:
 # Thresholds --------------------------------------------------------------------------------
 
 
-def test_the_thresholds_default_to_the_provisional_values() -> None:
+def test_the_thresholds_default_to_the_calibrated_values() -> None:
     assert Thresholds().model_dump() == {
         "coastal_reach_km": 25.0,
         "segment_end_tolerance_km": 5.0,

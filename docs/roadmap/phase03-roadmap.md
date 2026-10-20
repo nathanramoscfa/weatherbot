@@ -3660,6 +3660,16 @@ conversation is new per phase-boundary hygiene.
     <requirement>
       Defaults. Set each default by these criteria, and present
       the evidence with the goldens:
+      Operator amendment (2026-10-20, this session): retain the
+      48-hour watch lead target, but document measured exceptions
+      to the level-2-before-3 and reversal targets below. Milton
+      at Miami-Dade cannot satisfy both targets: its first cone
+      gives level 3 at a 54-hour lead, followed by level 2;
+      suppressing that first match loses the lead. List every
+      exception in the calibration evidence and written ladder;
+      add no smoothing or invented input. This amendment does
+      not approve the eight goldens, which require a separate
+      review and explicit approval in this session.
       - `coastal_reach_km` and `segment_end_tolerance_km`: inside
         the corpus gap with at least a factor of two to spare on
         each side (a reach from 7.6 to 29.1 km; an end tolerance
@@ -3722,7 +3732,7 @@ conversation is new per phase-boundary hygiene.
       and (c) moving each threshold one step past each finite end
       of its recorded interval, each change at least one
       reference outcome. A pair whose swap the corpus cannot
-      distinguish (both rules never match together) is listed by
+      distinguish (neither can become the first match together, including overlaps masked by a higher rule) is listed by
       name in `weatherbot.models.ladder` with that reason, and
       the test checks that the list is exactly the
       indistinguishable pairs. A meta-test proves that every rule

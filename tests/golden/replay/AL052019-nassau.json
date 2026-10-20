@@ -1,0 +1,1279 @@
+{
+  "_file": "tests/golden/replay/AL052019-nassau.json",
+  "atcf_id": "AL052019",
+  "archive_name": "Dorian",
+  "landmark": "nassau",
+  "manifest_sha256": "0280fa149fea36911994a2e4c46bb24e86a5cc3cf728801184a7c06c034e05dc",
+  "ruleset": "c241a7ff882909314d943f1a18c64f056fd3a8fed706f5328bb7fe9a6a404226",
+  "timeline": [
+    {
+      "advisory": "1",
+      "issued_at": "2019-08-24T15:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "level_changed",
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "2",
+      "issued_at": "2019-08-24T21:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "3",
+      "issued_at": "2019-08-25T03:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "4",
+      "issued_at": "2019-08-25T09:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "4A",
+      "issued_at": "2019-08-25T12:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "5",
+      "issued_at": "2019-08-25T15:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "5A",
+      "issued_at": "2019-08-25T18:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "6",
+      "issued_at": "2019-08-25T21:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "6A",
+      "issued_at": "2019-08-26T00:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "7",
+      "issued_at": "2019-08-26T03:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "7A",
+      "issued_at": "2019-08-26T06:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "8",
+      "issued_at": "2019-08-26T09:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "level_changed",
+        "advisory_issued",
+        "cone_entered"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "8A",
+      "issued_at": "2019-08-26T12:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "9",
+      "issued_at": "2019-08-26T15:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "9A",
+      "issued_at": "2019-08-26T18:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "10",
+      "issued_at": "2019-08-26T21:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "10A",
+      "issued_at": "2019-08-27T00:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "11",
+      "issued_at": "2019-08-27T03:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "11A",
+      "issued_at": "2019-08-27T06:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "12",
+      "issued_at": "2019-08-27T09:00:00Z",
+      "level": 2,
+      "rule": "storm_cone",
+      "changes": [
+        "level_changed",
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "12A",
+      "issued_at": "2019-08-27T12:00:00Z",
+      "level": 2,
+      "rule": "storm_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "13",
+      "issued_at": "2019-08-27T15:00:00Z",
+      "level": 2,
+      "rule": "storm_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "13A",
+      "issued_at": "2019-08-27T18:00:00Z",
+      "level": 2,
+      "rule": "storm_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "14",
+      "issued_at": "2019-08-27T21:00:00Z",
+      "level": 2,
+      "rule": "storm_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "14A",
+      "issued_at": "2019-08-28T00:00:00Z",
+      "level": 2,
+      "rule": "storm_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "15",
+      "issued_at": "2019-08-28T03:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "level_changed",
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "15A",
+      "issued_at": "2019-08-28T06:00:00Z",
+      "level": 3,
+      "rule": "hurricane_cone",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "16",
+      "issued_at": "2019-08-28T09:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "level_changed",
+        "advisory_issued",
+        "cone_left"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "16A",
+      "issued_at": "2019-08-28T12:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "17",
+      "issued_at": "2019-08-28T15:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "17A",
+      "issued_at": "2019-08-28T18:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "18",
+      "issued_at": "2019-08-28T21:00:00Z",
+      "level": 3,
+      "rule": "hurricane_wind_probability",
+      "changes": [
+        "level_changed",
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "18A",
+      "issued_at": "2019-08-29T00:00:00Z",
+      "level": 3,
+      "rule": "hurricane_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "19",
+      "issued_at": "2019-08-29T03:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "level_changed",
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "20",
+      "issued_at": "2019-08-29T09:00:00Z",
+      "level": 3,
+      "rule": "hurricane_wind_probability",
+      "changes": [
+        "level_changed",
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "21",
+      "issued_at": "2019-08-29T15:00:00Z",
+      "level": 3,
+      "rule": "hurricane_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "22",
+      "issued_at": "2019-08-29T21:00:00Z",
+      "level": 3,
+      "rule": "hurricane_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "23",
+      "issued_at": "2019-08-30T03:00:00Z",
+      "level": 3,
+      "rule": "hurricane_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "24",
+      "issued_at": "2019-08-30T09:00:00Z",
+      "level": 4,
+      "rule": "hurricane_watch",
+      "changes": [
+        "level_changed",
+        "advisory_issued",
+        "official_added"
+      ],
+      "official_codes": [
+        "HWA"
+      ]
+    },
+    {
+      "advisory": "24A",
+      "issued_at": "2019-08-30T12:00:00Z",
+      "level": 4,
+      "rule": "hurricane_watch",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWA"
+      ]
+    },
+    {
+      "advisory": "25",
+      "issued_at": "2019-08-30T15:00:00Z",
+      "level": 4,
+      "rule": "hurricane_watch",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWA"
+      ]
+    },
+    {
+      "advisory": "25A",
+      "issued_at": "2019-08-30T18:00:00Z",
+      "level": 4,
+      "rule": "hurricane_watch",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWA"
+      ]
+    },
+    {
+      "advisory": "26",
+      "issued_at": "2019-08-30T21:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "level_changed",
+        "advisory_issued",
+        "official_changed"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "26A",
+      "issued_at": "2019-08-31T00:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "27",
+      "issued_at": "2019-08-31T03:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "27A",
+      "issued_at": "2019-08-31T06:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "28",
+      "issued_at": "2019-08-31T09:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "28A",
+      "issued_at": "2019-08-31T12:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "29",
+      "issued_at": "2019-08-31T15:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "29A",
+      "issued_at": "2019-08-31T18:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "30",
+      "issued_at": "2019-08-31T21:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "30A",
+      "issued_at": "2019-09-01T00:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "31",
+      "issued_at": "2019-09-01T03:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "31A",
+      "issued_at": "2019-09-01T06:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "32",
+      "issued_at": "2019-09-01T09:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "32A",
+      "issued_at": "2019-09-01T12:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "33",
+      "issued_at": "2019-09-01T15:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "33A",
+      "issued_at": "2019-09-01T18:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "34",
+      "issued_at": "2019-09-01T21:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "34A",
+      "issued_at": "2019-09-02T00:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "35",
+      "issued_at": "2019-09-02T03:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "35A",
+      "issued_at": "2019-09-02T06:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "36",
+      "issued_at": "2019-09-02T09:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "36A",
+      "issued_at": "2019-09-02T12:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "37",
+      "issued_at": "2019-09-02T15:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "37A",
+      "issued_at": "2019-09-02T18:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "38",
+      "issued_at": "2019-09-02T21:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "38A",
+      "issued_at": "2019-09-03T00:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "39",
+      "issued_at": "2019-09-03T03:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "39A",
+      "issued_at": "2019-09-03T06:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "40",
+      "issued_at": "2019-09-03T09:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "40A",
+      "issued_at": "2019-09-03T12:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "41",
+      "issued_at": "2019-09-03T15:00:00Z",
+      "level": 5,
+      "rule": "hurricane_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "HWR"
+      ]
+    },
+    {
+      "advisory": "41A",
+      "issued_at": "2019-09-03T18:00:00Z",
+      "level": 4,
+      "rule": "tropical_storm_warning",
+      "changes": [
+        "level_changed",
+        "advisory_issued",
+        "official_changed"
+      ],
+      "official_codes": [
+        "TWR"
+      ]
+    },
+    {
+      "advisory": "42",
+      "issued_at": "2019-09-03T21:00:00Z",
+      "level": 4,
+      "rule": "tropical_storm_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "TWR"
+      ]
+    },
+    {
+      "advisory": "42A",
+      "issued_at": "2019-09-04T00:00:00Z",
+      "level": 4,
+      "rule": "tropical_storm_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "TWR"
+      ]
+    },
+    {
+      "advisory": "43",
+      "issued_at": "2019-09-04T03:00:00Z",
+      "level": 4,
+      "rule": "tropical_storm_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "TWR"
+      ]
+    },
+    {
+      "advisory": "43A",
+      "issued_at": "2019-09-04T06:00:00Z",
+      "level": 4,
+      "rule": "tropical_storm_warning",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": [
+        "TWR"
+      ]
+    },
+    {
+      "advisory": "44",
+      "issued_at": "2019-09-04T09:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "level_changed",
+        "advisory_issued",
+        "official_removed"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "44A",
+      "issued_at": "2019-09-04T12:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "45",
+      "issued_at": "2019-09-04T15:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "45A",
+      "issued_at": "2019-09-04T18:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "46",
+      "issued_at": "2019-09-04T21:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "46A",
+      "issued_at": "2019-09-05T00:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "47",
+      "issued_at": "2019-09-05T03:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "47A",
+      "issued_at": "2019-09-05T06:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "48",
+      "issued_at": "2019-09-05T09:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "48A",
+      "issued_at": "2019-09-05T12:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "49",
+      "issued_at": "2019-09-05T15:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "49A",
+      "issued_at": "2019-09-05T18:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "50",
+      "issued_at": "2019-09-05T21:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "50A",
+      "issued_at": "2019-09-06T00:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "51",
+      "issued_at": "2019-09-06T03:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "51A",
+      "issued_at": "2019-09-06T06:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "52",
+      "issued_at": "2019-09-06T09:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "52A",
+      "issued_at": "2019-09-06T12:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "53",
+      "issued_at": "2019-09-06T15:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "53A",
+      "issued_at": "2019-09-06T18:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "54",
+      "issued_at": "2019-09-06T21:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "54A",
+      "issued_at": "2019-09-07T00:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "55",
+      "issued_at": "2019-09-07T03:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "55A",
+      "issued_at": "2019-09-07T06:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "56",
+      "issued_at": "2019-09-07T09:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "56A",
+      "issued_at": "2019-09-07T12:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "57",
+      "issued_at": "2019-09-07T15:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "58",
+      "issued_at": "2019-09-07T18:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "59",
+      "issued_at": "2019-09-07T21:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "59A",
+      "issued_at": "2019-09-08T00:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "60",
+      "issued_at": "2019-09-08T03:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "60A",
+      "issued_at": "2019-09-08T06:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "61",
+      "issued_at": "2019-09-08T09:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "61A",
+      "issued_at": "2019-09-08T12:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "62",
+      "issued_at": "2019-09-08T15:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "62A",
+      "issued_at": "2019-09-08T18:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "63",
+      "issued_at": "2019-09-08T21:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "63A",
+      "issued_at": "2019-09-09T00:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "64",
+      "issued_at": "2019-09-09T03:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    }
+  ],
+  "approval": null
+}

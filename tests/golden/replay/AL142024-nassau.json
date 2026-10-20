@@ -1,0 +1,423 @@
+{
+  "_file": "tests/golden/replay/AL142024-nassau.json",
+  "atcf_id": "AL142024",
+  "archive_name": "Milton",
+  "landmark": "nassau",
+  "manifest_sha256": "0280fa149fea36911994a2e4c46bb24e86a5cc3cf728801184a7c06c034e05dc",
+  "ruleset": "c241a7ff882909314d943f1a18c64f056fd3a8fed706f5328bb7fe9a6a404226",
+  "timeline": [
+    {
+      "advisory": "1",
+      "issued_at": "2024-10-05T15:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "level_changed",
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "2",
+      "issued_at": "2024-10-05T21:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "3",
+      "issued_at": "2024-10-06T03:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "3A",
+      "issued_at": "2024-10-06T06:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "4",
+      "issued_at": "2024-10-06T09:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "4A",
+      "issued_at": "2024-10-06T12:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "5",
+      "issued_at": "2024-10-06T15:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "5A",
+      "issued_at": "2024-10-06T18:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "6",
+      "issued_at": "2024-10-06T21:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "6A",
+      "issued_at": "2024-10-07T00:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "7",
+      "issued_at": "2024-10-07T03:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "7A",
+      "issued_at": "2024-10-07T06:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "8",
+      "issued_at": "2024-10-07T09:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "9",
+      "issued_at": "2024-10-07T12:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "10",
+      "issued_at": "2024-10-07T15:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "10A",
+      "issued_at": "2024-10-07T18:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "11",
+      "issued_at": "2024-10-07T21:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "11A",
+      "issued_at": "2024-10-08T00:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "12",
+      "issued_at": "2024-10-08T03:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "12A",
+      "issued_at": "2024-10-08T06:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "13",
+      "issued_at": "2024-10-08T09:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "13A",
+      "issued_at": "2024-10-08T12:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "14",
+      "issued_at": "2024-10-08T15:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "14A",
+      "issued_at": "2024-10-08T18:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "15",
+      "issued_at": "2024-10-08T21:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "15A",
+      "issued_at": "2024-10-09T00:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "16",
+      "issued_at": "2024-10-09T03:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "16A",
+      "issued_at": "2024-10-09T06:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "17",
+      "issued_at": "2024-10-09T09:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "17A",
+      "issued_at": "2024-10-09T12:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "18",
+      "issued_at": "2024-10-09T15:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "18A",
+      "issued_at": "2024-10-09T18:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "19",
+      "issued_at": "2024-10-09T21:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "19A",
+      "issued_at": "2024-10-10T00:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "20",
+      "issued_at": "2024-10-10T03:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "20A",
+      "issued_at": "2024-10-10T06:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "21",
+      "issued_at": "2024-10-10T09:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "21A",
+      "issued_at": "2024-10-10T12:00:00Z",
+      "level": 2,
+      "rule": "tropical_storm_wind_probability",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "22",
+      "issued_at": "2024-10-10T15:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "level_changed",
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "22A",
+      "issued_at": "2024-10-10T18:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    },
+    {
+      "advisory": "23",
+      "issued_at": "2024-10-10T21:00:00Z",
+      "level": 1,
+      "rule": "all_clear",
+      "changes": [
+        "advisory_issued"
+      ],
+      "official_codes": []
+    }
+  ],
+  "approval": null
+}

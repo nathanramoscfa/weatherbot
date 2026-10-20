@@ -117,7 +117,7 @@ CONE_HORIZON_MAX_H: Final = 120
 
 
 class Thresholds(DomainModel):
-    """The six values the rules compare against, at the provisional defaults.
+    """The six values the rules compare against, at the calibrated defaults.
 
     A wind floor is compared with a band's lower bound, the probability the band
     guarantees, so each floor is one of those bounds. The development chance floor is
@@ -164,3 +164,131 @@ class Thresholds(DomainModel):
         document = {"rules": [str(rule) for rule in rules], "thresholds": self.model_dump()}
         canonical = json.dumps(document, sort_keys=True, separators=(",", ":"), allow_nan=False)
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+# Outcome intervals rounded to six decimals for portable readbacks.
+CALIBRATION: Final[Mapping[str, Mapping[str, object]]] = MappingProxyType(
+    {
+        name: MappingProxyType(row)
+        for name, row in {
+            "coastal_reach_km": {
+                "default": 25.0,
+                "lower": 3.799558,
+                "lower_open_reason": None,
+                "upper": 112.159296,
+                "upper_inclusive": False,
+                "upper_open_reason": None,
+            },
+            "cone_horizon_h": {
+                "default": 120,
+                "lower": 117,
+                "lower_open_reason": None,
+                "upper": None,
+                "upper_inclusive": True,
+                "upper_open_reason": "legal maximum 120; the corpus cannot bind above it",
+            },
+            "development_chance_floor_pct": {
+                "default": 0,
+                "lower": None,
+                "lower_open_reason": "legal minimum 0; the corpus cannot bind below it",
+                "upper": 20,
+                "upper_inclusive": True,
+                "upper_open_reason": None,
+            },
+            "hurricane_wind_floor_pct": {
+                "default": 10,
+                "lower": 10,
+                "lower_open_reason": None,
+                "upper": 10,
+                "upper_inclusive": True,
+                "upper_open_reason": None,
+            },
+            "segment_end_tolerance_km": {
+                "default": 5.0,
+                "lower": None,
+                "lower_open_reason": "legal minimum 0; the corpus cannot bind below it",
+                "upper": 22.610062,
+                "upper_inclusive": False,
+                "upper_open_reason": None,
+            },
+            "tropical_storm_wind_floor_pct": {
+                "default": 5,
+                "lower": 5,
+                "lower_open_reason": None,
+                "upper": 5,
+                "upper_inclusive": True,
+                "upper_open_reason": None,
+            },
+        }.items()
+    }
+)
+
+THRESHOLD_UNITS: Final[Mapping[str, str]] = MappingProxyType(
+    {
+        "coastal_reach_km": "km",
+        "cone_horizon_h": "h",
+        "development_chance_floor_pct": "%",
+        "hurricane_wind_floor_pct": "%",
+        "segment_end_tolerance_km": "km",
+        "tropical_storm_wind_floor_pct": "%",
+    }
+)
+
+CALIBRATION_EVIDENCE: Final[Mapping[str, str]] = MappingProxyType(
+    {
+        "coastal_reach_km": "25 km is inside the 7.6-29.1 km safety gap; covering lines pass "
+        "within 3.8 km, non-covering alongside lines start at 58.2 km.",
+        "segment_end_tolerance_km": "5 km is less than half the nearest short-ending segment "
+        "distance (22.6 km); none of the covering landmark segments "
+        "needs an end extension.",
+        "cone_horizon_h": "120 h is the round forecast maximum; the five pairs with a watch "
+        "first reach level 3 at least 54 h before it. A 116 h horizon changes "
+        "a recorded hurricane-cone outcome.",
+        "hurricane_wind_floor_pct": "10% separates adjacent recorded advisories; 5% promotes "
+        "the weaker band, while 20% demotes the stronger. Every covering watch "
+        "retains at least 54 h lead; named witnesses are in the calibration report.",
+        "tropical_storm_wind_floor_pct": "5% distinguishes the lowest positive 34-kt band from "
+        "the <5% band. Ordering/reversal exceptions are "
+        "recorded, never smoothed.",
+        "development_chance_floor_pct": "0% follows the brief: any seven-day region. The "
+        "recorded Atlantic scenario is 20%; the archive has no "
+        "outlook, so this is not corpus-calibrated.",
+    }
+)
+
+INDISTINGUISHABLE_PAIRS: Final[Mapping[tuple[RuleId, RuleId], str]] = MappingProxyType(
+    {
+        (
+            RuleId.HURRICANE_WARNING,
+            RuleId.TROPICAL_STORM_WARNING,
+        ): "No reference has both as its earliest matches; stronger rules can mask overlaps.",
+        (
+            RuleId.TROPICAL_STORM_WARNING,
+            RuleId.HURRICANE_WATCH,
+        ): "No reference has both as its earliest matches; stronger rules can mask overlaps.",
+        (
+            RuleId.HURRICANE_WATCH,
+            RuleId.EVACUATION_ORDER,
+        ): "No reference has both as its earliest matches; stronger rules can mask overlaps.",
+        (
+            RuleId.EVACUATION_ORDER,
+            RuleId.TROPICAL_STORM_WATCH,
+        ): "No reference has both as its earliest matches; stronger rules can mask overlaps.",
+        (
+            RuleId.TROPICAL_STORM_WATCH,
+            RuleId.HURRICANE_CONE,
+        ): "No reference has both as its earliest matches; stronger rules can mask overlaps.",
+        (
+            RuleId.STORM_CONE,
+            RuleId.DEVELOPMENT_REGION,
+        ): "No reference has both as its earliest matches; stronger rules can mask overlaps.",
+        (
+            RuleId.DEVELOPMENT_REGION,
+            RuleId.TROPICAL_STORM_WIND_PROBABILITY,
+        ): "No reference has both as its earliest matches; stronger rules can mask overlaps.",
+        (
+            RuleId.TROPICAL_STORM_WIND_PROBABILITY,
+            RuleId.ALL_CLEAR,
+        ): "all_clear is a fallback with no matching predicate; it never short-circuits a rule.",
+    }
+)

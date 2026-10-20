@@ -191,6 +191,47 @@ rewrites only the manifest's `subset` and `subset_rule` from the verified
 cache: review the manifest diff in the pull request. The originals' checksums
 never change except through a deliberate `manifest` re-recording.
 
+### Calibrating and reviewing the ladder
+
+`ReplayService(corpus).timeline(atcf_id, location, thresholds)` returns each
+advisory's assessment and change events without storing anything. The development
+tools build the same two public landmarks from `scripts/public_landmarks.toml`,
+the verified recorded NWS answers, and the breakpoint catalogue.
+
+```sh
+uv run python scripts/calibrate_ladder.py          # docs/ladder-calibration.json
+uv run python scripts/calibrate_ladder.py --check  # repeat all legal-value sweeps
+uv run python scripts/build_goldens.py --review-only # eight transition tables and review digest
+uv run python scripts/build_goldens.py --check     # frozen timelines and approvals
+uv run python scripts/export_ladder.py --check     # the three canonical document tables
+```
+
+The operator must approve all eight timelines, with the calibration evidence,
+in the PR that changes them. An agent cannot approve its own goldens. After that
+explicit approval, record its date and the exact review digest:
+
+```sh
+uv run python scripts/build_goldens.py --approve-date YYYY-MM-DD --review-sha256 SHA
+```
+
+A first build writes candidates with null approvals. An existing frozen golden
+is never silently regenerated: editing its timeline invalidates its approval
+digest, and changing the manifest or ruleset invalidates its metadata check.
+Any changed golden needs another operator approval recorded in that PR. Review
+digests bind all eight candidates and their source/ruleset metadata; an approval
+record binds each exact timeline. The approval date is never inferred from a
+test run. `tests/engine/test_golden_mutations.py` guards every rule and threshold,
+and records the exact adjacent swaps the reference cannot distinguish.
+
+The full-products and arrival cross-checks share one session conversion of the
+verified cache in a temporary directory. They run with `pytest -m corpus`; all
+ordinary golden tests use only the committed subset and run offline on every PR.
+The ordering/reversal exceptions the operator approved on 2026-10-20 are explicit
+in [the written ladder](docs/ALERT-LADDER.md), beside the retained watch-lead target.
+That document is the shared text the CLI, UI, and Claude prompts quote. After a
+rule or threshold metadata change, run `scripts/export_ladder.py` and commit its
+rendered tables with the change.
+
 ## Local data
 
 Weatherbot keeps its state outside the repository, in your user directories:
@@ -206,8 +247,8 @@ settings below, and an environment variable overrides each one (environment,
 then file, then default): `WEATHERBOT_LOG_LEVEL`,
 `WEATHERBOT_HTTP_TIMEOUT_SECONDS`, and `WEATHERBOT_ENGINE_<KEY>` for each key
 of `[engine]`, such as `WEATHERBOT_ENGINE_COASTAL_REACH_KM`. The `[engine]`
-values are the alert ladder's thresholds at their provisional defaults; Phase
-3 Step 5 calibrates them.
+values are the alert ladder's calibrated defaults; their outcome intervals and
+evidence are in [the written ladder](docs/ALERT-LADDER.md).
 
 ```toml
 [logging]

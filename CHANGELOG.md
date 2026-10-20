@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 3 — Threat engine
+- Add `ReplayService.timeline`, six calibrated threshold intervals and their
+  witnesses, eight operator-reviewed golden replay timelines, rule/threshold
+  mutation guards, and `docs/ALERT-LADDER.md` with three tables rendered from code.
+  The calibration records measured ordering/reversal exceptions approved on
+  2026-10-20 while retaining at least 48 hours before each first covering watch.
+  The cached full-products cross-check shares one conversion with the existing
+  archive and arrival checks. Golden changes require approval of their exact digest.
 - Add `weatherbot.engine.geodesy`: `Figure` and `figure_of`, which gives each CRS
   its figure (WGS 84 for `EPSG:4326`; for a native CRS, the one spheroid its WKT
   names, read by a strict parser that refuses a projected CRS, a missing or
