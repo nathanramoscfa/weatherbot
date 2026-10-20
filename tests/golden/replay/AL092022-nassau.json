@@ -722,5 +722,8 @@
       "official_codes": []
     }
   ],
-  "approval": null
+  "approval": {
+    "date": "2026-10-20",
+    "timeline_sha256": "ef4eaf44cf80f3ee1eba3cee3094e764e0b4d7fbae28a6cfc74f722cf7755334"
+  }
 }

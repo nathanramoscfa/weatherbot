@@ -1275,5 +1275,8 @@
       "official_codes": []
     }
   ],
-  "approval": null
+  "approval": {
+    "date": "2026-10-20",
+    "timeline_sha256": "4d00f0cc493f4c43fc58e15c800df351295a75cf2bc4dbcee0e2a9fda22a976b"
+  }
 }
