@@ -52,7 +52,7 @@ Step 0c — this roadmap is written with the settings the project
 roadmap names for it. Read the `### Phase {{N}}` section of
 `{{PROJECT_ROADMAP}}` and its **Phase roadmap settings** table, and
 print one line: `Phase {{N}} roadmap settings: Model <M> · Platform
-<P> · <its dials, e.g. Effort Max · Thinking On>. This session: <your
+<P> · <its dials, e.g. Effort Max, plus Thinking On where the model has the toggle>. This session: <your
 own model> on <this surface>.`
 
 - Name your exact model, never only its family. On Codex your

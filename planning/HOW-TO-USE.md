@@ -58,7 +58,8 @@ Concretely, for each roadmap step:
 4. **Emit** the step's Settings table using the **platform-specific variant**
    the template defines. Every table carries Model / Backup / Platform /
    Conversation plus **only the dials the chosen surface actually exposes** — Claude Code →
-   Effort + Thinking(On/Off); Codex and the other reasoning-dial surfaces
+   Effort + Thinking(On/Off), with Thinking `—` on a model that always thinks
+   (Opus 5.5, Sonnet 5.5, Haiku 5.5, the Fable models), which has no toggle; Codex and the other reasoning-dial surfaces
    (ChatGPT app, provider APIs, Gemini CLI) → the effort dial under that
    surface's own label (Codex calls it Intelligence) + Thinking where it has a
    separate toggle; Cursor → Max Mode alone, since Cursor exposes no reasoning
