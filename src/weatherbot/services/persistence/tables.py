@@ -1,10 +1,11 @@
 # src/weatherbot/services/persistence/tables.py
-"""The tables Phase 2 writes, in SQLAlchemy 2's typed declarative mapping.
+"""The tables Weatherbot writes, in SQLAlchemy 2's typed declarative mapping.
 
-Tables arrive with their writers: assessments and evidence (Phase 3), notifications and
-the heartbeat (Phase 4), and briefings and the Claude ledger (Phase 6) are later
-revisions. Every instant goes in and comes out as an aware UTC value. A naming convention
-names every constraint, so a SQLite batch migration can find and alter it.
+Tables arrive with their writers: Phase 2's snapshots and locations (revisions 0001 and
+0002), and the assessments, their evidence, and their changes (revision 0003, Phase 3);
+notifications and the heartbeat (Phase 4), and briefings and the Claude ledger (Phase 6)
+are later revisions. Every instant goes in and comes out as an aware UTC value. A naming
+convention names every constraint, so a SQLite batch migration can find and alter it.
 
 Records that a snapshot holds by reference (a storm, a text product, a feed item, an
 alert) are stored once and observed per snapshot, and every observation keeps what the
@@ -32,6 +33,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+from weatherbot.models import CHANGE_KINDS, AlertLevel
+
 NAMING_CONVENTION: Final = {
     "ix": "ix_%(table_name)s_%(column_0_N_name)s",
     "uq": "uq_%(table_name)s_%(column_0_N_name)s",
@@ -55,6 +58,8 @@ PRODUCT_KINDS: Final = (
 )
 OUTCOME_STATUSES: Final = ("ok", "not_modified", "failed", "skipped")
 SNAPSHOT_STATUSES: Final = ("complete", "partial", "failed")
+EVIDENCE_ROLES: Final = ("evidence", "official")
+"""An evidence row is one match of the deciding rule, or one official product considered."""
 
 
 def _one_of(column: str, values: tuple[str, ...]) -> str:
@@ -125,6 +130,9 @@ class LocationRow(Base):
     nws_state: Mapped[str | None] = mapped_column(Text)
     breakpoint_span: Mapped[dict[str, Any] | None]
     evacuation_order_in_effect: Mapped[bool] = mapped_column(server_default=false())
+    evacuation_order_set_at: Mapped[datetime | None] = mapped_column(
+        comment="When the toggle was last turned on or off (revision 0003)"
+    )
     geocoding: Mapped[dict[str, Any] | None] = mapped_column(comment="Provenance JSON")
     created_at: Mapped[datetime]
     updated_at: Mapped[datetime]
@@ -402,3 +410,71 @@ class DriftWarningRow(Base):
     position: Mapped[int]
     source_id: Mapped[str] = mapped_column(String(32))
     message: Mapped[str] = mapped_column(Text)
+
+
+class AssessmentRow(Base):
+    """The level one live snapshot set for one location, under one ruleset (revision 0003).
+
+    ``assessment`` is the whole ``Assessment`` as validated JSON, so it loads back equal;
+    the level, rule, completeness, and thresholds are copied beside it for queries. Its
+    evidence holds distances that locate the location, so it stays in this database.
+    Removing the location removes its assessments, their evidence, and their changes.
+    """
+
+    __tablename__ = "assessments"
+    __table_args__ = (
+        UniqueConstraint("location_id", "snapshot_id", "ruleset"),
+        Index(None, "location_id", "as_of"),
+        CheckConstraint(f"level BETWEEN {min(AlertLevel):d} AND {max(AlertLevel):d}", name="level"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    location_id: Mapped[int] = mapped_column(ForeignKey("locations.id", ondelete="CASCADE"))
+    snapshot_id: Mapped[UUID] = mapped_column(
+        ForeignKey("snapshots.id", ondelete="CASCADE"), index=True
+    )
+    ruleset: Mapped[str] = mapped_column(String(64), comment="Thresholds and rule order")
+    as_of: Mapped[datetime] = mapped_column(comment="The snapshot's instant")
+    level: Mapped[int]
+    rule: Mapped[str] = mapped_column(String(40))
+    complete: Mapped[bool]
+    thresholds: Mapped[dict[str, Any]] = mapped_column(comment="Thresholds JSON")
+    assessment: Mapped[dict[str, Any]] = mapped_column(comment="Assessment JSON")
+    stored_at: Mapped[datetime]
+
+
+class AssessmentEvidenceRow(Base):
+    """One evidence record or one official product of an assessment, for queries."""
+
+    __tablename__ = "assessment_evidence"
+    __table_args__ = (
+        UniqueConstraint("assessment_id", "role", "position"),
+        CheckConstraint(_one_of("role", EVIDENCE_ROLES), name="role"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id", ondelete="CASCADE"))
+    role: Mapped[str] = mapped_column(String(8))
+    position: Mapped[int]
+    kind: Mapped[str] = mapped_column(String(24), comment="The product's kind")
+    rule: Mapped[str | None] = mapped_column(String(40))
+    source_id: Mapped[str | None] = mapped_column(String(32))
+    code: Mapped[str | None] = mapped_column(Text, comment="The NWS event or the NHC code")
+    distance_km: Mapped[float | None]
+    covers: Mapped[bool | None] = mapped_column(comment="An official product's coverage")
+
+
+class AssessmentChangeRow(Base):
+    """One change event from the previous stored assessment of the location, in order."""
+
+    __tablename__ = "assessment_changes"
+    __table_args__ = (
+        UniqueConstraint("assessment_id", "position"),
+        CheckConstraint(_one_of("kind", CHANGE_KINDS), name="kind"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id", ondelete="CASCADE"))
+    position: Mapped[int]
+    kind: Mapped[str] = mapped_column(String(20))
+    event: Mapped[dict[str, Any]] = mapped_column(comment="ChangeEvent JSON")

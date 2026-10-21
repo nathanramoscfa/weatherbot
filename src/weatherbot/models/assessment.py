@@ -154,7 +154,8 @@ class Evidence(DomainModel):
     """One match of the deciding rule: the product, the test that fired, and what it found.
 
     ``issued_at`` is the product's issuance: an alert's ``sent``, an advisory's issuance,
-    an outlook's file date, or a probability product's synoptic time. ``distance_km``,
+    an outlook's file date, a probability product's synoptic time, or when the operator
+    turned the evacuation-order toggle on. ``distance_km``,
     ``at_end``, ``closest_approach_at``, and ``lead_h`` are set where the test measured
     them; ``lead_h`` counts from the assessment's instant, and an approach already past
     counts as now. ``crs`` names the CRS of the geometry tested. ``detail`` is a plain

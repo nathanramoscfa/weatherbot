@@ -119,13 +119,17 @@ def _official(rule: RuleId) -> Evaluate:
 
 
 def _evacuation_order(readings: Readings) -> tuple[Evidence, ...]:
-    if not readings.location.evacuation_order_in_effect:
+    location = readings.location
+    if not location.evacuation_order_in_effect:
         return ()
-    detail = "The operator's evacuation-order toggle is on for this location."
+    since = location.evacuation_order_set_at
+    when = f" since {since:{_TIME}}" if since is not None else ""
+    detail = f"The operator's evacuation-order toggle is on for this location{when}."
     return (
         Evidence(
             rule=RuleId.EVACUATION_ORDER,
             product="evacuation_toggle",
+            issued_at=since,
             test="toggle",
             detail=detail,
         ),

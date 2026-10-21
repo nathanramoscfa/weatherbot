@@ -290,6 +290,26 @@ async def test_removing_a_location_deletes_its_alert_observations_and_nothing_el
     assert loaded.model_copy(update={"alerts": snapshot.alerts}) == snapshot
 
 
+def test_the_toggle_and_the_span_are_updated_in_place(database: Database) -> None:
+    repository = LocationRepository(database.engine)
+    repository.add(landmark_location())
+    span = BreakpointSpan(names=("Bahamas (NW)",), country="Bahamas", is_region=True)
+    at = datetime(2026, 10, 20, 12, tzinfo=UTC)
+
+    toggled = repository.set_evacuation_order(LANDMARK_NAME, on=True, at=at)
+    assert repository.set_breakpoint_span(LANDMARK_NAME, span)
+
+    stored = repository.get(LANDMARK_NAME)
+    assert toggled is not None
+    assert (toggled.evacuation_order_in_effect, toggled.evacuation_order_set_at) == (True, at)
+    assert stored is not None
+    assert (stored.breakpoint_span, stored.evacuation_order_set_at) == (span, at)
+    assert repository.set_breakpoint_span(LANDMARK_NAME, None)
+    assert repository.get(LANDMARK_NAME) == toggled
+    assert repository.set_evacuation_order("missing", on=True, at=at) is None
+    assert not repository.set_breakpoint_span("missing", span)
+
+
 # Settings ----------------------------------------------------------------------------------
 
 

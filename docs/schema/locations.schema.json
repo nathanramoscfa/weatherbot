@@ -2,6 +2,51 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/locations.schema.json",
   "$defs": {
+    "BreakpointSpan": {
+      "additionalProperties": false,
+      "description": "The stretch of coast a location sits on, named from NHC's breakpoint catalogue.\n\nEither the two catalogue breakpoints, in catalogue order, between which the\nlocation's coast falls (one when its nearest breakpoint has no neighbour in the same\ncountry), or the one ``country (region)`` entry that holds it. The span names a\ncoast; it never decides whether a watch or warning covers the location.",
+      "properties": {
+        "names": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Names",
+          "type": "array"
+        },
+        "country": {
+          "title": "Country",
+          "type": "string"
+        },
+        "is_region": {
+          "description": "Whether the span is a country (region) entry.",
+          "title": "Is Region",
+          "type": "boolean"
+        },
+        "catalog_loaded_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The catalogue's idp_filedate; None for one stored before it was read.",
+          "title": "Catalog Loaded At"
+        }
+      },
+      "required": [
+        "names",
+        "country",
+        "is_region"
+      ],
+      "title": "BreakpointSpan",
+      "type": "object"
+    },
     "LocationEntry": {
       "additionalProperties": false,
       "description": "A stored location. Its coordinates appear in this document and in no other.",
@@ -63,6 +108,30 @@
         "evacuation_order_in_effect": {
           "title": "Evacuation Order In Effect",
           "type": "boolean"
+        },
+        "evacuation_order_set_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "When the toggle was last turned on or off; null: never.",
+          "title": "Evacuation Order Set At"
+        },
+        "breakpoint_span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BreakpointSpan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The coast it sits on, from NHC's catalogue; null until a status run finds one."
         }
       },
       "required": [
@@ -73,7 +142,9 @@
         "display_name",
         "nws",
         "has_polygon",
-        "evacuation_order_in_effect"
+        "evacuation_order_in_effect",
+        "evacuation_order_set_at",
+        "breakpoint_span"
       ],
       "title": "LocationEntry",
       "type": "object"

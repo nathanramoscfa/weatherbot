@@ -7,7 +7,7 @@ renders each model's schema (JSON Schema 2020-12, with ``$schema`` and ``$id``) 
 result: a test fails while a committed schema differs from a fresh export. ``--check``
 writes nothing and exits 1 when a committed file is stale.
 
-    uv run python scripts/export_schemas.py           # write the five schemas
+    uv run python scripts/export_schemas.py           # write every schema
     uv run python scripts/export_schemas.py --check   # verify them
 """
 

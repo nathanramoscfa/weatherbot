@@ -5,9 +5,12 @@ Every document carries ``schema_version``, ``command``, ``generated_at``, and th
 ``disclaimer`` notice; a document read from a snapshot carries its id, times, status, and
 source outcomes; ``data`` holds the command's records, built from the domain models
 without geometry (Phase 5's API serves geometry). ``locations list --json`` is the only
-document that holds a location's coordinates. ``scripts/export_schemas.py`` writes each
-model's schema to ``docs/schema/<command>.schema.json`` (JSON Schema 2020-12), and a test
-keeps the committed files equal to a fresh export.
+document that holds a location's coordinates. A distance or a bearing from a storm or a
+product locates a location too, so ``status`` and ``alerts`` round them for reading (a
+tenth of a kilometre, a whole degree); the exact values stay in the local database.
+``scripts/export_schemas.py`` writes each model's schema to
+``docs/schema/<command>.schema.json`` (JSON Schema 2020-12), and a test keeps the committed
+files equal to a fresh export.
 """
 
 from datetime import datetime
@@ -20,6 +23,7 @@ from weatherbot.models import (
     AlertCertainty,
     AlertSeverity,
     AlertUrgency,
+    BreakpointSpan,
     NwsCoverage,
     OutlookRisk,
     SourceId,
@@ -78,6 +82,12 @@ class LocationEntry(_Document):
     nws: NwsCoverage | None = Field(description="null: outside NWS coverage.")
     has_polygon: bool = Field(description="Whether a zone's shape is stored (not shown).")
     evacuation_order_in_effect: bool
+    evacuation_order_set_at: datetime | None = Field(
+        description="When the toggle was last turned on or off; null: never."
+    )
+    breakpoint_span: BreakpointSpan | None = Field(
+        description="The coast it sits on, from NHC's catalogue; null until a status run finds one."
+    )
 
 
 class LocationsData(_Document):
@@ -233,15 +243,31 @@ class AlertEntry(_Document):
     expires_local: str | None = Field(description="ISO 8601 in the location's time zone.")
     found_by: tuple[FoundByEntry, ...]
     affected_zone_ids: tuple[str, ...]
+    covers: bool = Field(
+        description="Whether it is in effect for this location (issue #10): returned by the "
+        "point query, or naming one of its zones."
+    )
+    coverage: str = Field(
+        description="Why it covers the location or not, such as a county-zone alert outside "
+        "this location's zones."
+    )
+    rule: str | None = Field(description="The ladder rule a covering alert triggers.")
 
 
 class SegmentEntry(_Document):
-    """An active storm's official watch-warning segment, verbatim, not matched to a place."""
+    """An active storm's watch-warning segment, and whether it covers the location."""
 
     atcf_id: str
     storm_name: str
     tcww: WatchWarningType
     advisory: str
+    covers: bool
+    distance_km: float | None = Field(
+        description="A covering segment's nearest point, to a tenth of a kilometre."
+    )
+    at_end: bool | None = Field(description="Whether that nearest point is the segment's end.")
+    breakpoints: tuple[str, ...] = Field(description="Its ends, named from the catalogue.")
+    coverage: str | None = Field(description="Why a covering segment covers the location.")
 
 
 class AlertLocationEntry(_Document):
@@ -255,13 +281,16 @@ class AlertLocationEntry(_Document):
 
 
 class AlertsData(_Document):
-    """A location's alerts, or, outside NWS coverage, the active watch-warning segments."""
+    """A location's alerts and the watch-warning segments, each saying whether it covers it."""
 
     location: AlertLocationEntry
     alerts: tuple[AlertEntry, ...] | None = Field(
         description="null: the snapshot holds no alert list for this location."
     )
-    watch_warnings: tuple[SegmentEntry, ...]
+    watch_warnings: tuple[SegmentEntry, ...] = Field(
+        description="Inside NWS coverage, the segments that cover the location; outside it, "
+        "every active segment, those that cover it first."
+    )
     note: str | None
 
 
@@ -271,6 +300,246 @@ class AlertsDocument(_Envelope):
     command: Literal["alerts"] = "alerts"
     snapshot: SnapshotInfo
     data: AlertsData
+
+
+# status ------------------------------------------------------------------------------------
+
+
+class EvidenceEntry(_Document):
+    """One match of the deciding rule: the product, its issuance, the test, the distance."""
+
+    product: Literal[
+        "nws_alert",
+        "watch_warning_segment",
+        "cone",
+        "wind_probability",
+        "development_region",
+        "evacuation_toggle",
+    ]
+    source_id: SourceId | None = Field(description="null: the operator's toggle.")
+    code: str | None = Field(description="The NWS event, the NHC tcww code, or the band.")
+    atcf_id: str | None
+    storm_name: str | None
+    advisory: str | None
+    issued_at: datetime | None = Field(
+        description="The product's issuance, or when the toggle was turned on."
+    )
+    test: Literal[
+        "point_query", "zone_list", "segment_distance", "point_in_polygon", "band", "toggle"
+    ]
+    distance_km: float | None
+    at_end: bool | None
+    crs: str | None
+    closest_approach_at: datetime | None
+    lead_h: float | None = Field(description="Hours from the snapshot to the closest approach.")
+    detail: str
+
+
+class OfficialEntry(_Document):
+    """An NWS alert or NHC segment that covers the location, or a county alert beside it."""
+
+    kind: Literal["nws_alert", "watch_warning_segment"]
+    code: str = Field(description="The NWS event, or the NHC tcww code as received.")
+    alert_id: str | None
+    issuer: str | None
+    atcf_id: str | None
+    storm_name: str | None
+    advisory: str | None
+    issued_at: datetime | None
+    expires_at: datetime | None
+    zones: tuple[str, ...] = Field(description="The UGC zones an alert names.")
+    distance_km: float | None
+    breakpoints: tuple[str, ...]
+    covers: bool = Field(description="false: a county-zone alert outside this location's zones.")
+    rule: str | None = Field(description="The ladder rule it triggers; null: it sets no level.")
+    reason: str
+
+
+class WindReadingEntry(_Document):
+    """A wind-speed-probability product read at the location."""
+
+    threshold_kt: Literal[34, 50, 64]
+    synoptic_at: datetime
+    reading: Literal["band", "below_every_band", "outside_coverage"]
+    label: str | None
+    lower_pct: int | None
+    upper_pct: int | None
+
+
+class ArrivalEntry(_Document):
+    """When tropical-storm-force winds arrive, as one arrival-time product says."""
+
+    kind: Literal["earliest_reasonable", "most_likely"]
+    origin: Literal["kmz", "map_layer", "track"]
+    reading: Literal["before", "between", "after", "outside", "unresolved", "track"]
+    advisory: str | None
+    start: datetime | None
+    end: datetime | None
+    approach_at: datetime | None = Field(description="The track fallback's closest approach.")
+    label: str | None
+    reason: str | None
+
+
+class ThreatEntry(_Document):
+    """What one storm means for the location, read from its own advisory products."""
+
+    atcf_id: str
+    storm_name: str
+    advisory: str | None
+    issued_at: datetime | None
+    category: int | None = Field(description="Saffir-Simpson 1 to 5; null below hurricane.")
+    development: str | None
+    in_cone: bool | None = Field(description="null: no usable cone.")
+    distance_km: float | None = Field(description="From the storm's center.")
+    bearing_deg: int | None = Field(description="From the storm's center, to a whole degree.")
+    closest_approach_at: datetime | None
+    closest_approach_km: float | None
+    lead_h: float | None
+    hurricane_by_approach: bool | None
+    earliest_arrival: ArrivalEntry
+    most_likely_arrival: ArrivalEntry
+
+
+class ChangeEntry(_Document):
+    """One change since the previous stored assessment."""
+
+    kind: Literal[
+        "level_changed",
+        "advisory_issued",
+        "official_added",
+        "official_changed",
+        "official_removed",
+        "cone_entered",
+        "cone_left",
+    ]
+    detail: str
+
+
+class UnavailableEntry(_Document):
+    """An input the rules lacked; the level then reads as "at least"."""
+
+    kind: str
+    source_id: SourceId | None
+    storm_name: str | None
+    threshold_kt: Literal[34, 50, 64] | None
+    reason: str
+
+
+class EvacuationOrderEntry(_Document):
+    """The operator's evacuation-order toggle: on holds the location at level 4 or above."""
+
+    on: bool
+    set_at: datetime | None = Field(description="When it was last turned on or off.")
+
+
+class StatusLocationEntry(_Document):
+    """One location's assessment: its level, why, each storm's threat, and what changed."""
+
+    name: str
+    inside_nws_coverage: bool
+    time_zone: str | None
+    as_of: datetime = Field(description="The snapshot's instant the assessment reads.")
+    level: int = Field(ge=1, le=5)
+    level_name: str
+    actions: str
+    rule: str
+    rule_trigger: str
+    complete: bool = Field(
+        description="false: an input was unavailable, and the level reads as at least."
+    )
+    unavailable: tuple[UnavailableEntry, ...]
+    evidence: tuple[EvidenceEntry, ...]
+    official: tuple[OfficialEntry, ...] = Field(
+        description="The products that cover the location, and the county-zone alerts "
+        "outside its zones."
+    )
+    wind_probabilities: tuple[WindReadingEntry, ...]
+    threats: tuple[ThreatEntry, ...]
+    changes: tuple[ChangeEntry, ...] = Field(
+        description="The changes since the previous stored assessment."
+    )
+    breakpoint_span: BreakpointSpan | None
+    evacuation_order: EvacuationOrderEntry
+    ruleset: str
+    stored_before: bool = Field(
+        description="true: an earlier run stored this snapshot's assessment already."
+    )
+    toggle_changed: bool = Field(
+        description="true: the toggle was set after that stored assessment, which did not "
+        "read it; the next fetched snapshot's assessment will."
+    )
+
+
+class StatusData(_Document):
+    """Each location's assessment against the snapshot, or the one named."""
+
+    locations: tuple[StatusLocationEntry, ...]
+
+
+class StatusDocument(_Envelope):
+    """``weatherbot status --json``."""
+
+    command: Literal["status"] = "status"
+    snapshot: SnapshotInfo
+    data: StatusData
+
+
+# replay ------------------------------------------------------------------------------------
+
+
+class ReplayStormEntry(_Document):
+    """The replayed storm, named as the corpus names it."""
+
+    atcf_id: str
+    name: str
+    advisories: int = Field(ge=1)
+    first_issued_at: datetime
+    last_issued_at: datetime
+
+
+class ReplayLocationEntry(_Document):
+    """The stored location the storm is replayed at, without its coordinates."""
+
+    name: str
+    inside_nws_coverage: bool
+    evacuation_order_stored_on: bool = Field(
+        description="The stored toggle; a replay always assesses with it off."
+    )
+
+
+class ReplayStepEntry(_Document):
+    """One replayed advisory's assessment and its changes from the advisory before."""
+
+    advisory: str
+    issued_at: datetime
+    level: int = Field(ge=1, le=5)
+    level_name: str
+    rule: str
+    complete: bool
+    official_codes: tuple[str, ...] = Field(
+        description="The codes of the covering watches and warnings, sorted."
+    )
+    changes: tuple[ChangeEntry, ...]
+
+
+class ReplayData(_Document):
+    """A storm's ladder timeline at a location: its transitions, or every advisory."""
+
+    storm: ReplayStormEntry
+    location: ReplayLocationEntry
+    every: bool = Field(description="false: only the advisories where the level or rule changes.")
+    ruleset: str
+    steps: tuple[ReplayStepEntry, ...]
+    notes: tuple[str, ...] = Field(
+        description="What the replay could not read, and that the toggle stayed off."
+    )
+
+
+class ReplayDocument(_Envelope):
+    """``weatherbot replay --json``."""
+
+    command: Literal["replay"] = "replay"
+    data: ReplayData
 
 
 # doctor ------------------------------------------------------------------------------------
@@ -351,6 +620,8 @@ DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "storms": StormsDocument,
     "alerts": AlertsDocument,
     "doctor": DoctorDocument,
+    "status": StatusDocument,
+    "replay": ReplayDocument,
 }
 """Each schema's file stem and its document model."""
 

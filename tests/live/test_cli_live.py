@@ -1,6 +1,9 @@
 # tests/live/test_cli_live.py
 """Every command against the live services, for both public landmarks.
 
+``status`` assesses and stores both landmarks against the live snapshot, in the test's
+temporary database.
+
 Marked ``live`` and ``enable_socket``: it runs only with ``pytest -m live`` (and in
 ``.github/workflows/live-smoke.yml``). The isolation fixture pins the data directory under
 the test's temporary directory, so the database it creates is thrown away; the only
@@ -11,7 +14,13 @@ coordinates sent are the two landmarks of ``scripts/public_landmarks.toml``, add
 import pytest
 from cli_support import MIAMI, NASSAU, Ran, landmark, parse, run
 
-from weatherbot.cli.documents import AlertsDocument, DoctorDocument, SnapshotInfo, StormsDocument
+from weatherbot.cli.documents import (
+    AlertsDocument,
+    DoctorDocument,
+    SnapshotInfo,
+    StatusDocument,
+    StormsDocument,
+)
 from weatherbot.cli.runtime import Runtime
 
 pytestmark = [pytest.mark.live, pytest.mark.enable_socket]
@@ -53,6 +62,18 @@ def test_every_command_runs_against_the_live_services_for_both_landmarks() -> No
     _complete(ran, nassau.snapshot)
     assert nassau.data.location.inside_nws_coverage is False
     assert nassau.data.alerts is None
+
+    ran = run(["status", "--json"], LIVE)
+    status = parse(ran, StatusDocument)
+    _complete(ran, status.snapshot)
+    assert [entry.name for entry in status.data.locations] == [MIAMI, NASSAU]
+    assert all(1 <= entry.level <= 5 for entry in status.data.locations)  # noqa: PLR2004
+    assert all(not entry.stored_before for entry in status.data.locations)
+    miami, nassau = status.data.locations
+    assert miami.inside_nws_coverage
+    assert not nassau.inside_nws_coverage
+    again = parse(run(["status", "--no-fetch", "--json"], LIVE), StatusDocument)
+    assert all(entry.stored_before for entry in again.data.locations)
 
     ran = run(["doctor", "--json"], LIVE)
     doctor = parse(ran, DoctorDocument)

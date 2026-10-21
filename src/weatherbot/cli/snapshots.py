@@ -3,9 +3,11 @@
 
 ``fetch`` fetches and stores a snapshot and prints what every source answered. ``storms``
 and ``alerts`` fetch one too, or with ``--no-fetch`` read the latest stored one and say
-how old it is. Each exits 1 when the snapshot is partial or failed. Nothing here decides
-what a product means for a location: matching a watch-warning segment or a county alert
-to a place is Phase 3's.
+how old it is. Each exits 1 when the snapshot is partial or failed. ``alerts`` says which
+official products cover the location: each NWS alert by issue #10's rule (a county-zone
+alert outside the location's zones is context), and each NHC watch-warning segment by the
+coverage rule, read with the configured thresholds. It stores nothing; ``status`` keeps
+the assessments.
 """
 
 import asyncio
@@ -46,7 +48,15 @@ from weatherbot.cli.runtime import (
     fail,
     open_session,
 )
-from weatherbot.models import Location, NwsAlert, Snapshot, StormProducts
+from weatherbot.models import (
+    Location,
+    NwsAlert,
+    OfficialProduct,
+    Snapshot,
+    StormProducts,
+    Thresholds,
+)
+from weatherbot.services.assessments import official_products
 from weatherbot.services.disclaimer import NOTICE
 from weatherbot.services.locations import LocationService
 from weatherbot.services.persistence.database import Database
@@ -57,10 +67,6 @@ JsonOption = Annotated[bool, typer.Option("--json", help="Print one JSON documen
 NoFetchOption = Annotated[
     bool, typer.Option("--no-fetch", help="Read the latest stored snapshot instead of fetching.")
 ]
-PHASE_3_NOTE: Final = (
-    "Matching a watch-warning segment to this location is Phase 3's work: Weatherbot does "
-    "not decide here whether a segment applies."
-)
 ADD_HINT: Final = "add one with: weatherbot locations add NAME --lat LAT --lon LON"
 
 
@@ -103,11 +109,26 @@ def snapshot_info(snapshot: Snapshot, now: datetime) -> SnapshotInfo:
     )
 
 
-def _exit_code(snapshot: Snapshot) -> int:
+def exit_code(snapshot: Snapshot) -> int:
+    """The exit status a snapshot gives a command: 0 complete, 1 partial or failed.
+
+    Args:
+        snapshot: The snapshot.
+
+    Returns:
+        The status.
+    """
     return EXIT_OK if snapshot.status == "complete" else EXIT_FAILED
 
 
-def _print_header(output: Output, info: SnapshotInfo, *, stored: bool) -> None:
+def print_header(output: Output, info: SnapshotInfo, *, stored: bool) -> None:
+    """Print the snapshot's line, its age when it was read from the store, and each failure.
+
+    Args:
+        output: The command's output.
+        info: The snapshot.
+        stored: Whether it was read from the store rather than fetched.
+    """
     age = f", {_age(info.age_seconds)} old" if stored else ""
     output.line(
         f"Snapshot {info.snapshot_id} at {utc(info.completed_at)}: {info.status}{age}.",
@@ -118,9 +139,23 @@ def _print_header(output: Output, info: SnapshotInfo, *, stored: bool) -> None:
             output.line(f"  {outcome.source_id} failed ({outcome.error_kind}); its part is empty.")
 
 
-def _snapshot(
+def read_snapshot(
     context: Context, output: Output, database: Database, *, no_fetch: bool
 ) -> tuple[Snapshot, tuple[DriftWarning, ...]]:
+    """Fetch and store a snapshot, or read the latest stored one under ``--no-fetch``.
+
+    Args:
+        context: The invocation's context.
+        output: The command's output.
+        database: The open database.
+        no_fetch: Read the latest stored snapshot instead of fetching.
+
+    Returns:
+        The snapshot and the drift warnings its fetch logged (none when read).
+
+    Raises:
+        Exit: With status 1 under ``--no-fetch`` when no snapshot is stored.
+    """
     service = SnapshotService(database.engine, network=context.network, now=context.runtime.now)
     if no_fetch:
         snapshot = service.latest()
@@ -165,7 +200,7 @@ def fetch(ctx: typer.Context, *, json_output: JsonOption = False) -> None:
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
     with open_session(context, output) as database:
-        snapshot, warnings = _snapshot(context, output, database, no_fetch=False)
+        snapshot, warnings = read_snapshot(context, output, database, no_fetch=False)
     now = context.runtime.now()
     info = snapshot_info(snapshot, now)
     if json_output:
@@ -181,8 +216,8 @@ def fetch(ctx: typer.Context, *, json_output: JsonOption = False) -> None:
                 ),
             )
         )
-        raise typer.Exit(_exit_code(snapshot))
-    _print_header(output, info, stored=False)
+        raise typer.Exit(exit_code(snapshot))
+    print_header(output, info, stored=False)
     output.table(
         "Source outcomes",
         ("Source", "Outcome", "Detail"),
@@ -198,7 +233,7 @@ def fetch(ctx: typer.Context, *, json_output: JsonOption = False) -> None:
     for warning in warnings:
         output.line(f"Source drift: {warning.message}", style="yellow")
     output.notice()
-    raise typer.Exit(_exit_code(snapshot))
+    raise typer.Exit(exit_code(snapshot))
 
 
 # storms ------------------------------------------------------------------------------------
@@ -369,7 +404,7 @@ def storms(
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
     with open_session(context, output) as database:
-        snapshot, _ = _snapshot(context, output, database, no_fetch=no_fetch)
+        snapshot, _ = read_snapshot(context, output, database, no_fetch=no_fetch)
     now = context.runtime.now()
     info = snapshot_info(snapshot, now)
     data = _storms_data(snapshot)
@@ -377,11 +412,11 @@ def storms(
         output.document(
             StormsDocument(generated_at=now, disclaimer=NOTICE, snapshot=info, data=data)
         )
-        raise typer.Exit(_exit_code(snapshot))
-    _print_header(output, info, stored=no_fetch)
+        raise typer.Exit(exit_code(snapshot))
+    print_header(output, info, stored=no_fetch)
     _print_storms(output, data)
     output.notice()
-    raise typer.Exit(_exit_code(snapshot))
+    raise typer.Exit(exit_code(snapshot))
 
 
 # alerts ------------------------------------------------------------------------------------
@@ -391,20 +426,32 @@ def _local(instant: datetime, zone: ZoneInfo | None) -> str | None:
     return instant.astimezone(zone).isoformat() if zone is not None else None
 
 
-def _zone(location: Location) -> ZoneInfo | None:
-    return _named_zone(location.nws.time_zone if location.nws else None)
+def location_zone(location: Location) -> ZoneInfo | None:
+    """The location's NWS time zone, when it has one this machine knows.
+
+    Args:
+        location: The location.
+
+    Returns:
+        The zone, or ``None`` outside NWS coverage.
+    """
+    return named_zone(location.nws.time_zone if location.nws else None)
 
 
-def alert_entries(alerts: Sequence[NwsAlert], zone: ZoneInfo | None) -> tuple[AlertEntry, ...]:
-    """Describe a location's alerts.
+def alert_entries(
+    alerts: Sequence[NwsAlert], zone: ZoneInfo | None, coverage: Sequence[OfficialProduct]
+) -> tuple[AlertEntry, ...]:
+    """Describe a location's alerts, and whether each covers it.
 
     Args:
         alerts: The alerts.
         zone: The location's time zone, if known.
+        coverage: The engine's reading of the same alerts, by alert id (issue #10).
 
     Returns:
         The entries.
     """
+    by_id = {product.alert_id: product for product in coverage if product.kind == "nws_alert"}
     return tuple(
         AlertEntry(
             id=alert.id,
@@ -419,30 +466,67 @@ def alert_entries(alerts: Sequence[NwsAlert], zone: ZoneInfo | None) -> tuple[Al
             expires_local=_local(alert.expires, zone),
             found_by=tuple(FoundByEntry(kind=q.kind, zone_id=q.zone_id) for q in alert.found_by),
             affected_zone_ids=alert.affected_zone_ids,
+            covers=product.covers,
+            coverage=product.reason,
+            rule=str(product.rule) if product.rule is not None else None,
         )
         for alert in alerts
+        for product in (by_id[alert.id],)
     )
 
 
-def segment_entries(snapshot: Snapshot) -> tuple[SegmentEntry, ...]:
-    """List every active storm's official watch-warning segments, verbatim.
+def kilometres(value: float | None) -> float | None:
+    """Round a distance for a document: a tenth of a kilometre.
+
+    Args:
+        value: The distance, in kilometres.
+
+    Returns:
+        The rounded distance, or ``None``.
+    """
+    return round(value, 1) if value is not None else None
+
+
+def segment_entries(
+    snapshot: Snapshot, coverage: Sequence[OfficialProduct], *, every: bool
+) -> tuple[SegmentEntry, ...]:
+    """List the active storms' watch-warning segments, those that cover the location first.
+
+    A covering segment is matched to the engine's reading of it by storm, code, and
+    advisory; two segments that share all three read the same in a list, so either may
+    carry the reading.
 
     Args:
         snapshot: The snapshot.
+        coverage: The engine's covering segments, in the snapshot's order.
+        every: List the segments that do not cover the location too, after those that do.
 
     Returns:
-        One entry per segment.
+        One entry per segment listed.
     """
-    return tuple(
-        SegmentEntry(
-            atcf_id=storm.atcf_id,
-            storm_name=storm.name,
-            tcww=segment.tcww,
-            advisory=str(segment.advisory.number),
-        )
-        for storm in snapshot.storms
-        for segment in storm.watch_warnings
-    )
+    covering = [product for product in coverage if product.kind == "watch_warning_segment"]
+    first: list[SegmentEntry] = []
+    rest: list[SegmentEntry] = []
+    for storm in snapshot.storms:
+        for segment in storm.watch_warnings:
+            advisory = str(segment.advisory.number)
+            key = (storm.atcf_id, segment.tcww.raw, advisory)
+            match = next((p for p in covering if (p.atcf_id, p.code, str(p.advisory)) == key), None)
+            if match is not None:
+                covering.remove(match)
+            entry = SegmentEntry(
+                atcf_id=storm.atcf_id,
+                storm_name=storm.name,
+                tcww=segment.tcww,
+                advisory=advisory,
+                covers=match is not None,
+                distance_km=kilometres(match.distance_km) if match else None,
+                at_end=match.at_end if match else None,
+                breakpoints=match.breakpoints if match else (),
+                coverage=match.reason if match else None,
+            )
+            (first if match is not None else rest).append(entry)
+    return (*first, *rest) if every else tuple(first)
 
 
 def _pick(output: Output, locations: Sequence[Location], name: str | None) -> Location:
@@ -459,8 +543,9 @@ def _pick(output: Output, locations: Sequence[Location], name: str | None) -> Lo
     return found
 
 
-def _alerts_data(snapshot: Snapshot, location: Location) -> AlertsData:
-    zone = _zone(location)
+def _alerts_data(snapshot: Snapshot, location: Location, thresholds: Thresholds) -> AlertsData:
+    zone = location_zone(location)
+    coverage = official_products(snapshot, location, thresholds)
     nws = location.nws
     entry = AlertLocationEntry(
         name=location.name,
@@ -473,8 +558,9 @@ def _alerts_data(snapshot: Snapshot, location: Location) -> AlertsData:
         return AlertsData(
             location=entry,
             alerts=None,
-            watch_warnings=segment_entries(snapshot),
-            note=f"The NWS does not cover {location.name}. {PHASE_3_NOTE}",
+            watch_warnings=segment_entries(snapshot, coverage, every=True),
+            note=f"The NWS does not cover {location.name}; NHC's segments are its watches "
+            "and warnings.",
         )
     alerts = snapshot.alerts.get(location.name)
     note = None
@@ -485,49 +571,90 @@ def _alerts_data(snapshot: Snapshot, location: Location) -> AlertsData:
         )
     return AlertsData(
         location=entry,
-        alerts=alert_entries(alerts, zone) if alerts is not None else None,
-        watch_warnings=(),
+        alerts=alert_entries(alerts, zone, coverage) if alerts is not None else None,
+        watch_warnings=segment_entries(snapshot, coverage, every=False),
         note=note,
     )
 
 
-def _when(instant: datetime, zone: ZoneInfo | None) -> str:
+def when(instant: datetime, zone: ZoneInfo | None) -> str:
+    """Format an instant in UTC, and in a time zone when there is one.
+
+    Args:
+        instant: An aware instant.
+        zone: The location's time zone, if known.
+
+    Returns:
+        ``2026-10-12 21:00 UTC (2026-10-12 17:00 EDT)``, or the UTC part alone.
+    """
     if zone is None:
         return utc(instant)
     return f"{utc(instant)} ({instant.astimezone(zone):%Y-%m-%d %H:%M %Z})"
 
 
-def _named_zone(name: str | None) -> ZoneInfo | None:
+def named_zone(name: str | None) -> ZoneInfo | None:
+    """Look up an IANA time zone by name, if this machine knows it.
+
+    Args:
+        name: The name, such as ``America/New_York``.
+
+    Returns:
+        The zone, or ``None`` for no name or an unknown one.
+    """
     try:
         return ZoneInfo(name) if name else None
     except (ZoneInfoNotFoundError, ValueError):
         return None
 
 
+def _meaning(segment: SegmentEntry) -> str:
+    code = segment.tcww.code
+    return code.name.replace("_", " ").title() if code else "unrecognized code"
+
+
+def _segment_coverage(segment: SegmentEntry) -> str:
+    if not segment.covers:
+        return "does not cover it"
+    ends = segment.breakpoints
+    span = f", {ends[0]} to {ends[-1]}" if len(ends) > 1 else ""
+    where = "at its end" if segment.at_end else "inside the segment"
+    return f"covers it: {segment.distance_km:.1f} km, {where}{span}"
+
+
+def _print_segments(output: Output, data: AlertsData) -> None:
+    location = data.location
+    if location.inside_nws_coverage:
+        if data.watch_warnings:
+            output.line()
+        title = "NHC watch-warning segments that cover it"
+    else:
+        title = "Watch-warning segments of the active storms, those that cover it first"
+    if not data.watch_warnings:
+        what = "covers it" if location.inside_nws_coverage else "is active"
+        output.line(f"No NHC watch-warning segment {what}.")
+        return
+    output.table(
+        title,
+        ("Storm", "ATCF id", "Code", "Meaning", "Advisory", "Coverage"),
+        [
+            (
+                segment.storm_name,
+                segment.atcf_id,
+                segment.tcww.raw,
+                _meaning(segment),
+                segment.advisory,
+                _segment_coverage(segment),
+            )
+            for segment in data.watch_warnings
+        ],
+    )
+
+
 def _print_alerts(output: Output, data: AlertsData) -> None:
     location = data.location
     if not location.inside_nws_coverage:
         output.line(f"{location.name} is outside NWS coverage: the NWS issues no alerts for it.")
-        if data.watch_warnings:
-            output.table(
-                "Official watch-warning segments of the active storms",
-                ("Storm", "ATCF id", "Code", "Meaning", "Advisory"),
-                [
-                    (
-                        segment.storm_name,
-                        segment.atcf_id,
-                        segment.tcww.raw,
-                        segment.tcww.code.name.replace("_", " ").title()
-                        if segment.tcww.code
-                        else "unrecognized code",
-                        segment.advisory,
-                    )
-                    for segment in data.watch_warnings
-                ],
-            )
-        else:
-            output.line("No active storm has a watch-warning segment.")
-        output.line(PHASE_3_NOTE)
+        _print_segments(output, data)
         return
     zones = f"forecast zone {location.forecast_zone}, county {location.county_zone}"
     output.line(f"Alerts for {location.name} ({zones}, {location.time_zone}):", style="bold")
@@ -536,18 +663,21 @@ def _print_alerts(output: Output, data: AlertsData) -> None:
         return
     if not data.alerts:
         output.line("No active NWS alert.")
-    zone = _named_zone(location.time_zone)
+    zone = named_zone(location.time_zone)
     for alert in data.alerts:
         output.line()
         output.line(alert.event, style="bold")
+        covers = "Covers this location" if alert.covers else "Does not cover this location"
+        output.line(f"  {covers}: {alert.coverage}")
         output.line(f"  Severity {alert.severity.raw}, urgency {alert.urgency.raw}")
         if alert.headline:
             output.line(f"  {alert.headline}")
-        output.line(f"  Effective {_when(alert.effective, zone)}")
-        output.line(f"  Expires   {_when(alert.expires, zone)}")
+        output.line(f"  Effective {when(alert.effective, zone)}")
+        output.line(f"  Expires   {when(alert.expires, zone)}")
         found = ", ".join(q.zone_id or "the point" for q in alert.found_by)
         output.line(f"  Found by  {found}")
         output.line(f"  Zones     {', '.join(alert.affected_zone_ids) or '-'}")
+    _print_segments(output, data)
 
 
 def alerts(
@@ -560,23 +690,23 @@ def alerts(
     json_output: JsonOption = False,
     no_fetch: NoFetchOption = False,
 ) -> None:
-    """Print a location's NWS alerts, or the storms' watch-warning segments outside the US."""
+    """Print the official watches, warnings, and alerts, and which cover the location."""
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
     with open_session(context, output) as database:
         chosen = _pick(output, LocationService(database.engine).list(), location)
-        snapshot, _ = _snapshot(context, output, database, no_fetch=no_fetch)
+        snapshot, _ = read_snapshot(context, output, database, no_fetch=no_fetch)
     now = context.runtime.now()
     info = snapshot_info(snapshot, now)
-    data = _alerts_data(snapshot, chosen)
+    data = _alerts_data(snapshot, chosen, context.settings.engine.thresholds())
     missing = chosen.nws is not None and data.alerts is None
-    code = EXIT_FAILED if missing else _exit_code(snapshot)
+    code = EXIT_FAILED if missing else exit_code(snapshot)
     if json_output:
         output.document(
             AlertsDocument(generated_at=now, disclaimer=NOTICE, snapshot=info, data=data)
         )
         raise typer.Exit(code)
-    _print_header(output, info, stored=no_fetch)
+    print_header(output, info, stored=no_fetch)
     _print_alerts(output, data)
     output.notice()
     raise typer.Exit(code)

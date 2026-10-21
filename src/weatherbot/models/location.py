@@ -14,6 +14,7 @@ from weatherbot.models.assessment import BreakpointSpan
 from weatherbot.models.base import DomainModel
 from weatherbot.models.geometry import Geometry
 from weatherbot.models.provenance import Provenance
+from weatherbot.models.times import UtcDatetime
 
 
 class LatLon(DomainModel):
@@ -56,6 +57,10 @@ class Location(DomainModel):
     )
     evacuation_order_in_effect: bool = Field(
         default=False, description="The operator's toggle (brief §4), read by level 4."
+    )
+    evacuation_order_set_at: UtcDatetime | None = Field(
+        default=None,
+        description="When the operator last turned the toggle on or off; None if never.",
     )
     geocoding: Provenance | None = Field(
         default=None, description="The reverse-geocoding response, when one was made."

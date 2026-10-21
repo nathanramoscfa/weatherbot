@@ -13,8 +13,9 @@ Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
 discovery) and Phase 2 (sources and persistence) are complete; Phase 3 (the
 threat engine) is in progress.
 No version 2 package is released. The commands below read the official
-products and print them; they do not yet decide a threat level, which is
-Phase 3's work. The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
+products, and `status` decides each location's level from them alone, with
+the evidence behind it; nothing runs on a schedule or notifies yet (Phase 4).
+The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
 
 ## Commands
 
@@ -33,14 +34,42 @@ weatherbot locations remove "Parliament Square"
 weatherbot fetch                     # fetch every official source once; print each outcome
 weatherbot storms                    # active storms, their products, the outlook, wind probabilities
 weatherbot storms --no-fetch         # the same from the latest stored snapshot, with its age
-weatherbot alerts --location "Miami-Dade County Hall"   # NWS alerts, in UTC and local time
-weatherbot alerts --location "Parliament Square"        # outside NWS coverage: the watch-warning segments
+weatherbot alerts --location "Miami-Dade County Hall"   # NWS alerts, which cover it, in UTC and local time
+weatherbot alerts --location "Parliament Square"        # outside NWS coverage: the segments, covering ones first
+
+# Decide and store each location's level: the evidence, every storm's threat, what changed.
+weatherbot status
+weatherbot status --location "Parliament Square" --no-fetch   # one location, from the latest stored snapshot
+
+# An official evacuation order is in effect: hold the location at level 4 or above until off.
+weatherbot locations evacuation "Miami-Dade County Hall" on
+weatherbot locations evacuation "Miami-Dade County Hall" off
+
+# Replay a historical storm's advisories at a location: its ladder, stored nowhere.
+weatherbot replay AL112017 --location "Miami-Dade County Hall" --corpus tests/fixtures/replay
+weatherbot replay AL112017 --location "Miami-Dade County Hall" --corpus tests/fixtures/replay --every
+
 weatherbot doctor                    # paths, database revision, every source and layer
 weatherbot doctor --offline          # local checks only
 ```
 
-`locations list`, `fetch`, `storms`, `alerts`, and `doctor` take `--json` and
-print one JSON document whose schema is in [docs/schema/](docs/schema/).
+`status` prints, for each location, the level and its deciding rule with each
+piece of evidence, the actions, the official products that cover the location
+(and county-zone alerts outside its zones), the wind-speed probabilities there,
+each storm's threat (category, cone, distance and bearing from its center,
+closest approach, and both wind arrivals), the changes since the previous
+assessment, the location's breakpoint span, and its evacuation-order toggle.
+When an input was unavailable the level reads "at least". Distances and
+bearings stay on your terminal and in your local database. A rerun over the same
+snapshot stores nothing new; `locations remove` removes a location's
+assessments with it. `replay` reads only the corpus directory it is given;
+`tests/fixtures/replay` holds four storms with probabilities around the two
+landmarks only, and `scripts/fetch_replay_corpus.py convert --full` writes the
+complete products for your own locations.
+
+`locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, and `doctor`
+take `--json` and print one JSON document whose schema is in
+[docs/schema/](docs/schema/).
 `--verbose` (before the command: `weatherbot --verbose fetch`) logs at DEBUG
 to standard error. The exit status is 0 when everything answered, 1 when a
 source failed or a check did, and 2 for a usage error. With one location,

@@ -6,6 +6,7 @@ them without an edit. The backup and failure tests add a probe revision after th
 a copy of the scripts, so they never depend on what the head revision creates.
 """
 
+import hashlib
 import shutil
 import sqlite3
 from collections.abc import Iterator
@@ -38,6 +39,12 @@ HEAD = head_revision()
 REVISIONS = [
     script.revision for script in ScriptDirectory(str(MIGRATIONS_DIRECTORY)).walk_revisions()
 ]
+# Each merged revision's SHA-256, line endings as committed: a revision is frozen once merged.
+FROZEN = {
+    "0001_baseline.py": "d0e07ae21301ab7a8895607e914e9cca7dc62e2ce0b51fbdf6f8b0ef98f8505d",
+    "0002_drift_warnings.py": "6ffcccb7b6da86250e57fa28d20158df74f6db7e2053f230bd6763ddebb0136a",
+}
+SNAPSHOT_HEX = "8f0c4d1e5b7a4c2e9d3f1a2b3c4d5e6f"
 PROBE = "probe"
 """A test revision after the head, in a copy of the scripts."""
 STAMP = datetime(2026, 10, 17, 12, 30, 5, tzinfo=UTC)
@@ -275,3 +282,135 @@ def test_a_file_with_tables_but_no_revision_is_refused(paths: AppPaths) -> None:
 def test_the_head_is_the_last_revision_of_the_history() -> None:
     assert REVISIONS[0] == HEAD
     assert ScriptDirectory(str(MIGRATIONS_DIRECTORY)).get_base() == REVISIONS[-1]
+
+
+# Revision 0003 -------------------------------------------------------------------------------
+
+ASSESSMENT = text(
+    "INSERT INTO assessments (id, location_id, snapshot_id, ruleset, as_of, level, rule, "
+    "complete, thresholds, assessment, stored_at) VALUES (1, 1, :snapshot, 'r', '2026-10-17', "
+    ":level, :rule, 1, '{}', '{}', '2026-10-18')"
+)
+COUNTS = {
+    "assessments": "SELECT count(*) FROM assessments",
+    "assessment_changes": "SELECT count(*) FROM assessment_changes",
+    "alert_observations": "SELECT count(*) FROM alert_observations",
+}
+
+
+def _columns(path: Path, table: str) -> set[str]:
+    with closing(sqlite3.connect(path)) as connection:
+        return {
+            row[0] for row in connection.execute("SELECT name FROM pragma_table_info(?)", (table,))
+        }
+
+
+def _rows(path: Path, statement: str) -> list[tuple[object, ...]]:
+    with closing(sqlite3.connect(path)) as connection:
+        return connection.execute(statement).fetchall()
+
+
+def _seed_0002(path: Path) -> None:
+    """A location with a snapshot that found no alert for it, written at revision 0002."""
+    with closing(sqlite3.connect(path)) as connection:
+        connection.execute("PRAGMA foreign_keys=ON")
+        connection.execute(
+            "INSERT INTO locations (id, name, latitude, longitude, evacuation_order_in_effect, "
+            "created_at, updated_at) VALUES (1, 'Place', 0.5, 0.5, 0, '2026-10-17', '2026-10-17')"
+        )
+        connection.execute(
+            "INSERT INTO snapshots (id, started_at, completed_at, status) VALUES "
+            "(?, '2026-10-17', '2026-10-17', 'complete')",
+            (SNAPSHOT_HEX,),
+        )
+        connection.execute(
+            "INSERT INTO alert_observations (snapshot_id, location_id, alert_id, position, "
+            "found_by) VALUES (?, 1, NULL, 0, NULL)",
+            (SNAPSHOT_HEX,),
+        )
+        connection.commit()
+
+
+def test_0003_creates_the_assessment_tables_and_the_toggle_instant(
+    paths: AppPaths, engine: Engine
+) -> None:
+    _migrate(engine, "0002")
+    engine.dispose()
+    _seed_0002(paths.database_path)
+    tables = {"assessments", "assessment_evidence", "assessment_changes"}
+    assert not tables & _tables(paths.database_path)
+
+    with open_database(paths, now=lambda: STAMP) as opened:
+        assert opened.revision == "0003"
+        assert opened.backup_path is not None
+
+    assert tables <= _tables(paths.database_path)
+    assert "evacuation_order_set_at" in _columns(paths.database_path, "locations")
+    assert _rows(paths.database_path, "SELECT name, evacuation_order_set_at FROM locations") == [
+        ("Place", None)
+    ]
+    assert _rows(paths.database_path, COUNTS["alert_observations"]) == [(1,)]
+
+
+def test_0003_downgrades_to_0002_without_losing_a_location_or_its_observations(
+    paths: AppPaths, engine: Engine
+) -> None:
+    _migrate(engine, "0002")
+    engine.dispose()
+    _seed_0002(paths.database_path)
+    _migrate(engine, "0003")
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "UPDATE locations SET evacuation_order_in_effect = 1, "
+                "evacuation_order_set_at = '2026-10-18 12:00:00'"
+            )
+        )
+        connection.execute(
+            ASSESSMENT, {"snapshot": SNAPSHOT_HEX, "level": 4, "rule": "evacuation_order"}
+        )
+
+    _migrate(engine, "0002")
+    engine.dispose()
+
+    # A batch alteration would rebuild locations, and dropping the old table with foreign
+    # keys on would delete the observations that cascade from it.
+    assert current_revision(engine) == "0002"
+    engine.dispose()
+    assert "evacuation_order_set_at" not in _columns(paths.database_path, "locations")
+    assert not {"assessments", "assessment_evidence"} & _tables(paths.database_path)
+    assert _rows(paths.database_path, "SELECT name, evacuation_order_in_effect FROM locations") == [
+        ("Place", 1)
+    ]
+    assert _rows(paths.database_path, COUNTS["alert_observations"]) == [(1,)]
+
+
+def test_removing_a_location_at_0003_cascades_to_its_assessments(
+    paths: AppPaths, engine: Engine
+) -> None:
+    _migrate(engine, "0002")
+    engine.dispose()
+    _seed_0002(paths.database_path)
+    _migrate(engine, "head")
+    with engine.begin() as connection:
+        connection.execute(ASSESSMENT, {"snapshot": SNAPSHOT_HEX, "level": 1, "rule": "all_clear"})
+        connection.execute(
+            text(
+                "INSERT INTO assessment_changes (assessment_id, position, kind, event) "
+                "VALUES (1, 0, 'level_changed', '{}')"
+            )
+        )
+        assert connection.execute(text(COUNTS["assessment_changes"])).scalar() == 1
+        connection.execute(text("DELETE FROM locations"))
+    engine.dispose()
+
+    for table, statement in COUNTS.items():
+        assert _rows(paths.database_path, statement) == [(0,)], table
+
+
+@pytest.mark.parametrize("name", sorted(FROZEN))
+def test_the_merged_revisions_are_byte_identical(name: str) -> None:
+    # A Windows checkout may write CRLF; Git stores the file with LF either way.
+    body = (MIGRATIONS_DIRECTORY / "versions" / name).read_bytes().replace(b"\r\n", b"\n")
+
+    assert hashlib.sha256(body).hexdigest() == FROZEN[name]

@@ -16,6 +16,11 @@ holds arrival-time KMZ, the pair of the latest full advisory at or before it, pa
 ``parse_arrival_kmz`` (outcome ``nhc-arrival-times`` ``ok``). Otherwise that outcome is
 ``skipped`` with the reason. The committed subset holds no KMZ.
 
+``ReplayService(corpus).timeline(atcf_id, location, thresholds)`` assesses each advisory in
+order and compares it with the one before; nothing is stored. ``without_evacuation_order``
+gives a location as a replay of a past storm must assess it, with the present-day toggle
+off.
+
 Every file is checked before anything parses it: its path must be a plain relative path
 that stays inside the directory (no absolute or parent-relative name, no link followed
 out), the file must exist, and its bytes must match the manifest's size and SHA-256. A
@@ -147,6 +152,23 @@ class ReplayService:
             steps.append(ReplayStep(current, diff(previous, current)))
             previous = current
         return tuple(steps)
+
+
+def without_evacuation_order(location: Location) -> Location:
+    """Return a location with its evacuation-order toggle off, as a replay assesses it.
+
+    The toggle is a present-day input: an order in effect now says nothing about a past
+    storm, so a replay never reads it.
+
+    Args:
+        location: The stored location.
+
+    Returns:
+        The same location, with the toggle off and no instant.
+    """
+    fields = {name: getattr(location, name) for name in Location.model_fields}
+    off = {"evacuation_order_in_effect": False, "evacuation_order_set_at": None}
+    return Location.model_validate(fields | off)
 
 
 def snapshot_id(atcf_id: str, advisory: str) -> UUID:

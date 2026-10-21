@@ -3807,9 +3807,9 @@ conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 6 — Stored assessments and the commands
+## Step 6 — Stored assessments and the commands ✅
 
-**Status:** Not started
+**Status:** Complete — PR #37 (2026-10-20)
 
 > **Goal:** Store and print the level. Alembic revision `0003` creates
 > `assessments` (one row per location, snapshot, and ruleset: the level, rule,
@@ -3847,6 +3847,8 @@ must be green.
 | Effort       | Intelligence High                       | Effort High                              | Effort XHigh                             |
 | Thinking     | —                                       | On                                       | On                                       |
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
+
+> Ran 2026-10-20: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -4886,6 +4888,38 @@ The conversation is new per phase-boundary hygiene.
     frozen readings are 186 outside, 43 before, 228 between,
     9 after, and 22 unresolved.
 
+    Carry-over from Step 6 (what checks 41-47 and V6 read):
+    `migrations/versions/0003_assessments.py` (`down_revision`
+    `0002`) creates `assessments`, `assessment_evidence`, and
+    `assessment_changes` with `op.create_table`, and adds
+    `locations.evacuation_order_set_at` with a plain
+    `op.add_column` (a batch alteration rebuilds `locations`,
+    and dropping the old table with foreign keys on deletes
+    every alert observation that cascades from it; a test
+    proves the downgrade keeps them). `AssessmentRepository` is
+    in `services/persistence/repositories.py` and
+    `AssessmentService` in `services/assessments.py`. The root
+    app registers `app.command("status")` and
+    `app.command("replay")` (from `cli/status.py` and
+    `cli/replay.py`), and `cli/locations.py` registers
+    `@app.command("evacuation")`. `DOCUMENTS` holds seven
+    schemas. The V6 tests are `tests/services/test_assessments.py`,
+    the revision `0003` tests in `tests/services/test_database.py`,
+    `tests/cli/test_status.py`, `tests/cli/test_replay_command.py`
+    (not `test_replay.py`: `tests/services/` has one, and test
+    basenames must be unique), and the `status` additions to
+    `tests/cli/test_cli_privacy.py`. `replay` reads a stored
+    location, so V6.5 first adds both landmarks with `locations
+    add` in the temporary data directory (one NWS and one
+    Nominatim request each, for the public landmarks only), then
+    times `replay ATCF_ID --location NAME --corpus
+    tests/fixtures/replay` for each storm; on 2026-10-20 each
+    timeline took 1.3 to 3.7 s through the service and about
+    3 s per command. A `status --no-fetch` after a toggle change
+    returns the stored assessment of that snapshot and says its
+    level did not read the toggle: the unique key is location,
+    snapshot, and ruleset, and history is never rewritten.
+
     Files to read:
     - scripts/verify_phase02.py (primary structural template)
       and tests/test_phase02_verification.py.
@@ -5292,7 +5326,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #34 |
 | 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #35 |
 | 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #36 |
-| 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #37 |
 | 7    | QA + verify_phase03.py        | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
 | V1   | Geodesy + geometry            | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V2   | Replay snapshots              | CI: replay-corpus.yml    | --           | --                  | --       | --   | --          |

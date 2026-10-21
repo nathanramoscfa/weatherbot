@@ -124,6 +124,28 @@
           },
           "title": "Affected Zone Ids",
           "type": "array"
+        },
+        "covers": {
+          "description": "Whether it is in effect for this location (issue #10): returned by the point query, or naming one of its zones.",
+          "title": "Covers",
+          "type": "boolean"
+        },
+        "coverage": {
+          "description": "Why it covers the location or not, such as a county-zone alert outside this location's zones.",
+          "title": "Coverage",
+          "type": "string"
+        },
+        "rule": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The ladder rule a covering alert triggers.",
+          "title": "Rule"
         }
       },
       "required": [
@@ -138,7 +160,10 @@
         "effective_local",
         "expires_local",
         "found_by",
-        "affected_zone_ids"
+        "affected_zone_ids",
+        "covers",
+        "coverage",
+        "rule"
       ],
       "title": "AlertEntry",
       "type": "object"
@@ -287,7 +312,7 @@
     },
     "AlertsData": {
       "additionalProperties": false,
-      "description": "A location's alerts, or, outside NWS coverage, the active watch-warning segments.",
+      "description": "A location's alerts and the watch-warning segments, each saying whether it covers it.",
       "properties": {
         "location": {
           "$ref": "#/$defs/AlertLocationEntry"
@@ -308,6 +333,7 @@
           "title": "Alerts"
         },
         "watch_warnings": {
+          "description": "Inside NWS coverage, the segments that cover the location; outside it, every active segment, those that cover it first.",
           "items": {
             "$ref": "#/$defs/SegmentEntry"
           },
@@ -368,7 +394,7 @@
     },
     "SegmentEntry": {
       "additionalProperties": false,
-      "description": "An active storm's official watch-warning segment, verbatim, not matched to a place.",
+      "description": "An active storm's watch-warning segment, and whether it covers the location.",
       "properties": {
         "atcf_id": {
           "title": "Atcf Id",
@@ -384,13 +410,66 @@
         "advisory": {
           "title": "Advisory",
           "type": "string"
+        },
+        "covers": {
+          "title": "Covers",
+          "type": "boolean"
+        },
+        "distance_km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A covering segment's nearest point, to a tenth of a kilometre.",
+          "title": "Distance Km"
+        },
+        "at_end": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Whether that nearest point is the segment's end.",
+          "title": "At End"
+        },
+        "breakpoints": {
+          "description": "Its ends, named from the catalogue.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Breakpoints",
+          "type": "array"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Why a covering segment covers the location.",
+          "title": "Coverage"
         }
       },
       "required": [
         "atcf_id",
         "storm_name",
         "tcww",
-        "advisory"
+        "advisory",
+        "covers",
+        "distance_km",
+        "at_end",
+        "breakpoints",
+        "coverage"
       ],
       "title": "SegmentEntry",
       "type": "object"

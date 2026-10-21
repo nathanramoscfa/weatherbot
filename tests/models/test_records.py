@@ -421,6 +421,7 @@ def test_a_location_holds_no_operator_value_by_default() -> None:
     assert required == {"name", "point"}
     assert Location.model_fields["evacuation_order_in_effect"].default is False
     assert Location.model_fields["breakpoint_span"].default is None
+    assert Location.model_fields["evacuation_order_set_at"].default is None
 
 
 @pytest.mark.parametrize("name", ["", " ", "a\tb", "x" * 65, "line\nbreak"])

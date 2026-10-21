@@ -1,0 +1,1207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/status.schema.json",
+  "$defs": {
+    "ArrivalEntry": {
+      "additionalProperties": false,
+      "description": "When tropical-storm-force winds arrive, as one arrival-time product says.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "earliest_reasonable",
+            "most_likely"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "enum": [
+            "kmz",
+            "map_layer",
+            "track"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "reading": {
+          "enum": [
+            "before",
+            "between",
+            "after",
+            "outside",
+            "unresolved",
+            "track"
+          ],
+          "title": "Reading",
+          "type": "string"
+        },
+        "advisory": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Advisory"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Start"
+        },
+        "end": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "End"
+        },
+        "approach_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The track fallback's closest approach.",
+          "title": "Approach At"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Label"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "kind",
+        "origin",
+        "reading",
+        "advisory",
+        "start",
+        "end",
+        "approach_at",
+        "label",
+        "reason"
+      ],
+      "title": "ArrivalEntry",
+      "type": "object"
+    },
+    "BreakpointSpan": {
+      "additionalProperties": false,
+      "description": "The stretch of coast a location sits on, named from NHC's breakpoint catalogue.\n\nEither the two catalogue breakpoints, in catalogue order, between which the\nlocation's coast falls (one when its nearest breakpoint has no neighbour in the same\ncountry), or the one ``country (region)`` entry that holds it. The span names a\ncoast; it never decides whether a watch or warning covers the location.",
+      "properties": {
+        "names": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Names",
+          "type": "array"
+        },
+        "country": {
+          "title": "Country",
+          "type": "string"
+        },
+        "is_region": {
+          "description": "Whether the span is a country (region) entry.",
+          "title": "Is Region",
+          "type": "boolean"
+        },
+        "catalog_loaded_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The catalogue's idp_filedate; None for one stored before it was read.",
+          "title": "Catalog Loaded At"
+        }
+      },
+      "required": [
+        "names",
+        "country",
+        "is_region"
+      ],
+      "title": "BreakpointSpan",
+      "type": "object"
+    },
+    "ChangeEntry": {
+      "additionalProperties": false,
+      "description": "One change since the previous stored assessment.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "level_changed",
+            "advisory_issued",
+            "official_added",
+            "official_changed",
+            "official_removed",
+            "cone_entered",
+            "cone_left"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "detail"
+      ],
+      "title": "ChangeEntry",
+      "type": "object"
+    },
+    "EvacuationOrderEntry": {
+      "additionalProperties": false,
+      "description": "The operator's evacuation-order toggle: on holds the location at level 4 or above.",
+      "properties": {
+        "on": {
+          "title": "On",
+          "type": "boolean"
+        },
+        "set_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "When it was last turned on or off.",
+          "title": "Set At"
+        }
+      },
+      "required": [
+        "on",
+        "set_at"
+      ],
+      "title": "EvacuationOrderEntry",
+      "type": "object"
+    },
+    "EvidenceEntry": {
+      "additionalProperties": false,
+      "description": "One match of the deciding rule: the product, its issuance, the test, the distance.",
+      "properties": {
+        "product": {
+          "enum": [
+            "nws_alert",
+            "watch_warning_segment",
+            "cone",
+            "wind_probability",
+            "development_region",
+            "evacuation_toggle"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceId"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: the operator's toggle."
+        },
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The NWS event, the NHC tcww code, or the band.",
+          "title": "Code"
+        },
+        "atcf_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Atcf Id"
+        },
+        "storm_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Storm Name"
+        },
+        "advisory": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Advisory"
+        },
+        "issued_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The product's issuance, or when the toggle was turned on.",
+          "title": "Issued At"
+        },
+        "test": {
+          "enum": [
+            "point_query",
+            "zone_list",
+            "segment_distance",
+            "point_in_polygon",
+            "band",
+            "toggle"
+          ],
+          "title": "Test",
+          "type": "string"
+        },
+        "distance_km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Distance Km"
+        },
+        "at_end": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "At End"
+        },
+        "crs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Crs"
+        },
+        "closest_approach_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Closest Approach At"
+        },
+        "lead_h": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Hours from the snapshot to the closest approach.",
+          "title": "Lead H"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "product",
+        "source_id",
+        "code",
+        "atcf_id",
+        "storm_name",
+        "advisory",
+        "issued_at",
+        "test",
+        "distance_km",
+        "at_end",
+        "crs",
+        "closest_approach_at",
+        "lead_h",
+        "detail"
+      ],
+      "title": "EvidenceEntry",
+      "type": "object"
+    },
+    "OfficialEntry": {
+      "additionalProperties": false,
+      "description": "An NWS alert or NHC segment that covers the location, or a county alert beside it.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "nws_alert",
+            "watch_warning_segment"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "code": {
+          "description": "The NWS event, or the NHC tcww code as received.",
+          "title": "Code",
+          "type": "string"
+        },
+        "alert_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Alert Id"
+        },
+        "issuer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Issuer"
+        },
+        "atcf_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Atcf Id"
+        },
+        "storm_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Storm Name"
+        },
+        "advisory": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Advisory"
+        },
+        "issued_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Issued At"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expires At"
+        },
+        "zones": {
+          "description": "The UGC zones an alert names.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Zones",
+          "type": "array"
+        },
+        "distance_km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Distance Km"
+        },
+        "breakpoints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Breakpoints",
+          "type": "array"
+        },
+        "covers": {
+          "description": "false: a county-zone alert outside this location's zones.",
+          "title": "Covers",
+          "type": "boolean"
+        },
+        "rule": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The ladder rule it triggers; null: it sets no level.",
+          "title": "Rule"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "code",
+        "alert_id",
+        "issuer",
+        "atcf_id",
+        "storm_name",
+        "advisory",
+        "issued_at",
+        "expires_at",
+        "zones",
+        "distance_km",
+        "breakpoints",
+        "covers",
+        "rule",
+        "reason"
+      ],
+      "title": "OfficialEntry",
+      "type": "object"
+    },
+    "SnapshotInfo": {
+      "additionalProperties": false,
+      "description": "The snapshot a document was read from.",
+      "properties": {
+        "snapshot_id": {
+          "format": "uuid",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "age_seconds": {
+          "description": "generated_at minus completed_at.",
+          "minimum": 0,
+          "title": "Age Seconds",
+          "type": "number"
+        },
+        "source_outcomes": {
+          "items": {
+            "$ref": "#/$defs/SourceOutcome"
+          },
+          "title": "Source Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "started_at",
+        "completed_at",
+        "status",
+        "age_seconds",
+        "source_outcomes"
+      ],
+      "title": "SnapshotInfo",
+      "type": "object"
+    },
+    "SourceId": {
+      "enum": [
+        "nhc-current-storms",
+        "nhc-arrival-times",
+        "nhc-map-tropical-weather",
+        "nhc-map-tropical-summary",
+        "nhc-map-breakpoints",
+        "nhc-map-peak-surge",
+        "nhc-map-surge-risk",
+        "nhc-gis-rss",
+        "nhc-gis-archive",
+        "nhc-text-products",
+        "nhc-outlook-graphics",
+        "nws-points",
+        "nws-alerts-point",
+        "nws-alerts-zone",
+        "nws-zones",
+        "basemap-osm-tiles",
+        "overlay-radar",
+        "overlay-satellite",
+        "geocode-nominatim"
+      ],
+      "type": "string"
+    },
+    "SourceOutcome": {
+      "additionalProperties": false,
+      "description": "What one source the snapshot asked for answered.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "not_modified",
+            "failed",
+            "skipped"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "error_kind": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For failed: the error's kind.",
+          "title": "Error Kind"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For skipped: why.",
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "source_id",
+        "status"
+      ],
+      "title": "SourceOutcome",
+      "type": "object"
+    },
+    "StatusData": {
+      "additionalProperties": false,
+      "description": "Each location's assessment against the snapshot, or the one named.",
+      "properties": {
+        "locations": {
+          "items": {
+            "$ref": "#/$defs/StatusLocationEntry"
+          },
+          "title": "Locations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "locations"
+      ],
+      "title": "StatusData",
+      "type": "object"
+    },
+    "StatusLocationEntry": {
+      "additionalProperties": false,
+      "description": "One location's assessment: its level, why, each storm's threat, and what changed.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "inside_nws_coverage": {
+          "title": "Inside Nws Coverage",
+          "type": "boolean"
+        },
+        "time_zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Time Zone"
+        },
+        "as_of": {
+          "description": "The snapshot's instant the assessment reads.",
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "level": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Level",
+          "type": "integer"
+        },
+        "level_name": {
+          "title": "Level Name",
+          "type": "string"
+        },
+        "actions": {
+          "title": "Actions",
+          "type": "string"
+        },
+        "rule": {
+          "title": "Rule",
+          "type": "string"
+        },
+        "rule_trigger": {
+          "title": "Rule Trigger",
+          "type": "string"
+        },
+        "complete": {
+          "description": "false: an input was unavailable, and the level reads as at least.",
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "unavailable": {
+          "items": {
+            "$ref": "#/$defs/UnavailableEntry"
+          },
+          "title": "Unavailable",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceEntry"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "official": {
+          "description": "The products that cover the location, and the county-zone alerts outside its zones.",
+          "items": {
+            "$ref": "#/$defs/OfficialEntry"
+          },
+          "title": "Official",
+          "type": "array"
+        },
+        "wind_probabilities": {
+          "items": {
+            "$ref": "#/$defs/WindReadingEntry"
+          },
+          "title": "Wind Probabilities",
+          "type": "array"
+        },
+        "threats": {
+          "items": {
+            "$ref": "#/$defs/ThreatEntry"
+          },
+          "title": "Threats",
+          "type": "array"
+        },
+        "changes": {
+          "description": "The changes since the previous stored assessment.",
+          "items": {
+            "$ref": "#/$defs/ChangeEntry"
+          },
+          "title": "Changes",
+          "type": "array"
+        },
+        "breakpoint_span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BreakpointSpan"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evacuation_order": {
+          "$ref": "#/$defs/EvacuationOrderEntry"
+        },
+        "ruleset": {
+          "title": "Ruleset",
+          "type": "string"
+        },
+        "stored_before": {
+          "description": "true: an earlier run stored this snapshot's assessment already.",
+          "title": "Stored Before",
+          "type": "boolean"
+        },
+        "toggle_changed": {
+          "description": "true: the toggle was set after that stored assessment, which did not read it; the next fetched snapshot's assessment will.",
+          "title": "Toggle Changed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "inside_nws_coverage",
+        "time_zone",
+        "as_of",
+        "level",
+        "level_name",
+        "actions",
+        "rule",
+        "rule_trigger",
+        "complete",
+        "unavailable",
+        "evidence",
+        "official",
+        "wind_probabilities",
+        "threats",
+        "changes",
+        "breakpoint_span",
+        "evacuation_order",
+        "ruleset",
+        "stored_before",
+        "toggle_changed"
+      ],
+      "title": "StatusLocationEntry",
+      "type": "object"
+    },
+    "ThreatEntry": {
+      "additionalProperties": false,
+      "description": "What one storm means for the location, read from its own advisory products.",
+      "properties": {
+        "atcf_id": {
+          "title": "Atcf Id",
+          "type": "string"
+        },
+        "storm_name": {
+          "title": "Storm Name",
+          "type": "string"
+        },
+        "advisory": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Advisory"
+        },
+        "issued_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Issued At"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Saffir-Simpson 1 to 5; null below hurricane.",
+          "title": "Category"
+        },
+        "development": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Development"
+        },
+        "in_cone": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: no usable cone.",
+          "title": "In Cone"
+        },
+        "distance_km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "From the storm's center.",
+          "title": "Distance Km"
+        },
+        "bearing_deg": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "From the storm's center, to a whole degree.",
+          "title": "Bearing Deg"
+        },
+        "closest_approach_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Closest Approach At"
+        },
+        "closest_approach_km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Closest Approach Km"
+        },
+        "lead_h": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lead H"
+        },
+        "hurricane_by_approach": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hurricane By Approach"
+        },
+        "earliest_arrival": {
+          "$ref": "#/$defs/ArrivalEntry"
+        },
+        "most_likely_arrival": {
+          "$ref": "#/$defs/ArrivalEntry"
+        }
+      },
+      "required": [
+        "atcf_id",
+        "storm_name",
+        "advisory",
+        "issued_at",
+        "category",
+        "development",
+        "in_cone",
+        "distance_km",
+        "bearing_deg",
+        "closest_approach_at",
+        "closest_approach_km",
+        "lead_h",
+        "hurricane_by_approach",
+        "earliest_arrival",
+        "most_likely_arrival"
+      ],
+      "title": "ThreatEntry",
+      "type": "object"
+    },
+    "UnavailableEntry": {
+      "additionalProperties": false,
+      "description": "An input the rules lacked; the level then reads as \"at least\".",
+      "properties": {
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "storm_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Storm Name"
+        },
+        "threshold_kt": {
+          "anyOf": [
+            {
+              "enum": [
+                34,
+                50,
+                64
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Threshold Kt"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "source_id",
+        "storm_name",
+        "threshold_kt",
+        "reason"
+      ],
+      "title": "UnavailableEntry",
+      "type": "object"
+    },
+    "WindReadingEntry": {
+      "additionalProperties": false,
+      "description": "A wind-speed-probability product read at the location.",
+      "properties": {
+        "threshold_kt": {
+          "enum": [
+            34,
+            50,
+            64
+          ],
+          "title": "Threshold Kt",
+          "type": "integer"
+        },
+        "synoptic_at": {
+          "format": "date-time",
+          "title": "Synoptic At",
+          "type": "string"
+        },
+        "reading": {
+          "enum": [
+            "band",
+            "below_every_band",
+            "outside_coverage"
+          ],
+          "title": "Reading",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Label"
+        },
+        "lower_pct": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lower Pct"
+        },
+        "upper_pct": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Upper Pct"
+        }
+      },
+      "required": [
+        "threshold_kt",
+        "synoptic_at",
+        "reading",
+        "label",
+        "lower_pct",
+        "upper_pct"
+      ],
+      "title": "WindReadingEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot status --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "status",
+      "default": "status",
+      "title": "Command",
+      "type": "string"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/SnapshotInfo"
+    },
+    "data": {
+      "$ref": "#/$defs/StatusData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "snapshot",
+    "data"
+  ],
+  "title": "StatusDocument",
+  "type": "object"
+}

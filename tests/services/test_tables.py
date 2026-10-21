@@ -1,5 +1,5 @@
 # tests/services/test_tables.py
-"""The Phase 2 tables: their names, their constraints' names, and their instants."""
+"""The tables: their names, their constraints' names, and their instants."""
 
 from datetime import UTC, datetime, timedelta, timezone
 from uuid import UUID
@@ -32,15 +32,17 @@ BASELINE_TABLES = {
     "alert_observations",
     "settings",
 }
-PHASE_2_TABLES = BASELINE_TABLES | {"drift_warnings"}  # revision 0002, Step 6
-LATER_PHASES = ("assessment", "evidence", "notification", "heartbeat", "briefing", "ledger")
+PHASE_2_TABLES = BASELINE_TABLES | {"drift_warnings"}  # revision 0002, Phase 2 Step 6
+# Revision 0003, Phase 3 Step 6: the assessments, their evidence, and their changes.
+PHASE_3_TABLES = PHASE_2_TABLES | {"assessments", "assessment_evidence", "assessment_changes"}
+LATER_PHASES = ("notification", "heartbeat", "briefing", "ledger")
 EASTERN = timezone(timedelta(hours=-4))
 
 
-def test_the_tables_are_phase_2s_only() -> None:
+def test_the_tables_are_phase_3s_only() -> None:
     names = set(Base.metadata.tables)
 
-    assert names == PHASE_2_TABLES
+    assert names == PHASE_3_TABLES
     assert not [name for name in names for word in LATER_PHASES if word in name]
 
 
