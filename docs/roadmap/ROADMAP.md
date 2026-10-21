@@ -191,11 +191,29 @@ These gaps drive the phase ordering below.
   carries, live or replayed. The arrival-time products exist only for
   full advisories, and only since 2018 (Irma 2017 has none), so they
   feed the per-storm threats instead.
+- **A drop that may be an artifact waits for a second fetch.** The
+  brief's §9 notifies on a level change in either direction. v2
+  announces levels against the last announced level: an escalation is
+  sent at once, even from an incomplete assessment, but a drop whose
+  assessment could not read an input the announcing one read, or that
+  came with no new advisory and no expired alert, is held for a
+  confirming cycle five minutes later (at most three holds, then it is
+  sent as "at least"), so a fetch that fails and recovers never sends
+  "fell" and then "rose". Every replayed advisory is a new advisory,
+  so replay never holds one. A cone that newly covers the location
+  notifies too, because the cone can arrive a cycle after its advisory
+  (`phase04-roadmap.md`, "Design rationale").
+- **The schedule is NHC's, in UTC.** The brief's §5 gives the cadence
+  in Eastern time. NHC's routine advisories are fixed at 0300, 0900,
+  1500, and 2100 UTC and the intermediates and outlooks at 0000, 0600,
+  1200, and 1800 UTC (NWS Instruction 10-607), so their Eastern times
+  move an hour when daylight time ends; the monitor schedules in UTC.
 
 Everything else in the brief applies unchanged: the decisions D1–D10,
-the data sources (with the graphic names, the text-product path, and
-the arrival-time KMZ above), the ladder semantics, the AI role and
-model, the notification policy, and the success criteria.
+the data sources (with the graphic names, the text-product path, the
+arrival-time KMZ, and the UTC schedule above), the ladder semantics,
+the AI role and model, the notification policy (with the held drop
+above), and the success criteria.
 
 ---
 
@@ -624,20 +642,32 @@ Phase 4 keeps Phase 3's verification green as it grows (Phase 3 Step 7,
 expected growth needs no historical conversion: V6.4 asks for the operator's
 database at a head that descends from `0003` (so a heartbeat or notification
 revision passes), V3.3 accepts issue #33 open or closed with its decision
-comment, and the command, schema, and threshold checks read inclusion. Two
-checks count exactly and stay live: check 33 reads exactly the eight goldens
-in `tests/golden/replay/`, so the monitor's notification-timeline goldens go
-in a directory of their own; check 32 reads exactly the seven change kinds,
-and staleness is a heartbeat and assessment flag, not a change kind. A step
+comment, and the command and schema checks read inclusion. Three checks count
+exactly and stay live: check 33 reads exactly the eight goldens in
+`tests/golden/replay/`, so the monitor's notification-timeline goldens go in a
+directory of their own; check 32 reads exactly the seven change kinds, and
+staleness is a heartbeat and assessment flag, not a change kind; and check 38
+reads exactly the six thresholds of `Thresholds` (corrected while writing
+`phase04-roadmap.md`: this note first said the threshold checks read
+inclusion), so every Phase 4 setting lives in a new `Settings` table. A step
 that deliberately adds a change kind converts check 32 in the same PR to read
 `CHANGE_KINDS` at `v2.0.0-phase-3`, as Phase 3 Step 1 did for Phase 2's check
 31. Keep the `"01"`, `"02"`, and `"03"` matrix entries.
 
 #### 4.1 Scheduler
-- APScheduler inside the `serve` process and a one-shot `check --once`:
-  fetch windows after each scheduled NHC product time with jitter, an
-  adaptive NWS interval that tightens only while a storm is relevant
-  to any location, and a manual `check` on demand.
+- Snapshot storage a schedule can sustain first: measured on 2026-10-21,
+  every unchanged cycle stored all 608 geometry rows again (2.0 MiB), so
+  revision `0004` stores each geometry's content once and each response's
+  provenance once per snapshot (`phase04-roadmap.md`, "Design rationale").
+- A small asyncio scheduler inside the `serve` process (not APScheduler:
+  3.11.3 is untyped and has an unreleased fix for a scheduler that stops
+  every job after one exception, and 4.0 is an alpha; `phase04-roadmap.md`,
+  "Design rationale") and a one-shot `check --once`: fetch windows 15
+  minutes after each of NHC's fixed UTC product times with jitter, which
+  wait until the roster and the map service agree on the new advisory; a
+  roster watch; an adaptive NWS interval that tightens only while a storm
+  is relevant to any location; and a manual `check --once` on demand.
+  Every cycle fetches every source: the watches only decide when.
 - A heartbeat table with the last successful fetch per source; a
   staleness rule flags data older than twice its cadence.
 
@@ -647,28 +677,40 @@ that deliberately adds a change kind converts check 32 in the same PR to read
 - Policy: notify on level change in either direction, on a new
   advisory for a storm whose cone contains the location, and on a new
   or changed official alert; cooldown suppresses repeats of the same
-  event only; escalations always notify; quiet hours apply to levels 1
-  and 2 only.
+  event only (default 6 hours); escalations always notify; quiet hours
+  apply to levels 1 and 2 only (off by default). Levels are announced
+  against the last announced level, so an escalation is sent at once
+  even from an incomplete assessment, and a drop that may be an
+  artifact of the fetch waits for a confirming cycle five minutes later
+  (see "Changes from the brief").
 - Every notification is stored with its trigger, channel, and delivery
   result.
 
 #### 4.3 Channels
 - A channel interface with Windows toast (one maintained library behind
-  it, a no-op fallback elsewhere) and the in-app log; `notify test`
-  exercises each configured channel.
+  it, pywinrt's `winrt-Windows.UI.Notifications`, under an application
+  identity `notify setup` registers for the current user; a no-op
+  fallback elsewhere) and the in-app log; `notify test` exercises each
+  configured channel.
 
 #### 4.4 Windows integration and health
 - `weatherbot install-task` registers Task Scheduler entries for
-  `serve` at logon and an hourly `check --once` fallback;
-  `uninstall-task` removes them; `doctor` verifies both and the
-  heartbeat.
+  `serve` at logon and an hourly `check --once --if-stale` fallback,
+  both run as the operator with no stored credential and no console
+  window; `uninstall-task` removes them; `doctor` verifies both, the
+  installation they run, and the heartbeat.
 - After a configurable number of consecutive fetch failures (default
-  TBD), a toast and a log entry report degraded data.
+  3, with retries at 5, 10, and 20 minutes), a toast and a log entry
+  report degraded data; the hourly fallback reports a stale monitor.
 
 **Acceptance criteria**
+- A second cycle over unchanged answers grows the database by less than
+  128 KiB, and every snapshot stored before revision `0004` still loads
+  back equal.
 - Replaying Irma through the monitor service produces the expected
   notification timeline, with cooldown applied to repeats and never to
-  escalations.
+  escalations (two timelines per landmark, defaults and strict, approved
+  by the operator once and then frozen).
 - A simulated new advisory during `serve` raises a toast on the
   operator's machine within one scheduler interval, and the
   notification row records delivery.
@@ -1467,7 +1509,7 @@ every row.
 
 | Surface                          | Signal                                                                 | Checked by                                        | Alerts                                              |
 |----------------------------------|------------------------------------------------------------------------|---------------------------------------------------|-----------------------------------------------------|
-| `weatherbot serve`               | `/api/health`: version, scheduler state, last successful fetch per source, Alembic head | `doctor`; the dashboard's staleness banner; the post-upgrade check | Toast and log entry after N consecutive fetch failures (N configurable, default TBD in Phase 4) |
+| `weatherbot serve`               | `/api/health`: version, scheduler state, last successful fetch per source, Alembic head | `doctor`; the dashboard's staleness banner; the post-upgrade check | Toast and log entry after N consecutive fetch failures (N configurable, default 3, set in Phase 4) |
 | Scheduled `check --once` task    | Last successful run time in the heartbeat table                        | `status`, `doctor`, Task Scheduler history        | Dashboard banner and toast when older than twice the cadence |
 | Claude usage (metered)           | Per-call ledger versus the daily cap                                   | Settings page; `brief --cost`                     | The kill switch disables AI calls at the cap and the UI says so |
 | Notification delivery            | Delivery result per notification row                                   | Notification log page; `notify test`              | A failed channel is shown in the log and in `doctor` |
