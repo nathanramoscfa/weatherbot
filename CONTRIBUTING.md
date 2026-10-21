@@ -90,9 +90,28 @@ shape and `--live` in place of `--corpus`:
   JUnit report of the pytest run. Findings are in
   [the Phase 2 QA ledger](docs/phase02-qa-findings.md).
 
+Phase 3's is `uv run python scripts/verify_phase03.py`, with Phase 2's flags;
+`--all` also runs the cached corpus:
+
+- `--fast`: 52 numbered, independent checks, offline and standard-library only.
+- `--py`: static checks, lint, formatting, types, import contracts, the offline
+  tests with the engine's branch-coverage floor (the coverage data file goes to
+  a temporary directory), and the installed-wheel smoke, which also imports the
+  engine.
+- `--live`: static checks and `pytest -m live` (landmarks only).
+- `--security`: static checks and the four-check security gate.
+- `--all`: the Python, live and security suites, and one `pytest -m corpus` run
+  against the local cache (fetched and verified first).
+- `--post`: the canonical 80-check pre-tag sweep: the V1-V7 matrix from one
+  offline, one live, and one corpus run, GitHub readbacks, Phase 2's own
+  `--post`, `doctor` against your database and its alarm proof, and the replay
+  time budget, timed on the two landmarks in a temporary data directory (it
+  never runs `status` or `replay` against your locations). Findings are in
+  [the Phase 3 QA ledger](docs/phase03-qa-findings.md).
+
 Both `gate` and `phase-verify` are required on protected `main`. The latter
-aggregates the `phase-verify (01)` and `phase-verify (02)` matrix jobs; later
-phases append their entries and retain the aggregate name. Both workflows run
+aggregates the `phase-verify (01)`, `phase-verify (02)`, and `phase-verify (03)`
+matrix jobs; later phases append their entries and retain the aggregate name. Both workflows run
 on every pull request.
 
 The test suite blocks all network access except loopback, and every test

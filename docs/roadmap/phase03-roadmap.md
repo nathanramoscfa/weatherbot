@@ -5265,7 +5265,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | V3.1 | Static checks 18–26 all PASS (the ladder and assessment models, the rule order, the span type, issue #10's inputs, the segment thresholds, the probability reading, the `[engine]` table, no coordinate field, the scenarios). | `phase-verify.yml --fast`.                                                 |
 | V3.2 | The rule, official, breakpoint, probability, outlook, and assessment tests pass, every shared scenario included. | `ci.yml` `test`.                                                           |
-| V3.3 | Issue #10 is closed with its decision comment, and the storm-surge issue is open.             | `--post` (`gh issue view`).                                                |
+| V3.3 | Issue #10 is closed with its decision comment, and the storm-surge issue is open (amended in Step 7: or closed with its decision comment, so deciding #33 later never turns this row red). | `--post` (`gh issue view`).                                                |
 
 ### V4 — Per-storm threats and change events
 
@@ -5301,7 +5301,7 @@ workflow above maps directly to the corresponding row below.
 | V6.1 | Static checks 41–47 all PASS (revision `0003`, the repository and service, the commands, the schemas, the note gone, the live test, the README). | `phase-verify.yml --fast`.                                                 |
 | V6.2 | The assessment service, migration, and command tests pass, and every document validates against its committed schema. | `ci.yml` `test`.                                                           |
 | V6.3 | `status` runs against the live services for both landmarks.                                  | `live-smoke.yml` (dispatch) and `--live`.                                  |
-| V6.4 | `doctor` reports the operator's database at head `0003`, and a database stamped with an unknown revision makes `doctor --offline --json` exit 1. | `--post`, local only.                                                      |
+| V6.4 | `doctor` reports the operator's database at head `0003` (amended in Step 7: at a head that descends from `0003`, so a Phase 4 revision never turns this row red), and a database stamped with an unknown revision makes `doctor --offline --json` exit 1. | `--post`, local only.                                                      |
 | V6.5 | Each of the eight storm-landmark replays over the committed corpus finishes in under 10 seconds. | `--post`, local only (timed on the landmarks in a temporary data directory). |
 
 ### V7 — CI integration + security
