@@ -58,8 +58,8 @@ def test_no_command_logs_or_prints_a_coordinate_except_locations_list(
         ["status", "--no-fetch"],
         ["locations", "evacuation", NAME, "on"],
         ["status", "--no-fetch", "--json"],
-        ["replay", "AL112017", "--location", NAME, "--corpus", str(CORPUS)],
-        ["replay", "AL112017", "--location", NAME, "--corpus", str(CORPUS), "--json"],
+        ["replay", "AL142024", "--location", NAME, "--corpus", str(CORPUS)],
+        ["replay", "AL142024", "--location", NAME, "--corpus", str(CORPUS), "--json"],
     ]
     with recorded_services() as router:
         added = run(["locations", "add", NAME, "--lat", lat, "--lon", lon, "--polygon", "forecast"])
