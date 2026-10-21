@@ -81,7 +81,9 @@ jobs:
   test:
     name: test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    # Windows ran the suite in 11.5 minutes before Phase 3 Step 6's command tests, which
+    # replay the corpus under coverage; the bound leaves room for the suite to grow.
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
