@@ -43,7 +43,9 @@ STYLE RULES (the AI MUST follow)
     the operator's access methods reach, at the deepest
     reasoning rung that model exposes on its platform (`Max`
     in Claude Code, which `/roadmap-phase` sets by itself),
-    with thinking on. Where `roadmodel` is installed, the table
+    with thinking on where the model has a Thinking toggle
+    (Opus 5.5 and the other models that always think have
+    none: their cell is `—`). Where `roadmodel` is installed, the table
     is the ladder `roadmodel ladder --category planning
     --complexity high --phase` prints, pasted as printed with
     its **Runs:** line: Cost, Balanced and Quality, each with a
@@ -252,7 +254,7 @@ dependency graph in §5 is honoured.
 | Backup       | <Backup — its platform · its dial> | <Backup — its platform · its dial> | <Backup — its platform · its dial> |
 | Platform     | <Access method>        | <Access method>        | <Claude Code, or the access method that pays> |
 | Effort       | <Its dial and level>   | <Its dial and level>   | <Deepest rung there — Effort Max in Claude Code> |
-| Thinking     | <On, or — with no toggle> | <On, or — with no toggle> | On                                 |
+| Thinking     | <On, or — with no toggle> | <On, or — with no toggle> | <On, or — with no toggle>          |
 | Conversation | **New**                | **New**                | **New**                                  |
 
 **Runs:** Quality — a phase-roadmap session runs Quality (quality first). If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
@@ -312,7 +314,7 @@ key pays for the platform.>
 | Backup       | …       | …        | …       |
 | Platform     | …       | …        | …       |
 | Effort       | …       | …        | …       |
-| Thinking     | …       | …        | On      |
+| Thinking     | …       | …        | …       |
 | Conversation | **New** | **New**  | **New** |
 
 **Runs:** Quality — <the line `roadmodel ladder` prints>
@@ -349,7 +351,7 @@ key pays for the platform.>
 | Backup       | …       | …        | …       |
 | Platform     | …       | …        | …       |
 | Effort       | …       | …        | …       |
-| Thinking     | …       | …        | On      |
+| Thinking     | …       | …        | …       |
 | Conversation | **New** | **New**  | **New** |
 
 **Runs:** Quality — <the line `roadmodel ladder` prints>

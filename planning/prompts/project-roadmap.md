@@ -63,8 +63,9 @@ dials for the session that will write that phase's roadmap with
 `/roadmap-phase N` — pick quality first as the template's style rule
 says: the session runs the Quality column, the strongest `planning`
 model the operator's access methods reach, at the deepest reasoning
-rung it exposes on its platform (`Max` in Claude Code), thinking on,
-never `Ultracode` — unless the user-context states a rule for
+rung it exposes on its platform (`Max` in Claude Code), thinking on
+where the model has a Thinking toggle (a model that always thinks, such
+as Opus 5.5, has none), never `Ultracode` — unless the user-context states a rule for
 roadmap-writing sessions. Where `roadmodel` is installed, the table is
 the ladder `roadmodel ladder --category planning --complexity high
 --phase` prints (MCP tool: `roadmap_settings` with `phase`), pasted as

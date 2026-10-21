@@ -82,12 +82,16 @@ STYLE RULES (the AI MUST follow)
     operator can literally set in that panel:
       • Claude Code: Model / Platform / Effort / Thinking
         (On/Off) / Conversation. Effort values are Low /
-        Medium / High / Extra High / Max / Ultracode
-        (Ultracode is the TOP of the effort ladder, not a
-        separate orchestration row). Thinking is a
+        Medium / High / Extra High / Max; Ultracode is its
+        own switch beside the effort slider (Claude Code
+        2.1.284+), written in the Effort cell as
+        `<level> + Ultracode` (e.g. `Extra High + Ultracode`),
+        never as a separate orchestration row. Thinking is a
         two-position toggle — On or Off — and NEVER
-        carries an effort word. NO Max Mode row: Claude
-        Code has no such dial.
+        carries an effort word; a model that always thinks
+        (Opus 5.5, Sonnet 5.5, Haiku 5.5 and the Fable models) has no
+        Thinking toggle, so its Thinking cell is `—`. NO
+        Max Mode row: Claude Code has no such dial.
       • Codex (single Platform covering both the CLI binary
         and the Cursor IDE extension — operator picks the
         surface): Model / Platform / Intelligence /
@@ -797,8 +801,9 @@ that owns it.}}
      `xhigh` with ultracode's dynamic workflows on, reached
      by launching `claude --effort ultracode` or by running
      `/effort xhigh` then `/effort ultracode` (since Claude
-     Code 2.1.284 the `/effort` toggle keeps the current
-     level), so no other surface has that rung. Map from
+     Code 2.1.284 Ultracode is its own switch that keeps
+     the current level), so no other surface has it. The
+     Effort cell reads `Extra High + Ultracode`. Map from
      overall complexity per
      `<thinking-context>`: Low → Low, Medium → Medium,
      High → High, High with novel problem-solving or
@@ -813,7 +818,10 @@ that owns it.}}
      effort word or a number — the level lives in Effort.
      Default On for any step where extended reasoning is
      desirable; Off only when the step is purely
-     mechanical and latency matters.
+     mechanical and latency matters. A model that always
+     thinks (Opus 5.5, Sonnet 5.5, Haiku 5.5 and the Fable models) has
+     no toggle on any surface: its Thinking cell is `—`,
+     and a mechanical step lowers Effort instead.
 
      INTELLIGENCE variant (use for Codex and the OpenAI
      API). Codex is a single Platform covering both the CLI
@@ -880,8 +888,8 @@ when Platform is Claude Code}}):
 | Model        | {{Model name}}                 |
 | Backup       | {{Backup model — its platform · its dial, or None}} |
 | Platform     | {{Claude Code or other reasoning-dial access method}} |
-| Effort       | {{Low/Medium/High/Extra High/Max — or Ultracode, Claude Code only}} |
-| Thinking     | {{On or Off}}                  |
+| Effort       | {{Low/Medium/High/Extra High/Max — or Extra High + Ultracode, Claude Code only}} |
+| Thinking     | {{On or Off — or — for a model that always thinks}} |
 | Conversation | **{{New or Continue}}**        |
 
 Settings table — Codex variant ({{use this shape when
@@ -1922,9 +1930,10 @@ corresponding row below.
      one row) even though the Settings table above omits
      the row entirely. "--" means "this surface has no
      such control" — it is never a setting to apply:
-       • Claude Code → "Effort {{Low/Med/High/XHigh/Max/
-         Ultracode}}" (and the Thinking column carries
-         "On" or "Off").
+       • Claude Code → "Effort {{Low/Med/High/XHigh/Max}}"
+         (plus " + Ultracode" when the switch is on), and
+         the Thinking column carries "On" or "Off" — or
+         "--" for a model that always thinks (Opus 5.5, Sonnet 5.5, Haiku 5.5 and the Fable models).
        • Codex → "Intelligence {{Low/Med/High/XHigh}}"
          (the Thinking column is "--" because the surface
          exposes no Thinking field; Codex covers both the
@@ -1933,7 +1942,8 @@ corresponding row below.
        • Other reasoning-dial surfaces (ChatGPT app,
          claude.ai web, Anthropic / OpenAI / Google APIs,
          Gemini CLI, DeepSeek API) → "Effort {{level}}"
-         (and the Thinking column carries "On" or "Off").
+         (and the Thinking column carries "On" or "Off",
+         or "--" for a model that always thinks).
          Never "Max ON/OFF" — none of these has Max Mode.
        • Cursor → "Max ON" or "Max OFF" (and the Thinking
          column is "--"; Cursor exposes no reasoning
@@ -1990,7 +2000,8 @@ the step's **Runs:** line names.
          Gemini CLI, DeepSeek API). EFFORT carries the
          LEVEL (Low/Medium/High/XHigh/Max/Ultracode);
          THINKING is a two-position toggle, On or Off,
-         and NEVER carries an effort word. In a roadmap
+         and NEVER carries an effort word; a model that
+         always thinks (Opus 5.5, Sonnet 5.5, Haiku 5.5 and the Fable models) gets NO THINKING line. In a roadmap
          table Codex's dial is labelled "Intelligence"
          after its own UI, but the block line is EFFORT.
        • MAX MODE → CURSOR ONLY (On/Off). Cursor exposes
@@ -2013,7 +2024,7 @@ BACKUP: {{fallback model, or None}}
 PLATFORM: {{access method name}}
 {{Claude Code and every other reasoning-dial surface:}}
 EFFORT: {{Low/Medium/High/XHigh/Max/Ultracode}}
-THINKING: {{On or Off}}
+THINKING: {{On or Off — omit the line for a model that always thinks}}
 {{Claude Code only, additionally:}}
 ORCHESTRATION: {{None or PerPrompt}}
 {{Cursor only — and INSTEAD OF the two lines above, not alongside them:}}
@@ -2034,7 +2045,8 @@ MODEL: {{model}}
 BACKUP: {{fallback model, or None}}
 PLATFORM: {{access method name}}
 {{Setting lines the PLATFORM exposes: reasoning-dial surface →
-EFFORT + THINKING(On/Off) (+ ORCHESTRATION on Claude Code);
+EFFORT + THINKING(On/Off, absent for a model that always thinks)
+(+ ORCHESTRATION on Claude Code);
 Cursor → MAX MODE only.}}
 CONVERSATION: {{New or Continue}}
 RATIONALE: {{Same TASK / PICK / EFFORT shape as Step 1.}}
@@ -2044,7 +2056,8 @@ MODEL: {{model}}
 BACKUP: {{fallback model, or None}}
 PLATFORM: {{access method name}}
 {{Setting lines the PLATFORM exposes: reasoning-dial surface →
-EFFORT + THINKING(On/Off) (+ ORCHESTRATION on Claude Code);
+EFFORT + THINKING(On/Off, absent for a model that always thinks)
+(+ ORCHESTRATION on Claude Code);
 Cursor → MAX MODE only.}}
 CONVERSATION: {{New or Continue}}
 RATIONALE: {{...}}
@@ -2054,7 +2067,8 @@ MODEL: {{model}}
 BACKUP: {{fallback model, or None}}
 PLATFORM: {{access method name}}
 {{Setting lines the PLATFORM exposes: reasoning-dial surface →
-EFFORT + THINKING(On/Off) (+ ORCHESTRATION on Claude Code);
+EFFORT + THINKING(On/Off, absent for a model that always thinks)
+(+ ORCHESTRATION on Claude Code);
 Cursor → MAX MODE only.}}
 CONVERSATION: {{New or Continue}}
 RATIONALE: {{TASK: mechanical translation of the prior
