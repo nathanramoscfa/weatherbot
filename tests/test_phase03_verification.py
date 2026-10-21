@@ -131,6 +131,13 @@ def test_a_selection_matches_its_module_its_classes_and_its_name_only() -> None:
     assert not selection.matches("tests.engine.test_arrivals_extra::test_dorian_036")
 
 
+def test_a_selection_leaves_out_only_the_tests_it_names() -> None:
+    selection = verification.Select("tests.services.test_replay", without="a_link_out")
+
+    assert selection.matches("tests.services.test_replay::test_tampering_is_refused")
+    assert not selection.matches("tests.services.test_replay::test_a_link_out_of_the_corpus")
+
+
 def test_junit_statuses_are_read_from_pytest_s_report(tmp_path: Path) -> None:
     report = tmp_path / "junit.xml"
     report.write_text(

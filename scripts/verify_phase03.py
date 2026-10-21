@@ -1142,16 +1142,23 @@ def pytest_run(item_id: str, description: str, *arguments: str) -> PytestRun:
 
 @dataclass(frozen=True)
 class Select:
-    """Tests in one module or directory (dotted), optionally only those whose name has a part."""
+    """Tests in one module or directory (dotted), optionally only those whose name has a part.
+
+    ``without`` leaves out the tests whose name has that part: a test whose skip depends on
+    the machine's account (symbolic-link rights), which CI's runners prove instead.
+    """
 
     module: str
     name: str = ""
+    without: str = ""
 
     def matches(self, test_id: str) -> bool:
         """Whether a ``classname::name`` test id falls under this selection."""
         classname, _, name = test_id.partition("::")
-        return (classname == self.module or classname.startswith(self.module + ".")) and (
-            self.name in name
+        return (
+            (classname == self.module or classname.startswith(self.module + "."))
+            and self.name in name
+            and not (self.without and self.without in name)
         )
 
 
@@ -1652,7 +1659,8 @@ def post_matrix(statics: Sequence[Outcome]) -> list[Outcome]:  # noqa: PLR0915 -
         Select("tests.models.test_origin"),
         Select("tests.sources.test_nhc_gis_archive"),
         Select("tests.contract.test_archive_field_coverage"),
-        Select("tests.services.test_replay"),
+        # Accounts without symbolic-link rights skip the link refusal; ci.yml's runners run it.
+        Select("tests.services.test_replay", without="a_link_out_of_the_corpus"),
     )
     tests(
         "V2.3",
