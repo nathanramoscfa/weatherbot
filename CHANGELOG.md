@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 3 — Threat engine
+- Add `weatherbot status`, which fetches a snapshot (or reads the latest stored one
+  with `--no-fetch`), assesses and stores every location, and prints each level
+  with its deciding rule and evidence, the actions, "at least" with the missing
+  inputs, the covering official products and the county-zone alerts outside the
+  location's zones, the wind-speed probabilities, each storm's threat, the
+  changes since the previous stored assessment, the breakpoint span, and the
+  evacuation-order toggle, in UTC and the location's time zone. It exits 1 on a
+  partial snapshot. When the toggle was set after a snapshot's stored
+  assessment, `status --no-fetch` says that level did not read it.
+- Add `weatherbot replay ATCF_ID --location NAME --corpus DIR`, which prints a
+  storm's transitions (or every advisory with `--every`) with the toggle off,
+  names `convert --full` where the landmark windows do not cover the location,
+  and stores nothing; and `weatherbot locations evacuation NAME on|off`.
+  `locations list` shows the toggle with its instant and the breakpoint span,
+  and `alerts` says which alerts and segments cover the location (issue #10),
+  the segments that cover it first outside NWS coverage.
+- Alembic revision `0003` (expand-only, after the online backup) adds
+  `assessments`, `assessment_evidence`, and `assessment_changes`, and
+  `locations.evacuation_order_set_at`; removing a location removes its
+  assessments in the same transaction. `AssessmentRepository` and
+  `AssessmentService` store each assessment once per snapshot, location, and
+  ruleset, diff it against the previous stored one, and fill the breakpoint
+  span from the snapshot's catalogue. The toggle's evidence names when it was
+  turned on. `status` and `replay` documents join the committed JSON Schemas.
 - Add `ReplayService.timeline`, six calibrated threshold intervals and their
   witnesses, eight operator-reviewed golden replay timelines, rule/threshold
   mutation guards, and `docs/ALERT-LADDER.md` with three tables rendered from code.

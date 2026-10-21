@@ -4886,6 +4886,38 @@ The conversation is new per phase-boundary hygiene.
     frozen readings are 186 outside, 43 before, 228 between,
     9 after, and 22 unresolved.
 
+    Carry-over from Step 6 (what checks 41-47 and V6 read):
+    `migrations/versions/0003_assessments.py` (`down_revision`
+    `0002`) creates `assessments`, `assessment_evidence`, and
+    `assessment_changes` with `op.create_table`, and adds
+    `locations.evacuation_order_set_at` with a plain
+    `op.add_column` (a batch alteration rebuilds `locations`,
+    and dropping the old table with foreign keys on deletes
+    every alert observation that cascades from it; a test
+    proves the downgrade keeps them). `AssessmentRepository` is
+    in `services/persistence/repositories.py` and
+    `AssessmentService` in `services/assessments.py`. The root
+    app registers `app.command("status")` and
+    `app.command("replay")` (from `cli/status.py` and
+    `cli/replay.py`), and `cli/locations.py` registers
+    `@app.command("evacuation")`. `DOCUMENTS` holds seven
+    schemas. The V6 tests are `tests/services/test_assessments.py`,
+    the revision `0003` tests in `tests/services/test_database.py`,
+    `tests/cli/test_status.py`, `tests/cli/test_replay_command.py`
+    (not `test_replay.py`: `tests/services/` has one, and test
+    basenames must be unique), and the `status` additions to
+    `tests/cli/test_cli_privacy.py`. `replay` reads a stored
+    location, so V6.5 first adds both landmarks with `locations
+    add` in the temporary data directory (one NWS and one
+    Nominatim request each, for the public landmarks only), then
+    times `replay ATCF_ID --location NAME --corpus
+    tests/fixtures/replay` for each storm; on 2026-10-20 each
+    timeline took 1.3 to 3.7 s through the service and about
+    3 s per command. A `status --no-fetch` after a toggle change
+    returns the stored assessment of that snapshot and says its
+    level did not read the toggle: the unique key is location,
+    snapshot, and ruleset, and history is never rewritten.
+
     Files to read:
     - scripts/verify_phase02.py (primary structural template)
       and tests/test_phase02_verification.py.

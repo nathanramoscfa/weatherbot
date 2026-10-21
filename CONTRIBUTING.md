@@ -117,7 +117,9 @@ coordinate: the Miami-Dade point, its alerts, and its three zones; the
 Nassau point, which is outside NWS coverage and makes no alert request;
 and one reverse lookup per landmark. The command test adds both landmarks
 through `locations add` in a temporary data directory, then runs `fetch`,
-`storms --json`, `alerts --json` for each landmark, and `doctor --json`,
+`storms --json`, `alerts --json` for each landmark, `status --json` (which
+assesses and stores both landmarks in that temporary database, and a
+`status --no-fetch` rerun that stores nothing new), and `doctor --json`,
 validating each document against its committed schema. Run it before a
 change that touches a source client or a command, and whenever a register
 layer, field, or product may have changed (Source drift).
@@ -277,6 +279,30 @@ through SQLite's online backup API, to
 `backups/weatherbot-<UTC stamp>-<revision>.sqlite3`, then upgrades it. That
 copy is the rollback. A database written by a newer Weatherbot refuses to
 open, and nothing ever downgrades it.
+
+Revision `0003` adds the assessments `weatherbot status` stores, three tables
+written in one transaction per run:
+
+- `assessments`: one row per location, snapshot, and ruleset (the thresholds'
+  fingerprint with the rule order). It holds the level, the deciding rule,
+  whether every input was available, the thresholds, and the whole assessment
+  as JSON, which loads back equal.
+- `assessment_evidence`: one row per evidence record of the deciding rule and
+  per official product considered, with its kind, rule, source, code or event,
+  and distance, for queries.
+- `assessment_changes`: the change events from the location's previous stored
+  assessment, in order.
+
+Rerunning `status` over the same snapshot and ruleset stores nothing new; a
+replay is never stored. An assessment's distances, bearings, and arrival
+instants locate the location as surely as its coordinates do, so they stay in
+this database and on your terminal, and no log line above DEBUG holds one.
+`weatherbot locations remove NAME` removes the location with its alert
+observations and its assessments, their evidence and changes included, in the
+same transaction: the database cascades every row from the location's.
+`weatherbot locations evacuation NAME on|off` sets the operator's toggle and
+records when (`locations.evacuation_order_set_at`); a `status` that fetches a
+new snapshot assesses with it.
 
 The tests never touch any of this. An autouse fixture in `tests/conftest.py`
 points both directories into each test's temporary directory and clears

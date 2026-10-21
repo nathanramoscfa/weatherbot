@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/replay.schema.json",
+  "$defs": {
+    "ChangeEntry": {
+      "additionalProperties": false,
+      "description": "One change since the previous stored assessment.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "level_changed",
+            "advisory_issued",
+            "official_added",
+            "official_changed",
+            "official_removed",
+            "cone_entered",
+            "cone_left"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "detail"
+      ],
+      "title": "ChangeEntry",
+      "type": "object"
+    },
+    "ReplayData": {
+      "additionalProperties": false,
+      "description": "A storm's ladder timeline at a location: its transitions, or every advisory.",
+      "properties": {
+        "storm": {
+          "$ref": "#/$defs/ReplayStormEntry"
+        },
+        "location": {
+          "$ref": "#/$defs/ReplayLocationEntry"
+        },
+        "every": {
+          "description": "false: only the advisories where the level or rule changes.",
+          "title": "Every",
+          "type": "boolean"
+        },
+        "ruleset": {
+          "title": "Ruleset",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/ReplayStepEntry"
+          },
+          "title": "Steps",
+          "type": "array"
+        },
+        "notes": {
+          "description": "What the replay could not read, and that the toggle stayed off.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "storm",
+        "location",
+        "every",
+        "ruleset",
+        "steps",
+        "notes"
+      ],
+      "title": "ReplayData",
+      "type": "object"
+    },
+    "ReplayLocationEntry": {
+      "additionalProperties": false,
+      "description": "The stored location the storm is replayed at, without its coordinates.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "inside_nws_coverage": {
+          "title": "Inside Nws Coverage",
+          "type": "boolean"
+        },
+        "evacuation_order_stored_on": {
+          "description": "The stored toggle; a replay always assesses with it off.",
+          "title": "Evacuation Order Stored On",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "inside_nws_coverage",
+        "evacuation_order_stored_on"
+      ],
+      "title": "ReplayLocationEntry",
+      "type": "object"
+    },
+    "ReplayStepEntry": {
+      "additionalProperties": false,
+      "description": "One replayed advisory's assessment and its changes from the advisory before.",
+      "properties": {
+        "advisory": {
+          "title": "Advisory",
+          "type": "string"
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        },
+        "level": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Level",
+          "type": "integer"
+        },
+        "level_name": {
+          "title": "Level Name",
+          "type": "string"
+        },
+        "rule": {
+          "title": "Rule",
+          "type": "string"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "official_codes": {
+          "description": "The codes of the covering watches and warnings, sorted.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Official Codes",
+          "type": "array"
+        },
+        "changes": {
+          "items": {
+            "$ref": "#/$defs/ChangeEntry"
+          },
+          "title": "Changes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "advisory",
+        "issued_at",
+        "level",
+        "level_name",
+        "rule",
+        "complete",
+        "official_codes",
+        "changes"
+      ],
+      "title": "ReplayStepEntry",
+      "type": "object"
+    },
+    "ReplayStormEntry": {
+      "additionalProperties": false,
+      "description": "The replayed storm, named as the corpus names it.",
+      "properties": {
+        "atcf_id": {
+          "title": "Atcf Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "advisories": {
+          "minimum": 1,
+          "title": "Advisories",
+          "type": "integer"
+        },
+        "first_issued_at": {
+          "format": "date-time",
+          "title": "First Issued At",
+          "type": "string"
+        },
+        "last_issued_at": {
+          "format": "date-time",
+          "title": "Last Issued At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "atcf_id",
+        "name",
+        "advisories",
+        "first_issued_at",
+        "last_issued_at"
+      ],
+      "title": "ReplayStormEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot replay --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "replay",
+      "default": "replay",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/ReplayData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "ReplayDocument",
+  "type": "object"
+}

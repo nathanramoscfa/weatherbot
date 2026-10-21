@@ -13,12 +13,12 @@ import re
 from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Final
 
 import httpx
 import respx
-from fixture_support import REPOSITORY_ROOT, CaptureDirectory, latest_live
+from fixture_support import REPOSITORY_ROOT, CaptureDirectory, latest_live, register_alert
 from jsonschema import Draft202012Validator
 from pydantic import BaseModel
 from source_support import NOW, FakeClock, entry, serve
@@ -29,6 +29,9 @@ from weatherbot.cli import app
 from weatherbot.cli.documents import DOCUMENTS, json_schema
 from weatherbot.cli.runtime import Runtime
 from weatherbot.models import SourceId
+from weatherbot.services.config import AppPaths
+from weatherbot.services.persistence.database import open_database
+from weatherbot.services.persistence.repositories import AssessmentRepository, StoredAssessment
 from weatherbot.sources.http import Fetcher, HostPacer, ValidatorStore
 
 ANSI_ESCAPE: Final = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
@@ -55,6 +58,29 @@ KMZ: Final = "https://www.nhc.noaa.gov/storm_graphics/api/EP202026_{adv}adv_{kin
 KINDS: Final = ("earliest_reasonable", "most_likely")
 MIAMI: Final = "Miami-Dade County Hall"
 NASSAU: Final = "Parliament Square"
+CORPUS: Final = REPOSITORY_ROOT / "tests" / "fixtures" / "replay"
+COUNTY_ALERTS: Final = "https://api.weather.gov/alerts/active/zone/FLC086"
+
+
+def county_statement() -> dict[str, httpx.Response]:
+    """An override: the county zone answers the register's FLC086 Coastal Flood Statement.
+
+    The alert names other zones than the Miami-Dade landmark's, so it is context that sets
+    no level (issue #10). It is built from the register's description, sent an hour
+    before the test clock, inside the recorded zone answer.
+    """
+    capture = directory("nws-alerts-zone")
+    document = json.loads(capture.payload(entry(capture, "alerts-zone-FLC086.geojson")))
+    document["features"] = [register_alert(NOW - timedelta(hours=1))]
+    body = json.dumps(document).encode("utf-8")
+    headers = {"content-type": "application/geo+json"}
+    return {COUNTY_ALERTS: httpx.Response(200, content=body, headers=headers)}
+
+
+def history(name: str, limit: int = 10) -> tuple[StoredAssessment, ...]:
+    """A location's stored assessments in the test's database, newest first."""
+    with open_database(AppPaths.resolve()) as database:
+        return AssessmentRepository(database.engine).history(name, limit)
 
 
 def directory(source: SourceId) -> CaptureDirectory:

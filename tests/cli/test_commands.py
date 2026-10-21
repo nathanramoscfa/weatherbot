@@ -17,6 +17,7 @@ from cli_support import (
     NASSAU,
     SUMMARY_CATALOG,
     add_landmark,
+    county_statement,
     parse,
     recorded_services,
     run,
@@ -133,6 +134,69 @@ def test_locations_remove_of_an_unknown_name_is_a_usage_error() -> None:
 
     assert result.exit_code == USAGE
     assert "no location is named 'Nowhere'" in result.stderr
+
+
+def test_locations_evacuation_sets_and_clears_the_toggle_with_its_instant() -> None:
+    with recorded_services():
+        add_landmark(MIAMI, "miami-dade")
+    on = run(["locations", "evacuation", MIAMI, "on"])
+    again = run(["locations", "evacuation", MIAMI, "on"], runtime(now=NOW + timedelta(hours=1)))
+    listed = parse(run(["locations", "list", "--json"]), LocationsDocument)
+    table = run(["locations", "list"])
+    off = run(["locations", "evacuation", MIAMI, "off"], runtime(now=NOW + timedelta(hours=2)))
+    cleared = parse(run(["locations", "list", "--json"]), LocationsDocument)
+
+    assert on.exit_code == 0, on.stderr
+    assert (
+        f"The evacuation-order toggle of '{MIAMI}' is on since 2026-10-13 01:30 UTC "
+        "(2026-10-12 21:30 EDT)." in on.stdout
+    )
+    assert "holds 'Miami-Dade County Hall' at level 4 (Warning / Watch / Evacuation) or above" in (
+        on.stdout
+    )
+    assert f"weatherbot locations evacuation '{MIAMI}' off" in on.stdout
+    assert "The next weatherbot status, which fetches a snapshot, assesses with it." in on.stdout
+    assert "is already on since 2026-10-13 01:30 UTC" in again.stdout
+    (entry,) = listed.data.locations
+    assert (entry.evacuation_order_in_effect, entry.evacuation_order_set_at) == (True, NOW)
+    assert "on since 2026-10-13 01:30 UTC (2026-10-12 21:30 EDT)" in table.stdout
+    assert off.exit_code == 0
+    assert "is off since 2026-10-13 03:30 UTC" in off.stdout
+    assert "is no longer held at level 4" in off.stdout
+    (entry,) = cleared.data.locations
+    assert entry.evacuation_order_in_effect is False
+    assert entry.evacuation_order_set_at == NOW + timedelta(hours=2)
+
+
+@pytest.mark.parametrize("args", [["Nowhere", "on"], [MIAMI, "maybe"]])
+def test_locations_evacuation_of_an_unknown_name_or_state_is_a_usage_error(
+    args: list[str],
+) -> None:
+    with recorded_services():
+        add_landmark(MIAMI, "miami-dade")
+
+    result = run(["locations", "evacuation", *args])
+
+    assert result.exit_code == USAGE
+
+
+def test_locations_list_shows_the_span_once_status_finds_it() -> None:
+    with recorded_services():
+        add_landmark(MIAMI, "miami-dade")
+        add_landmark(NASSAU, "nassau")
+        before = parse(run(["locations", "list", "--json"]), LocationsDocument)
+        run(["status"])
+    after = parse(run(["locations", "list", "--json"]), LocationsDocument)
+    table = run(["locations", "list"])
+
+    assert [entry.breakpoint_span for entry in before.data.locations] == [None, None]
+    miami, nassau = after.data.locations
+    assert miami.breakpoint_span is not None
+    assert miami.breakpoint_span.names == ("Ocean Reef", "Miami-Dade/Broward County Line")
+    assert nassau.breakpoint_span is not None
+    assert nassau.breakpoint_span.is_region
+    assert "Ocean Reef to Miami-Dade/Broward County Line (United States)" in table.stdout
+    assert "Bahamas (NW)" in table.stdout
 
 
 def test_locations_list_without_locations_says_how_to_add_one() -> None:
@@ -343,6 +407,8 @@ def test_alerts_for_a_us_location_print_its_alerts_in_utc_and_local_time() -> No
 
     assert result.exit_code == 0, result.stderr
     assert "Rip Current Statement" in result.stdout
+    assert "  Covers this location: the point query returned it" in result.stdout
+    assert "No NHC watch-warning segment covers it." in result.stdout
     assert "Effective 2026-10-17 07:40 UTC (2026-10-17 03:40 EDT)" in result.stdout
     assert "Found by  the point, FLC086, FLZ173" in result.stdout
     assert result.stdout.rstrip().endswith(NOTICE)
@@ -351,9 +417,29 @@ def test_alerts_for_a_us_location_print_its_alerts_in_utc_and_local_time() -> No
     assert alert.effective_local == "2026-10-17T03:40:00-04:00"
     assert [query.kind for query in alert.found_by] == ["point", "zone", "zone"]
     assert alert.affected_zone_ids == ("FLZ168", "FLZ172", "FLZ173")
+    assert (alert.covers, alert.rule) == (True, None)
+    assert alert.coverage.startswith("the point query returned it")
+    assert document.data.watch_warnings == ()
 
 
-def test_alerts_outside_nws_coverage_list_the_watch_warning_segments_verbatim() -> None:
+def test_alerts_mark_a_county_zone_alert_outside_the_location_s_zones() -> None:
+    with recorded_services(overrides=county_statement()):
+        add_landmark(MIAMI, "miami-dade")
+        result = run(["alerts"])
+        document = parse(run(["alerts", "--json"]), AlertsDocument)
+
+    assert result.exit_code == 0, result.stderr
+    assert (
+        "Coastal Flood Statement\n  Does not cover this location: county-zone alert outside "
+        "this location's zones"
+    ) in result.stdout
+    assert document.data.alerts is not None
+    by_event = {alert.event: alert for alert in document.data.alerts}
+    assert by_event["Coastal Flood Statement"].covers is False
+    assert by_event["Rip Current Statement"].covers is True
+
+
+def test_alerts_outside_nws_coverage_list_the_segments_covering_ones_first() -> None:
     with recorded_services() as router:
         add_landmark(NASSAU, "nassau")
         result = run(["alerts"])
@@ -362,10 +448,14 @@ def test_alerts_outside_nws_coverage_list_the_watch_warning_segments_verbatim() 
 
     assert result.exit_code == 0, result.stderr
     assert "Parliament Square is outside NWS coverage" in result.stdout
-    assert "Simon  EP202026  HWR   Hurricane Warning  22A" in result.stdout
-    assert "Phase 3's work" in result.stdout
+    assert "Watch-warning segments of the active storms, those that cover it first" in (
+        result.stdout
+    )
+    assert "Simon  EP202026  HWR   Hurricane Warning  22A       does not cover it" in result.stdout
+    assert "Phase 3" not in result.stdout
     assert document.data.alerts is None
     assert {segment.tcww.raw for segment in document.data.watch_warnings} == {"HWA", "HWR"}
+    assert not any(segment.covers for segment in document.data.watch_warnings)
     assert any("CurrentStorms" in url for url in sent)
     assert not any("/alerts/" in url for url in sent)
 
@@ -406,7 +496,7 @@ def test_doctor_offline_reports_the_paths_the_head_and_the_locations() -> None:
     document = parse(run(["doctor", "--offline", "--json"]), DoctorDocument)
 
     assert result.exit_code == 0, result.stdout
-    assert "migrations  pass    at revision 0002, the head" in result.stdout
+    assert "migrations  pass    at revision 0003, the head" in result.stdout
     assert "Offline: no source was probed." in result.stdout
     assert result.stdout.rstrip().endswith(NOTICE)
     assert document.data.database is not None

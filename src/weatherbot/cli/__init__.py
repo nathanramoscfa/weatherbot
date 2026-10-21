@@ -13,6 +13,8 @@ import typer
 from weatherbot import __version__
 from weatherbot.cli import doctor as doctor_command
 from weatherbot.cli import locations, snapshots
+from weatherbot.cli import replay as replay_command
+from weatherbot.cli import status as status_command
 from weatherbot.cli.runtime import Runtime, start
 
 app = typer.Typer(
@@ -25,6 +27,8 @@ app.add_typer(locations.app)
 app.command("fetch")(snapshots.fetch)
 app.command("storms")(snapshots.storms)
 app.command("alerts")(snapshots.alerts)
+app.command("status")(status_command.status)
+app.command("replay")(replay_command.replay)
 app.command("doctor")(doctor_command.doctor)
 
 

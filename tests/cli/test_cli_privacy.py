@@ -3,13 +3,15 @@
 
 The coordinates come from ``synthetic_coordinates()`` at run time, never from a literal;
 the NWS and Nominatim answers for them are the Miami-Dade landmark's recorded answers.
+An assessment's distances and bearings locate the location as surely, so ``status``
+prints them to the terminal only, and no log record above DEBUG holds one.
 """
 
 import logging
 import re
 
 import pytest
-from cli_support import Ran, recorded_services, run, urls
+from cli_support import CORPUS, Ran, history, recorded_services, run, urls
 
 from check_personal_data import load_landmarks, synthetic_coordinates
 from weatherbot.services.logs import configure_logging
@@ -51,6 +53,13 @@ def test_no_command_logs_or_prints_a_coordinate_except_locations_list(
         ["doctor"],
         ["doctor", "--json"],
         ["doctor", "--offline", "--json"],
+        ["status"],
+        ["status", "--json"],
+        ["status", "--no-fetch"],
+        ["locations", "evacuation", NAME, "on"],
+        ["status", "--no-fetch", "--json"],
+        ["replay", "AL112017", "--location", NAME, "--corpus", str(CORPUS)],
+        ["replay", "AL112017", "--location", NAME, "--corpus", str(CORPUS), "--json"],
     ]
     with recorded_services() as router:
         added = run(["locations", "add", NAME, "--lat", lat, "--lon", lon, "--polygon", "forecast"])
@@ -77,6 +86,65 @@ def test_no_command_logs_or_prints_a_coordinate_except_locations_list(
         "nominatim.openstreetmap.org",
     }
     assert sum("nominatim" in url for url in carrying) == 1
+
+
+def _renderings(value: float) -> set[str]:
+    """How a distance or a bearing could be written: whole, and to one or two decimals."""
+    written = {repr(value), f"{value:.1f}", f"{value:.2f}"}
+    whole = f"{value:.0f}"
+    # A short whole number also counts answers and records; three digits or more locate.
+    return written | ({whole} if len(whole) >= 3 else set())  # noqa: PLR2004
+
+
+def test_status_logs_no_coordinate_and_no_distance_above_debug(
+    coordinates: tuple[str, str], caplog: pytest.LogCaptureFixture
+) -> None:
+    lat, lon = coordinates
+    with recorded_services():
+        added = run(["locations", "add", NAME, "--lat", lat, "--lon", lon])
+        first = run(["status"])
+        second = run(["status", "--json"])
+
+    assert added.exit_code == 0, added.stderr
+    assert first.exit_code == 0, first.stderr
+    assert second.exit_code == 0, second.stderr
+    assessments = [stored.assessment for stored in history(NAME)]
+    assert len(assessments) == 2  # noqa: PLR2004 - each run fetched its own snapshot
+    measured = [
+        value
+        for assessment in assessments
+        for threat in assessment.threats
+        for value in (
+            threat.distance_km,
+            threat.bearing_deg,
+            threat.closest_approach_km,
+            threat.lead_h,
+        )
+        if value is not None
+    ]
+    measured += [
+        value
+        for assessment in assessments
+        for value in (
+            *(p.distance_km for p in assessment.official),
+            *(e.distance_km for e in assessment.evidence),
+        )
+        if value is not None
+    ]
+    assert measured, "the recorded storm gives the location a distance and a bearing"
+    renderings = set[str]().union(*(_renderings(value) for value in measured))
+    # A whole number, not a run of digits inside another, such as the 4326 of EPSG:4326.
+    written = [re.compile(rf"(?<![\d.]){re.escape(value)}(?![\d])") for value in renderings]
+    above_debug = [r.getMessage() for r in caplog.records if r.levelno > logging.DEBUG]
+    assessed = [message for message in above_debug if "level" in message]
+    assert assessed, "the assessment service logs each location's level at INFO"
+    assert not [message for message in above_debug if leaks(message, coordinates)]
+    assert not [
+        (message, pattern.pattern)
+        for message in above_debug
+        for pattern in written
+        if pattern.search(message)
+    ]
 
 
 def test_the_cli_handler_redacts_a_coordinate_any_logger_writes_above_debug(

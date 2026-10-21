@@ -3,26 +3,34 @@
 
 ``LocationRepository`` keeps the watched locations, ``SnapshotRepository`` stores a whole
 live ``Snapshot`` with its raw responses in one transaction and loads it back equal (a
-replay snapshot is never stored: history is live only), and
+replay snapshot is never stored: history is live only), ``AssessmentRepository`` stores
+each live assessment with its evidence and changes and loads it back equal, and
 ``SettingsRepository`` keeps application state such as when the disclaimer was shown.
+
+A write that takes a ``session`` joins the caller's transaction, so a service can store
+several records in one; without one, it commits on its own.
 """
 
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Generator, Iterable, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Final, cast
 from uuid import UUID
 
 from pydantic import JsonValue
-from sqlalchemy import Engine, select
+from sqlalchemy import Engine, Select, select
 from sqlalchemy.orm import Session
 
 from weatherbot.models import (
     Advisory,
     AdvisoryNumber,
     ArrivalTimeProduct,
+    Assessment,
     Breakpoint,
+    BreakpointSpan,
+    ChangeEvent,
     ConeGeometry,
     DisplayLayer,
     DomainModel,
@@ -62,6 +70,9 @@ from weatherbot.services.persistence.tables import (
     AdvisoryRow,
     AlertObservationRow,
     AlertRow,
+    AssessmentChangeRow,
+    AssessmentEvidenceRow,
+    AssessmentRow,
     DriftWarningRow,
     FeedItemObservationRow,
     FeedItemRow,
@@ -109,12 +120,26 @@ class SnapshotStoreError(Exception):
     """A snapshot cannot be stored as given."""
 
 
+class AssessmentStoreError(Exception):
+    """An assessment cannot be stored as given."""
+
+
 @dataclass(frozen=True)
 class DriftWarning:
     """A Source-drift warning a fetch logged: its source and a coordinate-free message."""
 
     source_id: SourceId
     message: str
+
+
+@contextmanager
+def _writing(engine: Engine, session: Session | None) -> Generator[Session]:
+    """Join the caller's transaction, or open one that commits when the block ends."""
+    if session is not None:
+        yield session
+        return
+    with Session(engine) as own, own.begin():
+        yield own
 
 
 # Locations ---------------------------------------------------------------------------------
@@ -141,6 +166,7 @@ def _location_row(location: Location, now: datetime) -> LocationRow:
         nws_state=nws.state if nws else None,
         breakpoint_span=dump(location.breakpoint_span) if location.breakpoint_span else None,
         evacuation_order_in_effect=location.evacuation_order_in_effect,
+        evacuation_order_set_at=location.evacuation_order_set_at,
         geocoding=dump(location.geocoding) if location.geocoding else None,
         created_at=now,
         updated_at=now,
@@ -176,6 +202,7 @@ def _location(row: LocationRow) -> Location:
             "nws": nws,
             "breakpoint_span": row.breakpoint_span,
             "evacuation_order_in_effect": row.evacuation_order_in_effect,
+            "evacuation_order_set_at": row.evacuation_order_set_at,
             "geocoding": row.geocoding,
         },
     )
@@ -233,7 +260,7 @@ class LocationRepository:
             return _location(row) if row is not None else None
 
     def remove(self, name: str) -> bool:
-        """Remove a location and its alert observations, and nothing else.
+        """Remove a location, its alert observations, and its assessments, in one transaction.
 
         Args:
             name: The location's name.
@@ -245,7 +272,54 @@ class LocationRepository:
             row = session.scalar(select(LocationRow).where(LocationRow.name == name))
             if row is None:
                 return False
-            session.delete(row)  # the database cascades to its alert observations
+            # The database cascades to its alert observations and its assessments, and from
+            # each assessment to its evidence and changes.
+            session.delete(row)
+            return True
+
+    def set_evacuation_order(
+        self, name: str, *, on: bool, at: datetime, session: Session | None = None
+    ) -> Location | None:
+        """Turn a location's evacuation-order toggle on or off, and record when.
+
+        Args:
+            name: The location's name.
+            on: Whether the toggle is on.
+            at: When it was set.
+            session: A transaction to join; the write commits on its own without one.
+
+        Returns:
+            The updated location, or ``None`` when no location has that name.
+        """
+        with _writing(self._engine, session) as active:
+            row = active.scalar(select(LocationRow).where(LocationRow.name == name))
+            if row is None:
+                return None
+            row.evacuation_order_in_effect = on
+            row.evacuation_order_set_at = at
+            row.updated_at = self._now()
+            active.flush()
+            return _location(row)
+
+    def set_breakpoint_span(
+        self, name: str, span: BreakpointSpan | None, *, session: Session | None = None
+    ) -> bool:
+        """Replace a location's breakpoint span.
+
+        Args:
+            name: The location's name.
+            span: The span, or ``None`` to clear it.
+            session: A transaction to join; the write commits on its own without one.
+
+        Returns:
+            Whether a location of that name was updated.
+        """
+        with _writing(self._engine, session) as active:
+            row = active.scalar(select(LocationRow).where(LocationRow.name == name))
+            if row is None:
+                return False
+            row.breakpoint_span = dump(span) if span is not None else None
+            row.updated_at = self._now()
             return True
 
 
@@ -798,6 +872,255 @@ def _load(session: Session, snapshot_id: UUID) -> Snapshot | None:
             for outcome in outcomes
         ),
     )
+
+
+# Assessments -------------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class StoredAssessment:
+    """A stored assessment: its id, the assessment, its changes, and when it was stored.
+
+    ``changes`` are the change events from the location's previous stored assessment.
+    """
+
+    id: int
+    assessment: Assessment
+    changes: tuple[ChangeEvent, ...]
+    stored_at: datetime
+
+
+def _evidence_rows(assessment_id: int, assessment: Assessment) -> list[AssessmentEvidenceRow]:
+    rows = [
+        AssessmentEvidenceRow(
+            assessment_id=assessment_id,
+            role="evidence",
+            position=position,
+            kind=item.product,
+            rule=str(item.rule),
+            source_id=item.source_id,
+            code=item.code,
+            distance_km=item.distance_km,
+            covers=None,
+        )
+        for position, item in enumerate(assessment.evidence)
+    ]
+    rows.extend(
+        AssessmentEvidenceRow(
+            assessment_id=assessment_id,
+            role="official",
+            position=position,
+            kind=product.kind,
+            rule=str(product.rule) if product.rule is not None else None,
+            source_id=product.citation.source_id,
+            code=product.code,
+            distance_km=product.distance_km,
+            covers=product.covers,
+        )
+        for position, product in enumerate(assessment.official)
+    )
+    return rows
+
+
+def _stored(session: Session, row: AssessmentRow) -> StoredAssessment:
+    events = session.scalars(
+        select(AssessmentChangeRow.event)
+        .where(AssessmentChangeRow.assessment_id == row.id)
+        .order_by(AssessmentChangeRow.position)
+    )
+    return StoredAssessment(
+        id=row.id,
+        assessment=validated(Assessment, row.assessment),
+        changes=tuple(validated(ChangeEvent, event) for event in events),
+        stored_at=row.stored_at,
+    )
+
+
+def _of_location(name: str) -> "Select[AssessmentRow]":
+    """A location's assessments, newest first: by its snapshot's instant, then as stored."""
+    return (
+        select(AssessmentRow)
+        .join(LocationRow, LocationRow.id == AssessmentRow.location_id)
+        .where(LocationRow.name == name)
+        .order_by(AssessmentRow.as_of.desc(), AssessmentRow.id.desc())
+    )
+
+
+class AssessmentRepository:
+    """Every live assessment, with its evidence and its changes, stored whole by location."""
+
+    def __init__(self, engine: Engine, *, now: Clock = _now) -> None:
+        """Create the repository.
+
+        Args:
+            engine: The open database.
+            now: The clock, for when an assessment is stored.
+        """
+        self._engine = engine
+        self._now = now
+
+    def save(
+        self,
+        assessment: Assessment,
+        changes: Sequence[ChangeEvent],
+        *,
+        session: Session | None = None,
+    ) -> StoredAssessment:
+        """Store an assessment, a row per evidence record and official product, and its changes.
+
+        Args:
+            assessment: The assessment, of a live snapshot that is stored.
+            changes: Its change events from the location's previous stored assessment.
+            session: A transaction to join; the write commits on its own without one.
+
+        Returns:
+            The stored assessment.
+
+        Raises:
+            AssessmentStoreError: The assessment is a replay's (history is live only), its
+                location or its snapshot is not stored, or it is stored already for that
+                snapshot, location, and ruleset.
+        """
+        if assessment.origin != "live":
+            message = "a replay assessment is never stored: history is live only"
+            raise AssessmentStoreError(message)
+        stored_at = self._now()
+        with _writing(self._engine, session) as active:
+            location_id = active.scalar(
+                select(LocationRow.id).where(LocationRow.name == assessment.location_name)
+            )
+            if location_id is None:
+                message = "the assessment names a location that is not stored"
+                raise AssessmentStoreError(message)
+            if active.get(SnapshotRow, assessment.snapshot_id) is None:
+                message = "the assessment's snapshot is not stored"
+                raise AssessmentStoreError(message)
+            taken = active.scalar(
+                select(AssessmentRow.id).where(
+                    AssessmentRow.location_id == location_id,
+                    AssessmentRow.snapshot_id == assessment.snapshot_id,
+                    AssessmentRow.ruleset == assessment.ruleset,
+                )
+            )
+            if taken is not None:
+                message = "that assessment is stored already"
+                raise AssessmentStoreError(message)
+            row = AssessmentRow(
+                location_id=location_id,
+                snapshot_id=assessment.snapshot_id,
+                ruleset=assessment.ruleset,
+                as_of=assessment.as_of,
+                level=int(assessment.level),
+                rule=str(assessment.rule),
+                complete=assessment.complete,
+                thresholds=dump(assessment.thresholds),
+                assessment=dump(assessment),
+                stored_at=stored_at,
+            )
+            active.add(row)
+            active.flush()
+            active.add_all(_evidence_rows(row.id, assessment))
+            active.add_all(
+                AssessmentChangeRow(
+                    assessment_id=row.id, position=position, kind=event.kind, event=dump(event)
+                )
+                for position, event in enumerate(changes)
+            )
+            active.flush()
+            return StoredAssessment(row.id, assessment, tuple(changes), stored_at)
+
+    def find(
+        self,
+        location_name: str,
+        snapshot_id: UUID,
+        ruleset: str,
+        *,
+        session: Session | None = None,
+    ) -> StoredAssessment | None:
+        """Return the assessment stored for a location, a snapshot, and a ruleset.
+
+        Args:
+            location_name: The location's name.
+            snapshot_id: The snapshot's id.
+            ruleset: The ruleset's fingerprint.
+            session: A transaction to read in; a session of its own without one.
+
+        Returns:
+            The stored assessment, or ``None``.
+        """
+        statement = _of_location(location_name).where(
+            AssessmentRow.snapshot_id == snapshot_id, AssessmentRow.ruleset == ruleset
+        )
+        with _reading(self._engine, session) as active:
+            row = active.scalar(statement)
+            return _stored(active, row) if row is not None else None
+
+    def latest(
+        self,
+        location_name: str,
+        *,
+        at_or_before: datetime | None = None,
+        session: Session | None = None,
+    ) -> StoredAssessment | None:
+        """Return a location's latest stored assessment, by its snapshot's instant.
+
+        Args:
+            location_name: The location's name.
+            at_or_before: Only an assessment of a snapshot at or before this instant.
+            session: A transaction to read in; a session of its own without one.
+
+        Returns:
+            The stored assessment, or ``None`` when none is stored.
+        """
+        statement = _of_location(location_name)
+        if at_or_before is not None:
+            statement = statement.where(AssessmentRow.as_of <= at_or_before)
+        with _reading(self._engine, session) as active:
+            row = active.scalar(statement.limit(1))
+            return _stored(active, row) if row is not None else None
+
+    def history(self, location_name: str, limit: int) -> tuple[StoredAssessment, ...]:
+        """Return a location's stored assessments, newest first.
+
+        Args:
+            location_name: The location's name.
+            limit: At most this many.
+
+        Returns:
+            The stored assessments.
+
+        Raises:
+            ValueError: The limit is below one.
+        """
+        if limit < 1:
+            message = "a history holds at least one assessment"
+            raise ValueError(message)
+        with Session(self._engine) as session:
+            rows = session.scalars(_of_location(location_name).limit(limit)).all()
+            return tuple(_stored(session, row) for row in rows)
+
+    def load(self, assessment_id: int) -> StoredAssessment | None:
+        """Load a stored assessment back, equal to the one stored.
+
+        Args:
+            assessment_id: Its id.
+
+        Returns:
+            The stored assessment, or ``None`` when no assessment has that id.
+        """
+        with Session(self._engine) as session:
+            row = session.get(AssessmentRow, assessment_id)
+            return _stored(session, row) if row is not None else None
+
+
+@contextmanager
+def _reading(engine: Engine, session: Session | None) -> Generator[Session]:
+    """Read in the caller's transaction, or in a session of its own."""
+    if session is not None:
+        yield session
+        return
+    with Session(engine) as own:
+        yield own
 
 
 # Settings ----------------------------------------------------------------------------------

@@ -1,12 +1,14 @@
 # src/weatherbot/services/locations.py
-"""The locations service: add a location once, list the stored ones, and remove one.
+"""The locations service: add a location once, list and remove them, and set the toggle.
 
 ``LocationService.add(name, lat, lon, polygon=None)`` checks the name and the coordinates
 before any request, asks NWS ``/points`` whether the NWS covers the point, fetches the
 county or forecast zone's shape when ``polygon`` asks for one (US locations only),
 reverse-geocodes the point through Nominatim once, and stores the location with that
 result. Nothing re-geocodes a stored location, and nothing else sends a location's
-coordinates anywhere but ``api.weather.gov``.
+coordinates anywhere but ``api.weather.gov``. ``set_evacuation_order`` turns the
+operator's evacuation-order toggle on or off and records when; removing a location
+removes its alert observations and its assessments with it.
 
 A location's coordinates are the operator's. No error message, log record, or ``repr``
 here repeats them; they leave the machine only in the NWS and Nominatim request URLs.
@@ -102,6 +104,7 @@ class LocationService:
         """
         self._engine = engine
         self._network = network or Network()
+        self._now = now
         self._repository = LocationRepository(engine, now=now)
 
     async def add(
@@ -191,8 +194,38 @@ class LocationService:
         """
         return self._repository.get(name)
 
+    def set_evacuation_order(self, name: str, *, on: bool) -> tuple[Location, bool]:
+        """Turn a location's evacuation-order toggle on or off.
+
+        The toggle holds the location at level 4 or above while it is on. Setting it to
+        the state it is already in changes nothing, so its instant stays the one it was
+        set at.
+
+        Args:
+            name: The location's name.
+            on: Whether the toggle is on.
+
+        Returns:
+            The location, and whether the toggle changed.
+
+        Raises:
+            LocationError: No location has that name.
+        """
+        location = self._repository.get(name)
+        if location is None:
+            message = f"no location is named {name!r}"
+            raise LocationError(message)
+        if location.evacuation_order_in_effect == on:
+            return location, False
+        updated = self._repository.set_evacuation_order(name, on=on, at=self._now())
+        if updated is None:  # removed by another process since it was read
+            message = f"no location is named {name!r}"
+            raise LocationError(message)
+        LOGGER.info("location %r: evacuation-order toggle %s", name, "on" if on else "off")
+        return updated, True
+
     def remove(self, name: str) -> None:
-        """Remove a location and its alert observations.
+        """Remove a location, its alert observations, and its assessments.
 
         Args:
             name: The name.

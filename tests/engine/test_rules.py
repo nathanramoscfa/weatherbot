@@ -331,6 +331,24 @@ def test_all_clear_never_matches() -> None:
         assert _rule(RuleId.ALL_CLEAR).evaluate(readings) == ()
 
 
+def test_the_toggle_s_evidence_names_when_it_was_turned_on() -> None:
+    rule = next(item for item in RULES if item.id == RuleId.EVACUATION_ORDER)
+    turned_on = SYNTHETIC_AT - timedelta(hours=3)
+    fields = {name: getattr(_miami(evacuation=True), name) for name in Location.model_fields}
+    dated = Location.model_validate(fields | {"evacuation_order_set_at": turned_on})
+
+    (since,) = rule.evaluate(read(synthetic_snapshot(), dated, Thresholds())[0])
+    (undated,) = rule.evaluate(read(synthetic_snapshot(), _miami(evacuation=True), Thresholds())[0])
+
+    assert since.issued_at == turned_on
+    assert since.detail.endswith(
+        f"toggle is on for this location since {turned_on:%Y-%m-%d %H:%M} UTC."
+    )
+    assert since.citation is None
+    assert undated.issued_at is None
+    assert undated.detail == "The operator's evacuation-order toggle is on for this location."
+
+
 def test_the_cone_horizon_and_the_floors_follow_the_thresholds() -> None:
     late = _cone(MIAMI_DADE, [100, 100, 100], 72)  # the approach comes 72 h after the snapshot
     snapshot, location = late()

@@ -18,6 +18,11 @@ level, official products precede the operator's evacuation toggle, followed by
 geometry and probabilities. A probability compares the band's **lower bound**,
 not its midpoint or upper bound. Missing bands never imply a positive chance.
 
+The operator's evacuation-order toggle sets level 4 while it is on, and its
+evidence names when it was turned on. It is a present-day input: `weatherbot
+replay` assesses a past storm with it off. `weatherbot status` stores every
+assessment with its evidence and its changes; a replay is never stored.
+
 An NWS alert counts only if it is Actual, is not a Cancel, and expires after the
 snapshot instant. It covers the location if the point query returned it or its
 UGC list names the location's forecast or county zone. A county-query alert for
