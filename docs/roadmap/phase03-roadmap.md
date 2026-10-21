@@ -3807,9 +3807,9 @@ conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 6 — Stored assessments and the commands
+## Step 6 — Stored assessments and the commands ✅
 
-**Status:** Not started
+**Status:** Complete — PR #37 (2026-10-20)
 
 > **Goal:** Store and print the level. Alembic revision `0003` creates
 > `assessments` (one row per location, snapshot, and ruleset: the level, rule,
@@ -3847,6 +3847,8 @@ must be green.
 | Effort       | Intelligence High                       | Effort High                              | Effort XHigh                             |
 | Thinking     | —                                       | On                                       | On                                       |
 | Conversation | **New**                                 | **New**                                  | **New**                                  |
+
+> Ran 2026-10-20: Balanced — Opus 5.5 · Effort High. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -5324,7 +5326,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #34 |
 | 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #35 |
 | 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #36 |
-| 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Not started |
+| 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #37 |
 | 7    | QA + verify_phase03.py        | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
 | V1   | Geodesy + geometry            | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V2   | Replay snapshots              | CI: replay-corpus.yml    | --           | --                  | --       | --   | --          |
