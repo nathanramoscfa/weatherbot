@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 2 Complete — 2026-10-18; PR #26; v2.0.0-phase-2. Phase 3 (Threat engine) is in progress.
+> **Status:** Phase 3 Complete — 2026-10-20; PR #38; v2.0.0-phase-3. Phase 4 (Monitoring and notifications) is next.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -464,9 +464,9 @@ from required verification.
 
 ---
 
-### Phase 3 — Threat engine
+### Phase 3 — Threat engine ✅
 
-**Status:** In progress — phase03-roadmap.md
+**Status:** Complete — 2026-10-20; PR #38; v2.0.0-phase-3; phase03-roadmap.md
 
 **Goal:** A pure, deterministic engine that turns a snapshot and a
 location into a level with evidence, verified by golden replays of four
@@ -618,6 +618,20 @@ The notification policy and the scheduler are what make the tool
 useful at 3 a.m. during a warning, and a wrong cooldown rule is a
 silent failure. Opus 5.5 at `Max` on Claude Code, GPT-6 Astra on Codex
 as backup, per the `roadmodel score` PRIMARY and BACKUP.
+
+Phase 4 keeps Phase 3's verification green as it grows (Phase 3 Step 7,
+`docs/phase03-qa-findings.md`). `verify_phase03.py` was written so that the
+expected growth needs no historical conversion: V6.4 asks for the operator's
+database at a head that descends from `0003` (so a heartbeat or notification
+revision passes), V3.3 accepts issue #33 open or closed with its decision
+comment, and the command, schema, and threshold checks read inclusion. Two
+checks count exactly and stay live: check 33 reads exactly the eight goldens
+in `tests/golden/replay/`, so the monitor's notification-timeline goldens go
+in a directory of their own; check 32 reads exactly the seven change kinds,
+and staleness is a heartbeat and assessment flag, not a change kind. A step
+that deliberately adds a change kind converts check 32 in the same PR to read
+`CHANGE_KINDS` at `v2.0.0-phase-3`, as Phase 3 Step 1 did for Phase 2's check
+31. Keep the `"01"`, `"02"`, and `"03"` matrix entries.
 
 #### 4.1 Scheduler
 - APScheduler inside the `serve` process and a one-shot `check --once`:
@@ -1562,7 +1576,7 @@ The following are deliberately deferred to a future version:
 |-------|-----------------------------------------------|------------|-------------|
 | 1     | Foundation and discovery                      | Medium     | Complete |
 | 2     | Sources and persistence                       | Medium     | Complete |
-| 3     | Threat engine                                 | High       | In progress |
+| 3     | Threat engine                                 | High       | Complete |
 | 4     | Monitoring and notifications                  | Medium     | Not started |
 | 5     | Web app MVP                                   | High       | Not started |
 | 6     | Claude layer                                  | High       | Not started |

@@ -257,7 +257,7 @@ def test_the_configuration_never_reads_a_dotenv_file(tmp_path: Path) -> None:
 # The [engine] table ------------------------------------------------------------------------
 
 
-def test_the_engine_table_defaults_to_the_provisional_thresholds() -> None:
+def test_the_engine_table_defaults_to_the_calibrated_thresholds() -> None:
     assert load_settings(AppPaths.resolve(), {}).engine.thresholds() == Thresholds()
 
 

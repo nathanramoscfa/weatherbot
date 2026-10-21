@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 3 — Threat engine
+- Add `scripts/verify_phase03.py`: 52 static checks over the geodesy, replay
+  snapshots, ladder rules, threats and change events, calibration and goldens,
+  and the stored assessments and commands, in the six modes `--fast`, `--py`
+  (with the engine branch-coverage floor), `--live`, `--security`, `--all`
+  (with the cached corpus), and `--post` (80 checks: the V1-V7 matrix built
+  from JUnit reports, GitHub readbacks, Phase 2's own `--post`, `doctor` with
+  its alarm proof, and the replay time budget). `phase-verify.yml` runs entry
+  `"03"` beside `"01"` and `"02"` under the required aggregate `phase-verify`.
+  `docs/phase03-qa-findings.md` is the phase's disposition ledger.
 - Add `weatherbot status`, which fetches a snapshot (or reads the latest stored one
   with `--no-fetch`), assesses and stores every location, and prints each level
   with its deciding rule and evidence, the actions, "at least" with the missing
