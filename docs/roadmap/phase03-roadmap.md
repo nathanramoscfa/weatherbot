@@ -1,6 +1,6 @@
-# Phase 3 Roadmap — Threat engine
+# Phase 3 Roadmap — Threat engine ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-10-20
 
 ## Overview
 
@@ -4386,9 +4386,9 @@ The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 7 — QA & Verification Script
+## Step 7 — QA & Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #38 (2026-10-20)
 
 > **Goal:** Package the verification matrix into `scripts/verify_phase03.py`
 > (with `--fast`, `--py`, `--live`, `--security`, `--all`, and `--post` modes),
@@ -4417,6 +4417,8 @@ peel to the merge commit.
 | Effort       | Intelligence Low                         | Effort Medium                           | Effort High                             |
 | Thinking     | —                                        | On                                      | On                                      |
 | Conversation | **New**                                  | **New**                                 | **New**                                 |
+
+> Ran 2026-10-20: Balanced — Opus 5.5 · Effort Medium. The **Runs:** column; the Claude weekly pool's `tight` row had passed its reset (Tue 2026-10-13 20:00 EDT), so it read `headroom`.
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
@@ -5327,7 +5329,7 @@ workflow above maps directly to the corresponding row below.
 | 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #35 |
 | 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #36 |
 | 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #37 |
-| 7    | QA + verify_phase03.py        | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Not started |
+| 7    | QA + verify_phase03.py        | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Complete — PR #38 |
 | V1   | Geodesy + geometry            | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V2   | Replay snapshots              | CI: replay-corpus.yml    | --           | --                  | --       | --   | --          |
 | V3   | Ladder rules + evidence       | CI: ci.yml               | --           | --                  | --       | --   | --          |
@@ -5442,7 +5444,7 @@ items follow from its phase boundaries and its §6 "Out of Scope":
 Additionally not in scope for this phase:
 
 - Storm-surge watches and warnings, and extreme-wind warnings, moving the
-  ladder. They are official context; the issue Step 3 opens records the
+  ladder. They are official context; issue #33 (opened in Step 3) records the
   operator's call.
 - County-zone alerts outside a location's zones setting a level. Issue #10's
   decision keeps them as context.
@@ -5459,8 +5461,8 @@ Additionally not in scope for this phase:
   pinned; a change goes through Source drift or a deliberate manifest refresh.
 - A package version bump. The version stays `2.0.0.dev0` until the release
   candidate in Phase 8; the milestone tag marks the phase.
-- Dependabot PRs #8 and #9. They are independent maintenance, outside every
-  step.
+- Dependabot PRs (#8, #30, and #31 open at the phase's close). They are
+  independent maintenance, outside every step.
 
 ---
 
