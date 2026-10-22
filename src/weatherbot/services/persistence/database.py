@@ -7,13 +7,20 @@ which is consistent under WAL (a raw file copy is not), to
 ``backups/weatherbot-<UTC stamp>-<revision>.sqlite3``, and then upgraded; the copy is the
 rollback (docs/roadmap/ROADMAP.md, "Data and schema migrations" and "Rollback"). A
 database at a revision this code does not know was written by a newer package: it refuses
-to open, and nothing here ever downgrades.
+to open, and nothing here ever downgrades. Two processes that open a database behind the
+head take ``migrate.lock`` in turn, so it is backed up and upgraded once.
+
+A transaction that writes begins ``BEGIN IMMEDIATE`` (``writing_session`` and
+``immediate``), so it takes SQLite's write lock before it reads: a plain deferred
+``BEGIN`` that reads and then writes while another process commits fails at once with
+``database is locked``, where an immediate one waits up to the busy timeout. A read-only
+transaction stays deferred.
 """
 
 import logging
 import sqlite3
-from collections.abc import Callable
-from contextlib import closing
+from collections.abc import Callable, Generator
+from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -24,14 +31,19 @@ from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import Connection, Engine, create_engine, event, inspect
+from sqlalchemy.orm import Session
 from sqlalchemy.pool import ConnectionPoolEntry
 
 from weatherbot.services.config import AppPaths, ensure_directory
+from weatherbot.services.locks import LockBusyError, ProcessLock
 
 LOGGER: Final = logging.getLogger("weatherbot.services.persistence")
 
 MIGRATIONS_DIRECTORY: Final = Path(__file__).resolve().parent / "migrations"
-BUSY_TIMEOUT_MS: Final = 5000
+BUSY_TIMEOUT_MS: Final = 30_000
+IMMEDIATE: Final = "weatherbot_begin_immediate"
+"""The execution option that makes a connection's transactions begin ``IMMEDIATE``."""
+MIGRATE_LOCK_WAIT_S: Final = 600
 BASE: Final = "base"
 """How a backup's name spells a database with no revision applied."""
 RUNBOOK: Final = "docs/roadmap/ROADMAP.md, Runbooks, 'Migration failed at start-up'"
@@ -73,7 +85,34 @@ def _configure_connection(dbapi_connection: sqlite3.Connection, _: ConnectionPoo
 
 
 def _begin(connection: Connection) -> None:
-    connection.exec_driver_sql("BEGIN")
+    immediate = connection.get_execution_options().get(IMMEDIATE, False)
+    connection.exec_driver_sql("BEGIN IMMEDIATE" if immediate else "BEGIN")
+
+
+def immediate(engine: Engine) -> Engine:
+    """The same engine, sharing its pool, whose transactions begin ``IMMEDIATE``.
+
+    Args:
+        engine: A database engine from ``create_database_engine``.
+
+    Returns:
+        The engine for writing transactions.
+    """
+    return engine.execution_options(**{IMMEDIATE: True})
+
+
+@contextmanager
+def writing_session(engine: Engine) -> Generator[Session]:
+    """Open a session in a writing transaction that begins ``IMMEDIATE`` and commits after.
+
+    Args:
+        engine: The database.
+
+    Yields:
+        The session; the transaction commits when the block ends, or rolls back.
+    """
+    with Session(immediate(engine)) as session, session.begin():
+        yield session
 
 
 def create_database_engine(path: Path) -> Engine:
@@ -205,7 +244,7 @@ def _table_names(engine: Engine) -> list[str]:
 
 
 def _upgrade(engine: Engine, migrations: Path) -> None:
-    with engine.begin() as connection:
+    with immediate(engine).begin() as connection:
         command.upgrade(alembic_config(connection, migrations), "head")
 
 
@@ -276,7 +315,20 @@ def open_database(
     ensure_directory(paths.data_dir)
     engine = create_database_engine(paths.database_path)
     try:
-        return _migrate(engine, paths, migrations, now)
+        head = head_revision(migrations)
+        if current_revision(engine) == head:
+            return Database(engine=engine, path=paths.database_path, revision=head)
+        lock = ProcessLock(paths.migrate_lock_path)
+        try:
+            lock.acquire(MIGRATE_LOCK_WAIT_S)
+        except LockBusyError:
+            message = "another process has been migrating the database too long; try again"
+            raise DatabaseError(message) from None
+        try:
+            # Read the revision again under the lock: another process may have migrated it.
+            return _migrate(engine, paths, migrations, now)
+        finally:
+            lock.release()
     except BaseException:
         engine.dispose()
         raise

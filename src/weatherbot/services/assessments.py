@@ -36,6 +36,7 @@ from sqlalchemy.orm import Session
 from weatherbot.engine import RULES, assess, diff
 from weatherbot.engine.official import OUTSIDE_ZONES
 from weatherbot.models import Location, OfficialProduct, RuleId, Snapshot, Thresholds
+from weatherbot.services.persistence.database import writing_session
 from weatherbot.services.persistence.repositories import (
     AssessmentRepository,
     LocationRepository,
@@ -125,7 +126,7 @@ class AssessmentService:
         if snapshot.origin != "live":
             message = "a replay snapshot is never assessed into history: history is live only"
             raise AssessmentError(message)
-        with Session(self._engine) as session, session.begin():
+        with writing_session(self._engine) as session:
             results = [self._assess_one(session, snapshot, location) for location in locations]
         created = sum(result.created for result in results)
         LOGGER.info(

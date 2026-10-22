@@ -470,10 +470,26 @@ class StatusLocationEntry(_Document):
     )
 
 
+class StalenessEntry(_Document):
+    """One heartbeat, judged when the document was made: stale past twice its cadence."""
+
+    kind: Literal["source", "watch", "runner"]
+    name: str = Field(description="A source id, a watch's name, or a monitor process's name.")
+    last_success_at: datetime | None = Field(description="null: it never succeeded.")
+    expected_every_s: int | None = Field(
+        ge=1, description="The cadence its writer expects; null: none is promised, never stale."
+    )
+    age_s: int | None = Field(ge=0, description="Whole seconds since its last success.")
+    stale: bool
+
+
 class StatusData(_Document):
-    """Each location's assessment against the snapshot, or the one named."""
+    """Each location's assessment against the snapshot, or the one named, and the pulse."""
 
     locations: tuple[StatusLocationEntry, ...]
+    staleness: tuple[StalenessEntry, ...] = Field(
+        description="Every heartbeat; a stale one is shown in a banner above the locations."
+    )
 
 
 class StatusDocument(_Envelope):
@@ -604,6 +620,9 @@ class DoctorData(_Document):
     layers: tuple[LayerDiscoveryEntry, ...]
     drift_snapshot_id: UUID | None
     drift_warnings: tuple[DriftWarningEntry, ...]
+    heartbeats: tuple[StalenessEntry, ...] = Field(
+        description="Every heartbeat, judged by the staleness rule; empty when none is stored."
+    )
     failed: bool
 
 
@@ -614,6 +633,101 @@ class DoctorDocument(_Envelope):
     data: DoctorData
 
 
+# check -------------------------------------------------------------------------------------
+
+
+class CycleEntry(_Document):
+    """The monitor cycle a command ran."""
+
+    cycle_id: int = Field(ge=1)
+    runner: Literal[
+        "serve", "check", "check-once", "fallback", "status", "fetch", "storms", "alerts"
+    ]
+    trigger: Literal[
+        "manual", "window", "roster", "alerts", "confirm", "retry", "startup", "resume", "fallback"
+    ]
+    status: Literal["complete", "partial", "failed", "skipped", "error"]
+    started_at: datetime
+    completed_at: datetime
+
+
+class CheckLocationEntry(_Document):
+    """One location's level after the cycle, and what changed."""
+
+    name: str
+    level: int = Field(ge=1, le=5)
+    level_name: str
+    rule: str
+    complete: bool = Field(
+        description="false: an input was unavailable, and the level reads as at least."
+    )
+    changes: tuple[ChangeEntry, ...]
+    stored_before: bool
+
+
+class CheckData(_Document):
+    """One monitor cycle: every location's level and changes."""
+
+    cycle: CycleEntry
+    locations: tuple[CheckLocationEntry, ...]
+    drift_warnings: tuple[DriftWarningEntry, ...]
+
+
+class CheckDocument(_Envelope):
+    """``weatherbot check --once --json``."""
+
+    command: Literal["check"] = "check"
+    snapshot: SnapshotInfo
+    data: CheckData
+
+
+# config ------------------------------------------------------------------------------------
+
+
+class SettingEntry(_Document):
+    """One setting's effective value and where it came from."""
+
+    table: str
+    key: str
+    value: str | int | float | bool
+    origin: Literal["default", "file", "environment"]
+    variable: str = Field(description="The environment variable that overrides it.")
+
+
+class ConfigData(_Document):
+    """Every setting, table by table."""
+
+    settings_file: str
+    settings_file_exists: bool
+    settings: tuple[SettingEntry, ...]
+
+
+class ConfigDocument(_Envelope):
+    """``weatherbot config show --json``."""
+
+    command: Literal["config show"] = "config show"
+    data: ConfigData
+
+
+class ConfigPathData(_Document):
+    """Where Weatherbot keeps its files."""
+
+    config_dir: str
+    settings_file: str
+    data_dir: str
+    database_file: str
+    backup_dir: str
+    cycle_lock_file: str
+    migrate_lock_file: str
+
+
+class ConfigPathDocument(_Envelope):
+    """``weatherbot config path --json``."""
+
+    command: Literal["config path"] = "config path"
+    data: ConfigPathData
+
+
 DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "locations": LocationsDocument,
     "fetch": FetchDocument,
@@ -622,6 +736,9 @@ DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "doctor": DoctorDocument,
     "status": StatusDocument,
     "replay": ReplayDocument,
+    "check": CheckDocument,
+    "config": ConfigDocument,
+    "config-path": ConfigPathDocument,
 }
 """Each schema's file stem and its document model."""
 

@@ -2,8 +2,11 @@
 """``doctor``: the local surfaces' health check, and one light probe per register source.
 
 Offline, it reports the configuration and data paths, whether the settings load, the
-database file and its Alembic revision against the head, and how many locations are
-stored, never a coordinate. Online, it sends one light, location-free probe per register
+database file and its Alembic revision against the head, how many locations are stored
+(never a coordinate), and the heartbeats under the staleness rule: the ``heartbeat`` check
+is skipped until some heartbeat promises a cadence (a fresh install, or a machine where no
+scheduled monitor has run) and whenever the database did not open, passes when none is
+stale, and fails when one is. Online, it sends one light, location-free probe per register
 source (the five map-service catalogs, the roster, the active storms' arrival-time KMZ,
 one TWO list for ``api.weather.gov``, the outlook graphics conditionally, the three feeds,
 and both WMS capabilities documents) and resolves every register layer name in this
@@ -20,11 +23,13 @@ import asyncio
 import functools
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final, Literal
 from uuid import UUID
 
 from weatherbot.models import MapCatalog, SourceId, StormSummary
+from weatherbot.services.health import Staleness, staleness
 from weatherbot.services.network import Network
 from weatherbot.services.persistence.database import (
     Database,
@@ -34,6 +39,7 @@ from weatherbot.services.persistence.database import (
 from weatherbot.services.persistence.raw_cache import RawResponseCache
 from weatherbot.services.persistence.repositories import (
     DriftWarning,
+    HeartbeatRepository,
     LocationRepository,
     SnapshotRepository,
 )
@@ -133,6 +139,7 @@ class DoctorReport:
     layers: tuple[LayerDiscovery, ...]
     drift_snapshot_id: UUID | None
     drift_warnings: tuple[DriftWarning, ...]
+    heartbeats: tuple[Staleness, ...] = ()
 
     @property
     def failed(self) -> bool:
@@ -190,6 +197,27 @@ def local_checks(
     count = len(LocationRepository(database.engine).list())
     checks.append(Check("locations", "pass", f"{count} stored"))
     return tuple(checks), state, count
+
+
+DATABASE_CLOSED: Final = "the database did not open"
+
+
+def heartbeat_check(judged: Sequence[Staleness]) -> Check:
+    """Judge the heartbeats: skip with no cadence promised, else pass or fail on staleness.
+
+    Args:
+        judged: The staleness rule's judgements.
+
+    Returns:
+        The ``heartbeat`` check.
+    """
+    promised = [item for item in judged if item.expected_every_s is not None]
+    if not promised:
+        return Check("heartbeat", "skip", "no heartbeat promises a cadence: no scheduler has run")
+    stale = [item.name for item in promised if item.stale]
+    if stale:
+        return Check("heartbeat", "fail", f"stale: {', '.join(stale)}")
+    return Check("heartbeat", "pass", f"{len(promised)} with a cadence, none stale")
 
 
 async def _probe(source_id: SourceId, work: Callable[[], Awaitable[str]]) -> SourceProbe:
@@ -334,6 +362,7 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
     created: bool,
     offline: bool,
     network: Network,
+    now: datetime | None = None,
 ) -> DoctorReport:
     """Run every check, and every probe unless ``offline``.
 
@@ -345,6 +374,7 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         created: Whether opening it created it.
         offline: Skip every probe.
         network: The timeout and the fetcher factory.
+        now: The instant the heartbeats are judged at; the clock's when omitted.
 
     Returns:
         The report.
@@ -358,10 +388,16 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
     )
     drift_id: UUID | None = None
     warnings: tuple[DriftWarning, ...] = ()
+    judged: tuple[Staleness, ...] = ()
     if database is not None:
         repository = SnapshotRepository(database.engine)
         drift_id = repository.latest_id()
         warnings = repository.drift_warnings(drift_id) if drift_id is not None else ()
+        rows = HeartbeatRepository(database.engine).rows()
+        judged = staleness(rows, now or datetime.now(UTC))
+        checks = (*checks, heartbeat_check(judged))
+    else:
+        checks = (*checks, Check("heartbeat", "skip", DATABASE_CLOSED))
     probes: tuple[SourceProbe, ...] = ()
     layers: tuple[LayerDiscovery, ...] = ()
     if not offline:
@@ -377,6 +413,7 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         layers=layers,
         drift_snapshot_id=drift_id,
         drift_warnings=warnings,
+        heartbeats=judged,
     )
 
 

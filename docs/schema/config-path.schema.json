@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/config-path.schema.json",
+  "$defs": {
+    "ConfigPathData": {
+      "additionalProperties": false,
+      "description": "Where Weatherbot keeps its files.",
+      "properties": {
+        "config_dir": {
+          "title": "Config Dir",
+          "type": "string"
+        },
+        "settings_file": {
+          "title": "Settings File",
+          "type": "string"
+        },
+        "data_dir": {
+          "title": "Data Dir",
+          "type": "string"
+        },
+        "database_file": {
+          "title": "Database File",
+          "type": "string"
+        },
+        "backup_dir": {
+          "title": "Backup Dir",
+          "type": "string"
+        },
+        "cycle_lock_file": {
+          "title": "Cycle Lock File",
+          "type": "string"
+        },
+        "migrate_lock_file": {
+          "title": "Migrate Lock File",
+          "type": "string"
+        }
+      },
+      "required": [
+        "config_dir",
+        "settings_file",
+        "data_dir",
+        "database_file",
+        "backup_dir",
+        "cycle_lock_file",
+        "migrate_lock_file"
+      ],
+      "title": "ConfigPathData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot config path --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "config path",
+      "default": "config path",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/ConfigPathData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "ConfigPathDocument",
+  "type": "object"
+}
