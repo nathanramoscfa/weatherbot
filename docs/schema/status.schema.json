@@ -693,9 +693,82 @@
       "title": "SourceOutcome",
       "type": "object"
     },
+    "StalenessEntry": {
+      "additionalProperties": false,
+      "description": "One heartbeat, judged when the document was made: stale past twice its cadence.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "source",
+            "watch",
+            "runner"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "description": "A source id, a watch's name, or a monitor process's name.",
+          "title": "Name",
+          "type": "string"
+        },
+        "last_success_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: it never succeeded.",
+          "title": "Last Success At"
+        },
+        "expected_every_s": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The cadence its writer expects; null: none is promised, never stale.",
+          "title": "Expected Every S"
+        },
+        "age_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Whole seconds since its last success.",
+          "title": "Age S"
+        },
+        "stale": {
+          "title": "Stale",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "last_success_at",
+        "expected_every_s",
+        "age_s",
+        "stale"
+      ],
+      "title": "StalenessEntry",
+      "type": "object"
+    },
     "StatusData": {
       "additionalProperties": false,
-      "description": "Each location's assessment against the snapshot, or the one named.",
+      "description": "Each location's assessment against the snapshot, or the one named, and the pulse.",
       "properties": {
         "locations": {
           "items": {
@@ -703,10 +776,19 @@
           },
           "title": "Locations",
           "type": "array"
+        },
+        "staleness": {
+          "description": "Every heartbeat; a stale one is shown in a banner above the locations.",
+          "items": {
+            "$ref": "#/$defs/StalenessEntry"
+          },
+          "title": "Staleness",
+          "type": "array"
         }
       },
       "required": [
-        "locations"
+        "locations",
+        "staleness"
       ],
       "title": "StatusData",
       "type": "object"

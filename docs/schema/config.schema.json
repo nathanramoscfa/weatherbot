@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/config.schema.json",
+  "$defs": {
+    "ConfigData": {
+      "additionalProperties": false,
+      "description": "Every setting, table by table.",
+      "properties": {
+        "settings_file": {
+          "title": "Settings File",
+          "type": "string"
+        },
+        "settings_file_exists": {
+          "title": "Settings File Exists",
+          "type": "boolean"
+        },
+        "settings": {
+          "items": {
+            "$ref": "#/$defs/SettingEntry"
+          },
+          "title": "Settings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "settings_file",
+        "settings_file_exists",
+        "settings"
+      ],
+      "title": "ConfigData",
+      "type": "object"
+    },
+    "SettingEntry": {
+      "additionalProperties": false,
+      "description": "One setting's effective value and where it came from.",
+      "properties": {
+        "table": {
+          "title": "Table",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "title": "Value"
+        },
+        "origin": {
+          "enum": [
+            "default",
+            "file",
+            "environment"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "variable": {
+          "description": "The environment variable that overrides it.",
+          "title": "Variable",
+          "type": "string"
+        }
+      },
+      "required": [
+        "table",
+        "key",
+        "value",
+        "origin",
+        "variable"
+      ],
+      "title": "SettingEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot config show --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "config show",
+      "default": "config show",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/ConfigData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "ConfigDocument",
+  "type": "object"
+}

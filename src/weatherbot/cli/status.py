@@ -9,7 +9,10 @@ the assessment is incomplete, the official products that cover the location and 
 county-zone alerts outside its zones, the wind-speed probabilities there, each storm's
 threat, the changes since the previous stored assessment, the breakpoint span, and the
 evacuation-order toggle. Instants print in UTC and in the location's NWS time zone. It
-exits 1 on a partial or failed snapshot, as ``storms`` and ``alerts`` do.
+runs one monitor cycle (``MonitorService``), so it records the cycle and the heartbeats,
+and a yellow banner above the locations names every heartbeat the staleness rule finds
+stale; its document lists every heartbeat. It exits 1 on a partial or failed snapshot, as
+``storms`` and ``alerts`` do.
 
 The distances and bearings it prints locate the location: they go to the operator's own
 terminal, and no log line holds them.
@@ -29,6 +32,7 @@ from weatherbot.cli.documents import (
     EvacuationOrderEntry,
     EvidenceEntry,
     OfficialEntry,
+    StalenessEntry,
     StatusData,
     StatusDocument,
     StatusLocationEntry,
@@ -46,7 +50,7 @@ from weatherbot.cli.snapshots import (
     kilometres,
     named_zone,
     print_header,
-    read_snapshot,
+    run_cycle,
     snapshot_info,
     when,
 )
@@ -64,11 +68,12 @@ from weatherbot.models import (
 from weatherbot.services.assessments import (
     RULE_TRIGGERS,
     AssessedLocation,
-    AssessmentService,
     is_county_context,
 )
 from weatherbot.services.disclaimer import NOTICE
+from weatherbot.services.health import Staleness, duration_text, staleness
 from weatherbot.services.locations import LocationService
+from weatherbot.services.persistence.repositories import HeartbeatRepository
 
 _PRODUCTS: Final[Mapping[str, str]] = MappingProxyType(
     {
@@ -215,6 +220,52 @@ def change_entries(changes: Sequence[ChangeEvent]) -> tuple[ChangeEntry, ...]:
         Their kinds and printable sentences.
     """
     return tuple(ChangeEntry(kind=event.kind, detail=event.detail) for event in changes)
+
+
+def staleness_entries(judged: Sequence[Staleness]) -> tuple[StalenessEntry, ...]:
+    """Describe the judged heartbeats for a document.
+
+    Args:
+        judged: The staleness rule's judgements.
+
+    Returns:
+        One entry per heartbeat.
+    """
+    return tuple(
+        StalenessEntry(
+            kind=item.kind,
+            name=item.name,
+            last_success_at=item.last_success_at,
+            expected_every_s=item.expected_every_s,
+            age_s=item.age_s,
+            stale=item.stale,
+        )
+        for item in judged
+    )
+
+
+def stale_lines(entries: Sequence[StalenessEntry]) -> list[str]:
+    """Say each stale heartbeat in a line, for a banner.
+
+    Args:
+        entries: The heartbeats.
+
+    Returns:
+        One line per stale heartbeat; none when nothing is stale.
+    """
+    lines: list[str] = []
+    for entry in entries:
+        if not entry.stale or entry.expected_every_s is None:
+            continue
+        cadence = duration_text(entry.expected_every_s)
+        if entry.age_s is None:
+            lines.append(f"Stale data: {entry.name} has never succeeded; expected every {cadence}.")
+        else:
+            age = duration_text(entry.age_s)
+            lines.append(
+                f"Stale data: {entry.name} last succeeded {age} ago; expected every {cadence}."
+            )
+    return lines
 
 
 def _entry(result: AssessedLocation) -> StatusLocationEntry:
@@ -447,17 +498,20 @@ def status(
     """Assess and store every location, and print each level, its evidence, and each storm."""
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
-    thresholds = context.settings.engine.thresholds()
     with open_session(context, output) as database:
         locations = LocationService(database.engine).list()
         _check_choice(output, locations, location)
-        snapshot, _ = read_snapshot(context, output, database, no_fetch=no_fetch)
-        service = AssessmentService(database.engine, thresholds=thresholds, now=context.runtime.now)
-        results = service.assess(snapshot, locations)
+        snapshot, cycle = run_cycle(
+            context, output, database, runner="status", no_fetch=no_fetch, assess=True
+        )
+        heartbeats = HeartbeatRepository(database.engine).rows()
     now = context.runtime.now()
     info = snapshot_info(snapshot, now)
-    shown = [result for result in results if location in (None, result.location.name)]
-    data = StatusData(locations=tuple(_entry(result) for result in shown))
+    shown = [result for result in cycle.assessed if location in (None, result.location.name)]
+    data = StatusData(
+        locations=tuple(_entry(result) for result in shown),
+        staleness=staleness_entries(staleness(heartbeats, now)),
+    )
     code = exit_code(snapshot)
     if json_output:
         output.document(
@@ -465,6 +519,8 @@ def status(
         )
         raise typer.Exit(code)
     print_header(output, info, stored=no_fetch)
+    for line in stale_lines(data.staleness):
+        output.line(line, style="yellow")
     for entry in data.locations:
         _print_location(output, entry)
     output.notice()

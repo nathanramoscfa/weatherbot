@@ -21,9 +21,11 @@ from weatherbot.cli.documents import (
 )
 from weatherbot.cli.runtime import EXIT_FAILED, EXIT_OK, Context, Output, context_of
 from weatherbot.cli.runtime import open_tolerant_session as open_session
-from weatherbot.cli.snapshots import drift_entries
+from weatherbot.cli.snapshots import drift_entries, utc
+from weatherbot.cli.status import staleness_entries
 from weatherbot.services.disclaimer import NOTICE
 from weatherbot.services.doctor import DoctorReport, diagnose, missing_summary
+from weatherbot.services.health import duration_text
 
 UNRESOLVED = "<unresolved>"
 
@@ -82,6 +84,7 @@ def _data(context: Context, report: DoctorReport, *, offline: bool) -> DoctorDat
         ),
         drift_snapshot_id=report.drift_snapshot_id,
         drift_warnings=drift_entries(report.drift_warnings),
+        heartbeats=staleness_entries(report.heartbeats),
         failed=report.failed,
     )
 
@@ -132,6 +135,21 @@ def _print(output: Output, data: DoctorData) -> None:
             ("Source", "Warning"),
             [(w.source_id, w.message) for w in data.drift_warnings],
         )
+    if data.heartbeats:
+        output.table(
+            "Heartbeats",
+            ("Kind", "Name", "Last success", "Expected every", "Stale"),
+            [
+                (
+                    beat.kind,
+                    beat.name,
+                    utc(beat.last_success_at) if beat.last_success_at else "never",
+                    duration_text(beat.expected_every_s) if beat.expected_every_s else "-",
+                    "yes" if beat.stale else "no",
+                )
+                for beat in data.heartbeats
+            ],
+        )
     verdict = "FAILED: a check failed" if data.failed else "Every check passed."
     output.line(verdict, style="bold red" if data.failed else "bold green")
 
@@ -155,6 +173,7 @@ def doctor(
                 created=created,
                 offline=offline,
                 network=context.network,
+                now=context.runtime.now(),
             )
         )
     data = _data(context, report, offline=offline)

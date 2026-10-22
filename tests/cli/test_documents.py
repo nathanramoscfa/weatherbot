@@ -70,7 +70,7 @@ def test_the_exporter_writes_and_checks(tmp_path: Path) -> None:
 def test_the_check_mode_passes_on_the_committed_schemas(capsys: pytest.CaptureFixture[str]) -> None:
     assert export_schemas.main(["--check"]) == 0
     assert f"OK {len(DOCUMENTS)} schemas are current" in capsys.readouterr().out
-    assert len(DOCUMENTS) == 7  # noqa: PLR2004 - Phase 2's five, then status and replay
+    assert len(DOCUMENTS) == 10  # noqa: PLR2004 - Phase 2's five, status, replay, check, config, config-path
 
 
 def test_the_packaged_disclaimer_is_the_repositorys_byte_for_byte() -> None:

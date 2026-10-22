@@ -49,6 +49,7 @@ FROZEN = {
     "0001_baseline.py": "d0e07ae21301ab7a8895607e914e9cca7dc62e2ce0b51fbdf6f8b0ef98f8505d",
     "0002_drift_warnings.py": "6ffcccb7b6da86250e57fa28d20158df74f6db7e2053f230bd6763ddebb0136a",
     "0003_assessments.py": "d2388aba5c3ab287e9953d37d36fe9f8b07d98c609129acd2c31a99bbf39681f",
+    "0004_shared_geometry.py": "55d9619fdfcf2fc2566891ea603294ef18a8edcae5094d53cfe969cd3e0e6656",
 }
 SNAPSHOT_HEX = "8f0c4d1e5b7a4c2e9d3f1a2b3c4d5e6f"
 PROBE = "probe"
@@ -521,6 +522,88 @@ def test_0004_a_failed_upgrade_rolls_back_completely(
     assert _revision_of(paths.database_path) == "0003"
     assert not SHARED_GEOMETRY & _tables(paths.database_path)
     assert _every_row(paths.database_path, tables) == before
+
+
+# Revision 0005 -------------------------------------------------------------------------------
+
+MONITOR = {"heartbeats", "monitor_cycles"}
+CYCLE = text(
+    "INSERT INTO monitor_cycles (runner, trigger, started_at, completed_at, snapshot_id, "
+    "status, detail) VALUES ('status', 'manual', '2026-10-22', '2026-10-22', :snapshot, "
+    "'complete', NULL)"
+)
+HEARTBEAT = text(
+    "INSERT INTO heartbeats (kind, name, last_attempt_at, last_success_at, last_error_kind, "
+    "expected_every_s, updated_at) VALUES ('source', 'nhc-current-storms', '2026-10-22', "
+    "'2026-10-22', NULL, NULL, '2026-10-22')"
+)
+
+
+def _seed_0004(paths: AppPaths, engine: Engine) -> set[str]:
+    """Revision 0004 with Phase 3's seeded rows; the tables it holds."""
+    _seed_0003(paths, engine)
+    _migrate(engine, "0004")
+    engine.dispose()
+    return _tables(paths.database_path) - {"alembic_version"}
+
+
+def test_0005_upgrade_keeps_every_existing_row(paths: AppPaths, engine: Engine) -> None:
+    tables = _seed_0004(paths, engine)
+    before = _every_row(paths.database_path, tables)
+    assert not MONITOR & tables
+
+    _migrate(engine, "0005")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0005"
+    assert _every_row(paths.database_path, tables) == before
+    assert all(rows == [] for rows in _every_row(paths.database_path, MONITOR).values())
+
+
+def test_0005_downgrades_to_0004_cleanly_and_upgrades_again(
+    paths: AppPaths, engine: Engine
+) -> None:
+    tables = _seed_0004(paths, engine)
+    before = _every_row(paths.database_path, tables)
+    _migrate(engine, "0005")
+    with engine.begin() as connection:
+        connection.execute(CYCLE, {"snapshot": SNAPSHOT_HEX})
+        connection.execute(HEARTBEAT)
+        assert connection.execute(text("SELECT consecutive_failures FROM heartbeats")).all() == [
+            (0,)
+        ]
+
+    _migrate(engine, "0004")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0004"
+    assert not MONITOR & _tables(paths.database_path)
+    assert _every_row(paths.database_path, tables) == before
+    _migrate(engine, "0005")
+    engine.dispose()
+    assert _tables(paths.database_path) >= MONITOR
+
+
+def test_0005_a_removed_snapshot_leaves_its_cycle_without_one(
+    paths: AppPaths, engine: Engine
+) -> None:
+    _seed_0004(paths, engine)
+    _migrate(engine, "0005")
+    with engine.begin() as connection:
+        connection.execute(CYCLE, {"snapshot": SNAPSHOT_HEX})
+        connection.execute(text("DELETE FROM snapshots"))
+    engine.dispose()
+
+    assert _rows(paths.database_path, "SELECT snapshot_id, status FROM monitor_cycles") == [
+        (None, "complete")
+    ]
+
+
+def test_0005_keeps_no_check_constraint_on_its_value_lists(paths: AppPaths) -> None:
+    with open_database(paths) as opened:
+        found = {table: inspect(opened.engine).get_check_constraints(table) for table in MONITOR}
+
+    assert found == {table: [] for table in MONITOR}
 
 
 @pytest.mark.parametrize("name", sorted(FROZEN))

@@ -8,6 +8,7 @@ recorded; the recorded advisory 38 pair stands in for it, so the KMZ supersedes 
 map-layer product, and its advisory mismatch is the run's Source-drift warning.
 """
 
+import asyncio
 import json
 import re
 from collections.abc import Generator, Mapping, Sequence
@@ -29,7 +30,9 @@ from weatherbot.cli import app
 from weatherbot.cli.documents import DOCUMENTS, json_schema
 from weatherbot.cli.runtime import Runtime
 from weatherbot.models import SourceId
-from weatherbot.services.config import AppPaths
+from weatherbot.services.config import AppPaths, Settings
+from weatherbot.services.monitor import SCHEDULED_SOURCE_CADENCE_S, CycleResult, MonitorService
+from weatherbot.services.network import Network
 from weatherbot.services.persistence.database import open_database
 from weatherbot.services.persistence.repositories import AssessmentRepository, StoredAssessment
 from weatherbot.sources.http import Fetcher, HostPacer, ValidatorStore
@@ -81,6 +84,24 @@ def history(name: str, limit: int = 10) -> tuple[StoredAssessment, ...]:
     """A location's stored assessments in the test's database, newest first."""
     with open_database(AppPaths.resolve()) as database:
         return AssessmentRepository(database.engine).history(name, limit)
+
+
+def scheduled_cycle(now: datetime = NOW) -> CycleResult:
+    """One cycle as a scheduled runner records it: ``serve``, promising three hours per source.
+
+    Run it inside ``recorded_services()``.
+    """
+    with open_database(AppPaths.resolve()) as database:
+        monitor = MonitorService(
+            database.engine,
+            paths=AppPaths.resolve(),
+            settings=Settings(),
+            runner="serve",
+            network=Network(make_fetcher=quiet_fetcher),
+            now=lambda: now,
+            cadence_s=SCHEDULED_SOURCE_CADENCE_S,
+        )
+        return asyncio.run(monitor.run_cycle("window"))
 
 
 def directory(source: SourceId) -> CaptureDirectory:

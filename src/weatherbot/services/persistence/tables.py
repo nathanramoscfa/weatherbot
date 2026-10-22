@@ -2,9 +2,10 @@
 """The tables Weatherbot writes, in SQLAlchemy 2's typed declarative mapping.
 
 Tables arrive with their writers: Phase 2's snapshots and locations (revisions 0001 and
-0002), the assessments, their evidence, and their changes (revision 0003, Phase 3), and
-the shared product contents (revision 0004, Phase 4); notifications and the heartbeat
-(Phase 4), and briefings and the Claude ledger (Phase 6) are later revisions. Every
+0002), the assessments, their evidence, and their changes (revision 0003, Phase 3), the
+shared product contents (revision 0004, Phase 4), and the heartbeats and the monitor's
+cycles (revision 0005); notifications (Phase 4), and briefings and the Claude ledger
+(Phase 6) are later revisions. Every
 instant goes in and comes out as an aware UTC value. A naming convention names every
 constraint, so a SQLite batch migration can find and alter it.
 
@@ -35,6 +36,7 @@ from sqlalchemy import (
     TypeDecorator,
     UniqueConstraint,
     false,
+    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -547,3 +549,52 @@ class AssessmentChangeRow(Base):
     position: Mapped[int]
     kind: Mapped[str] = mapped_column(String(20))
     event: Mapped[dict[str, Any]] = mapped_column(comment="ChangeEvent JSON")
+
+
+class HeartbeatRow(Base):
+    """The pulse of one source, watch, or monitor process (revision 0005).
+
+    The last attempt, the last success, the run of consecutive failures, and the cadence
+    its writer expects; ``NULL`` promises none, so the row is never stale. The kinds and
+    names are checked by the services, not by a CHECK constraint, because a later phase
+    may add one and changing a CHECK in SQLite rebuilds the table.
+    """
+
+    __tablename__ = "heartbeats"
+    __table_args__ = (UniqueConstraint("kind", "name"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(8), comment="source, watch, or runner")
+    name: Mapped[str] = mapped_column(String(64), comment="A source id, a watch, or a process")
+    last_attempt_at: Mapped[datetime]
+    last_success_at: Mapped[datetime | None]
+    consecutive_failures: Mapped[int] = mapped_column(default=0, server_default=text("0"))
+    last_error_kind: Mapped[str | None] = mapped_column(
+        Text, comment="An error kind or an exception class name, never a message"
+    )
+    expected_every_s: Mapped[int | None] = mapped_column(
+        comment="The cadence its writer expects, in seconds; NULL: none is promised"
+    )
+    updated_at: Mapped[datetime]
+
+
+class MonitorCycleRow(Base):
+    """One monitor cycle: who ran it, why, when, and how it ended (revision 0005).
+
+    The runner, trigger, and status lists are checked by the services, not by a CHECK
+    constraint, so a later phase can extend them without rebuilding the table. Removing
+    a snapshot leaves its cycle with no snapshot.
+    """
+
+    __tablename__ = "monitor_cycles"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    runner: Mapped[str] = mapped_column(String(12))
+    trigger: Mapped[str] = mapped_column(String(12))
+    started_at: Mapped[datetime] = mapped_column(index=True)
+    completed_at: Mapped[datetime | None]
+    snapshot_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("snapshots.id", ondelete="SET NULL")
+    )
+    status: Mapped[str] = mapped_column(String(8))
+    detail: Mapped[str | None] = mapped_column(Text, comment="A reason or an exception class")

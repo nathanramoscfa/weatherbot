@@ -1458,9 +1458,9 @@ The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 2 — The monitor cycle, the heartbeat, and staleness
+## Step 2 — The monitor cycle, the heartbeat, and staleness ✅
 
-**Status:** Not started
+**Status:** Complete — PR #42 (2026-10-22)
 
 > **Goal:** Give the monitor its one path and its pulse.
 > `weatherbot.services.monitor.MonitorService.run_cycle(trigger)` fetches every
@@ -1497,6 +1497,8 @@ the first `ci.yml` and `phase-verify.yml` runs on `main` must be green.
 | Conversation | **New**                                 | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-22: Balanced column's Backup — Opus 5.5 · Effort High. The **Runs:** rule selected Balanced (its Antigravity pool read `headroom`); the operator opened the column's Backup on Claude Code.
 
 **Model rationale:** Step 2 is coding with an agentic secondary category — a
 service that composes the snapshot and assessment services under a lock shared
@@ -2463,6 +2465,24 @@ is new per phase-boundary hygiene.
       measured at Step 1, before Step 2's rows). The decisions
       and notifications this step writes each cycle count against
       it: re-measure before the PR.
+    - Carry-over from Step 2 (PR body has the details): Step 2's
+      rows add no page (64 KiB again on three `dbstat` runs:
+      heartbeats update in place, one `monitor_cycles` row a
+      cycle). `MonitorService._locked` runs `fetch_snapshot`,
+      then `AssessmentService.assess` (its own transaction), then
+      one `writing_session` that records the source and runner
+      heartbeats and `CycleRepository.finish`; `decide_cycle`
+      belongs after the assessments commit and its own
+      transaction must begin `IMMEDIATE` (`writing_session`;
+      `tests/services/test_writing_transactions.py` scans
+      `services/` for a plain `Session(...).begin()`). The cycle
+      row reads `started` until it ends, a status outside the
+      five final ones. Listeners are called for `skipped` cycles
+      too, and one that raises is logged by class only. Every
+      fetching command runs through `cli/snapshots.run_cycle`
+      (`fetch`, `storms`, `alerts`, `status`, `check --once`), and
+      `check --once` with no stored location still runs the
+      cycle.
     - The seven change kinds and their fields
       (`models/assessment.py`): `level_changed` (`previous_level`,
       `level`, `direction` up, down, or initial, `rule`),
@@ -3773,6 +3793,21 @@ High) runs. The conversation is new per phase-boundary hygiene.
 
     Current state (as of Phase 4 Step 4):
 
+    - Carry-over from Step 2: a scheduled runner builds
+      `MonitorService(..., runner="serve" or "check",
+      cadence_s=SCHEDULED_SOURCE_CADENCE_S)` (10,800 s), which
+      promises that cadence on every source row its cycles touch;
+      a skipped source still clears its own. The runner and watch
+      rows' cadence is written through
+      `HeartbeatRepository.record(kind, name, at=, result=,
+      expected_every_s=)` (`result` is `success`, `failure`, or
+      `attempt`; `expected_every_s=None` clears a cadence, the
+      default `UNCHANGED` keeps it), which is also how a clean stop
+      clears the runner row's cadence. `ProcessLock(path,
+      poll_s=)` has `try_acquire()`, `acquire(wait_s)`,
+      `acquire_async(wait_s)`, and `release()`; `held(path)` is a
+      module function. `AppPaths` has `cycle_lock_path` and
+      `migrate_lock_path`; add `monitor.lock` beside them.
     - `MonitorService.run_cycle(trigger)` runs one cycle under
       `data_dir/cycle.lock` and returns `CycleResult` (with
       `status`, `notifications`, and `confirm_at`, the instant a
@@ -4452,6 +4487,14 @@ runs. The conversation is new per phase-boundary hygiene.
       `stale_monitor`. `notify setup` registers the toast
       identity. `doctor` has `settings`, `database`, `migrations`,
       `locations`, `heartbeat`, and `toast` checks.
+    - Carry-over from Step 2: `check --once` with no stored
+      location still runs the cycle and exits on its status (a
+      usage error is only a bad flag), so the fallback works on a
+      machine with no locations. A cycle whose process died
+      mid-cycle stays `started` in `monitor_cycles` (no
+      `completed_at`); `CycleRepository.recent(limit)` reads the
+      latest cycles. `doctor`'s `heartbeat` check is `skip` until a
+      row promises a cadence and when the database did not open.
     - Checked on 2026-10-21: this machine runs Windows 11 build
       26200, and the operator's account is an administrator under
       UAC whose shells run at medium integrity. Reported in two
@@ -5699,7 +5742,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                         | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Snapshot storage              | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #41 |
-| 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
+| 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #42 |
 | 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |

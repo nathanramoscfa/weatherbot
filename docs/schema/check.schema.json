@@ -1,0 +1,374 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/check.schema.json",
+  "$defs": {
+    "ChangeEntry": {
+      "additionalProperties": false,
+      "description": "One change since the previous stored assessment.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "level_changed",
+            "advisory_issued",
+            "official_added",
+            "official_changed",
+            "official_removed",
+            "cone_entered",
+            "cone_left"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "detail"
+      ],
+      "title": "ChangeEntry",
+      "type": "object"
+    },
+    "CheckData": {
+      "additionalProperties": false,
+      "description": "One monitor cycle: every location's level and changes.",
+      "properties": {
+        "cycle": {
+          "$ref": "#/$defs/CycleEntry"
+        },
+        "locations": {
+          "items": {
+            "$ref": "#/$defs/CheckLocationEntry"
+          },
+          "title": "Locations",
+          "type": "array"
+        },
+        "drift_warnings": {
+          "items": {
+            "$ref": "#/$defs/DriftWarningEntry"
+          },
+          "title": "Drift Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "cycle",
+        "locations",
+        "drift_warnings"
+      ],
+      "title": "CheckData",
+      "type": "object"
+    },
+    "CheckLocationEntry": {
+      "additionalProperties": false,
+      "description": "One location's level after the cycle, and what changed.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "level": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Level",
+          "type": "integer"
+        },
+        "level_name": {
+          "title": "Level Name",
+          "type": "string"
+        },
+        "rule": {
+          "title": "Rule",
+          "type": "string"
+        },
+        "complete": {
+          "description": "false: an input was unavailable, and the level reads as at least.",
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "changes": {
+          "items": {
+            "$ref": "#/$defs/ChangeEntry"
+          },
+          "title": "Changes",
+          "type": "array"
+        },
+        "stored_before": {
+          "title": "Stored Before",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "level",
+        "level_name",
+        "rule",
+        "complete",
+        "changes",
+        "stored_before"
+      ],
+      "title": "CheckLocationEntry",
+      "type": "object"
+    },
+    "CycleEntry": {
+      "additionalProperties": false,
+      "description": "The monitor cycle a command ran.",
+      "properties": {
+        "cycle_id": {
+          "minimum": 1,
+          "title": "Cycle Id",
+          "type": "integer"
+        },
+        "runner": {
+          "enum": [
+            "serve",
+            "check",
+            "check-once",
+            "fallback",
+            "status",
+            "fetch",
+            "storms",
+            "alerts"
+          ],
+          "title": "Runner",
+          "type": "string"
+        },
+        "trigger": {
+          "enum": [
+            "manual",
+            "window",
+            "roster",
+            "alerts",
+            "confirm",
+            "retry",
+            "startup",
+            "resume",
+            "fallback"
+          ],
+          "title": "Trigger",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "failed",
+            "skipped",
+            "error"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cycle_id",
+        "runner",
+        "trigger",
+        "status",
+        "started_at",
+        "completed_at"
+      ],
+      "title": "CycleEntry",
+      "type": "object"
+    },
+    "DriftWarningEntry": {
+      "additionalProperties": false,
+      "description": "A Source-drift warning: an official product disagreed with another or the register.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "message"
+      ],
+      "title": "DriftWarningEntry",
+      "type": "object"
+    },
+    "SnapshotInfo": {
+      "additionalProperties": false,
+      "description": "The snapshot a document was read from.",
+      "properties": {
+        "snapshot_id": {
+          "format": "uuid",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "age_seconds": {
+          "description": "generated_at minus completed_at.",
+          "minimum": 0,
+          "title": "Age Seconds",
+          "type": "number"
+        },
+        "source_outcomes": {
+          "items": {
+            "$ref": "#/$defs/SourceOutcome"
+          },
+          "title": "Source Outcomes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "started_at",
+        "completed_at",
+        "status",
+        "age_seconds",
+        "source_outcomes"
+      ],
+      "title": "SnapshotInfo",
+      "type": "object"
+    },
+    "SourceId": {
+      "enum": [
+        "nhc-current-storms",
+        "nhc-arrival-times",
+        "nhc-map-tropical-weather",
+        "nhc-map-tropical-summary",
+        "nhc-map-breakpoints",
+        "nhc-map-peak-surge",
+        "nhc-map-surge-risk",
+        "nhc-gis-rss",
+        "nhc-gis-archive",
+        "nhc-text-products",
+        "nhc-outlook-graphics",
+        "nws-points",
+        "nws-alerts-point",
+        "nws-alerts-zone",
+        "nws-zones",
+        "basemap-osm-tiles",
+        "overlay-radar",
+        "overlay-satellite",
+        "geocode-nominatim"
+      ],
+      "type": "string"
+    },
+    "SourceOutcome": {
+      "additionalProperties": false,
+      "description": "What one source the snapshot asked for answered.",
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "not_modified",
+            "failed",
+            "skipped"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "error_kind": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For failed: the error's kind.",
+          "title": "Error Kind"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For skipped: why.",
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "source_id",
+        "status"
+      ],
+      "title": "SourceOutcome",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot check --once --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "check",
+      "default": "check",
+      "title": "Command",
+      "type": "string"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/SnapshotInfo"
+    },
+    "data": {
+      "$ref": "#/$defs/CheckData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "snapshot",
+    "data"
+  ],
+  "title": "CheckDocument",
+  "type": "object"
+}

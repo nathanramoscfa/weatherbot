@@ -21,6 +21,7 @@ from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 
 from weatherbot.models import SourceId
+from weatherbot.services.persistence.database import writing_session
 from weatherbot.services.persistence.tables import RawResponseRow, ResponseBodyRow
 from weatherbot.sources.http import (
     HEADER_ALLOWLIST,
@@ -235,5 +236,5 @@ class RawResponseCache:
         if source_id != result.source_id:
             message = "a fetch result is recorded under its own source id"
             raise ValueError(message)
-        with Session(self._engine) as session, session.begin():
+        with writing_session(self._engine) as session:
             return record_fetch(session, result, product_key, issued_at).id

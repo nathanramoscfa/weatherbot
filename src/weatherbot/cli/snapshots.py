@@ -6,8 +6,13 @@ and ``alerts`` fetch one too, or with ``--no-fetch`` read the latest stored one 
 how old it is. Each exits 1 when the snapshot is partial or failed. ``alerts`` says which
 official products cover the location: each NWS alert by issue #10's rule (a county-zone
 alert outside the location's zones is context), and each NHC watch-warning segment by the
-coverage rule, read with the configured thresholds. It stores nothing; ``status`` keeps
+coverage rule, read with the configured thresholds. It assesses nothing; ``status`` keeps
 the assessments.
+
+Each of them, ``status``, and ``check --once`` runs one monitor cycle through
+``MonitorService``, under the cycle lock every process shares, so each records its cycle and
+the heartbeats; these three run its fetch-only form. When another cycle holds the lock for
+the whole wait, the command says so and exits 1.
 """
 
 import asyncio
@@ -59,6 +64,7 @@ from weatherbot.models import (
 from weatherbot.services.assessments import official_products
 from weatherbot.services.disclaimer import NOTICE
 from weatherbot.services.locations import LocationService
+from weatherbot.services.monitor import CycleResult, CycleRunner, MonitorService
 from weatherbot.services.persistence.database import Database
 from weatherbot.services.persistence.repositories import DriftWarning
 from weatherbot.services.snapshots import SnapshotService
@@ -68,6 +74,7 @@ NoFetchOption = Annotated[
     bool, typer.Option("--no-fetch", help="Read the latest stored snapshot instead of fetching.")
 ]
 ADD_HINT: Final = "add one with: weatherbot locations add NAME --lat LAT --lon LON"
+BUSY: Final = "another cycle is running; try again"
 
 
 def utc(instant: datetime) -> str:
@@ -139,32 +146,53 @@ def print_header(output: Output, info: SnapshotInfo, *, stored: bool) -> None:
             output.line(f"  {outcome.source_id} failed ({outcome.error_kind}); its part is empty.")
 
 
-def read_snapshot(
-    context: Context, output: Output, database: Database, *, no_fetch: bool
-) -> tuple[Snapshot, tuple[DriftWarning, ...]]:
-    """Fetch and store a snapshot, or read the latest stored one under ``--no-fetch``.
+def run_cycle(  # noqa: PLR0913 - the command's state, then the cycle's form, keyword-only
+    context: Context,
+    output: Output,
+    database: Database,
+    *,
+    runner: CycleRunner,
+    no_fetch: bool,
+    assess: bool = False,
+) -> tuple[Snapshot, CycleResult]:
+    """Run one monitor cycle: fetch and store a snapshot, or use the latest stored one.
 
     Args:
         context: The invocation's context.
         output: The command's output.
         database: The open database.
-        no_fetch: Read the latest stored snapshot instead of fetching.
+        runner: The command, as the cycle records it.
+        no_fetch: Use the latest stored snapshot instead of fetching.
+        assess: Assess and store every location.
 
     Returns:
-        The snapshot and the drift warnings its fetch logged (none when read).
+        The cycle's snapshot and the cycle.
 
     Raises:
-        Exit: With status 1 under ``--no-fetch`` when no snapshot is stored.
+        Exit: With status 1 under ``--no-fetch`` when no snapshot is stored, or when another
+            cycle held the lock for the whole wait.
     """
-    service = SnapshotService(database.engine, network=context.network, now=context.runtime.now)
+    paths = context.paths
+    if paths is None:  # pragma: no cover - open_session refuses unresolved paths
+        fail(output, context.problem or "the configuration is unusable")
+    now = context.runtime.now
+    stored: Snapshot | None = None
     if no_fetch:
-        snapshot = service.latest()
-        if snapshot is None:
+        stored = SnapshotService(database.engine, network=context.network, now=now).latest()
+        if stored is None:
             fail(output, "no snapshot is stored yet; run weatherbot fetch first")
-        return snapshot, ()
-    locations = LocationService(database.engine).list()
-    fetched = asyncio.run(service.fetch_snapshot(locations))
-    return fetched.snapshot, fetched.drift_warnings
+    monitor = MonitorService(
+        database.engine,
+        paths=paths,
+        settings=context.settings,
+        runner=runner,
+        network=context.network,
+        now=now,
+    )
+    result = asyncio.run(monitor.run_cycle("manual", snapshot=stored, assess=assess))
+    if result.snapshot is None:
+        fail(output, BUSY)
+    return result.snapshot, result
 
 
 # fetch -------------------------------------------------------------------------------------
@@ -200,7 +228,8 @@ def fetch(ctx: typer.Context, *, json_output: JsonOption = False) -> None:
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
     with open_session(context, output) as database:
-        snapshot, warnings = read_snapshot(context, output, database, no_fetch=False)
+        snapshot, cycle = run_cycle(context, output, database, runner="fetch", no_fetch=False)
+    warnings = cycle.drift_warnings
     now = context.runtime.now()
     info = snapshot_info(snapshot, now)
     if json_output:
@@ -404,7 +433,7 @@ def storms(
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
     with open_session(context, output) as database:
-        snapshot, _ = read_snapshot(context, output, database, no_fetch=no_fetch)
+        snapshot, _ = run_cycle(context, output, database, runner="storms", no_fetch=no_fetch)
     now = context.runtime.now()
     info = snapshot_info(snapshot, now)
     data = _storms_data(snapshot)
@@ -695,7 +724,7 @@ def alerts(
     output = Output(context.runtime, json_mode=json_output)
     with open_session(context, output) as database:
         chosen = _pick(output, LocationService(database.engine).list(), location)
-        snapshot, _ = read_snapshot(context, output, database, no_fetch=no_fetch)
+        snapshot, _ = run_cycle(context, output, database, runner="alerts", no_fetch=no_fetch)
     now = context.runtime.now()
     info = snapshot_info(snapshot, now)
     data = _alerts_data(snapshot, chosen, context.settings.engine.thresholds())

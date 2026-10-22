@@ -5,11 +5,14 @@
 live ``Snapshot`` with its raw responses in one transaction and loads it back equal (a
 replay snapshot is never stored: history is live only; an unchanged product's content is
 stored once, whichever snapshots hold it), ``AssessmentRepository`` stores
-each live assessment with its evidence and changes and loads it back equal, and
-``SettingsRepository`` keeps application state such as when the disclaimer was shown.
+each live assessment with its evidence and changes and loads it back equal,
+``SettingsRepository`` keeps application state such as when the disclaimer was shown,
+``HeartbeatRepository`` keeps the pulse of each source, watch, and monitor process, and
+``CycleRepository`` records each monitor cycle.
 
 A write that takes a ``session`` joins the caller's transaction, so a service can store
-several records in one; without one, it commits on its own.
+several records in one; without one, it commits on its own, in a transaction that begins
+``IMMEDIATE``.
 """
 
 import hashlib
@@ -20,7 +23,8 @@ from collections.abc import Callable, Generator, Iterable, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Final, cast
+from enum import Enum
+from typing import Final, Literal, cast
 from uuid import UUID
 
 from pydantic import JsonValue
@@ -72,6 +76,7 @@ from weatherbot.services.persistence.codec import (
     validated,
     with_crs,
 )
+from weatherbot.services.persistence.database import writing_session
 from weatherbot.services.persistence.raw_cache import CachedFetch, CorruptBodyError, record_fetch
 from weatherbot.services.persistence.tables import (
     AdvisoryRow,
@@ -84,7 +89,9 @@ from weatherbot.services.persistence.tables import (
     FeedItemObservationRow,
     FeedItemRow,
     GeometryContentRow,
+    HeartbeatRow,
     LocationRow,
+    MonitorCycleRow,
     OutcomeResponseRow,
     ProductGeometryRow,
     SettingRow,
@@ -148,7 +155,7 @@ def _writing(engine: Engine, session: Session | None) -> Generator[Session]:
     if session is not None:
         yield session
         return
-    with Session(engine) as own, own.begin():
+    with writing_session(engine) as own:
         yield own
 
 
@@ -240,7 +247,7 @@ class LocationRepository:
         Raises:
             LocationExistsError: A location of that name is stored.
         """
-        with Session(self._engine) as session, session.begin():
+        with writing_session(self._engine) as session:
             if session.scalar(select(LocationRow.id).where(LocationRow.name == location.name)):
                 message = "a location of that name already exists"
                 raise LocationExistsError(message)
@@ -278,7 +285,7 @@ class LocationRepository:
         Returns:
             Whether a location was removed.
         """
-        with Session(self._engine) as session, session.begin():
+        with writing_session(self._engine) as session:
             row = session.scalar(select(LocationRow).where(LocationRow.name == name))
             if row is None:
                 return False
@@ -526,7 +533,7 @@ class SnapshotRepository:
         if snapshot.origin != "live":
             message = "a replay snapshot is never stored: history is live only"
             raise SnapshotStoreError(message)
-        with Session(self._engine) as session, session.begin():
+        with writing_session(self._engine) as session:
             if session.get(SnapshotRow, snapshot.snapshot_id) is not None:
                 message = "that snapshot is stored already"
                 raise SnapshotStoreError(message)
@@ -1290,9 +1297,259 @@ class SettingsRepository:
             key: The key, at most 64 characters.
             value: Any JSON value.
         """
-        with Session(self._engine) as session, session.begin():
+        with writing_session(self._engine) as session:
             row = session.get(SettingRow, key)
             if row is None:
                 session.add(SettingRow(key=key, value=value, updated_at=self._now()))
             else:
                 row.value, row.updated_at = value, self._now()
+
+
+# Heartbeats and cycles ---------------------------------------------------------------------
+
+type HeartbeatKind = Literal["source", "watch", "runner"]
+type HeartbeatResult = Literal["success", "failure", "attempt"]
+HEARTBEAT_KINDS: Final[tuple[HeartbeatKind, ...]] = ("source", "watch", "runner")
+
+
+class Unchanged(Enum):
+    """The cadence argument that leaves a heartbeat's cadence as it is."""
+
+    CADENCE = "unchanged"
+
+
+UNCHANGED: Final = Unchanged.CADENCE
+
+
+@dataclass(frozen=True)
+class Heartbeat:
+    """The pulse of one source, watch, or monitor process.
+
+    ``expected_every_s`` is the cadence its writer expects, in seconds; ``None`` promises
+    none, so the row is never stale.
+    """
+
+    kind: HeartbeatKind
+    name: str
+    last_attempt_at: datetime
+    last_success_at: datetime | None
+    consecutive_failures: int
+    last_error_kind: str | None
+    expected_every_s: int | None
+    updated_at: datetime
+
+
+def _heartbeat(row: HeartbeatRow) -> Heartbeat:
+    return Heartbeat(
+        kind=cast("HeartbeatKind", row.kind),
+        name=row.name,
+        last_attempt_at=row.last_attempt_at,
+        last_success_at=row.last_success_at,
+        consecutive_failures=row.consecutive_failures,
+        last_error_kind=row.last_error_kind,
+        expected_every_s=row.expected_every_s,
+        updated_at=row.updated_at,
+    )
+
+
+class HeartbeatRepository:
+    """One heartbeat per kind and name, updated in place."""
+
+    def __init__(self, engine: Engine, *, now: Clock = _now) -> None:
+        """Create the repository.
+
+        Args:
+            engine: The open database.
+            now: The clock, for updated times.
+        """
+        self._engine = engine
+        self._now = now
+
+    def record(  # noqa: PLR0913 - the row's key, then what happened, keyword-only
+        self,
+        kind: HeartbeatKind,
+        name: str,
+        *,
+        at: datetime,
+        result: HeartbeatResult,
+        error_kind: str | None = None,
+        expected_every_s: int | Literal[Unchanged.CADENCE] | None = UNCHANGED,
+        session: Session | None = None,
+    ) -> Heartbeat:
+        """Record an attempt: a success, a failure, or an attempt that judged nothing.
+
+        A success sets the last success and resets the consecutive failures; a failure
+        adds one and records its error kind; an attempt only records when it was made.
+
+        Args:
+            kind: ``source``, ``watch``, or ``runner``.
+            name: The source id, the watch's name, or the process's name.
+            at: When the attempt was made.
+            result: ``success``, ``failure``, or ``attempt``.
+            error_kind: A failure's error kind or exception class name, never a message.
+            expected_every_s: The cadence to promise, ``None`` to promise none, or
+                ``UNCHANGED`` to keep the row's.
+            session: A transaction to join; the write commits on its own without one.
+
+        Returns:
+            The heartbeat as recorded.
+        """
+        with _writing(self._engine, session) as active:
+            row = active.scalar(
+                select(HeartbeatRow).where(HeartbeatRow.kind == kind, HeartbeatRow.name == name)
+            )
+            if row is None:
+                row = HeartbeatRow(
+                    kind=kind,
+                    name=name,
+                    last_attempt_at=at,
+                    consecutive_failures=0,
+                    updated_at=self._now(),
+                )
+                active.add(row)
+            row.last_attempt_at = at
+            if result == "success":
+                row.last_success_at = at
+                row.consecutive_failures = 0
+                row.last_error_kind = None
+            elif result == "failure":
+                row.consecutive_failures += 1
+                row.last_error_kind = error_kind
+            if expected_every_s is not UNCHANGED:
+                row.expected_every_s = expected_every_s
+            row.updated_at = self._now()
+            active.flush()
+            return _heartbeat(row)
+
+    def rows(self) -> tuple[Heartbeat, ...]:
+        """Return every heartbeat: sources, then watches, then processes, each by name.
+
+        Returns:
+            The heartbeats.
+        """
+        with Session(self._engine) as session:
+            found = [_heartbeat(row) for row in session.scalars(select(HeartbeatRow))]
+        return tuple(sorted(found, key=lambda row: (HEARTBEAT_KINDS.index(row.kind), row.name)))
+
+
+@dataclass(frozen=True)
+class MonitorCycle:
+    """One recorded monitor cycle."""
+
+    id: int
+    runner: str
+    trigger: str
+    started_at: datetime
+    completed_at: datetime | None
+    snapshot_id: UUID | None
+    status: str
+    detail: str | None
+
+
+def _cycle(row: MonitorCycleRow) -> MonitorCycle:
+    return MonitorCycle(
+        id=row.id,
+        runner=row.runner,
+        trigger=row.trigger,
+        started_at=row.started_at,
+        completed_at=row.completed_at,
+        snapshot_id=row.snapshot_id,
+        status=row.status,
+        detail=row.detail,
+    )
+
+
+CYCLE_STARTED: Final = "started"
+"""The status of a cycle that has not ended, or whose process died mid-cycle."""
+
+
+class CycleRepository:
+    """Every monitor cycle, recorded when it starts and again when it ends."""
+
+    def __init__(self, engine: Engine) -> None:
+        """Create the repository.
+
+        Args:
+            engine: The open database.
+        """
+        self._engine = engine
+
+    def start(self, runner: str, trigger: str, *, at: datetime) -> int:
+        """Record a cycle as started.
+
+        Args:
+            runner: The process that runs it, such as ``status`` or ``serve``.
+            trigger: Why it runs, such as ``manual`` or ``window``.
+            at: When it started.
+
+        Returns:
+            The cycle's id.
+        """
+        with writing_session(self._engine) as session:
+            row = MonitorCycleRow(
+                runner=runner, trigger=trigger, started_at=at, status=CYCLE_STARTED
+            )
+            session.add(row)
+            session.flush()
+            return row.id
+
+    def finish(  # noqa: PLR0913 - the cycle, then how it ended, keyword-only
+        self,
+        cycle_id: int,
+        *,
+        status: str,
+        at: datetime,
+        snapshot_id: UUID | None = None,
+        detail: str | None = None,
+        session: Session | None = None,
+    ) -> None:
+        """Record how a cycle ended.
+
+        Args:
+            cycle_id: The cycle's id.
+            status: ``complete``, ``partial``, ``failed``, ``skipped``, or ``error``.
+            at: When it ended.
+            snapshot_id: The snapshot it fetched or read.
+            detail: A reason or an exception class name, never a message.
+            session: A transaction to join; the write commits on its own without one.
+
+        Raises:
+            ValueError: No cycle has that id.
+        """
+        with _writing(self._engine, session) as active:
+            row = active.get(MonitorCycleRow, cycle_id)
+            if row is None:
+                message = "no monitor cycle has that id"
+                raise ValueError(message)
+            row.status, row.completed_at = status, at
+            row.snapshot_id, row.detail = snapshot_id, detail
+
+    def get(self, cycle_id: int) -> MonitorCycle | None:
+        """Return a recorded cycle.
+
+        Args:
+            cycle_id: Its id.
+
+        Returns:
+            The cycle, or ``None``.
+        """
+        with Session(self._engine) as session:
+            row = session.get(MonitorCycleRow, cycle_id)
+            return _cycle(row) if row is not None else None
+
+    def recent(self, limit: int) -> tuple[MonitorCycle, ...]:
+        """Return the latest cycles, newest first.
+
+        Args:
+            limit: At most this many.
+
+        Returns:
+            The cycles.
+        """
+        with Session(self._engine) as session:
+            rows = session.scalars(
+                select(MonitorCycleRow)
+                .order_by(MonitorCycleRow.started_at.desc(), MonitorCycleRow.id.desc())
+                .limit(limit)
+            )
+            return tuple(_cycle(row) for row in rows)

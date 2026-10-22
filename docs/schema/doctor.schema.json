@@ -107,6 +107,14 @@
           "title": "Drift Warnings",
           "type": "array"
         },
+        "heartbeats": {
+          "description": "Every heartbeat, judged by the staleness rule; empty when none is stored.",
+          "items": {
+            "$ref": "#/$defs/StalenessEntry"
+          },
+          "title": "Heartbeats",
+          "type": "array"
+        },
         "failed": {
           "title": "Failed",
           "type": "boolean"
@@ -122,6 +130,7 @@
         "layers",
         "drift_snapshot_id",
         "drift_warnings",
+        "heartbeats",
         "failed"
       ],
       "title": "DoctorData",
@@ -308,6 +317,79 @@
         "detail"
       ],
       "title": "SourceProbeEntry",
+      "type": "object"
+    },
+    "StalenessEntry": {
+      "additionalProperties": false,
+      "description": "One heartbeat, judged when the document was made: stale past twice its cadence.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "source",
+            "watch",
+            "runner"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "description": "A source id, a watch's name, or a monitor process's name.",
+          "title": "Name",
+          "type": "string"
+        },
+        "last_success_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: it never succeeded.",
+          "title": "Last Success At"
+        },
+        "expected_every_s": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The cadence its writer expects; null: none is promised, never stale.",
+          "title": "Expected Every S"
+        },
+        "age_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Whole seconds since its last success.",
+          "title": "Age S"
+        },
+        "stale": {
+          "title": "Stale",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "last_success_at",
+        "expected_every_s",
+        "age_s",
+        "stale"
+      ],
+      "title": "StalenessEntry",
       "type": "object"
     }
   },

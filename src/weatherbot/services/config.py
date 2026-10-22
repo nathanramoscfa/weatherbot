@@ -3,13 +3,13 @@
 
 ``AppPaths`` resolves the configuration and data directories: ``WEATHERBOT_CONFIG_DIR``
 and ``WEATHERBOT_DATA_DIR`` when set, else the operating system's user directories
-through ``platformdirs``. The database and its backups live in the data directory;
-``weatherbot.toml`` lives in the configuration directory.
+through ``platformdirs``. The database, its backups, and the lock files live in the data
+directory; ``weatherbot.toml`` lives in the configuration directory.
 
-``Settings`` holds the logging, HTTP, and engine keys, with the precedence environment,
-then file, then default. A setting is never a secret, a location, or a coordinate:
-locations live in the database. An error names the key that is wrong and never repeats
-its value.
+``Settings`` holds the logging, HTTP, engine, and monitor keys, with the precedence
+environment, then file, then default; ``setting_origins`` says where each effective value
+came from. A setting is never a secret, a location, or a coordinate: locations live in the
+database. An error names the key that is wrong and never repeats its value.
 """
 
 import os
@@ -42,6 +42,8 @@ DATA_DIR_VARIABLE: Final = "WEATHERBOT_DATA_DIR"
 SETTINGS_FILE: Final = "weatherbot.toml"
 DATABASE_FILE: Final = "weatherbot.sqlite3"
 BACKUP_DIRECTORY: Final = "backups"
+CYCLE_LOCK_FILE: Final = "cycle.lock"
+MIGRATE_LOCK_FILE: Final = "migrate.lock"
 OWNER_ONLY: Final = 0o700
 
 # The environment variable that overrides each setting, by its (table, key) in the file.
@@ -54,6 +56,7 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("engine", "hurricane_wind_floor_pct"): "WEATHERBOT_ENGINE_HURRICANE_WIND_FLOOR_PCT",
     ("engine", "tropical_storm_wind_floor_pct"): "WEATHERBOT_ENGINE_TROPICAL_STORM_WIND_FLOOR_PCT",
     ("engine", "development_chance_floor_pct"): "WEATHERBOT_ENGINE_DEVELOPMENT_CHANCE_FLOOR_PCT",
+    ("monitor", "cycle_lock_wait_seconds"): "WEATHERBOT_MONITOR_CYCLE_LOCK_WAIT_SECONDS",
 }
 _TOML_POSITION: Final = re.compile(r"\(at line \d+, column \d+\)|\(at end of document\)")
 
@@ -135,6 +138,16 @@ class AppPaths:
     def backup_dir(self) -> Path:
         """Where a database is copied before a migration."""
         return self.data_dir / BACKUP_DIRECTORY
+
+    @property
+    def cycle_lock_path(self) -> Path:
+        """The lock every monitor cycle holds, in whichever process runs it."""
+        return self.data_dir / CYCLE_LOCK_FILE
+
+    @property
+    def migrate_lock_path(self) -> Path:
+        """The lock a process holds while it backs up and upgrades the database."""
+        return self.data_dir / MIGRATE_LOCK_FILE
 
 
 type LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
@@ -219,12 +232,19 @@ class EngineSettings(_Section):
         )
 
 
+class MonitorSettings(_Section):
+    """``[monitor]``: how the monitor cycle runs."""
+
+    cycle_lock_wait_seconds: int = Field(default=120, ge=1, le=3600)
+
+
 class Settings(_Section):
-    """The settings: ``[logging] level``, ``[http] timeout_seconds``, and ``[engine]``."""
+    """The settings: ``[logging]``, ``[http]``, ``[engine]``, and ``[monitor]``."""
 
     logging: LoggingSettings = LoggingSettings()
     http: HttpSettings = HttpSettings()
     engine: EngineSettings = EngineSettings()
+    monitor: MonitorSettings = MonitorSettings()
 
 
 def _key(location: tuple[str | int, ...]) -> str:
@@ -298,3 +318,56 @@ def load_settings(paths: AppPaths, environ: Mapping[str, str] | None = None) -> 
         return Settings.model_validate(merged)
     except ValidationError as error:
         raise ConfigError(_describe(error, origin, source)) from None
+
+
+type SettingOriginKind = Literal["default", "file", "environment"]
+type SettingValue = str | int | float | bool
+
+
+@dataclass(frozen=True)
+class SettingOrigin:
+    """One setting's effective value, and where it came from."""
+
+    table: str
+    key: str
+    value: SettingValue
+    origin: SettingOriginKind
+    variable: str
+    """The environment variable that overrides it."""
+
+
+def setting_origins(
+    paths: AppPaths, environ: Mapping[str, str] | None = None
+) -> tuple[SettingOrigin, ...]:
+    """Say every setting's effective value and its origin: environment, file, or default.
+
+    Args:
+        paths: Where ``weatherbot.toml`` lives.
+        environ: The environment; ``os.environ`` when omitted.
+
+    Returns:
+        One entry per setting, table by table in ``Settings``' order.
+
+    Raises:
+        ConfigError: The settings do not load (``load_settings``).
+    """
+    env = os.environ if environ is None else environ
+    settings = load_settings(paths, env)
+    document = _read_file(paths.settings_path)
+    entries: list[SettingOrigin] = []
+    for table in Settings.model_fields:
+        section = cast("_Section", getattr(settings, table))
+        written = document.get(table, {})
+        in_file: Mapping[str, object] = (
+            cast("Mapping[str, object]", written) if isinstance(written, dict) else {}
+        )
+        for key in type(section).model_fields:
+            variable = ENVIRONMENT_OVERRIDES[table, key]
+            origin: SettingOriginKind = "default"
+            if env.get(variable, "").strip():
+                origin = "environment"
+            elif key in in_file:
+                origin = "file"
+            value = cast("SettingValue", getattr(section, key))
+            entries.append(SettingOrigin(table, key, value, origin, variable))
+    return tuple(entries)

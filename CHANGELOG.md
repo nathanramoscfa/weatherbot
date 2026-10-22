@@ -19,6 +19,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   back before it drops the tables. A second `status` over unchanged answers
   now grows the database by 64 KiB, where it grew by 2.0 MiB.
 - `README.md`'s Status names Phase 4 as in progress.
+- Add `MonitorService.run_cycle`, the one path that fetches, stores, assesses,
+  and records, under a cycle lock every process shares
+  (`weatherbot.services.locks.ProcessLock`, the operating system's lock on
+  `cycle.lock`, standard library only). `fetch`, `storms`, `alerts`, and
+  `status` now run through it (the first three fetch-only), print what they
+  printed before, and say "another cycle is running; try again" with exit 1
+  when another cycle holds the lock past `[monitor] cycle_lock_wait_seconds`.
+- Alembic revision `0005` (expand-only, after the online backup) adds
+  `heartbeats` (per source, watch, and monitor process: last attempt, last
+  success, consecutive failures, the cadence its writer expects) and
+  `monitor_cycles`. The staleness rule flags a heartbeat past twice its
+  cadence; `status` shows a banner and lists every heartbeat in its document's
+  new `staleness` field, and `doctor` adds a `heartbeat` check, skipped until a
+  scheduled monitor promises a cadence.
+- Every writing transaction begins `BEGIN IMMEDIATE`, the busy timeout is 30
+  seconds, and two processes that open a database behind the head migrate it
+  once under `migrate.lock`.
+- Add `weatherbot check --once` (one cycle on demand; exit 0, 1, or 2),
+  `weatherbot config show` (each setting's value and origin), and `weatherbot
+  config path`; their `check`, `config`, and `config-path` documents join the
+  committed JSON Schemas (ten).
 
 ### Phase 3 — Threat engine
 - Add `scripts/verify_phase03.py`: 52 static checks over the geodesy, replay
