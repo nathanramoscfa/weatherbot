@@ -896,16 +896,16 @@ in parallel, and the Worktree rule permits no concurrent steps.
 > the SHA-256 of its canonical JSON and stored zlib-compressed, as
 > `response_bodies` stores bodies), `snapshot_provenances` (one row per distinct
 > provenance within a snapshot), and `snapshot_geometries` (each product's
-> snapshot, advisory, kind, and position, linked to its content and its
-> provenance); `SnapshotRepository.save` writes every new snapshot's products
-> through them, and `load` reads a snapshot stored before the revision from
-> `product_geometries` as it is, both giving an equal `Snapshot`; the downgrade
-> writes the new rows back into `product_geometries` before dropping the tables,
-> so no stored snapshot is lost either way; a measurement test proves that a
-> second cycle over unchanged answers adds no content row and grows the database
-> by less than 128 KiB, where it grew by 2.0 MiB; and `README.md`'s Status
-> section says where the project stands. This step lands the storage; Step 2's
-> cycle and Step 5's schedule write through it.
+> advisory, kind, and position, linked to its content and to its provenance,
+> which names its snapshot); `SnapshotRepository.save` writes every new
+> snapshot's products through them, and `load` reads a snapshot stored before
+> the revision from `product_geometries` as it is, both giving an equal
+> `Snapshot`; the downgrade writes the new rows back into `product_geometries`
+> before dropping the tables, so no stored snapshot is lost either way; a
+> measurement test proves that a second cycle over unchanged answers adds no
+> content row and grows the database by less than 128 KiB, where it grew by 2.0
+> MiB; and `README.md`'s Status section says where the project stands. This step
+> lands the storage; Step 2's cycle and Step 5's schedule write through it.
 
 **Branch:** `feature/phase04-step1-snapshot-storage`
 
@@ -1281,25 +1281,36 @@ The conversation is new per phase-boundary hygiene.
       SQLAlchemy types as in `0003`, each table created with
       `op.create_table("…", …)`):
 
-      - `geometry_contents`: `sha256` (CHAR(64), primary key);
-        `product_kind` (checked against the eleven product kinds);
-        `size` (the canonical JSON's length in bytes); `body`
-        (BLOB: the zlib-compressed canonical JSON).
+      - `geometry_contents`: `id` (primary key); `sha256`
+        (CHAR(64), unique); `product_kind` (checked against the
+        eleven product kinds); `size` (the canonical JSON's length
+        in bytes); `body` (BLOB: the zlib-compressed canonical
+        JSON).
       - `snapshot_provenances`: `id` (primary key); `snapshot_id`
         (references `snapshots.id`, `ON DELETE CASCADE`);
         `position`; `provenance` (JSON); unique on `(snapshot_id,
         position)`.
-      - `snapshot_geometries`: `id` (primary key); `snapshot_id`
-        (references `snapshots.id`, `ON DELETE CASCADE`);
+      - `snapshot_geometries`: `id` (primary key); `provenance_id`
+        (references `snapshot_provenances.id`, `ON DELETE
+        CASCADE`: the link's snapshot is its provenance's);
         `advisory_id` (references `advisories.id`, nullable,
         indexed); `product_kind` (checked); `position`;
-        `content_sha256` (references `geometry_contents.sha256`);
-        `provenance_id` (references `snapshot_provenances.id`, `ON
-        DELETE CASCADE`); an index — not a unique key — on
-        `(snapshot_id, product_kind, position)`, as
-        `product_geometries` has, because positions restart for
-        each storm, so two storms' cones, tracks, points, and
-        radii share positions within one snapshot.
+        `content_id` (references `geometry_contents.id`); an index
+        — not a unique key — on `(provenance_id, product_kind,
+        position)`, because positions restart for each storm, so
+        two storms' cones, tracks, points, and radii share
+        positions within one snapshot.
+      - Amended in this step's PR (spec rot, measured): the first
+        draft keyed `geometry_contents` by `sha256` alone and gave
+        each link `snapshot_id` and `content_sha256` with an index
+        on `(snapshot_id, product_kind, position)`. Built that way,
+        a second unchanged cycle grew the file by 144 to 152 KiB
+        (36 to 38 pages; the 32-character snapshot id and the
+        64-character hash on each of 608 links, and a random-UUID
+        index whose fill varied by run), over the 128 KiB budget.
+        Integer links reached through the provenance grow it by
+        64 KiB (16 pages) on every run, half the budget, leaving
+        room for the rows Steps 2 and 3 add to every cycle.
       - The upgrade creates the three tables and touches no
         existing row. The downgrade first writes every
         `snapshot_geometries` row back as a `product_geometries`
@@ -1322,20 +1333,23 @@ The conversation is new per phase-boundary hygiene.
         "geojson", "properties"}` (`json.dumps(…, sort_keys=True,
         separators=(",", ":"), ensure_ascii=False)` encoded as
         UTF-8), whose SHA-256 keys `geometry_contents`, inserted
-        only when absent (`INSERT … ON CONFLICT DO NOTHING`); each
-        distinct provenance of the snapshot is one
-        `snapshot_provenances` row; and one `snapshot_geometries`
-        row links the product to both. `product_geometries`
+        only when absent (`INSERT … ON CONFLICT (sha256) DO
+        NOTHING`, then the ids read back by hash); each distinct
+        provenance of the snapshot is one `snapshot_provenances`
+        row; and one `snapshot_geometries` row links the product
+        to both by their ids. `product_geometries`
         receives no new row. The refusal of a replay snapshot
         (`snapshot.origin != "live"`) stays where it is.
       - `load`, `_storms`, and `_snapshot_products` read a
         snapshot's products from `snapshot_geometries` when it has
-        any and from `product_geometries` otherwise (a snapshot
-        never has both), decode each through
+        provenance rows (written only with links) and from
+        `product_geometries` otherwise (a snapshot never has
+        both), decode each through
         `codec.decode_product`, and return the same `Snapshot`
         either way, in the same order.
       - A content row is never updated or deleted. Removing a
-        snapshot cascades its link and provenance rows; a content
+        snapshot cascades its provenance rows and, through them,
+        its link rows; a content
         row no snapshot uses any more stays until Phase 7's
         retention, and the docstring says so.
       - No other table and no other repository changes;
@@ -1386,7 +1400,9 @@ The conversation is new per phase-boundary hygiene.
         clock 15 minutes apart, a WAL checkpoint (`TRUNCATE`)
         before each size: the second adds no `geometry_contents`
         row and grows the database file by less than 128 KiB. It
-        never skips.
+        never skips. (As shipped, the second run's fetches are 15
+        minutes later too, through `cli_support.quiet_fetcher(…,
+        now=)`, so its provenances differ as a real cycle's do.)
     </requirement>
 
     <requirement>
@@ -1741,7 +1757,18 @@ is new per phase-boundary hygiene.
 
     Current state (as of Phase 4 Step 1):
 
-    - The Alembic head is `0004` (shared geometry).
+    - The Alembic head is `0004` (shared geometry). Carry-over
+      from Step 1 (PR body has the measurements): a stored
+      product links to its content by `content_id` and to its
+      snapshot through `snapshot_provenances` (no `snapshot_id` on
+      `snapshot_geometries`); `tests/cli/test_storage_growth.py`
+      measured a second unchanged `status` at 64 KiB (16 pages:
+      links 4, their index 4, provenances 3, the advisory index 1,
+      assessments 2, feed observations 2) against its 128 KiB
+      bound. Once `status` runs through the cycle, that test
+      counts this step's per-cycle rows (`monitor_cycles`, the
+      heartbeat writes) too: keep them narrow, and re-measure
+      before the PR.
       `SnapshotService(engine, network=,
       now=).fetch_snapshot(locations)` (async) fetches, stores,
       and returns `FetchedSnapshot(snapshot, drift_warnings)`;
@@ -2429,6 +2456,11 @@ is new per phase-boundary hygiene.
       heartbeat and the cycle, and calls its listeners after the
       commit. `status`, `fetch`, and `check --once` go through it.
       `CycleTrigger` already holds `confirm`.
+    - Carry-over from Step 1: `tests/cli/test_storage_growth.py`
+      bounds a second unchanged `status` at 128 KiB (64 KiB
+      measured at Step 1, before Step 2's rows). The decisions
+      and notifications this step writes each cycle count against
+      it: re-measure before the PR.
     - The seven change kinds and their fields
       (`models/assessment.py`): `level_changed` (`previous_level`,
       `level`, `direction` up, down, or initial, `rule`),
