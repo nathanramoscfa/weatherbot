@@ -1458,9 +1458,9 @@ The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 2 — The monitor cycle, the heartbeat, and staleness
+## Step 2 — The monitor cycle, the heartbeat, and staleness ✅
 
-**Status:** Not started
+**Status:** Complete — PR #42 (2026-10-22)
 
 > **Goal:** Give the monitor its one path and its pulse.
 > `weatherbot.services.monitor.MonitorService.run_cycle(trigger)` fetches every
@@ -1497,6 +1497,8 @@ the first `ci.yml` and `phase-verify.yml` runs on `main` must be green.
 | Conversation | **New**                                 | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-22: Balanced column's Backup — Opus 5.5 · Effort High. The **Runs:** rule selected Balanced (its Antigravity pool read `headroom`); the operator opened the column's Backup on Claude Code.
 
 **Model rationale:** Step 2 is coding with an agentic secondary category — a
 service that composes the snapshot and assessment services under a lock shared
@@ -5740,7 +5742,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                         | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Snapshot storage              | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #41 |
-| 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
+| 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #42 |
 | 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
