@@ -1,6 +1,6 @@
 # Phase 4 Roadmap — Monitoring and notifications
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -885,9 +885,9 @@ in parallel, and the Worktree rule permits no concurrent steps.
 
 ---
 
-## Step 1 — Snapshot storage that stays small
+## Step 1 — Snapshot storage that stays small ✅
 
-**Status:** Not started
+**Status:** Complete — PR #41 (2026-10-21)
 
 > **Goal:** Make a stored snapshot cost what changed, before anything stores one
 > on a schedule. Alembic revision `0004`
@@ -925,6 +925,8 @@ green.
 | Conversation | **New**                                 | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-21: Balanced column's Backup — Opus 5.5 · Effort High. The **Runs:** rule selected Balanced (its Antigravity pool read `headroom`); the operator opened the column's Backup on Claude Code.
 
 **Model rationale:** Step 1 is coding with a long-context secondary category: a
 persistence change that has to keep Phase 2's load-equality contract across two
@@ -5696,7 +5698,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                         | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Snapshot storage              | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
+| 1    | Snapshot storage              | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #41 |
 | 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
