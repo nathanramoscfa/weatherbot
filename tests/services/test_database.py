@@ -11,17 +11,21 @@ import shutil
 import sqlite3
 from collections.abc import Iterator
 from contextlib import closing
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from uuid import UUID
 
 import pytest
 from alembic import command
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
+from snapshot_support import recorded_snapshot, with_second_storm
 from sqlalchemy import Engine, inspect, text
+from sqlalchemy.orm import Session
 
 from weatherbot.services.config import AppPaths
 from weatherbot.services.persistence import database as db
+from weatherbot.services.persistence import repositories
 from weatherbot.services.persistence.database import (
     MIGRATIONS_DIRECTORY,
     DatabaseError,
@@ -33,6 +37,7 @@ from weatherbot.services.persistence.database import (
     head_revision,
     open_database,
 )
+from weatherbot.services.persistence.repositories import LocationRepository, SnapshotRepository
 from weatherbot.services.persistence.tables import Base
 
 HEAD = head_revision()
@@ -43,6 +48,7 @@ REVISIONS = [
 FROZEN = {
     "0001_baseline.py": "d0e07ae21301ab7a8895607e914e9cca7dc62e2ce0b51fbdf6f8b0ef98f8505d",
     "0002_drift_warnings.py": "6ffcccb7b6da86250e57fa28d20158df74f6db7e2053f230bd6763ddebb0136a",
+    "0003_assessments.py": "d2388aba5c3ab287e9953d37d36fe9f8b07d98c609129acd2c31a99bbf39681f",
 }
 SNAPSHOT_HEX = "8f0c4d1e5b7a4c2e9d3f1a2b3c4d5e6f"
 PROBE = "probe"
@@ -341,7 +347,7 @@ def test_0003_creates_the_assessment_tables_and_the_toggle_instant(
     assert not tables & _tables(paths.database_path)
 
     with open_database(paths, now=lambda: STAMP) as opened:
-        assert opened.revision == "0003"
+        assert opened.revision == HEAD
         assert opened.backup_path is not None
 
     assert tables <= _tables(paths.database_path)
@@ -406,6 +412,115 @@ def test_removing_a_location_at_0003_cascades_to_its_assessments(
 
     for table, statement in COUNTS.items():
         assert _rows(paths.database_path, statement) == [(0,)], table
+
+
+# Revision 0004 -------------------------------------------------------------------------------
+
+SHARED_GEOMETRY = {"geometry_contents", "snapshot_provenances", "snapshot_geometries"}
+PRODUCT = text(
+    "INSERT INTO product_geometries (snapshot_id, advisory_id, product_kind, position, crs, "
+    "crs_datum, geojson, properties, provenance) VALUES (:snapshot, NULL, 'outlook_graphic', "
+    "0, NULL, NULL, NULL, '{}', '{}')"
+)
+FAILING_0004 = """
+
+_upgrade = upgrade
+
+
+def upgrade() -> None:
+    _upgrade()
+    op.execute("SELECT no_such_function()")
+"""
+
+
+def _seed_0003(paths: AppPaths, engine: Engine) -> set[str]:
+    """Revision 0003 with a location, a snapshot, an assessment, and a product; its tables."""
+    _migrate(engine, "0002")
+    engine.dispose()
+    _seed_0002(paths.database_path)
+    _migrate(engine, "0003")
+    with engine.begin() as connection:
+        connection.execute(ASSESSMENT, {"snapshot": SNAPSHOT_HEX, "level": 1, "rule": "all_clear"})
+        connection.execute(PRODUCT, {"snapshot": SNAPSHOT_HEX})
+    engine.dispose()
+    return _tables(paths.database_path) - {"alembic_version"}
+
+
+def _every_row(path: Path, tables: set[str]) -> dict[str, list[tuple[object, ...]]]:
+    with closing(sqlite3.connect(path)) as connection:
+        return {
+            table: connection.execute(f"SELECT * FROM {table} ORDER BY rowid").fetchall()  # noqa: S608 - a table name read from sqlite_master
+            for table in sorted(tables)
+        }
+
+
+def _never_linked(_session: Session, _snapshot_id: UUID) -> bool:
+    """Revision 0003's reader: every snapshot's products are in ``product_geometries``."""
+    return False
+
+
+def test_0004_upgrade_keeps_every_existing_row(paths: AppPaths, engine: Engine) -> None:
+    tables = _seed_0003(paths, engine)
+    before = _every_row(paths.database_path, tables)
+
+    _migrate(engine, "0004")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0004"
+    assert _every_row(paths.database_path, tables) == before
+    assert all(rows == [] for rows in _every_row(paths.database_path, SHARED_GEOMETRY).values())
+
+
+@pytest.mark.anyio
+async def test_0004_downgrade_keeps_every_saved_snapshot_loadable(
+    paths: AppPaths, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    recorded = await recorded_snapshot()
+    one = recorded.snapshot
+    later = one.completed_at + timedelta(minutes=15)
+    two = with_second_storm(one).model_copy(
+        update={
+            "snapshot_id": UUID(int=one.snapshot_id.int + 1),
+            "started_at": later,
+            "completed_at": later,
+        }
+    )
+    with open_database(paths) as opened:
+        LocationRepository(opened.engine).add(recorded.location)
+        repository = SnapshotRepository(opened.engine)
+        repository.save(one, recorded.responses)
+        repository.save(two, recorded.responses)
+        with opened.engine.connect() as connection:
+            linked = connection.execute(text("SELECT count(*) FROM snapshot_geometries")).scalar()
+
+        _migrate(opened.engine, "0003")
+
+        assert current_revision(opened.engine) == "0003"
+        assert not SHARED_GEOMETRY & set(inspect(opened.engine).get_table_names())
+        with opened.engine.connect() as connection:
+            copied = connection.execute(text("SELECT count(*) FROM product_geometries")).scalar()
+        assert copied == linked
+        monkeypatch.setattr(repositories, "_links_products", _never_linked)
+        assert repository.load(one.snapshot_id) == one
+        assert repository.load(two.snapshot_id) == two
+
+
+def test_0004_a_failed_upgrade_rolls_back_completely(
+    tmp_path: Path, paths: AppPaths, engine: Engine
+) -> None:
+    migrations = tmp_path / "migrations"
+    shutil.copytree(MIGRATIONS_DIRECTORY, migrations, ignore=shutil.ignore_patterns("__pycache__"))
+    revision = migrations / "versions" / "0004_shared_geometry.py"
+    revision.write_text(revision.read_text(encoding="utf-8") + FAILING_0004, encoding="utf-8")
+    tables = _seed_0003(paths, engine)
+    before = _every_row(paths.database_path, tables)
+
+    with pytest.raises(MigrationFailedError):
+        open_database(paths, migrations=migrations, now=lambda: STAMP)
+
+    assert _revision_of(paths.database_path) == "0003"
+    assert not SHARED_GEOMETRY & _tables(paths.database_path)
+    assert _every_row(paths.database_path, tables) == before
 
 
 @pytest.mark.parametrize("name", sorted(FROZEN))

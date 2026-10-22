@@ -2,14 +2,18 @@
 """The tables Weatherbot writes, in SQLAlchemy 2's typed declarative mapping.
 
 Tables arrive with their writers: Phase 2's snapshots and locations (revisions 0001 and
-0002), and the assessments, their evidence, and their changes (revision 0003, Phase 3);
-notifications and the heartbeat (Phase 4), and briefings and the Claude ledger (Phase 6)
-are later revisions. Every instant goes in and comes out as an aware UTC value. A naming
-convention names every constraint, so a SQLite batch migration can find and alter it.
+0002), the assessments, their evidence, and their changes (revision 0003, Phase 3), and
+the shared product contents (revision 0004, Phase 4); notifications and the heartbeat
+(Phase 4), and briefings and the Claude ledger (Phase 6) are later revisions. Every
+instant goes in and comes out as an aware UTC value. A naming convention names every
+constraint, so a SQLite batch migration can find and alter it.
 
 Records that a snapshot holds by reference (a storm, a text product, a feed item, an
 alert) are stored once and observed per snapshot, and every observation keeps what the
-snapshot saw: its position in the snapshot's tuple and its own provenance.
+snapshot saw: its position in the snapshot's tuple and its own provenance. A product's
+content is stored once by its SHA-256 and linked to each snapshot with the provenance it
+came with; a snapshot stored before revision 0004 keeps its products in
+``product_geometries``.
 """
 
 from datetime import UTC, datetime
@@ -17,6 +21,7 @@ from typing import Any, ClassVar, Final, override
 from uuid import UUID
 
 from sqlalchemy import (
+    CHAR,
     JSON,
     CheckConstraint,
     DateTime,
@@ -262,7 +267,8 @@ class ProductGeometryRow(Base):
 
     ``geojson`` is a GeoJSON geometry, or a FeatureCollection for a product of several
     shapes (an arrival-time product's lines, a wind-probability product's bands, a display
-    layer as received). An outlook graphic has no geometry.
+    layer as received). An outlook graphic has no geometry. Only snapshots stored before
+    revision 0004 have rows here; later ones link through ``snapshot_geometries``.
     """
 
     __tablename__ = "product_geometries"
@@ -281,6 +287,69 @@ class ProductGeometryRow(Base):
     geojson: Mapped[dict[str, Any] | None]
     properties: Mapped[dict[str, Any]]
     provenance: Mapped[dict[str, Any]]
+
+
+class GeometryContentRow(Base):
+    """A product's content, stored once by its SHA-256 and zlib-compressed (revision 0004).
+
+    The content is the canonical JSON of the product's kind, CRS, datum, GeoJSON, and
+    other fields (``codec.canonical_content``): everything but its provenance, which
+    carries the fetch's instant. Links name a content by its integer ``id``, not its
+    64-character hash, because a snapshot links some 600 products. A content row is never
+    updated or deleted; one that no snapshot links any more stays until Phase 7's
+    retention.
+    """
+
+    __tablename__ = "geometry_contents"
+    __table_args__ = (CheckConstraint(_one_of("product_kind", PRODUCT_KINDS), name="product_kind"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sha256: Mapped[str] = mapped_column(CHAR(64), unique=True)
+    product_kind: Mapped[str] = mapped_column(String(20))
+    size: Mapped[int] = mapped_column(comment="Bytes of the canonical JSON")
+    body: Mapped[bytes] = mapped_column(LargeBinary, comment="zlib-compressed canonical JSON")
+
+
+class SnapshotProvenanceRow(Base):
+    """One distinct provenance of a snapshot's products (revision 0004).
+
+    Records parsed from one response share one provenance, so the breakpoint catalogue's
+    points hold one row between them.
+    """
+
+    __tablename__ = "snapshot_provenances"
+    __table_args__ = (UniqueConstraint("snapshot_id", "position"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    snapshot_id: Mapped[UUID] = mapped_column(ForeignKey("snapshots.id", ondelete="CASCADE"))
+    position: Mapped[int]
+    provenance: Mapped[dict[str, Any]] = mapped_column(comment="Provenance JSON")
+
+
+class SnapshotGeometryRow(Base):
+    """A snapshot's product, linked to its content and its provenance (revision 0004).
+
+    The product's snapshot is its provenance's, so a link holds integers and its kind only:
+    an unchanged cycle adds a link per product and nothing else. Positions restart for
+    each storm, so two storms' products share positions within one snapshot: the index is
+    not unique. Removing a snapshot removes its provenances and, through them, its links,
+    never a content.
+    """
+
+    __tablename__ = "snapshot_geometries"
+    __table_args__ = (
+        CheckConstraint(_one_of("product_kind", PRODUCT_KINDS), name="product_kind"),
+        Index(None, "provenance_id", "product_kind", "position"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    provenance_id: Mapped[int] = mapped_column(
+        ForeignKey("snapshot_provenances.id", ondelete="CASCADE")
+    )
+    advisory_id: Mapped[int | None] = mapped_column(ForeignKey("advisories.id"), index=True)
+    product_kind: Mapped[str] = mapped_column(String(20))
+    position: Mapped[int]
+    content_id: Mapped[int] = mapped_column(ForeignKey("geometry_contents.id"))
 
 
 class TextProductRow(Base):

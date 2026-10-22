@@ -10,11 +10,11 @@ specifies both in [the project brief](docs/brief/weatherbot-v2-brief.md).
 ## Status
 
 Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
-discovery) and Phase 2 (sources and persistence) are complete; Phase 3 (the
-threat engine) is in progress.
+discovery), Phase 2 (sources and persistence), and Phase 3 (the threat
+engine) are complete; Phase 4 (monitoring and notifications) is in progress.
 No version 2 package is released. The commands below read the official
 products, and `status` decides each location's level from them alone, with
-the evidence behind it; nothing runs on a schedule or notifies yet (Phase 4).
+the evidence behind it; nothing runs on a schedule or notifies yet.
 The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
 
 ## Commands
