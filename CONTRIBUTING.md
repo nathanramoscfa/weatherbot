@@ -323,6 +323,21 @@ same transaction: the database cascades every row from the location's.
 records when (`locations.evacuation_order_set_at`); a `status` that fetches a
 new snapshot assesses with it.
 
+Revision `0004` stores unchanged geometry once, shared by the snapshots that
+use it. A product's content (its kind, CRS, GeoJSON, and other fields: all
+but its provenance, which carries the fetch's instant) is stored once,
+compressed, in `geometry_contents`, keyed by the SHA-256 of its canonical
+JSON. Each response's provenance is stored once per snapshot in
+`snapshot_provenances`, and `snapshot_geometries` links each product of a
+snapshot to its content and its provenance. A second `status` over unchanged
+answers therefore adds links and provenances, not products: well under
+128 KiB, where every cycle used to add 2.0 MiB
+(`tests/cli/test_storage_growth.py`). Snapshots stored before the revision
+keep their products in `product_geometries` and load back as they were.
+Removing a snapshot removes its links and provenances; a content row is never
+changed or removed, and one that no snapshot uses any more stays until
+retention arrives (Phase 7).
+
 The tests never touch any of this. An autouse fixture in `tests/conftest.py`
 points both directories into each test's temporary directory and clears
 every other `WEATHERBOT_*` variable except the development tools'

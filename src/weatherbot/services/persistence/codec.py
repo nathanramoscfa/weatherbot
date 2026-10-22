@@ -6,6 +6,9 @@ the verbatim WKT and datum), its provenance, and its other fields. A product of 
 shapes stores them as a FeatureCollection whose features carry each part's fields. Every
 model comes back through ``model_validate_json``, so it passes the same strict checks it
 passed when it was parsed, and Shapely's verdict is recomputed, never stored.
+
+A product's content is everything but its provenance, as canonical JSON: equal products
+have equal content whichever fetch they came from, so its SHA-256 names it alone.
 """
 
 import json
@@ -156,7 +159,7 @@ def with_crs(geometry: Json, crs: Crs) -> Json:
 
 @dataclass(frozen=True)
 class EncodedProduct:
-    """A product as ``product_geometries`` columns."""
+    """A product as columns: its content's, and its provenance."""
 
     crs: str | None
     crs_datum: str | None
@@ -210,6 +213,50 @@ def encode_product(kind: str, record: DomainModel) -> EncodedProduct:
     text, datum = crs_columns(crs) if crs is not None else (None, None)
     return EncodedProduct(
         crs=text, crs_datum=datum, geojson=shape, properties=data, provenance=provenance
+    )
+
+
+def canonical_content(kind: str, encoded: EncodedProduct) -> bytes:
+    """Return a product's content, everything but its provenance, as canonical JSON.
+
+    A provenance carries its fetch's instant, so it differs on every fetch of an unchanged
+    product; leaving it out lets every snapshot of the product share one content.
+
+    Args:
+        kind: The product kind.
+        encoded: Its columns.
+
+    Returns:
+        The kind, CRS, datum, GeoJSON, and properties as sorted, compact JSON in UTF-8.
+    """
+    content = {
+        "product_kind": kind,
+        "crs": encoded.crs,
+        "crs_datum": encoded.crs_datum,
+        "geojson": encoded.geojson,
+        "properties": encoded.properties,
+    }
+    text = json.dumps(content, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return text.encode("utf-8")
+
+
+def from_content(content: bytes, provenance: Json) -> EncodedProduct:
+    """Read a product's columns back from its canonical content and its provenance.
+
+    Args:
+        content: The canonical JSON ``canonical_content`` wrote.
+        provenance: The provenance it was linked with.
+
+    Returns:
+        The columns, equal to the ones encoded.
+    """
+    data = cast("Json", json.loads(content))
+    return EncodedProduct(
+        crs=data["crs"],
+        crs_datum=data["crs_datum"],
+        geojson=data["geojson"],
+        properties=data["properties"],
+        provenance=provenance,
     )
 
 

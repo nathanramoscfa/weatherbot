@@ -96,8 +96,13 @@ def landmark(key: str) -> tuple[str, str]:
     return str(found.lat), str(found.lon)
 
 
-def quiet_fetcher(client: httpx.AsyncClient, validators: ValidatorStore) -> Fetcher:
-    """A fetcher on the run's store whose pacing and backoff waits are recorded, not slept."""
+def quiet_fetcher(
+    client: httpx.AsyncClient, validators: ValidatorStore, *, now: datetime = NOW
+) -> Fetcher:
+    """A fetcher on the run's store whose pacing and backoff waits are recorded, not slept.
+
+    Every answer is fetched at ``now``.
+    """
     clock, backoff = FakeClock(), FakeClock()
     return Fetcher(
         client,
@@ -105,7 +110,7 @@ def quiet_fetcher(client: httpx.AsyncClient, validators: ValidatorStore) -> Fetc
         validators=validators,
         sleep=backoff.sleep,
         jitter=lambda: 0.5,
-        now=lambda: NOW,
+        now=lambda: now,
         clock=clock,
     )
 

@@ -5,7 +5,7 @@ Every recorded answer is served by respx, and the real fetch functions parse it:
 roster, the summary service's storm, display, outlook, and wind-probability layers, the
 breakpoints, the peak surge, the archived Dorian arrival-time KMZ pair, the TCP and TWO
 lists, the GIS feeds, the outlook graphics, and the Miami-Dade landmark's point and
-alerts.
+alerts. ``with_second_storm`` gives Dorian every kind of storm product as well.
 """
 
 from collections.abc import Sequence
@@ -20,7 +20,10 @@ from source_support import NOW, Quiet, serve
 
 from check_personal_data import load_landmarks
 from weatherbot.models import (
+    Advisory,
     AdvisoryNumber,
+    ConeGeometry,
+    ForecastTrack,
     LatLon,
     Location,
     NwsCoverage,
@@ -31,6 +34,9 @@ from weatherbot.models import (
     StormClassification,
     StormProducts,
     StormSummary,
+    TrackPoint,
+    WatchWarningSegment,
+    WindRadii,
 )
 from weatherbot.services.persistence.raw_cache import CachedFetch
 from weatherbot.sources import (
@@ -107,6 +113,41 @@ def dorian() -> StormSummary:
         has_potential_storm_surge_flooding=False,
         has_peak_surge=False,
     )
+
+
+def _relabelled[R: (ConeGeometry, ForecastTrack, TrackPoint, WatchWarningSegment, WindRadii)](
+    record: R, atcf_id: str
+) -> R:
+    """A storm product as another storm's: the same fields under another ATCF id."""
+    update: dict[str, object] = {"atcf_id": atcf_id}
+    if isinstance(record.advisory, Advisory):
+        update["advisory"] = record.advisory.model_copy(update={"atcf_id": atcf_id})
+    return record.model_copy(update=update)
+
+
+def with_second_storm(snapshot: Snapshot) -> Snapshot:
+    """The recorded snapshot with a second storm that holds every kind of storm product.
+
+    The second storm is Dorian (``dorian()``, centered on the Nassau landmark) with the
+    recorded storm's cone, track, points, segments, and radii as its own, beside its
+    archived arrival-time pair. Positions restart for each storm, so the two storms'
+    products share positions within the snapshot.
+    """
+    first, archived = snapshot.storms
+    summary = dorian()
+    atcf_id = summary.atcf_id
+    assert first.cone is not None
+    assert first.track is not None
+    second = StormProducts(
+        summary=summary,
+        cone=_relabelled(first.cone, atcf_id),
+        track=_relabelled(first.track, atcf_id),
+        track_points=tuple(_relabelled(point, atcf_id) for point in first.track_points),
+        watch_warnings=tuple(_relabelled(segment, atcf_id) for segment in first.watch_warnings),
+        wind_radii=tuple(_relabelled(radii, atcf_id) for radii in first.wind_radii),
+        arrival_times=archived.arrival_times,
+    )
+    return snapshot.model_copy(update={"storms": (first, second)})
 
 
 @dataclass(frozen=True)

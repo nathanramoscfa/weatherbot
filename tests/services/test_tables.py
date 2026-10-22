@@ -35,14 +35,16 @@ BASELINE_TABLES = {
 PHASE_2_TABLES = BASELINE_TABLES | {"drift_warnings"}  # revision 0002, Phase 2 Step 6
 # Revision 0003, Phase 3 Step 6: the assessments, their evidence, and their changes.
 PHASE_3_TABLES = PHASE_2_TABLES | {"assessments", "assessment_evidence", "assessment_changes"}
+# Revision 0004, Phase 4 Step 1: each product's content once, and its links per snapshot.
+SHARED_GEOMETRY_TABLES = {"geometry_contents", "snapshot_provenances", "snapshot_geometries"}
 LATER_PHASES = ("notification", "heartbeat", "briefing", "ledger")
 EASTERN = timezone(timedelta(hours=-4))
 
 
-def test_the_tables_are_phase_3s_only() -> None:
+def test_the_tables_are_phase_3s_and_the_shared_geometry_tables() -> None:
     names = set(Base.metadata.tables)
 
-    assert names == PHASE_3_TABLES
+    assert names == PHASE_3_TABLES | SHARED_GEOMETRY_TABLES
     assert not [name for name in names for word in LATER_PHASES if word in name]
 
 

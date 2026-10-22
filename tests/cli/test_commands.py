@@ -37,7 +37,7 @@ from weatherbot.cli.documents import (
 from weatherbot.models import SourceOutcome
 from weatherbot.services.config import AppPaths
 from weatherbot.services.disclaimer import NOTICE, SHOWN_AT_KEY
-from weatherbot.services.persistence.database import open_database
+from weatherbot.services.persistence.database import head_revision, open_database
 from weatherbot.services.persistence.repositories import SettingsRepository, SnapshotRepository
 
 UNAVAILABLE = httpx.Response(503, headers={"content-type": "text/plain"})
@@ -496,7 +496,7 @@ def test_doctor_offline_reports_the_paths_the_head_and_the_locations() -> None:
     document = parse(run(["doctor", "--offline", "--json"]), DoctorDocument)
 
     assert result.exit_code == 0, result.stdout
-    assert "migrations  pass    at revision 0003, the head" in result.stdout
+    assert f"migrations  pass    at revision {head_revision()}, the head" in result.stdout
     assert "Offline: no source was probed." in result.stdout
     assert result.stdout.rstrip().endswith(NOTICE)
     assert document.data.database is not None

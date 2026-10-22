@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 4 — Monitoring and notifications
+- Alembic revision `0004` (expand-only, after the online backup) stores each
+  product's content once: `geometry_contents` holds the zlib-compressed
+  canonical JSON of a product's kind, CRS, GeoJSON, and fields, keyed by its
+  SHA-256 and never its provenance; `snapshot_provenances` holds each
+  response's provenance once per snapshot; and `snapshot_geometries` links
+  each product to both. `SnapshotRepository` writes every new snapshot that
+  way and reads a snapshot stored before the revision from
+  `product_geometries` as it is; the downgrade copies every linked product
+  back before it drops the tables. A second `status` over unchanged answers
+  now grows the database by 64 KiB, where it grew by 2.0 MiB.
+- `README.md`'s Status names Phase 4 as in progress.
+
 ### Phase 3 — Threat engine
 - Add `scripts/verify_phase03.py`: 52 static checks over the geodesy, replay
   snapshots, ladder rules, threats and change events, calibration and goldens,

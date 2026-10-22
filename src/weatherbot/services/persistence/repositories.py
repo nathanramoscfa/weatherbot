@@ -3,7 +3,8 @@
 
 ``LocationRepository`` keeps the watched locations, ``SnapshotRepository`` stores a whole
 live ``Snapshot`` with its raw responses in one transaction and loads it back equal (a
-replay snapshot is never stored: history is live only), ``AssessmentRepository`` stores
+replay snapshot is never stored: history is live only; an unchanged product's content is
+stored once, whichever snapshots hold it), ``AssessmentRepository`` stores
 each live assessment with its evidence and changes and loads it back equal, and
 ``SettingsRepository`` keeps application state such as when the disclaimer was shown.
 
@@ -11,8 +12,11 @@ A write that takes a ``session`` joins the caller's transaction, so a service ca
 several records in one; without one, it commits on its own.
 """
 
+import hashlib
+import json
+import zlib
 from collections import defaultdict
-from collections.abc import Callable, Generator, Iterable, Sequence
+from collections.abc import Callable, Generator, Iterable, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -21,6 +25,7 @@ from uuid import UUID
 
 from pydantic import JsonValue
 from sqlalchemy import Engine, Select, select
+from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.orm import Session
 
 from weatherbot.models import (
@@ -56,16 +61,18 @@ from weatherbot.models import (
 from weatherbot.services.persistence.codec import (
     EncodedProduct,
     Json,
+    canonical_content,
     crs_columns,
     crs_from_columns,
     decode_product,
     dump,
     encode_product,
+    from_content,
     geojson,
     validated,
     with_crs,
 )
-from weatherbot.services.persistence.raw_cache import CachedFetch, record_fetch
+from weatherbot.services.persistence.raw_cache import CachedFetch, CorruptBodyError, record_fetch
 from weatherbot.services.persistence.tables import (
     AdvisoryRow,
     AlertObservationRow,
@@ -76,10 +83,13 @@ from weatherbot.services.persistence.tables import (
     DriftWarningRow,
     FeedItemObservationRow,
     FeedItemRow,
+    GeometryContentRow,
     LocationRow,
     OutcomeResponseRow,
     ProductGeometryRow,
     SettingRow,
+    SnapshotGeometryRow,
+    SnapshotProvenanceRow,
     SnapshotRow,
     SourceOutcomeRow,
     StormObservationRow,
@@ -400,21 +410,72 @@ def _snapshot_records(snapshot: Snapshot) -> Iterable[tuple[str, int, DomainMode
             yield kind, position, record
 
 
-def _product_row(
-    snapshot_id: UUID, kind: str, position: int, record: DomainModel, advisory_id: int | None
-) -> ProductGeometryRow:
-    encoded = encode_product(kind, record)
-    return ProductGeometryRow(
-        snapshot_id=snapshot_id,
-        advisory_id=advisory_id,
-        product_kind=kind,
-        position=position,
-        crs=encoded.crs,
-        crs_datum=encoded.crs_datum,
-        geojson=encoded.geojson,
-        properties=encoded.properties,
-        provenance=encoded.provenance,
+type _Product = tuple[str, int, DomainModel, int | None]
+"""A product to store: its kind, its position, the record, and its storm's advisory row."""
+
+
+def _content_ids(session: Session, hashes: Iterable[str]) -> dict[str, int]:
+    """The stored contents' ids, by SHA-256."""
+    found = session.execute(
+        select(GeometryContentRow.sha256, GeometryContentRow.id).where(
+            GeometryContentRow.sha256.in_(list(hashes))
+        )
     )
+    return dict(found.all())
+
+
+def _store_contents(session: Session, contents: Mapping[str, tuple[str, bytes]]) -> dict[str, int]:
+    """Insert each content by its SHA-256, compressed, unless it is stored; return the ids."""
+    ids = _content_ids(session, contents)
+    missing = [sha256 for sha256 in contents if sha256 not in ids]
+    if missing:
+        inserting = insert(GeometryContentRow).on_conflict_do_nothing(index_elements=["sha256"])
+        session.execute(
+            inserting,
+            [
+                {
+                    "sha256": sha256,
+                    "product_kind": contents[sha256][0],
+                    "size": len(contents[sha256][1]),
+                    "body": zlib.compress(contents[sha256][1]),
+                }
+                for sha256 in missing
+            ],
+        )
+        ids.update(_content_ids(session, missing))
+    return ids
+
+
+def _save_products(session: Session, snapshot_id: UUID, products: Sequence[_Product]) -> None:
+    """Link each product to its content, stored once, and its provenance, once per snapshot."""
+    contents: dict[str, tuple[str, bytes]] = {}
+    provenances: dict[str, SnapshotProvenanceRow] = {}
+    links: list[tuple[str, int, int | None, str, SnapshotProvenanceRow]] = []
+    for kind, position, record, advisory_id in products:
+        encoded = encode_product(kind, record)
+        content = canonical_content(kind, encoded)
+        sha256 = hashlib.sha256(content).hexdigest()
+        contents.setdefault(sha256, (kind, content))
+        key = json.dumps(encoded.provenance, sort_keys=True)
+        if key not in provenances:
+            provenances[key] = SnapshotProvenanceRow(
+                snapshot_id=snapshot_id, position=len(provenances), provenance=encoded.provenance
+            )
+        links.append((kind, position, advisory_id, sha256, provenances[key]))
+    content_ids = _store_contents(session, contents)
+    session.add_all(provenances.values())
+    session.flush()
+    session.add_all(
+        SnapshotGeometryRow(
+            provenance_id=provenance.id,
+            advisory_id=advisory_id,
+            product_kind=kind,
+            position=position,
+            content_id=content_ids[sha256],
+        )
+        for kind, position, advisory_id, sha256, provenance in links
+    )
+    session.flush()
 
 
 def _record_advisory(record: DomainModel) -> tuple[str, Advisory | AdvisoryNumber]:
@@ -425,7 +486,15 @@ def _record_advisory(record: DomainModel) -> tuple[str, Advisory | AdvisoryNumbe
 
 
 class SnapshotRepository:
-    """Every snapshot, stored whole and loaded back equal."""
+    """Every snapshot, stored whole and loaded back equal.
+
+    A product's content (its kind, CRS, geometry, and fields) is stored once by its
+    SHA-256 and shared by every snapshot that holds it, each distinct provenance once per
+    snapshot, and one link per product (revision 0004); a snapshot stored before keeps its
+    products in ``product_geometries`` and loads back as it was. A content row is never
+    updated or deleted: removing a snapshot removes its provenances and their links, and a
+    content that no snapshot links any more stays until Phase 7's retention.
+    """
 
     def __init__(self, engine: Engine) -> None:
         """Create the repository.
@@ -471,9 +540,14 @@ class SnapshotRepository:
             )
             session.flush()
             self._save_outcomes(session, snapshot, responses)
-            self._save_storms(session, snapshot)
-            for kind, position, record in _snapshot_records(snapshot):
-                session.add(_product_row(snapshot.snapshot_id, kind, position, record, None))
+            products = [
+                *self._save_storms(session, snapshot),
+                *(
+                    (kind, position, record, None)
+                    for kind, position, record in _snapshot_records(snapshot)
+                ),
+            ]
+            _save_products(session, snapshot.snapshot_id, products)
             self._save_text_products(session, snapshot)
             self._save_feed_items(session, snapshot)
             self._save_alerts(session, snapshot)
@@ -525,8 +599,10 @@ class SnapshotRepository:
         session.flush()
 
     @staticmethod
-    def _save_storms(session: Session, snapshot: Snapshot) -> None:
+    def _save_storms(session: Session, snapshot: Snapshot) -> list[_Product]:
+        """Store each storm and its advisories, and return its products to store."""
         storm_ids: dict[str, int] = {}
+        stored: list[_Product] = []
         for position, products in enumerate(snapshot.storms):
             summary = cast("StormSummary", products.summary)  # a live storm's roster record
             storm_id = _storm_id(session, summary, snapshot.completed_at)
@@ -542,8 +618,9 @@ class SnapshotRepository:
             for kind, index, record in _storm_records(products):
                 atcf_id, advisory = _record_advisory(record)
                 advisory_id = _advisory_id(session, storm_ids, atcf_id, advisory)
-                session.add(_product_row(snapshot.snapshot_id, kind, index, record, advisory_id))
+                stored.append((kind, index, record, advisory_id))
         session.flush()
+        return stored
 
     @staticmethod
     def _save_text_products(session: Session, snapshot: Snapshot) -> None:
@@ -724,6 +801,78 @@ def _decoded(row: ProductGeometryRow) -> DomainModel:
     )
 
 
+def _content(sha256: str, size: int, body: bytes) -> bytes:
+    """Decompress a stored content, refusing one that is not what was stored."""
+    inflater = zlib.decompressobj()
+    content = inflater.decompress(body, size + 1)
+    if len(content) != size or not inflater.eof:
+        message = f"the stored content {sha256[:12]} is corrupt"
+        raise CorruptBodyError(message)
+    return content
+
+
+def _links_products(session: Session, snapshot_id: UUID) -> bool:
+    """Whether a snapshot's products are linked through ``snapshot_geometries``.
+
+    A provenance row is written only for a linked product, so a snapshot has one exactly
+    when it links its products.
+    """
+    linked = select(SnapshotProvenanceRow.id).where(
+        SnapshotProvenanceRow.snapshot_id == snapshot_id
+    )
+    return session.scalar(linked.limit(1)) is not None
+
+
+def _products(
+    session: Session, snapshot_id: UUID, kinds: tuple[str, ...]
+) -> list[tuple[str, str | None, DomainModel]]:
+    """A snapshot's products of some kinds, in position order, each with its storm's id.
+
+    A snapshot stored at revision 0004 or later links its products through
+    ``snapshot_geometries``; one stored before keeps them in ``product_geometries``,
+    decoded as revision 0003 decoded them. A snapshot never has both.
+    """
+    if not _links_products(session, snapshot_id):
+        rows = session.execute(
+            select(ProductGeometryRow, StormRow.atcf_id)
+            .outerjoin(AdvisoryRow, AdvisoryRow.id == ProductGeometryRow.advisory_id)
+            .outerjoin(StormRow, StormRow.id == AdvisoryRow.storm_id)
+            .where(
+                ProductGeometryRow.snapshot_id == snapshot_id,
+                ProductGeometryRow.product_kind.in_(kinds),
+            )
+            .order_by(ProductGeometryRow.position)
+        ).all()
+        return [(row.product_kind, atcf_id, _decoded(row)) for row, atcf_id in rows]
+    linked = session.execute(
+        select(
+            SnapshotGeometryRow.product_kind,
+            StormRow.atcf_id,
+            GeometryContentRow.sha256,
+            GeometryContentRow.size,
+            GeometryContentRow.body,
+            SnapshotProvenanceRow.provenance,
+        )
+        .join(SnapshotProvenanceRow, SnapshotProvenanceRow.id == SnapshotGeometryRow.provenance_id)
+        .join(GeometryContentRow, GeometryContentRow.id == SnapshotGeometryRow.content_id)
+        .outerjoin(AdvisoryRow, AdvisoryRow.id == SnapshotGeometryRow.advisory_id)
+        .outerjoin(StormRow, StormRow.id == AdvisoryRow.storm_id)
+        .where(
+            SnapshotProvenanceRow.snapshot_id == snapshot_id,
+            SnapshotGeometryRow.product_kind.in_(kinds),
+        )
+        .order_by(SnapshotGeometryRow.position)
+    ).all()
+    return [
+        (
+            kind,
+            atcf_id,
+            decode_product(kind, from_content(_content(sha256, size, body), provenance)),
+        )
+        for kind, atcf_id, sha256, size, body, provenance in linked
+    ]
+
+
 def _storms(session: Session, snapshot_id: UUID) -> tuple[StormProducts, ...]:
     observed = session.execute(
         select(StormObservationRow.summary, StormRow.atcf_id)
@@ -731,19 +880,9 @@ def _storms(session: Session, snapshot_id: UUID) -> tuple[StormProducts, ...]:
         .where(StormObservationRow.snapshot_id == snapshot_id)
         .order_by(StormObservationRow.position)
     ).all()
-    rows = session.execute(
-        select(ProductGeometryRow, StormRow.atcf_id)
-        .join(AdvisoryRow, AdvisoryRow.id == ProductGeometryRow.advisory_id)
-        .join(StormRow, StormRow.id == AdvisoryRow.storm_id)
-        .where(
-            ProductGeometryRow.snapshot_id == snapshot_id,
-            ProductGeometryRow.product_kind.in_(_STORM_KINDS),
-        )
-        .order_by(ProductGeometryRow.position)
-    ).all()
-    grouped: dict[tuple[str, str], list[DomainModel]] = defaultdict(list)
-    for row, atcf_id in rows:
-        grouped[atcf_id, row.product_kind].append(_decoded(row))
+    grouped: dict[tuple[str | None, str], list[DomainModel]] = defaultdict(list)
+    for kind, atcf_id, record in _products(session, snapshot_id, _STORM_KINDS):
+        grouped[atcf_id, kind].append(record)
     storms: list[StormProducts] = []
     for summary, atcf_id in observed:
         cones = grouped[atcf_id, "cone"]
@@ -767,17 +906,9 @@ def _storms(session: Session, snapshot_id: UUID) -> tuple[StormProducts, ...]:
 
 
 def _snapshot_products(session: Session, snapshot_id: UUID) -> dict[str, list[DomainModel]]:
-    rows = session.scalars(
-        select(ProductGeometryRow)
-        .where(
-            ProductGeometryRow.snapshot_id == snapshot_id,
-            ProductGeometryRow.product_kind.in_(_SNAPSHOT_KINDS),
-        )
-        .order_by(ProductGeometryRow.position)
-    )
     grouped: dict[str, list[DomainModel]] = defaultdict(list)
-    for row in rows:
-        grouped[row.product_kind].append(_decoded(row))
+    for kind, _, record in _products(session, snapshot_id, _SNAPSHOT_KINDS):
+        grouped[kind].append(record)
     return grouped
 
 
