@@ -77,7 +77,13 @@ shared `models` package. Each layer's `__init__.py` states its rule;
   `[engine]` table. `tests/engine/scenarios.py` holds the named scenarios
   the engine's tests share.
 - `services/` — time, state, and side effects: scheduling, change
-  detection, notification, persistence, and the Claude integration.
+  detection, notification, persistence, and the Claude integration. The
+  services own the one cycle path, `MonitorService.run_cycle`
+  (`weatherbot.services.monitor`): it fetches, stores, assesses, and records
+  the heartbeats and the cycle under the cycle lock every process shares.
+  Every fetching command (`fetch`, `storms`, `alerts`, `status`,
+  `check --once`) goes through it; nothing else assesses into history.
+  Every writing transaction begins `BEGIN IMMEDIATE` (`writing_session`).
 - `cli/` — Typer commands over the services.
 - `web/` — the FastAPI app over the same services.
 

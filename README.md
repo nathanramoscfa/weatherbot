@@ -50,7 +50,13 @@ weatherbot replay AL112017 --location "Miami-Dade County Hall" --corpus tests/fi
 weatherbot replay AL112017 --location "Miami-Dade County Hall" --corpus tests/fixtures/replay --every
 
 weatherbot doctor                    # paths, database revision, every source and layer
-weatherbot doctor --offline          # local checks only
+weatherbot doctor --offline          # local checks only, with the heartbeats
+
+# One monitor cycle on demand: fetch, assess and store every location, record the heartbeats.
+weatherbot check --once
+
+weatherbot config show               # every setting's value, and whether it came from the default, weatherbot.toml, or the environment
+weatherbot config path               # where the settings file, the database, its backups, and the lock files live
 ```
 
 `status` prints, for each location, the level and its deciding rule with each
@@ -67,9 +73,17 @@ assessments with it. `replay` reads only the corpus directory it is given;
 landmarks only, and `scripts/fetch_replay_corpus.py convert --full` writes the
 complete products for your own locations.
 
-`locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, and `doctor`
-take `--json` and print one JSON document whose schema is in
-[docs/schema/](docs/schema/).
+Every command that fetches (`fetch`, `storms`, `alerts`, `status`, and
+`check --once`) runs one monitor cycle, under a lock every Weatherbot process
+shares, and records it with a heartbeat per source. When another cycle is
+running, the command says so and exits 1. `status` shows a yellow banner when a
+heartbeat is stale (its last success is older than twice the cadence a scheduled
+monitor promised for it); a manual command promises no cadence, so it never
+makes data look stale.
+
+`locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, `doctor`,
+`check --once`, `config show`, and `config path` take `--json` and print one
+JSON document whose schema is in [docs/schema/](docs/schema/).
 `--verbose` (before the command: `weatherbot --verbose fetch`) logs at DEBUG
 to standard error. The exit status is 0 when everything answered, 1 when a
 source failed or a check did, and 2 for a usage error. With one location,

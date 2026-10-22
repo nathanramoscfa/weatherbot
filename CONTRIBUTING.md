@@ -266,8 +266,11 @@ Weatherbot keeps its state outside the repository, in your user directories:
 directories. Each must be an absolute path. `weatherbot.toml` holds the
 settings below, and an environment variable overrides each one (environment,
 then file, then default): `WEATHERBOT_LOG_LEVEL`,
-`WEATHERBOT_HTTP_TIMEOUT_SECONDS`, and `WEATHERBOT_ENGINE_<KEY>` for each key
-of `[engine]`, such as `WEATHERBOT_ENGINE_COASTAL_REACH_KM`. The `[engine]`
+`WEATHERBOT_HTTP_TIMEOUT_SECONDS`, `WEATHERBOT_ENGINE_<KEY>` for each key
+of `[engine]`, such as `WEATHERBOT_ENGINE_COASTAL_REACH_KM`, and
+`WEATHERBOT_MONITOR_CYCLE_LOCK_WAIT_SECONDS`. `weatherbot config show` prints
+every effective value and where it came from; `weatherbot config path` prints
+where the files live. The `[engine]`
 values are the alert ladder's calibrated defaults; their outcome intervals and
 evidence are in [the written ladder](docs/ALERT-LADDER.md).
 
@@ -285,6 +288,9 @@ cone_horizon_h = 120                # 1 to 120
 hurricane_wind_floor_pct = 10       # a band lower bound: 0, 5, 10, 20, ..., 90
 tropical_storm_wind_floor_pct = 5   # a band lower bound
 development_chance_floor_pct = 0    # a band lower bound
+
+[monitor]
+cycle_lock_wait_seconds = 120       # 1 to 3600: how long a cycle waits for another
 ```
 
 An unknown key or a bad value stops the program with a message that names the
@@ -337,6 +343,47 @@ keep their products in `product_geometries` and load back as they were.
 Removing a snapshot removes its links and provenances; a content row is never
 changed or removed, and one that no snapshot uses any more stays until
 retention arrives (Phase 7).
+
+### The monitor cycle, its lock, and the heartbeat
+
+`weatherbot.services.monitor.MonitorService.run_cycle(trigger)` is the one path
+that fetches, stores, assesses, and records. It takes the cycle lock, records
+the cycle as started (`monitor_cycles`, revision `0005`), fetches and stores a
+snapshot (or uses a stored one, for `status --no-fetch`), assesses and stores
+every location (`fetch`, `storms`, and `alerts` skip this), records the
+heartbeats and the cycle's end in one transaction, calls its listeners, and
+gives the lock back. Every command that fetches goes through it. An exception
+records the cycle as `error` with its class name, never its message.
+
+The cycle lock is `cycle.lock` in the data directory, and opening a database
+behind the head takes `migrate.lock` there, so two processes migrate it once.
+Both are `weatherbot.services.locks.ProcessLock`: the operating system's lock on
+the file's first byte (`msvcrt.locking` on Windows, `fcntl.flock` elsewhere),
+which the operating system frees when the holding process ends. The holder
+writes its process id and start instant to `<lock>.info` for whoever reads the
+directory; nothing decides anything from that sidecar. A cycle that waits past
+`[monitor] cycle_lock_wait_seconds` is recorded as `skipped`, and the command
+says "another cycle is running; try again" and exits 1. Every transaction that
+writes begins `BEGIN IMMEDIATE` (`writing_session`), so two processes that write
+at once wait for each other (up to the 30-second busy timeout) instead of one
+failing with `database is locked`; reads stay deferred.
+
+`heartbeats` holds one row per source, watch, and monitor process: the last
+attempt, the last success, the run of consecutive failures with the last error
+kind, and the cadence its writer expects. A source that answered (or answered
+304) succeeds; one that failed adds a failure; one the cycle did not need (no
+active storm, no location inside NWS coverage) records the attempt and clears
+its cadence, so it is never stale and never failing. Only a scheduled runner
+promises a cadence (three hours per source, NHC's product spacing); a manual
+command leaves each row's cadence as it is. The staleness rule
+(`weatherbot.services.health.staleness`) calls a row stale when it promises a
+cadence and has never succeeded or last succeeded more than twice that cadence
+ago. `status` shows a yellow banner for each stale row and lists every row in
+its document's `staleness`; `doctor`'s `heartbeat` check is skipped while no row
+promises a cadence (so a fresh install exits 0), passes when none is stale, and
+fails when one is. Log lines name the runner, the trigger, the cycle, the
+status, and counts, never a coordinate, a distance, a bearing, or a URL above
+DEBUG.
 
 The tests never touch any of this. An autouse fixture in `tests/conftest.py`
 points both directories into each test's temporary directory and clears
