@@ -18,11 +18,13 @@ import sys
 import tomllib
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta, tzinfo
 from pathlib import Path
 from typing import Final, Literal, Self, cast
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import platformdirs
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, ValidationInfo, field_validator
 
 from weatherbot.models import (
     BAND_FLOORS,
@@ -35,6 +37,7 @@ from weatherbot.models.ladder import (
     CONE_HORIZON_MIN_H,
     SEGMENT_END_TOLERANCE_MAX_KM,
 )
+from weatherbot.services.policy import PolicySettings, QuietHours, parse_wall_time
 
 APP_NAME: Final = "weatherbot"
 CONFIG_DIR_VARIABLE: Final = "WEATHERBOT_CONFIG_DIR"
@@ -57,6 +60,11 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("engine", "tropical_storm_wind_floor_pct"): "WEATHERBOT_ENGINE_TROPICAL_STORM_WIND_FLOOR_PCT",
     ("engine", "development_chance_floor_pct"): "WEATHERBOT_ENGINE_DEVELOPMENT_CHANCE_FLOOR_PCT",
     ("monitor", "cycle_lock_wait_seconds"): "WEATHERBOT_MONITOR_CYCLE_LOCK_WAIT_SECONDS",
+    ("monitor", "confirm_after_minutes"): "WEATHERBOT_MONITOR_CONFIRM_AFTER_MINUTES",
+    ("notifications", "cooldown_hours"): "WEATHERBOT_NOTIFICATIONS_COOLDOWN_HOURS",
+    ("notifications", "quiet_hours_start"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_START",
+    ("notifications", "quiet_hours_end"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_END",
+    ("notifications", "quiet_hours_time_zone"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_TIME_ZONE",
 }
 _TOML_POSITION: Final = re.compile(r"\(at line \d+, column \d+\)|\(at end of document\)")
 
@@ -236,15 +244,88 @@ class MonitorSettings(_Section):
     """``[monitor]``: how the monitor cycle runs."""
 
     cycle_lock_wait_seconds: int = Field(default=120, ge=1, le=3600)
+    confirm_after_minutes: int = Field(default=5, ge=1, le=60)
+
+
+class NotificationSettings(_Section):
+    """``[notifications]``: cooldown and quiet hours for non-escalation triggers."""
+
+    cooldown_hours: int = Field(default=6, ge=0, le=48)
+    quiet_hours_start: str = ""
+    quiet_hours_end: str = Field(default="", validate_default=True)
+    quiet_hours_time_zone: str = "local"
+
+    @field_validator("quiet_hours_start")
+    @classmethod
+    def _start(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            return ""
+        parse_wall_time(cleaned, allow_24=False)
+        return cleaned
+
+    @field_validator("quiet_hours_end")
+    @classmethod
+    def _end(cls, value: str, info: ValidationInfo) -> str:
+        cleaned = value.strip()
+        start = str(info.data.get("quiet_hours_start", ""))
+        if not cleaned:
+            if start:
+                message = "must be set when quiet_hours_start is set"
+                raise ValueError(message)
+            return ""
+        parse_wall_time(cleaned, allow_24=True)
+        if not start:
+            message = "requires quiet_hours_start to be set"
+            raise ValueError(message)
+        if cleaned == start:
+            message = "must not equal quiet_hours_start"
+            raise ValueError(message)
+        return cleaned
+
+    @field_validator("quiet_hours_time_zone")
+    @classmethod
+    def _time_zone(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            message = "must be 'local' or an IANA time zone"
+            raise ValueError(message)
+        if cleaned != "local":
+            try:
+                ZoneInfo(cleaned)
+            except (ZoneInfoNotFoundError, ValueError):
+                message = "must be 'local' or a known IANA time zone"
+                raise ValueError(message) from None
+        return cleaned
+
+    def quiet_hours(self, *, local_zone: tzinfo | None = None) -> QuietHours | None:
+        """Resolve the quiet-hours window at this cycle's time zone, when configured."""
+        if not (self.quiet_hours_start and self.quiet_hours_end):
+            return None
+        zone = (
+            (local_zone or datetime.now().astimezone().tzinfo or UTC)
+            if self.quiet_hours_time_zone == "local"
+            else ZoneInfo(self.quiet_hours_time_zone)
+        )
+        return QuietHours.parse(self.quiet_hours_start, self.quiet_hours_end, zone)
 
 
 class Settings(_Section):
-    """The settings: ``[logging]``, ``[http]``, ``[engine]``, and ``[monitor]``."""
+    """The settings: ``[logging]``, ``[http]``, ``[engine]``, ``[monitor]``, ``[notifications]``."""
 
     logging: LoggingSettings = LoggingSettings()
     http: HttpSettings = HttpSettings()
     engine: EngineSettings = EngineSettings()
     monitor: MonitorSettings = MonitorSettings()
+    notifications: NotificationSettings = NotificationSettings()
+
+    def policy_settings(self, *, local_zone: tzinfo | None = None) -> PolicySettings:
+        """Build the notification policy's settings for a cycle."""
+        return PolicySettings(
+            cooldown=timedelta(hours=self.notifications.cooldown_hours),
+            quiet_hours=self.notifications.quiet_hours(local_zone=local_zone),
+            confirm_after=timedelta(minutes=self.monitor.confirm_after_minutes),
+        )
 
 
 def _key(location: tuple[str | int, ...]) -> str:

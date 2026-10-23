@@ -141,7 +141,7 @@ testpaths = ["tests"]
 # serves recorded answers through tests/sources/source_support.py, the service and
 # live tests run commands through tests/cli/cli_support.py, and tests/engine/ builds
 # the recorded snapshot through tests/services/snapshot_support.py.
-pythonpath = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services"]
+pythonpath = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services", "tests/engine"]
 # `--allow-hosts`, not `--disable-socket`: asyncio on Windows opens a loopback
 # socket pair that `--disable-socket` would block. Selecting `-m live` does
 # not lift the guard, so every `live` test also carries pytest-socket's

@@ -39,14 +39,16 @@ PHASE_3_TABLES = PHASE_2_TABLES | {"assessments", "assessment_evidence", "assess
 SHARED_GEOMETRY_TABLES = {"geometry_contents", "snapshot_provenances", "snapshot_geometries"}
 # Revision 0005, Phase 4 Step 2: the heartbeats and the monitor's cycles.
 MONITOR_TABLES = {"heartbeats", "monitor_cycles"}
-LATER_PHASES = ("notification", "briefing", "ledger")
+# Revision 0006, Phase 4 Step 3: notifications, decisions, and channel deliveries.
+NOTIFICATION_TABLES = {"notifications", "notification_decisions", "notification_deliveries"}
+LATER_PHASES = ("briefing", "ledger")
 EASTERN = timezone(timedelta(hours=-4))
 
 
 def test_the_tables_are_phase_3s_the_shared_geometry_and_the_monitor_tables() -> None:
     names = set(Base.metadata.tables)
 
-    assert names == PHASE_3_TABLES | SHARED_GEOMETRY_TABLES | MONITOR_TABLES
+    assert names == PHASE_3_TABLES | SHARED_GEOMETRY_TABLES | MONITOR_TABLES | NOTIFICATION_TABLES
     assert not [name for name in names for word in LATER_PHASES if word in name]
 
 

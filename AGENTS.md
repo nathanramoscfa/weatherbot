@@ -83,7 +83,11 @@ shared `models` package. Each layer's `__init__.py` states its rule;
   the heartbeats and the cycle under the cycle lock every process shares.
   Every fetching command (`fetch`, `storms`, `alerts`, `status`,
   `check --once`) goes through it; nothing else assesses into history.
-  Every writing transaction begins `BEGIN IMMEDIATE` (`writing_session`).
+  `weatherbot.services.policy` is pure (models and standard-library types
+  only, no clock or I/O, >=90% branch coverage on its own), and
+  `NotificationService.decide_cycle` decides each newly stored assessment
+  exactly once. Every writing transaction begins `BEGIN IMMEDIATE`
+  (`writing_session`).
 - `cli/` — Typer commands over the services.
 - `web/` — the FastAPI app over the same services.
 

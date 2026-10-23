@@ -104,6 +104,35 @@ RULE_LEVELS: Final[Mapping[RuleId, AlertLevel]] = MappingProxyType(
 )
 """The level each rule sets."""
 
+RULE_TRIGGERS: Final[Mapping[RuleId, str]] = MappingProxyType(
+    {
+        RuleId.HURRICANE_WARNING: "A Hurricane Warning covers the location.",
+        RuleId.TROPICAL_STORM_WARNING: "A Tropical Storm Warning covers the location.",
+        RuleId.HURRICANE_WATCH: "A Hurricane Watch covers the location.",
+        RuleId.EVACUATION_ORDER: "The operator's evacuation-order toggle is on.",
+        RuleId.TROPICAL_STORM_WATCH: "A Tropical Storm Watch covers the location.",
+        RuleId.HURRICANE_CONE: (
+            "The location is inside the cone of a storm that is a hurricane at or before its "
+            "closest approach, and that approach comes within the cone horizon."
+        ),
+        RuleId.HURRICANE_WIND_PROBABILITY: (
+            "The location's 64-kt wind-speed probability band starts at or above the hurricane "
+            "wind floor."
+        ),
+        RuleId.STORM_CONE: "The location is inside the cone of any active storm.",
+        RuleId.DEVELOPMENT_REGION: (
+            "The location is inside a seven-day potential development region whose chance is at "
+            "least the development chance floor."
+        ),
+        RuleId.TROPICAL_STORM_WIND_PROBABILITY: (
+            "The location's 34-kt wind-speed probability band starts at or above the "
+            "tropical-storm wind floor."
+        ),
+        RuleId.ALL_CLEAR: "No other rule matches.",
+    }
+)
+"""Each rule's trigger, in the words of ``docs/ALERT-LADDER.md``."""
+
 type BandFloor = Literal[0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 """A floor: one of the lower bounds of NHC's wind-speed-probability bands, in percent."""
 

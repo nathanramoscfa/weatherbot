@@ -3,9 +3,9 @@
 
 Tables arrive with their writers: Phase 2's snapshots and locations (revisions 0001 and
 0002), the assessments, their evidence, and their changes (revision 0003, Phase 3), the
-shared product contents (revision 0004, Phase 4), and the heartbeats and the monitor's
-cycles (revision 0005); notifications (Phase 4), and briefings and the Claude ledger
-(Phase 6) are later revisions. Every
+shared product contents (revision 0004, Phase 4), the heartbeats and the monitor's cycles
+(revision 0005), and the notifications, their decisions, and their deliveries (revision
+0006); briefings and the Claude ledger (Phase 6) are later revisions. Every
 instant goes in and comes out as an aware UTC value. A naming convention names every
 constraint, so a SQLite batch migration can find and alter it.
 
@@ -598,3 +598,82 @@ class MonitorCycleRow(Base):
     )
     status: Mapped[str] = mapped_column(String(8))
     detail: Mapped[str | None] = mapped_column(Text, comment="A reason or an exception class")
+
+
+class NotificationRow(Base):
+    """One notification sent for a location or for the monitor itself (revision 0006).
+
+    ``kind`` is checked by the services, not by a CHECK constraint, so a later phase can
+    extend it without rebuilding the table. Removing a location or an assessment removes
+    its notifications; removing a cycle leaves its notifications with no cycle.
+    """
+
+    __tablename__ = "notifications"
+    __table_args__ = (
+        CheckConstraint(f"level BETWEEN {min(AlertLevel):d} AND {max(AlertLevel):d}", name="level"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    location_id: Mapped[int | None] = mapped_column(
+        ForeignKey("locations.id", ondelete="CASCADE"), index=True
+    )
+    assessment_id: Mapped[int | None] = mapped_column(
+        ForeignKey("assessments.id", ondelete="CASCADE")
+    )
+    cycle_id: Mapped[int | None] = mapped_column(
+        ForeignKey("monitor_cycles.id", ondelete="SET NULL"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(16))
+    level: Mapped[int | None]
+    escalation: Mapped[bool]
+    title: Mapped[str] = mapped_column(Text)
+    body: Mapped[list[Any]] = mapped_column(Json, comment="Notification body lines JSON")
+    created_at: Mapped[datetime] = mapped_column(index=True)
+
+
+class NotificationDecisionRow(Base):
+    """One trigger's policy decision on a stored assessment (revision 0006).
+
+    ``change_position`` is the event's index in ``changes``, or ``-1`` for a ``level`` or
+    ``held`` decision without a ``level_changed`` event, so the unique key holds without a
+    nullable column. ``trigger`` and ``decision`` are checked by the services.
+    """
+
+    __tablename__ = "notification_decisions"
+    __table_args__ = (UniqueConstraint("assessment_id", "trigger", "change_position"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    location_id: Mapped[int] = mapped_column(
+        ForeignKey("locations.id", ondelete="CASCADE"), index=True
+    )
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessments.id", ondelete="CASCADE"))
+    change_position: Mapped[int]
+    trigger: Mapped[str] = mapped_column(String(20))
+    event_key: Mapped[str | None] = mapped_column(Text)
+    decision: Mapped[str] = mapped_column(String(16))
+    level_after: Mapped[int | None]
+    notification_id: Mapped[int | None] = mapped_column(
+        ForeignKey("notifications.id", ondelete="SET NULL"), index=True
+    )
+    decided_at: Mapped[datetime]
+
+
+class NotificationDeliveryRow(Base):
+    """One channel's attempt to deliver a notification (revision 0006).
+
+    ``channel`` and ``result`` are checked by the services. ``detail`` names an error kind,
+    an HRESULT, or a setting, never notification content.
+    """
+
+    __tablename__ = "notification_deliveries"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    notification_id: Mapped[int] = mapped_column(
+        ForeignKey("notifications.id", ondelete="CASCADE"), index=True
+    )
+    channel: Mapped[str] = mapped_column(String(16))
+    attempted_at: Mapped[datetime]
+    result: Mapped[str] = mapped_column(String(16))
+    detail: Mapped[str | None] = mapped_column(
+        Text, comment="An error kind, an HRESULT, or a setting name, never content"
+    )

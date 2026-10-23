@@ -2194,6 +2194,8 @@ must report `0006` at head `0006`. GitHub Actions → the first `ci.yml` and
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
 
+> Ran 2026-10-22: Balanced — Gemini 4 Argon · Effort High on Antigravity wrote the step and stopped before its first commit; the column's Backup — Opus 5.5 · Effort High on Claude Code reviewed it against this task block, fixed a held drop showing through another trigger's notification, and finished it.
+
 **Model rationale:** Step 3 is coding with a planning secondary category: the
 policy's rules are fixed by this roadmap, but turning them into a pure function
 with persistent state — an announced level, held drops resolved by a later
@@ -2643,7 +2645,13 @@ is new per phase-boundary hygiene.
         `informational`.
       - The notification: present exactly when a decision is
         `escalation` or `sent`; one per location per cycle;
-        `title` is "<location>: level <L>, <label>"; when a
+        `title` is "<location>: level <A>, <label>", A being the
+        announced level after the decisions — L, except while a
+        drop is held, so a held drop never shows through another
+        trigger's notification, and the other triggers' quiet
+        hours read the same level (amended in Step 3: with L, a
+        newly failed NWS source during a Hurricane Warning sent
+        "level 1, All Clear" beside an in-cone advisory); when a
         `level` decision was sent, the body's first line says the
         level — "Level rose to L: <trigger>", "Level fell to L.",
         "Level fell to at least L.", or "Level L: <trigger>" for

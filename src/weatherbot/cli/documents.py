@@ -633,6 +633,87 @@ class DoctorDocument(_Envelope):
     data: DoctorData
 
 
+# notifications -----------------------------------------------------------------------------
+
+
+class NotificationDeliveryEntry(_Document):
+    """One delivery attempt of a notification through a channel."""
+
+    id: int = Field(ge=1)
+    channel: str
+    attempted_at: datetime
+    result: Literal["delivered", "failed", "disabled", "unavailable"]
+    detail: str | None
+
+
+class NotificationDecisionEntry(_Document):
+    """One trigger's policy decision on an assessment."""
+
+    id: int = Field(ge=1)
+    location: str
+    assessment_id: int = Field(ge=1)
+    change_position: int
+    trigger: Literal[
+        "level",
+        "held",
+        "level_changed",
+        "advisory_issued",
+        "official_added",
+        "official_changed",
+        "official_removed",
+        "cone_entered",
+        "cone_left",
+    ]
+    event_key: str | None
+    decision: Literal[
+        "escalation",
+        "sent",
+        "repeat",
+        "quiet_hours",
+        "held",
+        "withdrawn",
+        "informational",
+    ]
+    level_after: int | None = Field(default=None, ge=1, le=5)
+    notification_id: int | None = Field(default=None, ge=1)
+    decided_at: datetime
+
+
+class NotificationEntry(_Document):
+    """A stored notification, with its deliveries and the decisions that sent it."""
+
+    id: int = Field(ge=1)
+    location: str | None
+    time_zone: str | None
+    assessment_id: int | None = Field(default=None, ge=1)
+    cycle_id: int | None = Field(default=None, ge=1)
+    kind: Literal["location", "degraded", "recovered", "stale_monitor", "test"]
+    level: int | None = Field(default=None, ge=1, le=5)
+    escalation: bool
+    title: str
+    body: tuple[str, ...]
+    created_at: datetime
+    created_at_local: str | None = Field(
+        default=None, description="ISO 8601 in the location's time zone."
+    )
+    deliveries: tuple[NotificationDeliveryEntry, ...]
+    decisions: tuple[NotificationDecisionEntry, ...]
+
+
+class NotificationsData(_Document):
+    """The newest stored notifications first."""
+
+    limit: int = Field(ge=1)
+    notifications: tuple[NotificationEntry, ...]
+
+
+class NotificationsDocument(_Envelope):
+    """``weatherbot notify log --json``."""
+
+    command: Literal["notify log"] = "notify log"
+    data: NotificationsData
+
+
 # check -------------------------------------------------------------------------------------
 
 
@@ -666,10 +747,12 @@ class CheckLocationEntry(_Document):
 
 
 class CheckData(_Document):
-    """One monitor cycle: every location's level and changes."""
+    """One monitor cycle: every location's level, changes, and sent notifications."""
 
     cycle: CycleEntry
     locations: tuple[CheckLocationEntry, ...]
+    notifications: tuple[NotificationEntry, ...] = ()
+    confirm_at: datetime | None = None
     drift_warnings: tuple[DriftWarningEntry, ...]
 
 
@@ -739,6 +822,7 @@ DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "check": CheckDocument,
     "config": ConfigDocument,
     "config-path": ConfigPathDocument,
+    "notifications": NotificationsDocument,
 }
 """Each schema's file stem and its document model."""
 

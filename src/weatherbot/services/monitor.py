@@ -39,6 +39,7 @@ from weatherbot.services.assessments import AssessedLocation, AssessmentService
 from weatherbot.services.config import AppPaths, Settings
 from weatherbot.services.locks import LockBusyError, ProcessLock
 from weatherbot.services.network import Network
+from weatherbot.services.notifications import Channel, NotificationService, StoredNotification
 from weatherbot.services.persistence.database import writing_session
 from weatherbot.services.persistence.repositories import (
     UNCHANGED,
@@ -88,6 +89,8 @@ class CycleResult:
     drift_warnings: tuple[DriftWarning, ...]
     started_at: datetime
     completed_at: datetime
+    notifications: tuple[StoredNotification, ...] = ()
+    confirm_at: datetime | None = None
 
 
 def _source_result(outcome: SourceOutcome) -> HeartbeatResult:
@@ -110,6 +113,7 @@ class MonitorService:
         now: Callable[[], datetime] = _now,
         listeners: Sequence[CycleListener] = (),
         cadence_s: int | None = None,
+        channels: Sequence[Channel] | None = None,
     ) -> None:
         """Create the service on an open database.
 
@@ -123,6 +127,7 @@ class MonitorService:
             listeners: Called with each cycle's result after it is stored.
             cadence_s: The cadence a scheduled runner promises for the sources its cycles
                 fetch; ``None``, as for every manual command, promises none.
+            channels: Delivery channels for notifications; defaults to ``LogChannel`` only.
         """
         self._engine = engine
         self._paths = paths
@@ -131,6 +136,7 @@ class MonitorService:
         self._network = network or Network()
         self._now = now
         self._listeners = tuple(listeners)
+        self._channels = channels
         self._cadence: int | Literal[Unchanged.CADENCE] = (
             cadence_s if cadence_s is not None else UNCHANGED
         )
@@ -181,11 +187,21 @@ class MonitorService:
                 fetched = await snapshots.fetch_snapshot(locations)
                 snapshot, warnings = fetched.snapshot, fetched.drift_warnings
             assessed: tuple[AssessedLocation, ...] = ()
+            notifications: tuple[StoredNotification, ...] = ()
+            confirm_at: datetime | None = None
             if assess:
                 service = AssessmentService(
                     self._engine, thresholds=self._settings.engine.thresholds(), now=self._now
                 )
                 assessed = service.assess(snapshot, locations)
+                notifier = NotificationService(
+                    self._engine,
+                    settings=self._settings,
+                    now=self._now,
+                    channels=self._channels,
+                )
+                notifications = await notifier.decide_cycle(cycle_id, assessed)
+                confirm_at = notifier.confirm_at
             completed = self._now()
             with writing_session(self._engine) as session:
                 if given is None:
@@ -213,6 +229,8 @@ class MonitorService:
             drift_warnings=warnings,
             started_at=started,
             completed_at=completed,
+            notifications=notifications,
+            confirm_at=confirm_at,
         )
 
     def _record_sources(self, session: Session, snapshot: Snapshot, at: datetime) -> None:

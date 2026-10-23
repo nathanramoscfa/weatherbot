@@ -267,3 +267,36 @@ def test_the_scan_catches_a_synthetic_engine_module(tmp_path: Path) -> None:
     module.write_text("import httpx\n", encoding="utf-8")
 
     assert banned_imports(module.read_text(encoding="utf-8")) == ["httpx"]
+
+
+POLICY_MODULE = REPOSITORY_ROOT / "src" / "weatherbot" / "services" / "policy.py"
+POLICY_ALLOWED_IMPORTS = frozenset(
+    {
+        "collections.abc",
+        "dataclasses",
+        "datetime",
+        "typing",
+        "weatherbot.models",
+        "zoneinfo",
+    }
+)
+
+
+def policy_imports(source: str) -> list[str]:
+    """Return every imported module in ``source``."""
+    found: list[str] = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            found.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            found.append("." * node.level + (node.module or ""))
+    return found
+
+
+def test_the_notification_policy_is_pure_and_deterministic() -> None:
+    source = POLICY_MODULE.read_text(encoding="utf-8")
+    imported = set(policy_imports(source))
+
+    assert imported <= POLICY_ALLOWED_IMPORTS
+    assert banned_imports(source) == []
+    assert nondeterminism(source) == []

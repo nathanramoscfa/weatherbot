@@ -1,0 +1,1802 @@
+{
+  "_file": "tests/golden/notifications/AL112017-miami-dade.json",
+  "atcf_id": "AL112017",
+  "archive_name": "Irma",
+  "landmark": "miami-dade",
+  "manifest_sha256": "0280fa149fea36911994a2e4c46bb24e86a5cc3cf728801184a7c06c034e05dc",
+  "ruleset": "c241a7ff882909314d943f1a18c64f056fd3a8fed706f5328bb7fe9a6a404226",
+  "policy": {
+    "defaults": {
+      "cooldown_hours": 6.0,
+      "quiet_hours": null,
+      "confirm_after_minutes": 5,
+      "max_holds": 3
+    },
+    "strict": {
+      "cooldown_hours": 24.0,
+      "quiet_hours": {
+        "start": "00:00",
+        "end": "24:00",
+        "time_zone": "America/New_York"
+      },
+      "confirm_after_minutes": 5,
+      "max_holds": 3
+    }
+  },
+  "timelines": {
+    "defaults": [
+      {
+        "advisory": "18",
+        "issued_at": "2017-09-03T21:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 2, Tropical Storm Threat",
+          "body": [
+            "Level rose to 2: The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "22",
+        "issued_at": "2017-09-04T21:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 3
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:22",
+            "decision": "sent",
+            "level_after": 3
+          },
+          {
+            "trigger": "cone_entered",
+            "position": 2,
+            "event_key": "cone:AL112017",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "Level rose to 3: The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon.",
+            "NHC issued advisory 22 for Irma, whose cone covers the location.",
+            "The location entered the cone of Irma, advisory 22."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "22A",
+        "issued_at": "2017-09-05T00:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:22A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 22A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "23",
+        "issued_at": "2017-09-05T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:23",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 23 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "23A",
+        "issued_at": "2017-09-05T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:23A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 23A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "24",
+        "issued_at": "2017-09-05T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:24",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 24 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "25",
+        "issued_at": "2017-09-05T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:25",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 25 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "26",
+        "issued_at": "2017-09-05T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:26",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 26 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "26A",
+        "issued_at": "2017-09-05T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:26A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 26A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "27",
+        "issued_at": "2017-09-05T21:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:27",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 27 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "27A",
+        "issued_at": "2017-09-06T00:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:27A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 27A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "28",
+        "issued_at": "2017-09-06T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:28",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 28 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "28A",
+        "issued_at": "2017-09-06T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:28A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 28A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "29",
+        "issued_at": "2017-09-06T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:29",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 29 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "29A",
+        "issued_at": "2017-09-06T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:29A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 29A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "30",
+        "issued_at": "2017-09-06T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:30",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 30 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "30A",
+        "issued_at": "2017-09-06T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:30A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 30A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "31",
+        "issued_at": "2017-09-06T21:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:31",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 31 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "31A",
+        "issued_at": "2017-09-07T00:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:31A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 31A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "32",
+        "issued_at": "2017-09-07T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:32",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 32 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "32A",
+        "issued_at": "2017-09-07T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:32A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 32A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "33",
+        "issued_at": "2017-09-07T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:33",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 33 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "33A",
+        "issued_at": "2017-09-07T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:33A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 33A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "34",
+        "issued_at": "2017-09-07T15:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 4
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:34",
+            "decision": "sent",
+            "level_after": 4
+          },
+          {
+            "trigger": "official_added",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:HWA",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "Level rose to 4: A Hurricane Watch covers the location.",
+            "NHC issued advisory 34 for Irma, whose cone covers the location.",
+            "NHC issued the Hurricane Watch (HWA) that covers the location for Irma, advisory 34."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "34A",
+        "issued_at": "2017-09-07T18:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:34A",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "NHC issued advisory 34A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "35",
+        "issued_at": "2017-09-07T21:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:35",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "NHC issued advisory 35 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "35A",
+        "issued_at": "2017-09-08T00:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:35A",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "NHC issued advisory 35A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "36",
+        "issued_at": "2017-09-08T03:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 5
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:36",
+            "decision": "sent",
+            "level_after": 5
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:HWR",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "Level rose to 5: A Hurricane Warning covers the location.",
+            "NHC issued advisory 36 for Irma, whose cone covers the location.",
+            "NHC replaced the Hurricane Watch (HWA) with the Hurricane Warning (HWR) that covers the location for Irma, advisory 36."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "36A",
+        "issued_at": "2017-09-08T06:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:36A",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 36A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "37",
+        "issued_at": "2017-09-08T09:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:37",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 37 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "37A",
+        "issued_at": "2017-09-08T12:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:37A",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 37A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "38",
+        "issued_at": "2017-09-08T15:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:38",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 38 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "38A",
+        "issued_at": "2017-09-08T18:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:38A",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 38A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "39",
+        "issued_at": "2017-09-08T21:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:39",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 39 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "39A",
+        "issued_at": "2017-09-09T00:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:39A",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 39A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "48",
+        "issued_at": "2017-09-11T03:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:5:4",
+            "decision": "sent",
+            "level_after": 4
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 4
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:TWR",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "Level fell to 4.",
+            "NHC replaced the Hurricane Warning (HWR) with the Tropical Storm Warning (TWR) that covers the location for Irma, advisory 48."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "49",
+        "issued_at": "2017-09-11T09:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:4:2",
+            "decision": "sent",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          },
+          {
+            "trigger": "official_removed",
+            "position": 2,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 2, Tropical Storm Threat",
+          "body": [
+            "Level fell to 2."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "51",
+        "issued_at": "2017-09-11T21:00:00Z",
+        "level": 1,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:2:1",
+            "decision": "sent",
+            "level_after": 1
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 1
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 1, All Clear",
+          "body": [
+            "Level fell to 1."
+          ],
+          "escalation": false
+        }
+      }
+    ],
+    "strict": [
+      {
+        "advisory": "18",
+        "issued_at": "2017-09-03T21:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 2, Tropical Storm Threat",
+          "body": [
+            "Level rose to 2: The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "22",
+        "issued_at": "2017-09-04T21:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 3
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:22",
+            "decision": "sent",
+            "level_after": 3
+          },
+          {
+            "trigger": "cone_entered",
+            "position": 2,
+            "event_key": "cone:AL112017",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "Level rose to 3: The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon.",
+            "NHC issued advisory 22 for Irma, whose cone covers the location.",
+            "The location entered the cone of Irma, advisory 22."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "22A",
+        "issued_at": "2017-09-05T00:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:22A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 22A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "23",
+        "issued_at": "2017-09-05T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:23",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 23 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "23A",
+        "issued_at": "2017-09-05T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:23A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 23A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "24",
+        "issued_at": "2017-09-05T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:24",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 24 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "25",
+        "issued_at": "2017-09-05T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:25",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 25 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "26",
+        "issued_at": "2017-09-05T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:26",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 26 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "26A",
+        "issued_at": "2017-09-05T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:26A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 26A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "27",
+        "issued_at": "2017-09-05T21:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:27",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 27 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "27A",
+        "issued_at": "2017-09-06T00:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:27A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 27A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "28",
+        "issued_at": "2017-09-06T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:28",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 28 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "28A",
+        "issued_at": "2017-09-06T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:28A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 28A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "29",
+        "issued_at": "2017-09-06T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:29",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 29 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "29A",
+        "issued_at": "2017-09-06T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:29A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 29A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "30",
+        "issued_at": "2017-09-06T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:30",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 30 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "30A",
+        "issued_at": "2017-09-06T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:30A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 30A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "31",
+        "issued_at": "2017-09-06T21:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:31",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 31 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "31A",
+        "issued_at": "2017-09-07T00:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:31A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 31A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "32",
+        "issued_at": "2017-09-07T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:32",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 32 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "32A",
+        "issued_at": "2017-09-07T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:32A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 32A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "33",
+        "issued_at": "2017-09-07T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:33",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 33 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "33A",
+        "issued_at": "2017-09-07T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:33A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 33A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "34",
+        "issued_at": "2017-09-07T15:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 4
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:34",
+            "decision": "sent",
+            "level_after": 4
+          },
+          {
+            "trigger": "official_added",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:HWA",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "Level rose to 4: A Hurricane Watch covers the location.",
+            "NHC issued advisory 34 for Irma, whose cone covers the location.",
+            "NHC issued the Hurricane Watch (HWA) that covers the location for Irma, advisory 34."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "34A",
+        "issued_at": "2017-09-07T18:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:34A",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "NHC issued advisory 34A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "35",
+        "issued_at": "2017-09-07T21:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:35",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "NHC issued advisory 35 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "35A",
+        "issued_at": "2017-09-08T00:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:35A",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "NHC issued advisory 35A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "36",
+        "issued_at": "2017-09-08T03:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 5
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:36",
+            "decision": "sent",
+            "level_after": 5
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:HWR",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "Level rose to 5: A Hurricane Warning covers the location.",
+            "NHC issued advisory 36 for Irma, whose cone covers the location.",
+            "NHC replaced the Hurricane Watch (HWA) with the Hurricane Warning (HWR) that covers the location for Irma, advisory 36."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "36A",
+        "issued_at": "2017-09-08T06:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:36A",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 36A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "37",
+        "issued_at": "2017-09-08T09:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:37",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 37 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "37A",
+        "issued_at": "2017-09-08T12:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:37A",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 37A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "38",
+        "issued_at": "2017-09-08T15:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:38",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 38 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "38A",
+        "issued_at": "2017-09-08T18:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:38A",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 38A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "39",
+        "issued_at": "2017-09-08T21:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:39",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 39 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "39A",
+        "issued_at": "2017-09-09T00:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:39A",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 5, Hurricane Warning",
+          "body": [
+            "NHC issued advisory 39A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "48",
+        "issued_at": "2017-09-11T03:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:5:4",
+            "decision": "sent",
+            "level_after": 4
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 4
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:TWR",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "miami-dade: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "Level fell to 4.",
+            "NHC replaced the Hurricane Warning (HWR) with the Tropical Storm Warning (TWR) that covers the location for Irma, advisory 48."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "49",
+        "issued_at": "2017-09-11T09:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:4:2",
+            "decision": "quiet_hours",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          },
+          {
+            "trigger": "official_removed",
+            "position": 2,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          }
+        ],
+        "notification": null
+      },
+      {
+        "advisory": "51",
+        "issued_at": "2017-09-11T21:00:00Z",
+        "level": 1,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:2:1",
+            "decision": "quiet_hours",
+            "level_after": 1
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 1
+          }
+        ],
+        "notification": null
+      }
+    ]
+  },
+  "approval": {
+    "date": "2026-10-22",
+    "timelines_sha256": "1e255f1d5c7f6735a29ece1b206c6c5463a761abe3891ae1998ed06243d96a59"
+  }
+}

@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 4 — Monitoring and notifications
+- Add the pure notification policy (`weatherbot.services.policy.decide`), held
+  to at least 90 percent branch coverage on its own in CI and verified pure by
+  `tests/test_architecture.py`: immediate escalations, held drops on newly
+  missing inputs (up to `max_holds = 3`, then decided as `"at least"`) or on an
+  unconfirmed drop without a new advisory or expired covering official product,
+  per-key cooldowns (`[notifications] cooldown_hours`), quiet hours
+  (`quiet_hours_start`, `quiet_hours_end`, `quiet_hours_time_zone`), and at most
+  one coordinate-free notification per location per cycle.
+- Alembic revision `0006` (expand-only, after the online backup) adds
+  `notifications`, `notification_decisions` (unique on `(assessment_id, trigger,
+  change_position)` so each stored assessment is decided once), and
+  `notification_deliveries`. `NotificationService.decide_cycle` reconstructs
+  each location's `PolicyState`, stores decisions and notifications in a `BEGIN
+  IMMEDIATE` transaction, and delivers through `LogChannel` (`log`/`delivered`);
+  `MonitorService.run_cycle` runs it after assessments commit and records
+  `notifications` and `confirm_at` (`[monitor] confirm_after_minutes`) on
+  `CycleResult`. `check --once` prints sent notifications and when a
+  confirmation cycle is due.
+- Add `weatherbot notify log [--limit N] [--json]` and its `notifications`
+  document (the eleventh committed JSON Schema), `replay_notifications`, and
+  `scripts/build_notification_goldens.py` with the two operator-approved Irma
+  notification goldens (`tests/golden/notifications/AL112017-miami-dade.json`
+  and `AL112017-nassau.json`).
 - Alembic revision `0004` (expand-only, after the online backup) stores each
   product's content once: `geometry_contents` holds the zlib-compressed
   canonical JSON of a product's kind, CRS, GeoJSON, and fields, keyed by its
