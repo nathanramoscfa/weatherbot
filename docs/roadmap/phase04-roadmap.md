@@ -2151,9 +2151,9 @@ is new per phase-boundary hygiene.
 
 ---
 
-## Step 3 — The notification policy and the notification log
+## Step 3 — The notification policy and the notification log ✅
 
-**Status:** Not started
+**Status:** Complete — PR #43 (2026-10-22)
 
 > **Goal:** Decide, once per stored assessment, what to tell the operator, by a
 > policy that cannot hold back an escalation. `weatherbot.services.policy` is
@@ -3229,6 +3229,20 @@ runs. The conversation is new per phase-boundary hygiene.
       `delivered`, `failed`, `disabled`, `unavailable`). `notify
       log` lists notifications and deliveries; `[notifications]`
       holds the cooldown and quiet hours.
+    - Carry-over from Step 3 (PR #43 body has the details):
+      `Channel.deliver` receives a `StoredNotification` (`title`,
+      `body` lines, `level`, `escalation`, `location_name`,
+      `location_time_zone`). `NotificationService(engine, *,
+      settings, now, channels)` and `MonitorService(...,
+      channels=)` are the seams; `None` means `LogChannel` only,
+      so the toast is passed beside it, never instead of it.
+      Deliveries are stored in their own `writing_session` after
+      the decisions commit, and `_deliver_one` does not catch: a
+      channel that raises leaves the notification stored with no
+      delivery rows and fails the cycle, so the toast returns
+      `Delivery("failed", <error kind>)` instead of raising. A
+      notification's level and title are the announced level,
+      which stays the higher level while a drop is held.
     - Researched on 2026-10-21: `winrt-Windows.UI.Notifications`
       3.2.1 (2025-06-06, MIT) has CPython 3.9 to 3.14 wheels for
       `win_amd64`, `win_arm64`, and (3.13, 3.14) `win32`, and
@@ -3816,6 +3830,14 @@ High) runs. The conversation is new per phase-boundary hygiene.
       `acquire_async(wait_s)`, and `release()`; `held(path)` is a
       module function. `AppPaths` has `cycle_lock_path` and
       `migrate_lock_path`; add `monitor.lock` beside them.
+    - Carry-over from Step 3: `CycleResult.confirm_at` is the
+      earliest of the cycle's held drops' `decide_cycle` instant
+      plus `[monitor] confirm_after_minutes`, or `None` when
+      nothing is held; schedule one `confirm` cycle at it. The
+      confirmation cycle fetches again, so it stores a new
+      assessment and the policy settles the hold (withdrawn, held
+      again while the input is still missing, or decided as a
+      drop); a rerun over the same snapshot decides nothing.
     - `MonitorService.run_cycle(trigger)` runs one cycle under
       `data_dir/cycle.lock` and returns `CycleResult` (with
       `status`, `notifications`, and `confirm_at`, the instant a
@@ -5751,7 +5773,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Snapshot storage              | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #41 |
 | 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #42 |
-| 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
+| 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #43 |
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
