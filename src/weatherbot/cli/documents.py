@@ -714,6 +714,44 @@ class NotificationsDocument(_Envelope):
     data: NotificationsData
 
 
+class NotifySetupData(_Document):
+    """What ``notify setup`` did with the toast's application identity."""
+
+    action: Literal["register", "remove"]
+    outcome: Literal["registered", "unchanged", "removed", "absent", "not_needed"] = Field(
+        description="not_needed: not Windows, where toasts need no identity; nothing changed."
+    )
+    app_id: str
+    display_name: str
+    registry_key: str | None = Field(
+        description="The identity's key under HKEY_CURRENT_USER; null off Windows."
+    )
+
+
+class NotifySetupDocument(_Envelope):
+    """``weatherbot notify setup --json``."""
+
+    command: Literal["notify setup"] = "notify setup"
+    data: NotifySetupData
+
+
+class NotifyTestData(_Document):
+    """The stored test notification, with each channel's delivery."""
+
+    notification: NotificationEntry
+    failed: bool = Field(
+        description="true: a channel failed or was disabled, or the toast was unavailable on "
+        "Windows with the toast on; the command exits 1."
+    )
+
+
+class NotifyTestDocument(_Envelope):
+    """``weatherbot notify test --json``."""
+
+    command: Literal["notify test"] = "notify test"
+    data: NotifyTestData
+
+
 # check -------------------------------------------------------------------------------------
 
 
@@ -823,6 +861,8 @@ DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "config": ConfigDocument,
     "config-path": ConfigPathDocument,
     "notifications": NotificationsDocument,
+    "notify-setup": NotifySetupDocument,
+    "notify-test": NotifyTestDocument,
 }
 """Each schema's file stem and its document model."""
 

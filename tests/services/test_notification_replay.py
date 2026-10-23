@@ -5,15 +5,14 @@ import re
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from ladder_data import CORPUS, public_landmarks
-from weatherbot.models import Thresholds
+from ladder_data import CORPUS, public_landmarks, replay_timelines
 from weatherbot.services.notifications import NotificationStep, replay_notifications
 from weatherbot.services.policy import (
     EventKey,
     PolicySettings,
     QuietHours,
 )
-from weatherbot.services.replay import ReplayCorpus, ReplayService
+from weatherbot.services.replay import ReplayCorpus
 
 DECIMAL_RE = re.compile(r"\d+\.\d+")
 DISTANCE_RE = re.compile(r"\bkm\b", re.IGNORECASE)
@@ -58,43 +57,39 @@ def _assert_cooldown(run_steps: tuple[NotificationStep, ...], cooldown: timedelt
 
 
 def test_all_eight_replays_satisfy_policy_and_privacy_invariants() -> None:
-    corpus = ReplayCorpus.open(CORPUS)
-    service = ReplayService(corpus)
-    thresholds = Thresholds()
     landmarks = public_landmarks()
+    timelines = replay_timelines()
+    assert len(timelines) == len(ReplayCorpus.open(CORPUS).manifest.storms) * len(landmarks)
 
     total_escalations_defaults = 0
     total_escalations_strict = 0
 
-    for storm in corpus.storms():
-        for landmark, location in landmarks.items():
-            steps = service.timeline(storm.atcf_id, location, thresholds)
-            zone_name = (
-                location.nws.time_zone
-                if location.nws is not None and location.nws.time_zone
-                else "UTC"
-            )
-            strict_settings = PolicySettings(
-                cooldown=timedelta(hours=24),
-                quiet_hours=QuietHours.parse("00:00", "24:00", ZoneInfo(zone_name)),
-            )
+    for (_, landmark), steps in timelines.items():
+        location = landmarks[landmark]
+        zone_name = (
+            location.nws.time_zone if location.nws is not None and location.nws.time_zone else "UTC"
+        )
+        strict_settings = PolicySettings(
+            cooldown=timedelta(hours=24),
+            quiet_hours=QuietHours.parse("00:00", "24:00", ZoneInfo(zone_name)),
+        )
 
-            defaults_run = replay_notifications(steps, location=location, settings=PolicySettings())
-            strict_run = replay_notifications(steps, location=location, settings=strict_settings)
+        defaults_run = replay_notifications(steps, location=location, settings=PolicySettings())
+        strict_run = replay_notifications(steps, location=location, settings=strict_settings)
 
-            _assert_no_held_or_privacy_leak(defaults_run, landmark)
-            _assert_no_held_or_privacy_leak(strict_run, landmark)
+        _assert_no_held_or_privacy_leak(defaults_run, landmark)
+        _assert_no_held_or_privacy_leak(strict_run, landmark)
 
-            # Under defaults, the level decisions coincide with diff's level_changed events.
-            for step in defaults_run:
-                has_level_decision = any(d.trigger == "level" for d in step.decisions)
-                has_level_event = any(e.kind == "level_changed" for e in step.changes)
-                assert has_level_decision == has_level_event
+        # Under defaults, the level decisions coincide with diff's level_changed events.
+        for step in defaults_run:
+            has_level_decision = any(d.trigger == "level" for d in step.decisions)
+            has_level_event = any(e.kind == "level_changed" for e in step.changes)
+            assert has_level_decision == has_level_event
 
-            total_escalations_defaults += _count_escalations(defaults_run)
-            total_escalations_strict += _count_escalations(strict_run)
-            _assert_cooldown(defaults_run, PolicySettings().cooldown)
-            _assert_cooldown(strict_run, strict_settings.cooldown)
+        total_escalations_defaults += _count_escalations(defaults_run)
+        total_escalations_strict += _count_escalations(strict_run)
+        _assert_cooldown(defaults_run, PolicySettings().cooldown)
+        _assert_cooldown(strict_run, strict_settings.cooldown)
 
     assert total_escalations_defaults == EXPECTED_TOTAL_ESCALATIONS
     assert total_escalations_strict == EXPECTED_TOTAL_ESCALATIONS

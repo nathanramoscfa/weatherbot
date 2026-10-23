@@ -4,8 +4,11 @@
 ``NotificationService.decide_cycle`` reconstructs each location's ``PolicyState`` from the
 stored assessments and decisions, runs ``weatherbot.services.policy.decide`` once for each
 newly created assessment, stores the decisions and any notification in a ``BEGIN IMMEDIATE``
-transaction, and delivers each notification through the configured channels (starting with
-``LogChannel``). An assessment that was already decided is never decided again.
+transaction, and delivers each notification through the configured channels: ``LogChannel``
+alone by default, and the toast beside it when the caller passes one
+(``weatherbot.services.toast``). An assessment that was already decided is never decided
+again. ``send`` stores and delivers a notification that belongs to no location, such as
+``weatherbot notify test``'s.
 
 ``replay_notifications`` runs the same ``decide`` in memory over a historical replay
 timeline, with ``now`` set to each advisory's ``as_of``, storing nothing.
@@ -63,6 +66,10 @@ type ChannelName = Literal["log", "toast"]
 
 DELIVERY_RESULTS: Final = ("delivered", "failed", "disabled", "unavailable")
 type DeliveryResult = Literal["delivered", "failed", "disabled", "unavailable"]
+
+TEST_TITLE: Final = "Weatherbot test notification"
+TEST_BODY: Final = ("If you can read this, toasts work.",)
+"""``weatherbot notify test``'s notification: it says it is a test and names no location."""
 
 
 def _now() -> datetime:
@@ -457,6 +464,90 @@ class NotificationService:
                 for notification, decisions in pending_deliveries
             ]
         )
+
+    async def send(
+        self, kind: NotificationKind, *, title: str, body: Sequence[str]
+    ) -> StoredNotification:
+        """Store a notification that belongs to no location, then deliver it.
+
+        Args:
+            kind: What it is about, such as ``test``.
+            title: Its title.
+            body: Its lines, which name and never locate.
+
+        Returns:
+            The stored notification with one delivery per channel.
+        """
+        now = self._now()
+        with writing_session(self._engine) as session:
+            row = NotificationRow(
+                kind=kind, escalation=False, title=title, body=list(body), created_at=now
+            )
+            session.add(row)
+            session.flush()
+            notification = StoredNotification(
+                id=row.id,
+                location_name=None,
+                location_time_zone=None,
+                assessment_id=None,
+                cycle_id=None,
+                kind=kind,
+                level=None,
+                escalation=False,
+                title=title,
+                body=tuple(body),
+                created_at=now,
+            )
+        LOGGER.info("notification stored: id=%d kind=%s", notification.id, kind)
+        return await self._deliver_one(notification, ())
+
+    def latest_delivery(self, channel: ChannelName) -> StoredDelivery | None:
+        """Return the newest stored delivery through ``channel``, if any.
+
+        Args:
+            channel: The channel's name.
+
+        Returns:
+            The delivery, or ``None`` when nothing was ever sent through the channel.
+        """
+        with Session(self._engine) as session:
+            row = session.scalars(
+                select(NotificationDeliveryRow)
+                .where(NotificationDeliveryRow.channel == channel)
+                .order_by(
+                    NotificationDeliveryRow.attempted_at.desc(), NotificationDeliveryRow.id.desc()
+                )
+                .limit(1)
+            ).first()
+            if row is None:
+                return None
+            return StoredDelivery(
+                id=row.id,
+                channel=row.channel,
+                attempted_at=row.attempted_at,
+                result=cast("DeliveryResult", row.result),
+                detail=row.detail,
+            )
+
+    def delivered_before(self, channel: ChannelName) -> bool:
+        """Say whether any notification was ever delivered through ``channel``.
+
+        Args:
+            channel: The channel's name.
+
+        Returns:
+            Whether a stored delivery through it reads ``delivered``.
+        """
+        with Session(self._engine) as session:
+            found = session.scalar(
+                select(NotificationDeliveryRow.id)
+                .where(
+                    NotificationDeliveryRow.channel == channel,
+                    NotificationDeliveryRow.result == "delivered",
+                )
+                .limit(1)
+            )
+        return found is not None
 
     def recent(self, limit: int = 20) -> tuple[StoredNotification, ...]:
         """Return up to ``limit`` stored notifications, newest first.

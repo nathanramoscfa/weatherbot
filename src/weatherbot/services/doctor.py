@@ -6,7 +6,11 @@ database file and its Alembic revision against the head, how many locations are 
 (never a coordinate), and the heartbeats under the staleness rule: the ``heartbeat`` check
 is skipped until some heartbeat promises a cadence (a fresh install, or a machine where no
 scheduled monitor has run) and whenever the database did not open, passes when none is
-stale, and fails when one is. Online, it sends one light, location-free probe per register
+stale, and fails when one is. The ``toast`` check judges the stored toast deliveries: it is
+skipped off Windows, with the toast off, before any toast delivery is stored, and when the
+database did not open, so a fresh install still exits 0; it fails when the latest toast
+failed, was disabled, or was unavailable, or when the identity is missing although a toast
+was delivered before. Online, it sends one light, location-free probe per register
 source (the five map-service catalogs, the roster, the active storms' arrival-time KMZ,
 one TWO list for ``api.weather.gov``, the outlook graphics conditionally, the three feeds,
 and both WMS capabilities documents) and resolves every register layer name in this
@@ -31,6 +35,7 @@ from uuid import UUID
 from weatherbot.models import MapCatalog, SourceId, StormSummary
 from weatherbot.services.health import Staleness, staleness
 from weatherbot.services.network import Network
+from weatherbot.services.notifications import NotificationService, StoredDelivery
 from weatherbot.services.persistence.database import (
     Database,
     current_revision,
@@ -44,6 +49,7 @@ from weatherbot.services.persistence.repositories import (
     SnapshotRepository,
 )
 from weatherbot.services.register import MAP_LAYERS, NOT_PROBED, SHARED_HOST, expand
+from weatherbot.services.toast import APP_ID, MISSING_IDENTITY, TOAST_OFF, delivery_failed
 from weatherbot.sources import (
     arcgis,
     catalogs,
@@ -200,6 +206,40 @@ def local_checks(
 
 
 DATABASE_CLOSED: Final = "the database did not open"
+SEND_ANOTHER: Final = "weatherbot notify test sends another"
+
+
+def toast_check(
+    latest: StoredDelivery | None, *, identity: bool | None, toast_on: bool, delivered_before: bool
+) -> Check:
+    """Judge the toast from its stored deliveries; the detail never holds a notification's text.
+
+    Skipped off Windows, while ``[notifications] toast`` is off, and until a toast delivery
+    is stored (a fresh install). Fails when the latest toast delivery failed, was disabled,
+    or was unavailable, and when the identity is missing although a toast was delivered.
+
+    Args:
+        latest: The newest stored toast delivery.
+        identity: Whether the identity is registered; ``None`` off Windows.
+        toast_on: ``[notifications] toast``.
+        delivered_before: Whether any toast was ever delivered.
+
+    Returns:
+        The ``toast`` check.
+    """
+    if identity is None:
+        return Check("toast", "skip", "not Windows: there is no toast channel")
+    if not toast_on:
+        return Check("toast", "skip", TOAST_OFF)
+    if latest is None:
+        return Check("toast", "skip", "no toast delivery is stored")
+    if delivery_failed(latest.result, windows=True, toast_on=True):
+        reason = f" ({latest.detail})" if latest.detail else ""
+        return Check("toast", "fail", f"the latest toast {latest.result}{reason}; {SEND_ANOTHER}")
+    if not identity and delivered_before:
+        detail = f"the identity {APP_ID} is missing, although a toast was delivered before"
+        return Check("toast", "fail", f"{detail}; {MISSING_IDENTITY}")
+    return Check("toast", "pass", f"the latest toast {latest.result}")
 
 
 def heartbeat_check(judged: Sequence[Staleness]) -> Check:
@@ -363,6 +403,8 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
     offline: bool,
     network: Network,
     now: datetime | None = None,
+    identity: bool | None = None,
+    toast_on: bool = True,
 ) -> DoctorReport:
     """Run every check, and every probe unless ``offline``.
 
@@ -375,6 +417,8 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         offline: Skip every probe.
         network: The timeout and the fetcher factory.
         now: The instant the heartbeats are judged at; the clock's when omitted.
+        identity: Whether the toast identity is registered; ``None`` off Windows.
+        toast_on: ``[notifications] toast``.
 
     Returns:
         The report.
@@ -395,9 +439,20 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         warnings = repository.drift_warnings(drift_id) if drift_id is not None else ()
         rows = HeartbeatRepository(database.engine).rows()
         judged = staleness(rows, now or datetime.now(UTC))
-        checks = (*checks, heartbeat_check(judged))
+        deliveries = NotificationService(database.engine)
+        toast = toast_check(
+            deliveries.latest_delivery("toast"),
+            identity=identity,
+            toast_on=toast_on,
+            delivered_before=deliveries.delivered_before("toast"),
+        )
+        checks = (*checks, heartbeat_check(judged), toast)
     else:
-        checks = (*checks, Check("heartbeat", "skip", DATABASE_CLOSED))
+        checks = (
+            *checks,
+            Check("heartbeat", "skip", DATABASE_CLOSED),
+            Check("toast", "skip", DATABASE_CLOSED),
+        )
     probes: tuple[SourceProbe, ...] = ()
     layers: tuple[LayerDiscovery, ...] = ()
     if not offline:

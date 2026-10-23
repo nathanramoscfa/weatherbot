@@ -14,7 +14,8 @@ discovery), Phase 2 (sources and persistence), and Phase 3 (the threat
 engine) are complete; Phase 4 (monitoring and notifications) is in progress.
 No version 2 package is released. The commands below read the official
 products, and `status` decides each location's level from them alone, with
-the evidence behind it; nothing runs on a schedule or notifies yet.
+the evidence behind it, and notifies you of a change through the in-app log
+and a Windows toast; nothing runs on a schedule yet.
 The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
 
 ## Commands
@@ -56,6 +57,11 @@ weatherbot doctor --offline          # local checks only, with the heartbeats
 weatherbot check --once
 weatherbot notify log                # the newest stored notifications first, with their deliveries
 
+# Windows toasts: register Weatherbot's toast identity once (your account only; no administrator).
+weatherbot notify setup
+weatherbot notify test               # send a test notification through the log and the toast
+weatherbot notify setup --remove     # remove the identity again
+
 weatherbot config show               # every setting's value, and whether it came from the default, weatherbot.toml, or the environment
 weatherbot config path               # where the settings file, the database, its backups, and the lock files live
 ```
@@ -82,9 +88,22 @@ heartbeat is stale (its last success is older than twice the cadence a scheduled
 monitor promised for it); a manual command promises no cadence, so it never
 makes data look stale.
 
+`status` and `check --once` send each notification the policy decides through
+the in-app log and, on Windows, a toast: the title, its first two lines, and
+the disclaimer's reminder, under the identity `notify setup` registers.
+`notify log` shows each delivery's result. A toast reads `delivered` when Windows
+accepted it, `disabled` when Windows' notification settings turn Weatherbot off
+(with the setting), `failed` with Windows' error code, or `unavailable` before
+`notify setup` and everywhere but Windows. With Do Not Disturb on, Windows
+files the toast in the notification center without showing it, and tells
+Weatherbot nothing. `notify test` exits 1 when the toast failed, was disabled,
+or was unavailable on Windows. Set `toast = false` under `[notifications]` in
+`weatherbot.toml` to keep notifications in the log only.
+
 `locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, `doctor`,
-`check --once`, `notify log`, `config show`, and `config path` take `--json` and print one
-JSON document whose schema is in [docs/schema/](docs/schema/).
+`check --once`, `notify log`, `notify setup`, `notify test`, `config show`, and
+`config path` take `--json` and print one JSON document whose schema is in
+[docs/schema/](docs/schema/).
 `--verbose` (before the command: `weatherbot --verbose fetch`) logs at DEBUG
 to standard error. The exit status is 0 when everything answered, 1 when a
 source failed or a check did, and 2 for a usage error. With one location,

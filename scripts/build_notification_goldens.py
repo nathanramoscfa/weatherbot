@@ -16,11 +16,19 @@ from pathlib import Path
 from typing import Final, cast
 from zoneinfo import ZoneInfo
 
-from ladder_data import CORPUS, ROOT, digest, output_path, public_landmarks, utc
+from ladder_data import (
+    CORPUS,
+    ROOT,
+    digest,
+    output_path,
+    public_landmarks,
+    replay_timelines,
+    utc,
+)
 from weatherbot.models import Location, Thresholds
 from weatherbot.services.notifications import NotificationStep, replay_notifications
 from weatherbot.services.policy import PolicySettings, QuietHours, format_wall_time
-from weatherbot.services.replay import ReplayCorpus, ReplayService, ReplayStep
+from weatherbot.services.replay import ReplayCorpus, ReplayStep
 
 NOTIFICATION_GOLDENS: Final = ROOT / "tests/golden/notifications"
 IRMA_ATCF_ID: Final = "AL112017"
@@ -125,14 +133,13 @@ def build_timelines(
 def candidates() -> dict[str, dict[str, object]]:
     """Build both Irma notification golden candidates from the committed replay corpus."""
     corpus = ReplayCorpus.open(CORPUS)
-    service = ReplayService(corpus)
     thresholds = Thresholds()
     manifest_sha = hashlib.sha256((CORPUS / "corpus-manifest.json").read_bytes()).hexdigest()
     irma = next(storm for storm in corpus.storms() if storm.atcf_id == IRMA_ATCF_ID)
     found: dict[str, dict[str, object]] = {}
     for landmark, location in public_landmarks().items():
         name = f"{irma.atcf_id}-{landmark}.json"
-        replay_steps = service.timeline(irma.atcf_id, location, thresholds)
+        replay_steps = replay_timelines()[irma.atcf_id, landmark]
         timelines = build_timelines(replay_steps, location)
         found[name] = {
             "_file": f"tests/golden/notifications/{name}",

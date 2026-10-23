@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 4 — Monitoring and notifications
+- Add the Windows toast channel, `weatherbot.services.toast.ToastChannel`, over
+  pywinrt (`winrt-runtime`, `winrt-Windows.UI.Notifications`,
+  `winrt-Windows.Data.Xml.Dom`, `winrt-Windows.Foundation`, and
+  `winrt-Windows.Foundation.Collections` 3.2.1, each installed on Windows only).
+  A toast shows the notification's title, its first two lines, and the
+  disclaimer's notice, every value HTML-escaped, under the application
+  identity `Weatherbot.Monitor`. Each delivery is `delivered`, `failed` (with
+  the HRESULT), `disabled` (with Windows' notification setting), or
+  `unavailable`. `NullChannel` answers off Windows and when the new
+  `[notifications] toast` setting (`WEATHERBOT_NOTIFICATIONS_TOAST`, default
+  on) is off. Every command that runs a cycle now delivers through the toast
+  beside the in-app log.
+- Add `weatherbot notify setup [--remove]`, which registers or removes the
+  identity under `HKEY_CURRENT_USER\Software\Classes\AppUserModelId` (no
+  administrator rights, idempotent; sending never writes the registry), and
+  `weatherbot notify test`, which stores a test notification and delivers it
+  through every channel. Their `notify-setup` and `notify-test` documents join
+  the committed JSON Schemas (thirteen). `doctor` adds a `toast` check judged
+  from the stored deliveries, skipped on a fresh install.
+- Add the `desktop` test marker, deselected by default, and
+  `tests/desktop/test_toast_desktop.py`, the one test that shows a real
+  toast. `tests/conftest.py` turns the toast off for every other test, and
+  CI's `typecheck` job also runs on Windows, where pyright checks the
+  Windows-only code.
+- Build the eight replay timelines once for the engine goldens, the
+  notification goldens, and the notification replay tests
+  (`ladder_data.replay_timelines`); the three suites take 28 s instead of 61 s.
 - Add the pure notification policy (`weatherbot.services.policy.decide`), held
   to at least 90 percent branch coverage on its own in CI and verified pure by
   `tests/test_architecture.py`: immediate escalations, held drops on newly

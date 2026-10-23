@@ -3,6 +3,8 @@
 
 Every recorded answer of every source is served by respx, so a command runs offline with
 the real clients and the real database (in the test's temporary data directory). The
+runtime's toast is a fake and its toast identity a fake registry, so no command test shows
+a toast or touches the registry. The
 recorded roster links Simon's advisory 22 arrival-time KMZ pair, which was never
 recorded; the recorded advisory 38 pair stands in for it, so the KMZ supersedes the
 map-layer product, and its advisory mismatch is the run's Source-drift warning.
@@ -33,8 +35,15 @@ from weatherbot.models import SourceId
 from weatherbot.services.config import AppPaths, Settings
 from weatherbot.services.monitor import SCHEDULED_SOURCE_CADENCE_S, CycleResult, MonitorService
 from weatherbot.services.network import Network
+from weatherbot.services.notifications import (
+    Channel,
+    Delivery,
+    DeliveryResult,
+    StoredNotification,
+)
 from weatherbot.services.persistence.database import open_database
 from weatherbot.services.persistence.repositories import AssessmentRepository, StoredAssessment
+from weatherbot.services.toast import DISPLAY_NAME, Identity
 from weatherbot.sources.http import Fetcher, HostPacer, ValidatorStore
 
 ANSI_ESCAPE: Final = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
@@ -136,9 +145,72 @@ def quiet_fetcher(
     )
 
 
-def runtime(*, terminal: bool = False, now: datetime = NOW, width: int | None = None) -> Runtime:
-    """A runtime with the quiet fetcher, a fixed clock, and plain text unless asked."""
-    return Runtime(make_fetcher=quiet_fetcher, now=lambda: now, terminal=terminal, width=width)
+class FakeToast:
+    """A toast channel that answers what it is told and keeps what it was handed."""
+
+    def __init__(self, result: DeliveryResult = "delivered", detail: str | None = None) -> None:
+        """Answer every delivery with ``result`` and ``detail``."""
+        self.answer = Delivery(result, detail)
+        self.handed: list[StoredNotification] = []
+
+    @property
+    def name(self) -> str:
+        """The toast channel's name."""
+        return "toast"
+
+    async def deliver(self, notification: StoredNotification) -> Delivery:
+        """Keep the notification and answer."""
+        self.handed.append(notification)
+        return self.answer
+
+
+class FakeRegistry:
+    """The toast identity's key, in memory instead of the registry."""
+
+    def __init__(self, display_name: str | None = None) -> None:
+        """Start with the key holding ``display_name``; ``None``: no key."""
+        self.value = display_name
+        self.writes = 0
+        self.removals = 0
+
+    def display_name(self) -> str | None:
+        """The stored display name."""
+        return self.value
+
+    def write(self, display_name: str) -> None:
+        """Store a display name."""
+        self.value = display_name
+        self.writes += 1
+
+    def remove(self) -> None:
+        """Remove the key."""
+        self.value = None
+        self.removals += 1
+
+
+def runtime(
+    *,
+    terminal: bool = False,
+    now: datetime = NOW,
+    width: int | None = None,
+    toast: Channel | None = None,
+    identity: Identity | None = None,
+) -> Runtime:
+    """A runtime with the quiet fetcher, a fixed clock, and plain text unless asked.
+
+    Its toast is a fake that delivers, and its identity is a fake registry that holds it,
+    as on a Windows machine where toasts work; no command test reaches Windows.
+    """
+    channel = toast or FakeToast()
+    found = identity or Identity(FakeRegistry(DISPLAY_NAME))
+    return Runtime(
+        make_fetcher=quiet_fetcher,
+        make_toast=lambda _settings: channel,
+        identity=lambda: found,
+        now=lambda: now,
+        terminal=terminal,
+        width=width,
+    )
 
 
 def _stand_in_kmz(router: respx.MockRouter) -> None:

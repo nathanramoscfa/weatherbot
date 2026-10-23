@@ -1,12 +1,20 @@
 # src/weatherbot/cli/notify.py
-"""``weatherbot notify log``: the notification log and each delivery's outcome.
+"""``weatherbot notify``: the notification log, the toast's identity, and a test toast.
 
-Lists the stored notifications newest first, each with its time in UTC and in the
-location's time zone when known, its location, its title and body, and every channel
-delivery's result. With ``--json`` it prints a ``notifications`` document that also holds
-the decisions of the cycle that sent each notification.
+``notify log`` lists the stored notifications newest first, each with its time in UTC and
+in the location's time zone when known, its location, its title and body, and every
+channel delivery's result. With ``--json`` it prints a ``notifications`` document that also
+holds the decisions of the cycle that sent each notification.
+
+``notify setup`` registers the toast's application identity under ``HKEY_CURRENT_USER``
+(``--remove`` removes it) and says which; off Windows it changes nothing. ``notify test``
+stores a test notification, which names no location, delivers it through every channel,
+and prints each result; it exits 1 when a channel failed or was disabled, or when the
+toast was unavailable on Windows with ``[notifications] toast`` on (the identity is
+missing).
 """
 
+import asyncio
 from collections.abc import Sequence
 from typing import Annotated, Final
 
@@ -18,17 +26,40 @@ from weatherbot.cli.documents import (
     NotificationEntry,
     NotificationsData,
     NotificationsDocument,
+    NotifySetupData,
+    NotifySetupDocument,
+    NotifyTestData,
+    NotifyTestDocument,
 )
-from weatherbot.cli.runtime import EXIT_OK, Output, context_of, open_session
+from weatherbot.cli.runtime import EXIT_FAILED, EXIT_OK, Output, context_of, fail, open_session
 from weatherbot.cli.snapshots import JsonOption, named_zone, when
 from weatherbot.services.disclaimer import NOTICE
-from weatherbot.services.notifications import NotificationService, StoredNotification
+from weatherbot.services.notifications import (
+    TEST_BODY,
+    TEST_TITLE,
+    NotificationService,
+    StoredNotification,
+)
+from weatherbot.services.toast import (
+    APP_ID,
+    DISPLAY_NAME,
+    IDENTITY_PATH,
+    IdentityOutcome,
+    delivery_failed,
+)
 
 DEFAULT_LIMIT: Final = 20
+SETUP_LINES: Final[dict[IdentityOutcome, str]] = {
+    "registered": f"Registered the toast identity {APP_ID} ({DISPLAY_NAME}) at {IDENTITY_PATH}.",
+    "unchanged": f"The toast identity {APP_ID} is registered already; nothing changed.",
+    "removed": f"Removed the toast identity {APP_ID} from {IDENTITY_PATH}.",
+    "absent": f"The toast identity {APP_ID} is not registered; nothing to remove.",
+    "not_needed": "Not Windows: toasts need no identity here, and nothing changed.",
+}
 
 app = typer.Typer(
     name="notify",
-    help="Inspect the notification log.",
+    help="The notification log, the toast's identity, and a test notification.",
     no_args_is_help=True,
 )
 
@@ -143,3 +174,79 @@ def log(
     _print_log(output, data)
     output.notice()
     raise typer.Exit(EXIT_OK)
+
+
+@app.command("setup")
+def setup(
+    ctx: typer.Context,
+    *,
+    remove: Annotated[
+        bool, typer.Option("--remove", help="Remove the identity instead of registering it.")
+    ] = False,
+    json_output: JsonOption = False,
+) -> None:
+    """Register the toast's identity under HKEY_CURRENT_USER (Windows), or remove it."""
+    context = context_of(ctx)
+    output = Output(context.runtime, json_mode=json_output)
+    identity = context.runtime.identity()
+    try:
+        outcome = identity.unregister() if remove else identity.register()
+    except OSError as error:
+        fail(output, f"the registry refused the change ({type(error).__name__})")
+    data = NotifySetupData(
+        action="remove" if remove else "register",
+        outcome=outcome,
+        app_id=APP_ID,
+        display_name=DISPLAY_NAME,
+        registry_key=IDENTITY_PATH if identity.needed else None,
+    )
+    if json_output:
+        output.document(
+            NotifySetupDocument(generated_at=context.runtime.now(), disclaimer=NOTICE, data=data)
+        )
+        raise typer.Exit(EXIT_OK)
+    output.line(SETUP_LINES[outcome])
+    raise typer.Exit(EXIT_OK)
+
+
+def _print_test(output: Output, data: NotifyTestData) -> None:
+    entry = data.notification
+    output.line(f"Sent a test notification: {entry.title}")
+    for delivery in entry.deliveries:
+        detail = f" ({delivery.detail})" if delivery.detail else ""
+        output.line(f"  {delivery.channel}: {delivery.result}{detail}")
+    if data.failed:
+        output.line("FAILED: a channel did not deliver it", style="bold red")
+    else:
+        output.line("Every channel answered as expected.", style="bold green")
+
+
+@app.command("test")
+def send_test(ctx: typer.Context, *, json_output: JsonOption = False) -> None:
+    """Send a test notification through every channel, and print what each did with it."""
+    context = context_of(ctx)
+    output = Output(context.runtime, json_mode=json_output)
+    with open_session(context, output) as database:
+        service = NotificationService(
+            database.engine,
+            settings=context.settings,
+            now=context.runtime.now,
+            channels=context.channels,
+        )
+        sent = asyncio.run(service.send("test", title=TEST_TITLE, body=TEST_BODY))
+    windows = context.runtime.identity().needed
+    toast_on = context.settings.notifications.toast
+    data = NotifyTestData(
+        notification=notification_entry(sent),
+        failed=any(
+            delivery_failed(d.result, windows=windows, toast_on=toast_on) for d in sent.deliveries
+        ),
+    )
+    code = EXIT_FAILED if data.failed else EXIT_OK
+    if json_output:
+        output.document(
+            NotifyTestDocument(generated_at=context.runtime.now(), disclaimer=NOTICE, data=data)
+        )
+        raise typer.Exit(code)
+    _print_test(output, data)
+    raise typer.Exit(code)
