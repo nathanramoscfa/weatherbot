@@ -3243,6 +3243,13 @@ runs. The conversation is new per phase-boundary hygiene.
       `Delivery("failed", <error kind>)` instead of raising. A
       notification's level and title are the announced level,
       which stays the higher level while a drop is held.
+      CI's `test (windows-latest)` took 21m24s at Step 3 (18m15s
+      at Step 2) against its 25-minute `timeout-minutes`. Step 3's
+      eight-replay test (29 s locally) and golden comparison
+      (11 s) rebuild the timelines Phase 3's golden tests already
+      build. Share them through a session-cached fixture, or trim
+      other slow tests, before this step's tests land, rather than
+      raising the timeout.
     - Researched on 2026-10-21: `winrt-Windows.UI.Notifications`
       3.2.1 (2025-06-06, MIT) has CPython 3.9 to 3.14 wheels for
       `win_amd64`, `win_arm64`, and (3.13, 3.14) `win32`, and
