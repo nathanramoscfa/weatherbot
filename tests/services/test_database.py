@@ -50,6 +50,7 @@ FROZEN = {
     "0002_drift_warnings.py": "6ffcccb7b6da86250e57fa28d20158df74f6db7e2053f230bd6763ddebb0136a",
     "0003_assessments.py": "d2388aba5c3ab287e9953d37d36fe9f8b07d98c609129acd2c31a99bbf39681f",
     "0004_shared_geometry.py": "55d9619fdfcf2fc2566891ea603294ef18a8edcae5094d53cfe969cd3e0e6656",
+    "0005_monitor.py": "f85816879172be57a0e3223da2bd99bbcaf1a0521da2895822f3e3c8e76f9520",
 }
 SNAPSHOT_HEX = "8f0c4d1e5b7a4c2e9d3f1a2b3c4d5e6f"
 PROBE = "probe"
@@ -604,6 +605,86 @@ def test_0005_keeps_no_check_constraint_on_its_value_lists(paths: AppPaths) -> N
         found = {table: inspect(opened.engine).get_check_constraints(table) for table in MONITOR}
 
     assert found == {table: [] for table in MONITOR}
+
+
+# Revision 0006 -------------------------------------------------------------------------------
+
+NOTIFICATIONS = {"notifications", "notification_decisions", "notification_deliveries"}
+
+
+def _seed_0005(paths: AppPaths, engine: Engine) -> set[str]:
+    """Revision 0005 with seeded rows; the tables it holds."""
+    _seed_0004(paths, engine)
+    _migrate(engine, "0005")
+    with engine.begin() as connection:
+        connection.execute(CYCLE, {"snapshot": SNAPSHOT_HEX})
+        connection.execute(HEARTBEAT)
+    engine.dispose()
+    return _tables(paths.database_path) - {"alembic_version"}
+
+
+def test_0006_upgrade_keeps_every_existing_row(paths: AppPaths, engine: Engine) -> None:
+    tables = _seed_0005(paths, engine)
+    before = _every_row(paths.database_path, tables)
+    assert not NOTIFICATIONS & tables
+
+    _migrate(engine, "0006")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0006"
+    assert _every_row(paths.database_path, tables) == before
+    assert all(rows == [] for rows in _every_row(paths.database_path, NOTIFICATIONS).values())
+
+
+def test_0006_downgrades_to_0005_cleanly_and_upgrades_again(
+    paths: AppPaths, engine: Engine
+) -> None:
+    tables = _seed_0005(paths, engine)
+    before = _every_row(paths.database_path, tables)
+    _migrate(engine, "0006")
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO notifications (location_id, assessment_id, cycle_id, kind, level, "
+                "escalation, title, body, created_at) VALUES (1, 1, 1, 'location', 3, 1, "
+                "'Place: level 3', '[]', '2026-10-22')"
+            )
+        )
+        connection.execute(
+            text(
+                "INSERT INTO notification_decisions (location_id, assessment_id, "
+                "change_position, trigger, event_key, decision, level_after, notification_id, "
+                "decided_at) VALUES (1, 1, 0, 'level', NULL, 'escalation', 3, 1, '2026-10-22')"
+            )
+        )
+        connection.execute(
+            text(
+                "INSERT INTO notification_deliveries (notification_id, channel, attempted_at, "
+                "result, detail) VALUES (1, 'log', '2026-10-22', 'delivered', NULL)"
+            )
+        )
+
+    _migrate(engine, "0005")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0005"
+    assert not NOTIFICATIONS & _tables(paths.database_path)
+    assert _every_row(paths.database_path, tables) == before
+    _migrate(engine, "0006")
+    engine.dispose()
+    assert _tables(paths.database_path) >= NOTIFICATIONS
+
+
+def test_0006_keeps_no_check_constraint_on_extensible_value_lists(paths: AppPaths) -> None:
+    with open_database(paths) as opened:
+        inspector = inspect(opened.engine)
+        decisions_checks = inspector.get_check_constraints("notification_decisions")
+        deliveries_checks = inspector.get_check_constraints("notification_deliveries")
+        notifications_checks = [c["name"] for c in inspector.get_check_constraints("notifications")]
+
+    assert decisions_checks == []
+    assert deliveries_checks == []
+    assert notifications_checks == ["ck_notifications_level"]
 
 
 @pytest.mark.parametrize("name", sorted(FROZEN))

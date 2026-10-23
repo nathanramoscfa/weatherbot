@@ -11,7 +11,7 @@ from typing import Annotated
 import typer
 
 from weatherbot import __version__
-from weatherbot.cli import check, config, locations, snapshots
+from weatherbot.cli import check, config, locations, notify, snapshots
 from weatherbot.cli import doctor as doctor_command
 from weatherbot.cli import replay as replay_command
 from weatherbot.cli import status as status_command
@@ -25,6 +25,7 @@ app = typer.Typer(
 )
 app.add_typer(locations.app)
 app.add_typer(config.app)
+app.add_typer(notify.app)
 app.command("fetch")(snapshots.fetch)
 app.command("storms")(snapshots.storms)
 app.command("alerts")(snapshots.alerts)

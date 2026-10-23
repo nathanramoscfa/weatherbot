@@ -134,6 +134,46 @@ products added/changed/removed, and cones entered/left, in that order. The first
 assessment has initial events. Missing cone information emits no entry or exit;
 a missing source is not proof a storm disappeared. Changes do not smooth levels.
 
+## Notifications
+
+`weatherbot.services.policy.decide(state, assessment, changes, settings, now)`
+decides each newly stored assessment once, as a pure function of its inputs.
+Let $A$ be the location's announced level and $L$ the assessment's level, and
+say the assessment is missing an input when it names an unavailable input whose
+identity was not unavailable in the announcing assessment:
+
+- **Escalation ($L > A$, or initial $L \ge 2$):** always sent immediately,
+  never held and never suppressed by cooldown or quiet hours; $A$ becomes $L$,
+  and any pending held drop is withdrawn. Initial level 1 is `informational`
+  and sets $A$ to 1.
+- **Drop ($L < A$):** held for a confirmation cycle at `now + confirm_after`
+  when the assessment is missing a previously available input (at most
+  `max_holds = 3` holds, after which the drop is decided as `"at least"`), or
+  on the first drop when the assessment carries no `advisory_issued` event and
+  no covering official product from the announcing assessment expired at or
+  before `assessment.as_of` (the no-advisory check never holds the same drop
+  twice). A drop that is not held is decided against its key `("level", A, L)`
+  and sets $A$ to $L$.
+- **Other triggers:** `advisory_issued` with `in_cone` true (`("advisory",
+  atcf_id, advisory)`), `cone_entered` (`("cone", atcf_id)`), and
+  `official_added` / `official_changed` (`("official", "nws_alert", codes)` for
+  NWS alerts, so an update that keeps its codes is the same event, and
+  `("official", "watch_warning_segment", atcf_id, codes)` for NHC segments).
+  `official_removed`, `cone_left`, and `advisory_issued` outside the cone are
+  `informational`.
+- **Cooldown and quiet hours:** a keyed trigger sent within `[notifications]
+  cooldown_hours` (default 6 h) is `repeat`. Outside an escalation cycle, a
+  non-escalation trigger at level 1 or 2 during `[notifications]` quiet hours
+  is `quiet_hours`; level 3 and above are never held back by quiet hours.
+- **One notification per location per cycle:** emitted when at least one
+  decision is `escalation` or `sent`. Its title is `"<location>: level <A>,
+  <label>"`, with $A$ the announced level after the decisions — $L$, except
+  while a drop is held, so a held drop never shows through another trigger's
+  notification (quiet hours read the same level) — and its body has at most
+  four lines: the level line first when the level decision was sent, followed
+  by each sent trigger's `ChangeEvent.detail`, with no coordinates, distances,
+  bearings, or arrival instants.
+
 ## What does not move the ladder
 
 AI output, storm distance alone, wind radii, surge graphics, and arrivals do

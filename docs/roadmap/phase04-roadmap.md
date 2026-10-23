@@ -2151,9 +2151,9 @@ is new per phase-boundary hygiene.
 
 ---
 
-## Step 3 — The notification policy and the notification log
+## Step 3 — The notification policy and the notification log ✅
 
-**Status:** Not started
+**Status:** Complete — PR #43 (2026-10-22)
 
 > **Goal:** Decide, once per stored assessment, what to tell the operator, by a
 > policy that cannot hold back an escalation. `weatherbot.services.policy` is
@@ -2193,6 +2193,8 @@ must report `0006` at head `0006`. GitHub Actions → the first `ci.yml` and
 | Conversation | **New**                                    | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-22: Balanced — Gemini 4 Argon · Effort High on Antigravity wrote the step and stopped before its first commit; the column's Backup — Opus 5.5 · Effort High on Claude Code reviewed it against this task block, fixed a held drop showing through another trigger's notification, and finished it.
 
 **Model rationale:** Step 3 is coding with a planning secondary category: the
 policy's rules are fixed by this roadmap, but turning them into a pure function
@@ -2643,7 +2645,13 @@ is new per phase-boundary hygiene.
         `informational`.
       - The notification: present exactly when a decision is
         `escalation` or `sent`; one per location per cycle;
-        `title` is "<location>: level <L>, <label>"; when a
+        `title` is "<location>: level <A>, <label>", A being the
+        announced level after the decisions — L, except while a
+        drop is held, so a held drop never shows through another
+        trigger's notification, and the other triggers' quiet
+        hours read the same level (amended in Step 3: with L, a
+        newly failed NWS source during a Hurricane Warning sent
+        "level 1, All Clear" beside an in-cone advisory); when a
         `level` decision was sent, the body's first line says the
         level — "Level rose to L: <trigger>", "Level fell to L.",
         "Level fell to at least L.", or "Level L: <trigger>" for
@@ -3221,6 +3229,27 @@ runs. The conversation is new per phase-boundary hygiene.
       `delivered`, `failed`, `disabled`, `unavailable`). `notify
       log` lists notifications and deliveries; `[notifications]`
       holds the cooldown and quiet hours.
+    - Carry-over from Step 3 (PR #43 body has the details):
+      `Channel.deliver` receives a `StoredNotification` (`title`,
+      `body` lines, `level`, `escalation`, `location_name`,
+      `location_time_zone`). `NotificationService(engine, *,
+      settings, now, channels)` and `MonitorService(...,
+      channels=)` are the seams; `None` means `LogChannel` only,
+      so the toast is passed beside it, never instead of it.
+      Deliveries are stored in their own `writing_session` after
+      the decisions commit, and `_deliver_one` does not catch: a
+      channel that raises leaves the notification stored with no
+      delivery rows and fails the cycle, so the toast returns
+      `Delivery("failed", <error kind>)` instead of raising. A
+      notification's level and title are the announced level,
+      which stays the higher level while a drop is held.
+      CI's `test (windows-latest)` took 21m24s at Step 3 (18m15s
+      at Step 2) against its 25-minute `timeout-minutes`. Step 3's
+      eight-replay test (29 s locally) and golden comparison
+      (11 s) rebuild the timelines Phase 3's golden tests already
+      build. Share them through a session-cached fixture, or trim
+      other slow tests, before this step's tests land, rather than
+      raising the timeout.
     - Researched on 2026-10-21: `winrt-Windows.UI.Notifications`
       3.2.1 (2025-06-06, MIT) has CPython 3.9 to 3.14 wheels for
       `win_amd64`, `win_arm64`, and (3.13, 3.14) `win32`, and
@@ -3808,6 +3837,14 @@ High) runs. The conversation is new per phase-boundary hygiene.
       `acquire_async(wait_s)`, and `release()`; `held(path)` is a
       module function. `AppPaths` has `cycle_lock_path` and
       `migrate_lock_path`; add `monitor.lock` beside them.
+    - Carry-over from Step 3: `CycleResult.confirm_at` is the
+      earliest of the cycle's held drops' `decide_cycle` instant
+      plus `[monitor] confirm_after_minutes`, or `None` when
+      nothing is held; schedule one `confirm` cycle at it. The
+      confirmation cycle fetches again, so it stores a new
+      assessment and the policy settles the hold (withdrawn, held
+      again while the input is still missing, or decided as a
+      drop); a rerun over the same snapshot decides nothing.
     - `MonitorService.run_cycle(trigger)` runs one cycle under
       `data_dir/cycle.lock` and returns `CycleResult` (with
       `status`, `notifications`, and `confirm_at`, the instant a
@@ -5743,7 +5780,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
 | 1    | Snapshot storage              | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #41 |
 | 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #42 |
-| 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
+| 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #43 |
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |

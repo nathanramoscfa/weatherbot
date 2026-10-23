@@ -36,12 +36,13 @@ uv run pytest              # tests: no network, each in a temporary directory
 ```
 
 CI's `test` job runs the suite with a coverage floor: at least 90 percent
-branch coverage of `weatherbot.engine`, for every engine module from Phase 3
-on. Run the same locally with the coverage data file in a temporary directory,
-never the checkout:
+branch coverage of `weatherbot.engine` and of `weatherbot.services.policy` on
+its own. Run the same locally with the coverage data file in a temporary
+directory, never the checkout:
 
 ```sh
-COVERAGE_FILE="$(mktemp -d)/.coverage" uv run pytest --cov=weatherbot.engine \
+COVERAGE_FILE="$(mktemp -d)/.coverage" uv run pytest \
+  --cov=weatherbot.engine --cov=weatherbot.services.policy \
   --cov-branch --cov-report=term-missing:skip-covered --cov-fail-under=90
 ```
 
@@ -291,6 +292,13 @@ development_chance_floor_pct = 0    # a band lower bound
 
 [monitor]
 cycle_lock_wait_seconds = 120       # 1 to 3600: how long a cycle waits for another
+confirm_after_minutes = 5           # 1 to 60: delay before a held-drop confirmation cycle
+
+[notifications]
+cooldown_hours = 6                  # 0 to 48: repeat window per event key
+# quiet_hours_start = "22:00"       # HH:MM (00:00 to 23:59), set with quiet_hours_end
+# quiet_hours_end = "07:00"         # HH:MM (up to 24:00); start != end
+quiet_hours_time_zone = "local"     # "local" or an IANA zone name
 ```
 
 An unknown key or a bad value stops the program with a message that names the
@@ -384,6 +392,34 @@ promises a cadence (so a fresh install exits 0), passes when none is stale, and
 fails when one is. Log lines name the runner, the trigger, the cycle, the
 status, and counts, never a coordinate, a distance, a bearing, or a URL above
 DEBUG.
+
+### The notification policy, goldens, and in-app log
+
+`weatherbot.services.policy.decide` is the pure notification policy: it imports
+only `weatherbot.models` and standard-library value types, reads no clock or
+I/O, and is scanned by `tests/test_architecture.py` and held to at least 90
+percent branch coverage on its own in CI. `NotificationService.decide_cycle`
+reconstructs each location's `PolicyState` from `notification_decisions`
+(revision `0006`, with `notifications` and `notification_deliveries`), decides
+each newly created assessment once in a `BEGIN IMMEDIATE` transaction, and
+delivers through the configured channels (starting with `LogChannel`, which
+records `log`/`delivered` in SQLite). `weatherbot notify log [--limit N]
+[--json]` inspects the in-app log and its `notifications` document.
+
+`scripts/build_notification_goldens.py` freezes the Irma (`AL112017`)
+notification timelines at both public landmarks under `defaults` and `strict`
+(24-hour cooldown and 00:00–24:00 quiet hours in the landmark's zone) in
+`tests/golden/notifications/`:
+
+```sh
+uv run python scripts/build_notification_goldens.py --review-only
+uv run python scripts/build_notification_goldens.py --check
+uv run python scripts/build_notification_goldens.py --approve-date YYYY-MM-DD --review-sha256 SHA
+```
+
+As with the engine goldens, an agent never approves notification goldens on its
+own; `--approve-date` is run only after the operator explicitly approves the
+displayed review digest in the session.
 
 The tests never touch any of this. An autouse fixture in `tests/conftest.py`
 points both directories into each test's temporary directory and clears

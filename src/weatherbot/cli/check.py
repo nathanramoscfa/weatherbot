@@ -19,6 +19,7 @@ from weatherbot.cli.documents import (
     CheckLocationEntry,
     CycleEntry,
 )
+from weatherbot.cli.notify import notification_entries
 from weatherbot.cli.runtime import (
     EXIT_FAILED,
     EXIT_OK,
@@ -35,6 +36,7 @@ from weatherbot.cli.snapshots import (
     print_header,
     run_cycle,
     snapshot_info,
+    utc,
 )
 from weatherbot.cli.status import change_entries
 from weatherbot.services.assessments import AssessedLocation
@@ -83,6 +85,14 @@ def _print(output: Output, data: CheckData) -> None:
                 output.line(f"    - {change.detail}")
         else:
             output.line("  Changes since the previous assessment: none.")
+    for notification in data.notifications:
+        output.line()
+        output.line(f"Notification sent: {notification.title}", style="bold")
+        for line in notification.body:
+            output.line(f"  {line}")
+    if data.confirm_at is not None:
+        output.line()
+        output.line(f"Confirmation cycle due at {utc(data.confirm_at)}.")
     for warning in data.drift_warnings:
         output.line(f"Source drift: {warning.message}", style="yellow")
     output.line()
@@ -110,6 +120,8 @@ def check(
     data = CheckData(
         cycle=_cycle(cycle),
         locations=tuple(_location(result) for result in cycle.assessed),
+        notifications=notification_entries(cycle.notifications),
+        confirm_at=cycle.confirm_at,
         drift_warnings=drift_entries(cycle.drift_warnings),
     )
     code = EXIT_OK if cycle.status == "complete" else EXIT_FAILED

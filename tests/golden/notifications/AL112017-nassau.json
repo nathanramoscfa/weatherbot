@@ -1,0 +1,1317 @@
+{
+  "_file": "tests/golden/notifications/AL112017-nassau.json",
+  "atcf_id": "AL112017",
+  "archive_name": "Irma",
+  "landmark": "nassau",
+  "manifest_sha256": "0280fa149fea36911994a2e4c46bb24e86a5cc3cf728801184a7c06c034e05dc",
+  "ruleset": "c241a7ff882909314d943f1a18c64f056fd3a8fed706f5328bb7fe9a6a404226",
+  "policy": {
+    "defaults": {
+      "cooldown_hours": 6.0,
+      "quiet_hours": null,
+      "confirm_after_minutes": 5,
+      "max_holds": 3
+    },
+    "strict": {
+      "cooldown_hours": 24.0,
+      "quiet_hours": {
+        "start": "00:00",
+        "end": "24:00",
+        "time_zone": "UTC"
+      },
+      "confirm_after_minutes": 5,
+      "max_holds": 3
+    }
+  },
+  "timelines": {
+    "defaults": [
+      {
+        "advisory": "16",
+        "issued_at": "2017-09-03T09:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 2, Tropical Storm Threat",
+          "body": [
+            "Level rose to 2: The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "19",
+        "issued_at": "2017-09-04T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 3
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:19",
+            "decision": "sent",
+            "level_after": 3
+          },
+          {
+            "trigger": "cone_entered",
+            "position": 2,
+            "event_key": "cone:AL112017",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "Level rose to 3: The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon.",
+            "NHC issued advisory 19 for Irma, whose cone covers the location.",
+            "The location entered the cone of Irma, advisory 19."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "19A",
+        "issued_at": "2017-09-04T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:19A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 19A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "20",
+        "issued_at": "2017-09-04T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:20",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 20 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "20A",
+        "issued_at": "2017-09-04T12:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:3:2",
+            "decision": "sent",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:20A",
+            "decision": "sent",
+            "level_after": 2
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 2, Tropical Storm Threat",
+          "body": [
+            "Level fell to 2.",
+            "NHC issued advisory 20A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "21",
+        "issued_at": "2017-09-04T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 3
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:21",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "Level rose to 3: The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon.",
+            "NHC issued advisory 21 for Irma, whose cone covers the location."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "21A",
+        "issued_at": "2017-09-04T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:21A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 21A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "22",
+        "issued_at": "2017-09-04T21:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:22",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 22 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "22A",
+        "issued_at": "2017-09-05T00:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:22A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 22A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "23",
+        "issued_at": "2017-09-05T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:23",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 23 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "23A",
+        "issued_at": "2017-09-05T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:23A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 23A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "24",
+        "issued_at": "2017-09-05T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:24",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 24 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "25",
+        "issued_at": "2017-09-05T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:25",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 25 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "26",
+        "issued_at": "2017-09-05T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:26",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 26 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "26A",
+        "issued_at": "2017-09-05T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:26A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 26A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "29",
+        "issued_at": "2017-09-06T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:29",
+            "decision": "sent",
+            "level_after": 3
+          },
+          {
+            "trigger": "cone_entered",
+            "position": 1,
+            "event_key": "cone:AL112017",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 29 for Irma, whose cone covers the location.",
+            "The location entered the cone of Irma, advisory 29."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "29A",
+        "issued_at": "2017-09-06T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:29A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 29A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "30",
+        "issued_at": "2017-09-06T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:30",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 30 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "30A",
+        "issued_at": "2017-09-06T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:30A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 30A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "31",
+        "issued_at": "2017-09-06T21:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 4
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:31",
+            "decision": "sent",
+            "level_after": 4
+          },
+          {
+            "trigger": "official_added",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:HWA",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "Level rose to 4: A Hurricane Watch covers the location.",
+            "NHC issued advisory 31 for Irma, whose cone covers the location.",
+            "NHC issued the Hurricane Watch (HWA) that covers the location for Irma, advisory 31."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "31A",
+        "issued_at": "2017-09-07T00:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:31A",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "NHC issued advisory 31A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "33",
+        "issued_at": "2017-09-07T09:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 5
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 5
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:HWR",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 5, Hurricane Warning",
+          "body": [
+            "Level rose to 5: A Hurricane Warning covers the location.",
+            "NHC replaced the Hurricane Watch (HWA) with the Hurricane Warning (HWR) that covers the location for Irma, advisory 33."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "45",
+        "issued_at": "2017-09-10T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:5:3",
+            "decision": "sent",
+            "level_after": 3
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 3
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:TWA",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "Level fell to 3.",
+            "NHC replaced the Hurricane Warning (HWR) with the Tropical Storm Watch (TWA) that covers the location for Irma, advisory 45."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "46",
+        "issued_at": "2017-09-10T15:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 4
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 4
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:TWR",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "Level rose to 4: A Tropical Storm Warning covers the location.",
+            "NHC replaced the Tropical Storm Watch (TWA) with the Tropical Storm Warning (TWR) that covers the location for Irma, advisory 46."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "49",
+        "issued_at": "2017-09-11T09:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:4:2",
+            "decision": "sent",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          },
+          {
+            "trigger": "official_removed",
+            "position": 2,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 2, Tropical Storm Threat",
+          "body": [
+            "Level fell to 2."
+          ],
+          "escalation": false
+        }
+      }
+    ],
+    "strict": [
+      {
+        "advisory": "16",
+        "issued_at": "2017-09-03T09:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 2, Tropical Storm Threat",
+          "body": [
+            "Level rose to 2: The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "19",
+        "issued_at": "2017-09-04T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 3
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:19",
+            "decision": "sent",
+            "level_after": 3
+          },
+          {
+            "trigger": "cone_entered",
+            "position": 2,
+            "event_key": "cone:AL112017",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "Level rose to 3: The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon.",
+            "NHC issued advisory 19 for Irma, whose cone covers the location.",
+            "The location entered the cone of Irma, advisory 19."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "19A",
+        "issued_at": "2017-09-04T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:19A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 19A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "20",
+        "issued_at": "2017-09-04T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:20",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 20 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "20A",
+        "issued_at": "2017-09-04T12:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:3:2",
+            "decision": "quiet_hours",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:20A",
+            "decision": "quiet_hours",
+            "level_after": 2
+          }
+        ],
+        "notification": null
+      },
+      {
+        "advisory": "21",
+        "issued_at": "2017-09-04T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 3
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:21",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "Level rose to 3: The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon.",
+            "NHC issued advisory 21 for Irma, whose cone covers the location."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "21A",
+        "issued_at": "2017-09-04T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:21A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 21A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "22",
+        "issued_at": "2017-09-04T21:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:22",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 22 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "22A",
+        "issued_at": "2017-09-05T00:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:22A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 22A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "23",
+        "issued_at": "2017-09-05T03:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:23",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 23 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "23A",
+        "issued_at": "2017-09-05T06:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:23A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 23A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "24",
+        "issued_at": "2017-09-05T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:24",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 24 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "25",
+        "issued_at": "2017-09-05T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:25",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 25 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "26",
+        "issued_at": "2017-09-05T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:26",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 26 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "26A",
+        "issued_at": "2017-09-05T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:26A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 26A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "29",
+        "issued_at": "2017-09-06T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:29",
+            "decision": "sent",
+            "level_after": 3
+          },
+          {
+            "trigger": "cone_entered",
+            "position": 1,
+            "event_key": "cone:AL112017",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 29 for Irma, whose cone covers the location.",
+            "The location entered the cone of Irma, advisory 29."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "29A",
+        "issued_at": "2017-09-06T12:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:29A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 29A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "30",
+        "issued_at": "2017-09-06T15:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:30",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 30 for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "30A",
+        "issued_at": "2017-09-06T18:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:30A",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "NHC issued advisory 30A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "31",
+        "issued_at": "2017-09-06T21:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 4
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": "advisory:AL112017:31",
+            "decision": "sent",
+            "level_after": 4
+          },
+          {
+            "trigger": "official_added",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:HWA",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "Level rose to 4: A Hurricane Watch covers the location.",
+            "NHC issued advisory 31 for Irma, whose cone covers the location.",
+            "NHC issued the Hurricane Watch (HWA) that covers the location for Irma, advisory 31."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "31A",
+        "issued_at": "2017-09-07T00:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "advisory_issued",
+            "position": 0,
+            "event_key": "advisory:AL112017:31A",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "NHC issued advisory 31A for Irma, whose cone covers the location."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "33",
+        "issued_at": "2017-09-07T09:00:00Z",
+        "level": 5,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 5
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 5
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:HWR",
+            "decision": "sent",
+            "level_after": 5
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 5, Hurricane Warning",
+          "body": [
+            "Level rose to 5: A Hurricane Warning covers the location.",
+            "NHC replaced the Hurricane Watch (HWA) with the Hurricane Warning (HWR) that covers the location for Irma, advisory 33."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "45",
+        "issued_at": "2017-09-10T09:00:00Z",
+        "level": 3,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:5:3",
+            "decision": "sent",
+            "level_after": 3
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 3
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:TWA",
+            "decision": "sent",
+            "level_after": 3
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 3, Watch / Hurricane Threat",
+          "body": [
+            "Level fell to 3.",
+            "NHC replaced the Hurricane Warning (HWR) with the Tropical Storm Watch (TWA) that covers the location for Irma, advisory 45."
+          ],
+          "escalation": false
+        }
+      },
+      {
+        "advisory": "46",
+        "issued_at": "2017-09-10T15:00:00Z",
+        "level": 4,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": null,
+            "decision": "escalation",
+            "level_after": 4
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 4
+          },
+          {
+            "trigger": "official_changed",
+            "position": 2,
+            "event_key": "official:watch_warning_segment:AL112017:TWR",
+            "decision": "sent",
+            "level_after": 4
+          }
+        ],
+        "notification": {
+          "title": "nassau: level 4, Warning / Watch / Evacuation",
+          "body": [
+            "Level rose to 4: A Tropical Storm Warning covers the location.",
+            "NHC replaced the Tropical Storm Watch (TWA) with the Tropical Storm Warning (TWR) that covers the location for Irma, advisory 46."
+          ],
+          "escalation": true
+        }
+      },
+      {
+        "advisory": "49",
+        "issued_at": "2017-09-11T09:00:00Z",
+        "level": 2,
+        "decisions": [
+          {
+            "trigger": "level",
+            "position": 0,
+            "event_key": "level:4:2",
+            "decision": "quiet_hours",
+            "level_after": 2
+          },
+          {
+            "trigger": "advisory_issued",
+            "position": 1,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          },
+          {
+            "trigger": "official_removed",
+            "position": 2,
+            "event_key": null,
+            "decision": "informational",
+            "level_after": 2
+          }
+        ],
+        "notification": null
+      }
+    ]
+  },
+  "approval": {
+    "date": "2026-10-22",
+    "timelines_sha256": "86ceaca7e5f530b7eee454016cf2487a9d082b5a3615a97b33f7ca75b6ba2d79"
+  }
+}

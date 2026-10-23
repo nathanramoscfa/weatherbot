@@ -54,6 +54,7 @@ weatherbot doctor --offline          # local checks only, with the heartbeats
 
 # One monitor cycle on demand: fetch, assess and store every location, record the heartbeats.
 weatherbot check --once
+weatherbot notify log                # the newest stored notifications first, with their deliveries
 
 weatherbot config show               # every setting's value, and whether it came from the default, weatherbot.toml, or the environment
 weatherbot config path               # where the settings file, the database, its backups, and the lock files live
@@ -82,7 +83,7 @@ monitor promised for it); a manual command promises no cadence, so it never
 makes data look stale.
 
 `locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, `doctor`,
-`check --once`, `config show`, and `config path` take `--json` and print one
+`check --once`, `notify log`, `config show`, and `config path` take `--json` and print one
 JSON document whose schema is in [docs/schema/](docs/schema/).
 `--verbose` (before the command: `weatherbot --verbose fetch`) logs at DEBUG
 to standard error. The exit status is 0 when everything answered, 1 when a

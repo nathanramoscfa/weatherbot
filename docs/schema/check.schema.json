@@ -33,7 +33,7 @@
     },
     "CheckData": {
       "additionalProperties": false,
-      "description": "One monitor cycle: every location's level and changes.",
+      "description": "One monitor cycle: every location's level, changes, and sent notifications.",
       "properties": {
         "cycle": {
           "$ref": "#/$defs/CycleEntry"
@@ -44,6 +44,27 @@
           },
           "title": "Locations",
           "type": "array"
+        },
+        "notifications": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/NotificationEntry"
+          },
+          "title": "Notifications",
+          "type": "array"
+        },
+        "confirm_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confirm At"
         },
         "drift_warnings": {
           "items": {
@@ -200,6 +221,308 @@
         "message"
       ],
       "title": "DriftWarningEntry",
+      "type": "object"
+    },
+    "NotificationDecisionEntry": {
+      "additionalProperties": false,
+      "description": "One trigger's policy decision on an assessment.",
+      "properties": {
+        "id": {
+          "minimum": 1,
+          "title": "Id",
+          "type": "integer"
+        },
+        "location": {
+          "title": "Location",
+          "type": "string"
+        },
+        "assessment_id": {
+          "minimum": 1,
+          "title": "Assessment Id",
+          "type": "integer"
+        },
+        "change_position": {
+          "title": "Change Position",
+          "type": "integer"
+        },
+        "trigger": {
+          "enum": [
+            "level",
+            "held",
+            "level_changed",
+            "advisory_issued",
+            "official_added",
+            "official_changed",
+            "official_removed",
+            "cone_entered",
+            "cone_left"
+          ],
+          "title": "Trigger",
+          "type": "string"
+        },
+        "event_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Event Key"
+        },
+        "decision": {
+          "enum": [
+            "escalation",
+            "sent",
+            "repeat",
+            "quiet_hours",
+            "held",
+            "withdrawn",
+            "informational"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "level_after": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Level After"
+        },
+        "notification_id": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notification Id"
+        },
+        "decided_at": {
+          "format": "date-time",
+          "title": "Decided At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "location",
+        "assessment_id",
+        "change_position",
+        "trigger",
+        "event_key",
+        "decision",
+        "decided_at"
+      ],
+      "title": "NotificationDecisionEntry",
+      "type": "object"
+    },
+    "NotificationDeliveryEntry": {
+      "additionalProperties": false,
+      "description": "One delivery attempt of a notification through a channel.",
+      "properties": {
+        "id": {
+          "minimum": 1,
+          "title": "Id",
+          "type": "integer"
+        },
+        "channel": {
+          "title": "Channel",
+          "type": "string"
+        },
+        "attempted_at": {
+          "format": "date-time",
+          "title": "Attempted At",
+          "type": "string"
+        },
+        "result": {
+          "enum": [
+            "delivered",
+            "failed",
+            "disabled",
+            "unavailable"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "id",
+        "channel",
+        "attempted_at",
+        "result",
+        "detail"
+      ],
+      "title": "NotificationDeliveryEntry",
+      "type": "object"
+    },
+    "NotificationEntry": {
+      "additionalProperties": false,
+      "description": "A stored notification, with its deliveries and the decisions that sent it.",
+      "properties": {
+        "id": {
+          "minimum": 1,
+          "title": "Id",
+          "type": "integer"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Location"
+        },
+        "time_zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Time Zone"
+        },
+        "assessment_id": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assessment Id"
+        },
+        "cycle_id": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cycle Id"
+        },
+        "kind": {
+          "enum": [
+            "location",
+            "degraded",
+            "recovered",
+            "stale_monitor",
+            "test"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Level"
+        },
+        "escalation": {
+          "title": "Escalation",
+          "type": "boolean"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "body": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Body",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_at_local": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ISO 8601 in the location's time zone.",
+          "title": "Created At Local"
+        },
+        "deliveries": {
+          "items": {
+            "$ref": "#/$defs/NotificationDeliveryEntry"
+          },
+          "title": "Deliveries",
+          "type": "array"
+        },
+        "decisions": {
+          "items": {
+            "$ref": "#/$defs/NotificationDecisionEntry"
+          },
+          "title": "Decisions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "location",
+        "time_zone",
+        "kind",
+        "escalation",
+        "title",
+        "body",
+        "created_at",
+        "deliveries",
+        "decisions"
+      ],
+      "title": "NotificationEntry",
       "type": "object"
     },
     "SnapshotInfo": {

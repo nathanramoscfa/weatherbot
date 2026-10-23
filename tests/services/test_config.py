@@ -352,3 +352,85 @@ def test_a_bad_engine_override_names_its_variable_and_never_its_value(
 
     assert variable in str(failure.value)
     assert value not in str(failure.value)
+
+
+# The [notifications] and [monitor] tables --------------------------------------------------
+
+
+def test_notifications_and_monitor_confirm_settings_load_and_override() -> None:
+    paths = AppPaths.resolve()
+    _write(
+        paths,
+        "[monitor]\n"
+        "confirm_after_minutes = 10\n\n"
+        "[notifications]\n"
+        "cooldown_hours = 12\n"
+        'quiet_hours_start = "22:00"\n'
+        'quiet_hours_end = "07:00"\n'
+        'quiet_hours_time_zone = "America/New_York"\n',
+    )
+    from_file = load_settings(paths, {})
+    assert from_file.monitor.confirm_after_minutes == 10  # noqa: PLR2004
+    assert from_file.notifications.cooldown_hours == 12.0  # noqa: PLR2004
+    assert from_file.notifications.quiet_hours_start == "22:00"
+    assert from_file.notifications.quiet_hours_end == "07:00"
+    assert from_file.notifications.quiet_hours_time_zone == "America/New_York"
+
+    policy = from_file.policy_settings()
+    assert policy.quiet_hours is not None
+    assert policy.confirm_after.total_seconds() == 600  # noqa: PLR2004
+
+    overridden = load_settings(
+        paths,
+        {
+            "WEATHERBOT_MONITOR_CONFIRM_AFTER_MINUTES": "15",
+            "WEATHERBOT_NOTIFICATIONS_COOLDOWN_HOURS": "24",
+            "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_START": "00:00",
+            "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_END": "24:00",
+            "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_TIME_ZONE": "local",
+        },
+    )
+    assert overridden.monitor.confirm_after_minutes == 15  # noqa: PLR2004
+    assert overridden.notifications.cooldown_hours == 24.0  # noqa: PLR2004
+    assert overridden.notifications.quiet_hours_end == "24:00"
+    assert overridden.notifications.quiet_hours_time_zone == "local"
+    assert overridden.policy_settings().quiet_hours is not None
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            '[notifications]\nquiet_hours_start = "22:00"\n',
+            "must be set when quiet_hours_start is set",
+        ),
+        (
+            '[notifications]\nquiet_hours_start = "22:00"\nquiet_hours_end = "22:00"\n',
+            "must not equal quiet_hours_start",
+        ),
+        (
+            '[notifications]\nquiet_hours_start = "24:00"\nquiet_hours_end = "06:00"\n',
+            "[notifications] quiet_hours_start",
+        ),
+        (
+            '[notifications]\nquiet_hours_time_zone = "No/Such_Zone"\n',
+            "[notifications] quiet_hours_time_zone",
+        ),
+        (
+            "[notifications]\ncooldown_hours = 49\n",
+            "[notifications] cooldown_hours",
+        ),
+        (
+            "[monitor]\nconfirm_after_minutes = 0\n",
+            "[monitor] confirm_after_minutes",
+        ),
+    ],
+)
+def test_bad_notification_or_confirm_settings_are_refused(text: str, expected: str) -> None:
+    paths = AppPaths.resolve()
+    _write(paths, text)
+
+    with pytest.raises(ConfigError, match=r".*") as failure:
+        load_settings(paths, {})
+
+    assert expected in str(failure.value)
