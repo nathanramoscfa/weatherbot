@@ -2917,9 +2917,9 @@ is new per phase-boundary hygiene.
 
 ---
 
-## Step 4 — The Windows toast channel
+## Step 4 — The Windows toast channel ✅
 
-**Status:** Not started
+**Status:** Complete — PR #46 (2026-10-23)
 
 > **Goal:** Put a notification on the operator's desktop and say truthfully
 > whether it got there. `weatherbot.services.toast` adds `ToastChannel`, the
@@ -2958,6 +2958,8 @@ green, with the Windows-only packages absent on Ubuntu.
 | Conversation | **New**                                 | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-23: Balanced column's Backup — Opus 5.5 · Effort High. The **Runs:** rule selected Balanced (its Antigravity pool read `headroom`); the operator opened the column's Backup on Claude Code.
 
 **Model rationale:** Step 4 is coding with a knowledge secondary category: the
 Windows notification platform for an unpackaged app — its application identity,
@@ -5781,7 +5783,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Snapshot storage              | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #41 |
 | 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #42 |
 | 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #43 |
-| 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
+| 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #46 |
 | 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 7    | QA + verify_phase04.py        | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
