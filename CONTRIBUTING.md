@@ -119,7 +119,9 @@ The test suite blocks all network access except loopback, and every test
 runs in a temporary working directory, so a test can never read or write the
 repository through a relative path. A test that must reach a real service is
 marked `live`, also carries `@pytest.mark.enable_socket`, and runs only on
-request with `pytest -m live`.
+request with `pytest -m live`. A test that acts on your own desktop (a real
+toast, and from Phase 4 Step 6 Task Scheduler) is marked `desktop` and runs
+only with `pytest -m desktop`; "The toast channel" below says when.
 
 ### The live suite
 
@@ -267,11 +269,11 @@ Weatherbot keeps its state outside the repository, in your user directories:
 directories. Each must be an absolute path. `weatherbot.toml` holds the
 settings below, and an environment variable overrides each one (environment,
 then file, then default): `WEATHERBOT_LOG_LEVEL`,
-`WEATHERBOT_HTTP_TIMEOUT_SECONDS`, `WEATHERBOT_ENGINE_<KEY>` for each key
-of `[engine]`, such as `WEATHERBOT_ENGINE_COASTAL_REACH_KM`, and
-`WEATHERBOT_MONITOR_CYCLE_LOCK_WAIT_SECONDS`. `weatherbot config show` prints
-every effective value and where it came from; `weatherbot config path` prints
-where the files live. The `[engine]`
+`WEATHERBOT_HTTP_TIMEOUT_SECONDS`, and `WEATHERBOT_<TABLE>_<KEY>` for each key
+of `[engine]`, `[monitor]`, and `[notifications]`, such as
+`WEATHERBOT_ENGINE_COASTAL_REACH_KM` or `WEATHERBOT_NOTIFICATIONS_TOAST`.
+`weatherbot config show` prints every effective value and where it came from;
+`weatherbot config path` prints where the files live. The `[engine]`
 values are the alert ladder's calibrated defaults; their outcome intervals and
 evidence are in [the written ladder](docs/ALERT-LADDER.md).
 
@@ -299,6 +301,7 @@ cooldown_hours = 6                  # 0 to 48: repeat window per event key
 # quiet_hours_start = "22:00"       # HH:MM (00:00 to 23:59), set with quiet_hours_end
 # quiet_hours_end = "07:00"         # HH:MM (up to 24:00); start != end
 quiet_hours_time_zone = "local"     # "local" or an IANA zone name
+toast = true                        # false: notifications go to the in-app log only
 ```
 
 An unknown key or a bad value stops the program with a message that names the
@@ -421,10 +424,65 @@ As with the engine goldens, an agent never approves notification goldens on its
 own; `--approve-date` is run only after the operator explicitly approves the
 displayed review digest in the session.
 
+### The toast channel
+
+A channel is anything with a `name` and an `async deliver(notification)` that
+returns a `Delivery(result, detail)` and never raises
+(`weatherbot.services.notifications.Channel`). The result is `delivered`,
+`failed`, `disabled`, or `unavailable`, and the detail is an HRESULT, an error
+class, a setting's name, or what to run, never the notification's text.
+`NotificationService` stores one delivery row per channel. Its default is
+`LogChannel` alone; every command that runs a cycle (`fetch`, `storms`,
+`alerts`, `status`, and `check --once`) and `notify test` pass the toast
+beside the log, so the toast never replaces the log.
+
+`weatherbot.services.toast.ToastChannel` shows a notification as a Windows
+toast through pywinrt (`winrt-Windows.UI.Notifications` 3.2.1 and four
+sibling packages, installed on Windows only): the title, the first two body
+lines, and the disclaimer's notice as its attribution. It reads Windows'
+notification setting first (anything but `Enabled` is `disabled`, with the
+setting's name), shows the toast, and waits up to two seconds for Windows to
+report a failure, which arrives on another thread with its HRESULT. With
+neither, the result is `delivered`, which means that Windows accepted the toast,
+not that you saw it: with Do Not Disturb on, Windows 11 puts a toast straight
+into the notification center without a banner, and tells the app nothing.
+
+An unpackaged app shows toasts under an application identity registered in
+`HKEY_CURRENT_USER\Software\Classes\AppUserModelId\Weatherbot.Monitor` with a
+`DisplayName`. `weatherbot notify setup` registers it (no administrator rights
+needed), `notify setup --remove` removes it, and both do nothing on a second
+run. Sending never writes the registry. Without the identity, a toast is
+`unavailable` ("run weatherbot notify setup"). `toast_channel(settings)`
+returns `NullChannel`, which is always `unavailable`, off Windows and when
+`[notifications] toast` is `false`. Every `winreg` and `winrt` import sits
+behind `if sys.platform == "win32":`, and the `winrt` packages load on the
+first toast. Ubuntu's tests, pyright, and the wheel smokes therefore import
+none of them, and CI's `typecheck` job runs on Windows as well. `doctor`'s
+`toast` check reads the stored deliveries: it is skipped off Windows, with the
+toast off, and before any toast is stored. It fails when the latest toast
+failed, was disabled, or was unavailable, or when the identity is gone although
+a toast was delivered before.
+
+No ordinary test shows a toast or touches the registry. `tests/conftest.py`
+sets `WEATHERBOT_NOTIFICATIONS_TOAST=false` for every test, the live suite
+included. The command tests run on `cli_support.runtime()`, whose `Runtime`
+hands every command a `FakeToast` (`make_toast`, the toast's seam, as
+`make_fetcher` is the network's) and a `FakeRegistry` behind `identity`.
+`ToastChannel`'s own tests pass a fake notifier, which raises Windows'
+`Failed` event from a timer thread. The one real toast is
+`tests/desktop/test_toast_desktop.py`, marked `desktop` and deselected by
+default. Run it on your Windows machine after `weatherbot notify setup`, when
+you are there to look:
+
+```sh
+uv run weatherbot notify setup
+uv run pytest -m desktop tests/desktop/test_toast_desktop.py
+```
+
 The tests never touch any of this. An autouse fixture in `tests/conftest.py`
-points both directories into each test's temporary directory and clears
-every other `WEATHERBOT_*` variable except the development tools'
-`WEATHERBOT_DENYLIST` and `WEATHERBOT_CORPUS_CACHE`.
+points both directories into each test's temporary directory, clears every
+other `WEATHERBOT_*` variable except the development tools'
+`WEATHERBOT_DENYLIST` and `WEATHERBOT_CORPUS_CACHE`, and turns the toast off.
 
 To start over, delete the data directory. Weatherbot creates a new database
 the next time it opens one. `uv run weatherbot doctor --offline` shows both

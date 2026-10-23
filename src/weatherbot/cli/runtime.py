@@ -2,12 +2,14 @@
 """What every command shares: its runtime, its output, and the database it opens.
 
 ``Runtime`` is what a command may be handed through Typer's context object: the
-environment, the fetcher factory, the clock, and whether output is a terminal. The tests
-pass one; a real run uses the defaults. ``Output`` prints Rich tables to a terminal and
-plain text otherwise, and keeps standard output to exactly one JSON document under
-``--json``. ``open_session`` opens the database, prints the disclaimer's essentials the
-first time, and turns the services' errors into messages and exit codes: 0 complete,
-1 a partial or failed snapshot or a failed check, and 2 a usage error.
+environment, the fetcher factory, the toast channel's factory, the application identity's
+store, the clock, and whether output is a terminal. The tests pass one, with a fake toast
+and a fake registry; a real run uses the defaults. ``Context.channels`` is the log with the
+toast beside it. ``Output`` prints Rich tables to a terminal and plain text otherwise, and
+keeps standard output to exactly one JSON document under ``--json``. ``open_session``
+opens the database, prints the disclaimer's essentials the first time, and turns the
+services' errors into messages and exit codes: 0 complete, 1 a partial or failed snapshot
+or a failed check, and 2 a usage error.
 """
 
 import sys
@@ -27,8 +29,10 @@ from weatherbot.services.config import AppPaths, ConfigError, Settings, load_set
 from weatherbot.services.disclaimer import ESSENTIALS, NOTICE, record_first_showing
 from weatherbot.services.logs import configure_logging
 from weatherbot.services.network import FetcherFactory, Network, default_fetcher
+from weatherbot.services.notifications import Channel, LogChannel
 from weatherbot.services.persistence.database import Database, DatabaseError, open_database
 from weatherbot.services.persistence.repositories import SettingsRepository
+from weatherbot.services.toast import Identity, system_identity, toast_channel
 
 EXIT_OK: Final = 0
 EXIT_FAILED: Final = 1
@@ -39,12 +43,19 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
+type ToastFactory = Callable[[Settings], Channel]
+
+
 @dataclass(frozen=True)
 class Runtime:
     """A command's environment; tests hand one over as Typer's context object."""
 
     environ: Mapping[str, str] | None = None
     make_fetcher: FetcherFactory = default_fetcher
+    make_toast: ToastFactory = toast_channel
+    """The toast channel for the settings, as ``make_fetcher`` is the network."""
+    identity: Callable[[], Identity] = system_identity
+    """The toast's application identity: the registry on Windows, none elsewhere."""
     now: Callable[[], datetime] = _now
     terminal: bool | None = None
     """``None``: ask the console; ``True`` or ``False`` forces Rich tables or plain text."""
@@ -66,6 +77,11 @@ class Context:
     def network(self) -> Network:
         """The timeout setting and the runtime's fetcher factory."""
         return Network(self.settings.http.timeout_seconds, self.runtime.make_fetcher)
+
+    @property
+    def channels(self) -> tuple[Channel, ...]:
+        """The delivery channels: the in-app log, and the runtime's toast beside it."""
+        return (LogChannel(), self.runtime.make_toast(self.settings))
 
 
 def start(runtime: Runtime, *, verbose: bool) -> Context:

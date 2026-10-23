@@ -57,10 +57,16 @@ jobs:
       - name: Import contracts
         run: uv run lint-imports
 
+  # Pyright analyses a `sys.platform == "win32"` branch only on Windows, where the
+  # Windows-only winrt packages install, so the toast channel is type-checked there too.
   typecheck:
-    name: typecheck
-    runs-on: ubuntu-latest
+    name: typecheck (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -37,7 +37,7 @@ def test_notify_log_lists_newest_first_with_deliveries_and_decisions_in_json() -
     assert text_result.exit_code == 0, text_result.stderr
     assert f"{MIAMI}: level 1, All Clear" in text_result.stdout
     assert f"{NASSAU}: level 4, Warning / Watch / Evacuation" in text_result.stdout
-    assert "Deliveries: log: delivered" in text_result.stdout
+    assert "Deliveries: log: delivered, toast: delivered" in text_result.stdout
     assert "EDT" in text_result.stdout or "EST" in text_result.stdout
     assert text_result.stdout.rstrip().endswith(NOTICE)
 
@@ -50,14 +50,15 @@ def test_notify_log_lists_newest_first_with_deliveries_and_decisions_in_json() -
     assert first.location == NASSAU
     assert first.created_at_local is None
     assert first.escalation is True
-    assert len(first.deliveries) == 1
-    assert (first.deliveries[0].channel, first.deliveries[0].result) == ("log", "delivered")
+    # Every command delivers through the in-app log and the toast beside it.
+    both = [("log", "delivered"), ("toast", "delivered")]
+    assert [(d.channel, d.result) for d in first.deliveries] == both
     assert any(d.decision == "escalation" for d in first.decisions)
 
     assert second.location == MIAMI
     assert second.time_zone == "America/New_York"
     assert second.created_at_local is not None
-    assert len(second.deliveries) == 1
+    assert [(d.channel, d.result) for d in second.deliveries] == both
 
     limited = parse(run(["notify", "log", "--limit", "1", "--json"]), NotificationsDocument)
     assert len(limited.data.notifications) == 1

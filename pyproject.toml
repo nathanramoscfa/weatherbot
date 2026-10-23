@@ -39,6 +39,11 @@ dependencies = [
     "sqlalchemy>=2.1.5,<3",
     "typer>=0.27.3",
     "tzdata>=2026.5 ; sys_platform == 'win32'",
+    "winrt-runtime>=3.2.1 ; sys_platform == 'win32'",
+    "winrt-windows-data-xml-dom>=3.2.1 ; sys_platform == 'win32'",
+    "winrt-windows-foundation>=3.2.1 ; sys_platform == 'win32'",
+    "winrt-windows-foundation-collections>=3.2.1 ; sys_platform == 'win32'",
+    "winrt-windows-ui-notifications>=3.2.1 ; sys_platform == 'win32'",
 ]
 
 [project.scripts]
@@ -145,12 +150,14 @@ pythonpath = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/
 # `--allow-hosts`, not `--disable-socket`: asyncio on Windows opens a loopback
 # socket pair that `--disable-socket` would block. Selecting `-m live` does
 # not lift the guard, so every `live` test also carries pytest-socket's
-# `enable_socket` marker.
-addopts = "-ra --strict-markers --strict-config --allow-hosts=127.0.0.1,::1 -m 'not live and not corpus'"
+# `enable_socket` marker. `desktop` tests act on the operator's own desktop (a
+# real toast, Task Scheduler), so nothing selects them but `-m desktop`.
+addopts = "-ra --strict-markers --strict-config --allow-hosts=127.0.0.1,::1 -m 'not live and not corpus and not desktop'"
 filterwarnings = ["error"]
 markers = [
     "live: calls real services; run deliberately with `-m live`",
     "corpus: needs the replay-corpus cache (scripts/fetch_replay_corpus.py)",
+    "desktop: shows a real toast or touches the operator's Task Scheduler; run deliberately with -m desktop",
 ]
 
 [tool.importlinter]

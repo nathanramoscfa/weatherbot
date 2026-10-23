@@ -57,7 +57,9 @@ def isolate_application_directories(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     """Pin the configuration and data directories under ``tmp_path`` for every test.
 
     No test can then read the operator's ``weatherbot.toml`` or open the operator's
-    database, and no setting from the developer's environment leaks into a test.
+    database, and no setting from the developer's environment leaks into a test. The
+    toast is turned off, so no test, the live suite included, shows a real toast; the
+    ``desktop`` tests turn it back on.
 
     Args:
         tmp_path: The test's own temporary directory.
@@ -68,3 +70,4 @@ def isolate_application_directories(tmp_path: Path, monkeypatch: pytest.MonkeyPa
             monkeypatch.delenv(name)
     monkeypatch.setenv("WEATHERBOT_CONFIG_DIR", str(tmp_path / "weatherbot-config"))
     monkeypatch.setenv("WEATHERBOT_DATA_DIR", str(tmp_path / "weatherbot-data"))
+    monkeypatch.setenv("WEATHERBOT_NOTIFICATIONS_TOAST", "false")

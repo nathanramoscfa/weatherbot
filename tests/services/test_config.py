@@ -58,8 +58,11 @@ def test_the_guard_clears_every_other_weatherbot_variable() -> None:
         "WEATHERBOT_DATA_DIR",
         "WEATHERBOT_DENYLIST",
         "WEATHERBOT_CORPUS_CACHE",
+        "WEATHERBOT_NOTIFICATIONS_TOAST",
     }
     assert "WEATHERBOT_LOG_LEVEL" not in os.environ
+    # The guard turns the toast off, so no test shows a real one.
+    assert os.environ["WEATHERBOT_NOTIFICATIONS_TOAST"] == "false"
 
 
 def test_the_patched_platformdirs_would_catch_a_lookup(

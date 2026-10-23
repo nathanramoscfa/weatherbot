@@ -6,10 +6,11 @@ and ``WEATHERBOT_DATA_DIR`` when set, else the operating system's user directori
 through ``platformdirs``. The database, its backups, and the lock files live in the data
 directory; ``weatherbot.toml`` lives in the configuration directory.
 
-``Settings`` holds the logging, HTTP, engine, and monitor keys, with the precedence
-environment, then file, then default; ``setting_origins`` says where each effective value
-came from. A setting is never a secret, a location, or a coordinate: locations live in the
-database. An error names the key that is wrong and never repeats its value.
+``Settings`` holds the logging, HTTP, engine, monitor, and notification keys, with the
+precedence environment, then file, then default; ``setting_origins`` says where each
+effective value came from. A setting is never a secret, a location, or a coordinate:
+locations live in the database. An error names the key that is wrong and never repeats its
+value.
 """
 
 import os
@@ -65,6 +66,7 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("notifications", "quiet_hours_start"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_START",
     ("notifications", "quiet_hours_end"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_END",
     ("notifications", "quiet_hours_time_zone"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_TIME_ZONE",
+    ("notifications", "toast"): "WEATHERBOT_NOTIFICATIONS_TOAST",
 }
 _TOML_POSITION: Final = re.compile(r"\(at line \d+, column \d+\)|\(at end of document\)")
 
@@ -248,12 +250,13 @@ class MonitorSettings(_Section):
 
 
 class NotificationSettings(_Section):
-    """``[notifications]``: cooldown and quiet hours for non-escalation triggers."""
+    """``[notifications]``: the cooldown and quiet hours, and whether the toast is on."""
 
     cooldown_hours: int = Field(default=6, ge=0, le=48)
     quiet_hours_start: str = ""
     quiet_hours_end: str = Field(default="", validate_default=True)
     quiet_hours_time_zone: str = "local"
+    toast: bool = True
 
     @field_validator("quiet_hours_start")
     @classmethod

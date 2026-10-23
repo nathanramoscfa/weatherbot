@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/notify-test.schema.json",
+  "$defs": {
+    "NotificationDecisionEntry": {
+      "additionalProperties": false,
+      "description": "One trigger's policy decision on an assessment.",
+      "properties": {
+        "id": {
+          "minimum": 1,
+          "title": "Id",
+          "type": "integer"
+        },
+        "location": {
+          "title": "Location",
+          "type": "string"
+        },
+        "assessment_id": {
+          "minimum": 1,
+          "title": "Assessment Id",
+          "type": "integer"
+        },
+        "change_position": {
+          "title": "Change Position",
+          "type": "integer"
+        },
+        "trigger": {
+          "enum": [
+            "level",
+            "held",
+            "level_changed",
+            "advisory_issued",
+            "official_added",
+            "official_changed",
+            "official_removed",
+            "cone_entered",
+            "cone_left"
+          ],
+          "title": "Trigger",
+          "type": "string"
+        },
+        "event_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Event Key"
+        },
+        "decision": {
+          "enum": [
+            "escalation",
+            "sent",
+            "repeat",
+            "quiet_hours",
+            "held",
+            "withdrawn",
+            "informational"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "level_after": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Level After"
+        },
+        "notification_id": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notification Id"
+        },
+        "decided_at": {
+          "format": "date-time",
+          "title": "Decided At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "location",
+        "assessment_id",
+        "change_position",
+        "trigger",
+        "event_key",
+        "decision",
+        "decided_at"
+      ],
+      "title": "NotificationDecisionEntry",
+      "type": "object"
+    },
+    "NotificationDeliveryEntry": {
+      "additionalProperties": false,
+      "description": "One delivery attempt of a notification through a channel.",
+      "properties": {
+        "id": {
+          "minimum": 1,
+          "title": "Id",
+          "type": "integer"
+        },
+        "channel": {
+          "title": "Channel",
+          "type": "string"
+        },
+        "attempted_at": {
+          "format": "date-time",
+          "title": "Attempted At",
+          "type": "string"
+        },
+        "result": {
+          "enum": [
+            "delivered",
+            "failed",
+            "disabled",
+            "unavailable"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "id",
+        "channel",
+        "attempted_at",
+        "result",
+        "detail"
+      ],
+      "title": "NotificationDeliveryEntry",
+      "type": "object"
+    },
+    "NotificationEntry": {
+      "additionalProperties": false,
+      "description": "A stored notification, with its deliveries and the decisions that sent it.",
+      "properties": {
+        "id": {
+          "minimum": 1,
+          "title": "Id",
+          "type": "integer"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Location"
+        },
+        "time_zone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Time Zone"
+        },
+        "assessment_id": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assessment Id"
+        },
+        "cycle_id": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cycle Id"
+        },
+        "kind": {
+          "enum": [
+            "location",
+            "degraded",
+            "recovered",
+            "stale_monitor",
+            "test"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Level"
+        },
+        "escalation": {
+          "title": "Escalation",
+          "type": "boolean"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "body": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Body",
+          "type": "array"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_at_local": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ISO 8601 in the location's time zone.",
+          "title": "Created At Local"
+        },
+        "deliveries": {
+          "items": {
+            "$ref": "#/$defs/NotificationDeliveryEntry"
+          },
+          "title": "Deliveries",
+          "type": "array"
+        },
+        "decisions": {
+          "items": {
+            "$ref": "#/$defs/NotificationDecisionEntry"
+          },
+          "title": "Decisions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "location",
+        "time_zone",
+        "kind",
+        "escalation",
+        "title",
+        "body",
+        "created_at",
+        "deliveries",
+        "decisions"
+      ],
+      "title": "NotificationEntry",
+      "type": "object"
+    },
+    "NotifyTestData": {
+      "additionalProperties": false,
+      "description": "The stored test notification, with each channel's delivery.",
+      "properties": {
+        "notification": {
+          "$ref": "#/$defs/NotificationEntry"
+        },
+        "failed": {
+          "description": "true: a channel failed or was disabled, or the toast was unavailable on Windows with the toast on; the command exits 1.",
+          "title": "Failed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "notification",
+        "failed"
+      ],
+      "title": "NotifyTestData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot notify test --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "notify test",
+      "default": "notify test",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/NotifyTestData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "NotifyTestDocument",
+  "type": "object"
+}

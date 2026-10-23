@@ -174,6 +174,8 @@ def doctor(
                 offline=offline,
                 network=context.network,
                 now=context.runtime.now(),
+                identity=context.runtime.identity().registered(),
+                toast_on=context.settings.notifications.toast,
             )
         )
     data = _data(context, report, offline=offline)

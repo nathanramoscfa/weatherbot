@@ -188,6 +188,7 @@ def run_cycle(  # noqa: PLR0913 - the command's state, then the cycle's form, ke
         runner=runner,
         network=context.network,
         now=now,
+        channels=context.channels,
     )
     result = asyncio.run(monitor.run_cycle("manual", snapshot=stored, assess=assess))
     if result.snapshot is None:

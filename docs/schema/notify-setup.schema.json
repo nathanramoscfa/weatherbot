@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/notify-setup.schema.json",
+  "$defs": {
+    "NotifySetupData": {
+      "additionalProperties": false,
+      "description": "What ``notify setup`` did with the toast's application identity.",
+      "properties": {
+        "action": {
+          "enum": [
+            "register",
+            "remove"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "outcome": {
+          "description": "not_needed: not Windows, where toasts need no identity; nothing changed.",
+          "enum": [
+            "registered",
+            "unchanged",
+            "removed",
+            "absent",
+            "not_needed"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "app_id": {
+          "title": "App Id",
+          "type": "string"
+        },
+        "display_name": {
+          "title": "Display Name",
+          "type": "string"
+        },
+        "registry_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The identity's key under HKEY_CURRENT_USER; null off Windows.",
+          "title": "Registry Key"
+        }
+      },
+      "required": [
+        "action",
+        "outcome",
+        "app_id",
+        "display_name",
+        "registry_key"
+      ],
+      "title": "NotifySetupData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot notify setup --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "notify setup",
+      "default": "notify setup",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/NotifySetupData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "NotifySetupDocument",
+  "type": "object"
+}

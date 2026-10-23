@@ -10,6 +10,7 @@ import pytest
 from cli_support import (
     MIAMI,
     SUMMARY_CATALOG,
+    FakeToast,
     add_landmark,
     recorded_services,
     run,
@@ -32,7 +33,7 @@ from weatherbot.services.assessments import AssessmentService
 from weatherbot.services.config import AppPaths, Settings
 from weatherbot.services.locations import LocationService
 from weatherbot.services.monitor import MonitorService
-from weatherbot.services.notifications import NotificationService
+from weatherbot.services.notifications import LogChannel, NotificationService
 from weatherbot.services.persistence.database import open_database
 from weatherbot.services.persistence.repositories import LocationRepository, SnapshotRepository
 from weatherbot.services.persistence.tables import (
@@ -97,6 +98,37 @@ async def test_cycle_stores_decisions_notification_and_log_delivery_and_rerun_de
         assert len(service.recent(limit=5)) == 1
         with pytest.raises(ValueError, match="limit must be at least 1"):
             service.recent(limit=0)
+
+
+@pytest.mark.anyio
+async def test_a_notification_through_the_log_and_a_fake_toast_stores_both_deliveries() -> None:
+    paths = AppPaths.resolve()
+    recorded = await recorded_snapshot()
+    toast = FakeToast("failed", "0x80070490")
+
+    with open_database(paths) as database:
+        LocationRepository(database.engine).add(recorded.location)
+        SnapshotRepository(database.engine).save(recorded.snapshot, recorded.responses)
+        monitor = MonitorService(
+            database.engine,
+            paths=paths,
+            settings=Settings(),
+            runner="status",
+            now=lambda: recorded.snapshot.completed_at,
+            channels=(LogChannel(), toast),
+        )
+        result = await monitor.run_cycle("manual", snapshot=recorded.snapshot, assess=True)
+        with Session(database.engine) as session:
+            rows = session.scalars(
+                select(NotificationDeliveryRow).order_by(NotificationDeliveryRow.id)
+            ).all()
+            stored = [(row.channel, row.result, row.detail) for row in rows]
+
+    (notification,) = result.notifications
+    expected = [("log", "delivered", None), ("toast", "failed", "0x80070490")]
+    assert [(d.channel, d.result, d.detail) for d in notification.deliveries] == expected
+    assert stored == expected
+    assert [item.id for item in toast.handed] == [notification.id]
 
 
 @pytest.mark.anyio
