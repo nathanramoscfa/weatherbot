@@ -3370,7 +3370,11 @@ runs. The conversation is new per phase-boundary hygiene.
       - Every `winrt` and `winreg` import sits inside `if
         sys.platform == "win32":`, so the module imports cleanly
         on Ubuntu; the notifier factory is the seam the tests
-        replace.
+        replace. As shipped (PR #46): the `winrt` packages load
+        on the first toast, inside the Windows-only notifier, so
+        importing the module loads no `winrt` module on either
+        platform, and a broken install fails one toast, not every
+        command.
     </requirement>
 
     <requirement>
@@ -3381,6 +3385,11 @@ runs. The conversation is new per phase-boundary hygiene.
       `toast_channel(settings)` beside `LogChannel`, and the CLI's
       `Runtime` gains a channel seam (as `make_fetcher` is the
       network's) so every command test runs with a fake toast.
+      As shipped (PR #46): the services' default stays
+      `LogChannel` alone, so no service test can show a toast,
+      and the CLI's `Context.channels` passes `LogChannel` and
+      `Runtime.make_toast(settings)` to every cycle and to
+      `notify test`.
     </requirement>
 
     <requirement>
@@ -3406,7 +3415,9 @@ runs. The conversation is new per phase-boundary hygiene.
       is missing although a toast was delivered before; `skip` too
       when the database did not open; `pass` otherwise. Its detail
       names the setting or the HRESULT, never a notification's
-      text.
+      text. As shipped (PR #46): also `skip` while
+      `[notifications] toast` is off, when the latest delivery is
+      the expected `unavailable`.
     </requirement>
 
     <requirement>
@@ -3847,6 +3858,33 @@ High) runs. The conversation is new per phase-boundary hygiene.
       assessment and the policy settles the hold (withdrawn, held
       again while the input is still missing, or decided as a
       drop); a rerun over the same snapshot decides nothing.
+    - Carry-over from Step 4 (PR #46 body has the details): the
+      CLI's channels are `Context.channels`, `LogChannel` and
+      `Runtime.make_toast(settings)` (the toast's seam, as
+      `make_fetcher` is the network's); pass
+      `channels=context.channels` to every `MonitorService` that
+      `serve` and `check` build, as `cli/snapshots.run_cycle`
+      does. The services' default stays `LogChannel` alone.
+      `NotificationService.send(kind, title=, body=)` stores and
+      delivers a notification that belongs to no location
+      (`notify test` uses it); extend it for `degraded` and
+      `recovered` rather than writing their rows by hand. The
+      database-free toast has no row, so it calls
+      `context.runtime.make_toast(settings).deliver(...)` with a
+      `StoredNotification` whose `id` is 0 and logs the result's
+      kind. A toast delivery waits up to 2 s for Windows'
+      `Failed` event, inside the simulated advisory's interval.
+      Command tests get a delivering `cli_support.FakeToast` and
+      a registered `FakeRegistry` from `runtime(toast=,
+      identity=)`; `tests/conftest.py` sets
+      `WEATHERBOT_NOTIFICATIONS_TOAST=false`, so only a run
+      outside pytest, such as `scripts/simulate_advisory.py`,
+      shows a real toast. Never deliver through a default
+      `ToastChannel()` in a test: the identity is registered on
+      the operator's machine (2026-10-23), where it would show.
+      Both test toasts stayed in the notification center there
+      (build 26200, no COM activator). PR #46's body records the
+      Windows test job's time against its 25-minute budget.
     - `MonitorService.run_cycle(trigger)` runs one cycle under
       `data_dir/cycle.lock` and returns `CycleResult` (with
       `status`, `notifications`, and `confirm_at`, the instant a
@@ -3856,9 +3894,9 @@ High) runs. The conversation is new per phase-boundary hygiene.
       `runner`, with `expected_every_s`; the staleness rule flags
       a row past twice its cadence. `check --once` runs one cycle;
       `check` without `--once` exits 2 until this step.
-    - `NotificationService` decides and delivers through
-      `LogChannel` and `toast_channel(settings)`;
-      `notifications.kind` already allows `degraded` and
+    - The CLI's cycles decide and deliver through `LogChannel`
+      and the runtime's toast (`toast_channel(settings)` by
+      default); `notifications.kind` already allows `degraded` and
       `recovered`; the policy's quiet hours hold back
       non-escalations at levels 1 and 2.
     - The roster and alert sources the watches use exist:
@@ -4534,6 +4572,23 @@ runs. The conversation is new per phase-boundary hygiene.
       `completed_at`); `CycleRepository.recent(limit)` reads the
       latest cycles. `doctor`'s `heartbeat` check is `skip` until a
       row promises a cadence and when the database did not open.
+    - Carry-over from Step 4 (PR #46 body has the details):
+      `install-task` registers the identity through the runtime's
+      seam, `context.runtime.identity().register()` (the
+      `Identity` that `register_identity()` wraps), so its command
+      tests use `cli_support.FakeRegistry` and never the real
+      registry. It returns `registered`, `unchanged`, or
+      `not_needed`, and raises `OSError` when the registry refuses;
+      `notify setup` then names the error's class and exits 1. The
+      `desktop` marker already names Task Scheduler, so
+      `tests/desktop/test_tasks_desktop.py` needs no new marker.
+      `doctor`'s `toast` check is the pure
+      `toast_check(latest, *, identity, toast_on,
+      delivered_before)` beside `heartbeat_check`, fed by
+      `diagnose(identity=, toast_on=)`; the `tasks` and `path`
+      checks follow that pattern. The stale-monitor alarm sends
+      through `NotificationService.send("stale_monitor", ...)`
+      with `context.channels`.
     - Checked on 2026-10-21: this machine runs Windows 11 build
       26200, and the operator's account is an administrator under
       UAC whose shells run at medium integrity. Reported in two
