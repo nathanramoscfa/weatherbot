@@ -21,8 +21,9 @@ from weatherbot.models import (
     Provenance,
     Snapshot,
     SourceId,
+    Thresholds,
 )
-from weatherbot.services.replay import ReplayCorpus, ReplayStep
+from weatherbot.services.replay import ReplayCorpus, ReplayService, ReplayStep
 from weatherbot.sources import nhc_map, nws
 
 ROOT: Final = Path(__file__).resolve().parents[1]
@@ -108,6 +109,27 @@ def public_landmarks() -> dict[str, Location]:
             breakpoint_span=breakpoint_span(place(point, WGS84), catalogue),
         )
     return found
+
+
+@cache
+def replay_timelines() -> dict[tuple[str, str], tuple[ReplayStep, ...]]:
+    """Replay every storm at every landmark once, under the default thresholds.
+
+    The engine goldens, the notification goldens, and the notification replay tests all
+    read these eight timelines; building them once keeps the suite inside CI's budget.
+    Replay steps are frozen, so sharing them is safe.
+
+    Returns:
+        Each timeline, keyed by the storm's ATCF id and the landmark's key.
+    """
+    corpus = ReplayCorpus.open(CORPUS)
+    service = ReplayService(corpus)
+    thresholds = Thresholds()
+    return {
+        (storm.atcf_id, landmark): service.timeline(storm.atcf_id, location, thresholds)
+        for storm in corpus.storms()
+        for landmark, location in public_landmarks().items()
+    }
 
 
 @dataclass(frozen=True)

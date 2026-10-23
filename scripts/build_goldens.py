@@ -14,9 +14,17 @@ from datetime import date
 from pathlib import Path
 from typing import cast
 
-from ladder_data import CORPUS, GOLDENS, digest, entries, output_path, public_landmarks
+from ladder_data import (
+    CORPUS,
+    GOLDENS,
+    digest,
+    entries,
+    output_path,
+    public_landmarks,
+    replay_timelines,
+)
 from weatherbot.models import Thresholds
-from weatherbot.services.replay import ReplayCorpus, ReplayService
+from weatherbot.services.replay import ReplayCorpus
 
 
 def read_document(path: Path) -> dict[str, object]:
@@ -31,14 +39,13 @@ def read_document(path: Path) -> dict[str, object]:
 def candidates() -> dict[str, dict[str, object]]:
     """Build all eight candidates through the production replay service."""
     corpus = ReplayCorpus.open(CORPUS)
-    service = ReplayService(corpus)
     thresholds = Thresholds()
     manifest_sha = hashlib.sha256((CORPUS / "corpus-manifest.json").read_bytes()).hexdigest()
     found: dict[str, dict[str, object]] = {}
     for storm in corpus.storms():
-        for landmark, location in public_landmarks().items():
+        for landmark in public_landmarks():
             name = f"{storm.atcf_id}-{landmark}.json"
-            timeline = entries(service.timeline(storm.atcf_id, location, thresholds))
+            timeline = entries(replay_timelines()[storm.atcf_id, landmark])
             found[name] = {
                 "_file": f"tests/golden/replay/{name}",
                 "atcf_id": storm.atcf_id,
