@@ -755,6 +755,26 @@ packaging path that every later UI step extends. Opus 5.5 at `Max` on
 Claude Code (Max subscription); GPT-6 Astra on Codex as the funded
 backup, per `roadmodel score`.
 
+Phase 5 keeps Phase 4's verification green as it grows (Phase 4 Step 7,
+`docs/phase04-qa-findings.md`). `verify_phase04.py` was written so that new
+`[monitor]` or `[notifications]` settings, `ENVIRONMENT_OVERRIDES`, JSON
+Schemas, `FROZEN` migrations, and Alembic revisions (`V2.5` requires the
+database at a head that descends from `0006`) need no historical conversion.
+Seven checks are exact and stay live until a step deliberately changes what
+they read: check 8 reads the nine `CycleTrigger` literals in
+`services/monitor.py`; check 17 reads the seven `DECISION_KINDS` literals in
+`services/policy.py`; check 20 reads the two Irma notification goldens in
+`tests/golden/notifications/`; check 36 requires `cli/serve.py` to call
+`ProcessLock` and `run_monitor` (keep those calls in `cli/serve.py` when Phase
+5 adds the FastAPI server to `serve`, or convert check 36 to read
+`v2.0.0-phase-4` in the same PR); check 40 reads `TASK_NAMES = ("serve",
+"check")` in `services/tasks.py`; check 43 reads the five `NOTIFICATION_KINDS`
+literals in `services/notifications.py`; and check 46 reads `README.md`'s
+`## Status` naming Phase 4 complete and Phase 5 next (when Phase 5 updates
+`README.md`'s `## Status`, convert check 46 in the same PR to read
+`v2.0.0-phase-4:README.md`). Keep the `"01"`, `"02"`, `"03"`, and `"04"` matrix
+entries.
+
 #### 5.1 API
 - FastAPI routes: `/api/health` (version, scheduler state, heartbeat,
   database head), `/api/locations`, `/api/storms`, `/api/assessments`,

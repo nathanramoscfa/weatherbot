@@ -110,10 +110,30 @@ Phase 3's is `uv run python scripts/verify_phase03.py`, with Phase 2's flags;
   never runs `status` or `replay` against your locations). Findings are in
   [the Phase 3 QA ledger](docs/phase03-qa-findings.md).
 
+Phase 4's is `uv run python scripts/verify_phase04.py`, with Phase 2's flags:
+
+- `--fast`: 51 numbered, independent checks, offline and standard-library only.
+- `--py`: static checks, lint, formatting, types (Windows and `--pythonplatform
+  Linux`), import contracts, the offline tests with the engine and notification
+  policy branch-coverage floor (the coverage data file goes to a temporary
+  directory), and the installed-wheel smoke, which imports `assess`, `RULES`,
+  `diff`, `decide`, `MonitorService`, `NotificationService`, `Scheduler`, and
+  `MonitorSchedule` and opens a new database at the Alembic head.
+- `--live`: static checks and `pytest -m live` (landmarks only).
+- `--security`: static checks and the four-check security gate.
+- `--all`: the Python, live, and security suites together.
+- `--post`: the canonical 80-check pre-tag sweep: the 29-row V1-V7 matrix from
+  one offline, one live, and one desktop run (`pytest -m desktop`), GitHub
+  readbacks, Phase 3's own `--post`, `scripts/simulate_advisory.py` in a
+  temporary data directory, `doctor --offline --json` on the installed tool, a
+  `doctor` alarm proof against a temporary database with a stale heartbeat, and
+  Task Scheduler readbacks for `\Weatherbot\serve` and `\Weatherbot\check`.
+  Findings are in [the Phase 4 QA ledger](docs/phase04-qa-findings.md).
+
 Both `gate` and `phase-verify` are required on protected `main`. The latter
-aggregates the `phase-verify (01)`, `phase-verify (02)`, and `phase-verify (03)`
-matrix jobs; later phases append their entries and retain the aggregate name. Both workflows run
-on every pull request.
+aggregates the `phase-verify (01)`, `phase-verify (02)`, `phase-verify (03)`,
+and `phase-verify (04)` matrix jobs; later phases append their entries and
+retain the aggregate name. Both workflows run on every pull request.
 
 The test suite blocks all network access except loopback, and every test
 runs in a temporary working directory, so a test can never read or write the

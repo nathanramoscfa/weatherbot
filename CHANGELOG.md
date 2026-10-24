@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 4 — Monitoring and notifications
+- Add `scripts/verify_phase04.py`: 51 static checks over shared geometry
+  storage, the monitor cycle and heartbeats, the notification policy and log,
+  the Windows toast channel, the scheduler and watches, and Task Scheduler
+  registration and health checks, in the six modes `--fast`, `--py` (with the
+  engine and notification-policy branch-coverage floors), `--live`,
+  `--security`, `--all`, and `--post` (80 checks: the 29-row V1-V7 matrix built
+  from JUnit reports, GitHub readbacks, Phase 3's own `--post`,
+  `scripts/simulate_advisory.py`, `doctor --offline --json` on the installed
+  tool with its alarm proof, and Task Scheduler readbacks). `phase-verify.yml`
+  runs entry `"04"` beside `"01"`, `"02"`, and `"03"` under the required
+  aggregate `phase-verify`. `docs/phase04-qa-findings.md` is the phase's
+  disposition ledger, and `README.md`'s Status names Phase 4 as complete and
+  Phase 5 as next.
 - Add Windows Task Scheduler registration and health checks
   (`weatherbot.services.tasks`, `weatherbot install-task`, `weatherbot
   uninstall-task`): registers `\Weatherbot\serve` (`LogonTrigger`, `PT0S`) and
