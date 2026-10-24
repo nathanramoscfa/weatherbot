@@ -4247,9 +4247,9 @@ High) runs. The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 6 — Task Scheduler and health
+## Step 6 — Task Scheduler and health ✅
 
-**Status:** Not started
+**Status:** Complete — PR #50 (2026-10-24)
 
 > **Goal:** Keep the monitor running when no one is watching, and say so when it
 > stops. `weatherbot.services.tasks` writes two task definitions as escaped XML
@@ -4289,6 +4289,8 @@ must store a new assessment. GitHub Actions → the first `ci.yml` and
 | Conversation | **New**                                 | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-24: Balanced column — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Selected by the **Runs:** rule (Google AI Pro pool reads headroom).
 
 **Model rationale:** Step 6 is coding with an agentic secondary category:
 Windows task definitions, a subprocess layer over `schtasks.exe` and PowerShell,
@@ -5854,7 +5856,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #43 |
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #46 |
 | 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #49 |
-| 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
+| 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #50 |
 | 7    | QA + verify_phase04.py        | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | V1   | Snapshot storage              | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V2   | Cycle + heartbeat + staleness | CI: ci.yml               | --           | --                  | --       | --   | --          |
