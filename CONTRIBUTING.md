@@ -295,6 +295,17 @@ development_chance_floor_pct = 0    # a band lower bound
 [monitor]
 cycle_lock_wait_seconds = 120       # 1 to 3600: how long a cycle waits for another
 confirm_after_minutes = 5           # 1 to 60: delay before a held-drop confirmation cycle
+window_offset_minutes = 15          # 1 to 60: minutes after each UTC product hour when a window opens
+window_jitter_seconds = 120         # 1 to 600: maximum positive random delay on a window's opening
+window_close_minutes = 60           # 1 to 180: minutes after the product hour when the window runs anyway
+roster_poll_minutes = 5             # 1 to 60: poll interval inside an open window until roster and cone agree
+roster_interval_minutes = 15        # 1 to 60: roster watch interval when every location is at level 1
+roster_interval_relevant_minutes = 5 # 1 to 60: roster watch interval while any location is above level 1
+alert_interval_minutes = 5          # 1 to 60: NWS alert watch interval while a US location is above level 1
+retry_base_minutes = 5              # 1 to 60: first retry delay after a ladder source fails (doubles each retry)
+retry_count = 3                     # 1 to 10: maximum retries per run of ladder-source failures
+degraded_after_failures = 3         # 1 to 10: consecutive failures before the degraded-data alarm fires
+heartbeat_minutes = 5               # 1 to 60: how often the running monitor writes its runner heartbeat
 
 [notifications]
 cooldown_hours = 6                  # 0 to 48: repeat window per event key
@@ -477,6 +488,83 @@ you are there to look:
 ```sh
 uv run weatherbot notify setup
 uv run pytest -m desktop tests/desktop/test_toast_desktop.py
+```
+
+### The scheduler, watches, alarms, log file, and simulated advisory
+
+`weatherbot.services.scheduler.Scheduler` is the application's small asyncio
+scheduler (written in place of APScheduler, whose 3.11.3 release is untyped and
+has an unreleased fix for a loop-stopping exception bug, while 4.0 is an alpha).
+It sleeps at most 60 seconds at a time and compares due times with the UTC wall
+clock, draws one positive random delay per due instant (`random.uniform(0,
+jitter)`), runs one job at a time without starting a running job twice, logs and
+isolates any job failure on its heartbeat, and runs one coalesced `resume` cycle
+when a wake arrives more than 60 seconds after the instant its sleep was due to
+end (a long job is not a gap).
+
+`weatherbot.services.schedule.MonitorSchedule` wires the six jobs onto
+`Scheduler` for `weatherbot serve` and `weatherbot check` (without `--once`):
+
+- `startup`: runs one `startup` cycle immediately when the monitor starts.
+- `window`: opens at each of NHC's eight UTC product hours (`00`, `03`, `06`,
+  `09`, `12`, `15`, `18`, and `21` UTC) plus `window_offset_minutes` (15), with
+  up to `window_jitter_seconds` (120) of delay. Each run reads the roster
+  conditionally and queries the summary service's `Forecast Cone` layer for
+  attributes only (`weatherbot.sources.nhc_map.fetch_cone_advisories` over
+  `arcgis.attributes` with `ATTRIBUTE_PARAMETERS`: `where=1=1`,
+  `outFields=binnumber,advisnum`, `returnGeometry=false`, `f=json`); until every
+  active storm's public advisory is issued at or after the product hour and the
+  cone layer shows that same advisory, it reschedules itself
+  `roster_poll_minutes` (5) later, and runs one `window` cycle once they agree
+  or at `window_close_minutes` (60). With no active storm it runs at once.
+- `roster`: polls `CurrentStorms.json` conditionally every
+  `roster_interval_minutes` (15), or `roster_interval_relevant_minutes` (5)
+  while any location's latest assessment is above level 1, with up to 30 seconds
+  of delay, sharing a 60-second in-memory roster cache with `window` and a
+  process-lifetime `MemoryValidatorStore`. It records the `roster` watch
+  heartbeat and runs a `roster` cycle only when the active storms or their
+  advisories differ from the latest stored snapshot's.
+- `alerts`: runs only while at least one location inside NWS coverage is above
+  level 1, every `alert_interval_minutes` (5, minimum 1 — at least twice the NWS
+  API documentation's 30-second recommendation), with up to 30 seconds of delay.
+  It calls `fetch_alerts` per relevant US location, records the `alerts` watch
+  heartbeat (clearing its expected cadence when idle), and runs an `alerts`
+  cycle when any location's set of alert ids and `sent` instants differs from
+  the latest stored snapshot's.
+- `confirm` and `retry`: `confirm` runs a `confirm` cycle at `CycleResult.confirm_at`
+  when the policy holds a drop; `retry` runs a `retry` cycle at 5, 10, and 20
+  minutes (`retry_base_minutes`, doubled up to `retry_count = 3`) after a cycle
+  in which a ladder source (`nhc-current-storms`, `nhc-map-tropical-summary`,
+  `nws-alerts-point`, `nws-alerts-zone`) failed or an `error` cycle, and resets
+  once those sources answer. Failures of non-ladder sources (such as graphics or
+  text products) schedule no retry.
+- Process heartbeat and alarms: an independent asyncio task
+  (`run_heartbeat_task`) writes the `runner` heartbeat (`serve` or `check`)
+  every `heartbeat_minutes` (5) while jobs run, and a clean stop clears its
+  `expected_every_s` so a deliberately stopped monitor never looks stale. When a
+  ladder source or watch reaches `degraded_after_failures` (3) consecutive
+  failures, the monitor sends one `degraded` notification through the log and
+  the toast, and sends a `recovered` entry when it answers again (with a toast
+  only if the degraded notification delivered a toast; quiet hours hold back the
+  toast only while every location is at level 1 or 2). When `open_database`
+  refuses a newer schema revision or fails a migration, `serve` and `check` log
+  it, send one database-free toast (`deliver_database_refused_toast`), and exit 1.
+
+`serve` and `check` take `data_dir/monitor.lock` (`ProcessLock` with no wait; a
+second instance exits 2 naming the holder's process id and start instant) and
+write a rotating log file at `data_dir/logs/weatherbot.log` (1 MiB per file,
+five files kept, UTC ISO-8601 timestamps, and `RedactingFilter` so coordinates
+are redacted above DEBUG while DEBUG shows full request URLs). When `sys.stderr`
+is `None` (`pythonw.exe`), `configure_logging` attaches only the rotating file
+handler and points `sys.stdout` and `sys.stderr` at `os.devnull`.
+
+To verify the full scheduled chain and a real toast on your Windows machine in a
+temporary directory (over recorded fixtures with `respx`, never touching your
+data directory or network), run:
+
+```sh
+uv run weatherbot notify setup
+uv run python scripts/simulate_advisory.py
 ```
 
 The tests never touch any of this. An autouse fixture in `tests/conftest.py`

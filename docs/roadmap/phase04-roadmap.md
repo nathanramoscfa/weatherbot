@@ -3526,9 +3526,9 @@ runs. The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 5 — The scheduler, `serve`, and `check`
+## Step 5 — The scheduler, `serve`, and `check` ✅
 
-**Status:** Not started
+**Status:** Complete — PR #49 (2026-10-23)
 
 > **Goal:** Run the cycle on NHC's schedule, watch for what the schedule cannot
 > know, and keep running through failures and sleep.
@@ -3570,6 +3570,8 @@ interval. GitHub Actions → the first `ci.yml` and `phase-verify.yml` runs on
 | Conversation | **New**                                 | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-23: Balanced column — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Selected by the **Runs:** rule (Google AI Pro pool reads headroom).
 
 **Model rationale:** Step 5 is coding with an agentic secondary category: an
 asyncio scheduler and the monitor's jobs, two long-running commands, and an
@@ -4589,6 +4591,18 @@ runs. The conversation is new per phase-boundary hygiene.
       checks follow that pattern. The stale-monitor alarm sends
       through `NotificationService.send("stale_monitor", ...)`
       with `context.channels`.
+    - Carry-over from Step 5: `serve`, `check`, and `check --once`
+      open the database through `open_monitor_session(context,
+      output)` (`weatherbot.cli.runtime`), which catches
+      `UnknownRevisionError` and `MigrationFailedError`, logs the
+      refusal, delivers the database-free toast once via
+      `deliver_database_refused_toast` (`weatherbot.services.notifications`),
+      and exits 1; keep `check --once --if-stale` on
+      `open_monitor_session` so the fallback inherits the same
+      behaviour. `clear_runner_heartbeat_cadence` clears the
+      runner row's `expected_every_s` on a clean stop, so a
+      monitor stopped on purpose never triggers the fallback's
+      stale-monitor alarm.
     - Checked on 2026-10-21: this machine runs Windows 11 build
       26200, and the operator's account is an administrator under
       UAC whose shells run at medium integrity. Reported in two
@@ -5839,7 +5853,7 @@ workflow above maps directly to the corresponding row below.
 | 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #42 |
 | 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #43 |
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #46 |
-| 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
+| 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #49 |
 | 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | 7    | QA + verify_phase04.py        | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | V1   | Snapshot storage              | CI: ci.yml               | --           | --                  | --       | --   | --          |

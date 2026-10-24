@@ -47,6 +47,7 @@ from weatherbot.models import (
     RosterProduct,
     SourceId,
     StormProducts,
+    StormSlot,
     StormSummary,
     TrackPoint,
     WatchWarningSegment,
@@ -60,7 +61,15 @@ from weatherbot.models import (
     parse_synoptic_time,
     resolve_track_valid_time,
 )
-from weatherbot.sources.arcgis import SERVICES, TROPICAL_WEATHER, LayerQuery, query, resolve
+from weatherbot.sources.arcgis import (
+    SERVICES,
+    TROPICAL_SUMMARY,
+    TROPICAL_WEATHER,
+    LayerQuery,
+    attributes,
+    query,
+    resolve,
+)
 from weatherbot.sources.drift import warn_drift
 from weatherbot.sources.errors import SourceSchemaError
 from weatherbot.sources.fields import Fields, as_mapping, model_errors
@@ -173,7 +182,12 @@ FIELDS_READ: Final[Mapping[str, frozenset[str]]] = MappingProxyType(
 )
 """The fields each typed layer's parser reads, by the layer's name without its slot."""
 
+CONE_ADVISORY_FIELDS: Final = ("binnumber", "advisnum")
+CONE_ADVISORIES_READ: Final = frozenset(CONE_ADVISORY_FIELDS)
+"""The cone-layer attributes the window watch reads without geometry."""
+
 ISSUANCE_TOLERANCE: Final = timedelta(hours=1)
+_SLOT_NAME: Final = re.compile(r"^(?:AT|EP|CP)[1-5]$")
 _SLOT_LAYER: Final = re.compile(r"(?P<slot>(?:AT|EP|CP)[1-5]) (?P<name>.+)")
 _FOLDER_ADVISORY: Final = re.compile(
     r"(?P<atcf>(?:AL|EP|CP)\d{6})_Adv(?P<number>\d{1,3}[A-Za-z]?)\s*$", re.IGNORECASE
@@ -1067,3 +1081,56 @@ async def fetch_peak_surge(
         collection, answer = _merged(result)
         layers.append(parse_display_layer(name, collection, answer.provenance()))
     return SourceResult(tuple(layers), _responses(results))
+
+
+def parse_cone_advisories(
+    rows: Sequence[Mapping[str, object]],
+    source: SourceId = TROPICAL_SUMMARY.source_id,
+) -> Mapping[StormSlot, AdvisoryNumber]:
+    """Parse the summary service's cone-layer attributes into one advisory per slot.
+
+    Args:
+        rows: Each cone feature's attributes (``binnumber`` and ``advisnum``).
+        source: The map service's source id, for errors.
+
+    Returns:
+        Each active slot's advisory number.
+
+    Raises:
+        SourceSchemaError: A feature lacks ``binnumber`` or ``advisnum``, names an invalid
+            slot or advisory number, or two features in the same slot disagree.
+    """
+    advisories: dict[StormSlot, AdvisoryNumber] = {}
+    for index, row in enumerate(rows):
+        where = f"{FORECAST_CONE} attribute {index}"
+        fields = Fields(row, CONE_ADVISORIES_READ, source_id=source, where=where)
+        slot_text = fields.text("binnumber").strip().upper()
+        if not _SLOT_NAME.fullmatch(slot_text):
+            message = f"{where}: 'binnumber' {slot_text!r} is not a storm slot"
+            raise SourceSchemaError(source, message)
+        slot = cast("StormSlot", slot_text)
+        with model_errors(source, where):
+            number = AdvisoryNumber.parse(fields.code("advisnum"))
+        if advisories.setdefault(slot, number) != number:
+            message = f"{FORECAST_CONE}: slot {slot} names more than one advisory"
+            raise SourceSchemaError(source, message)
+    return MappingProxyType(advisories)
+
+
+async def fetch_cone_advisories(
+    fetcher: Fetcher, catalog: MapCatalog
+) -> SourceResult[Mapping[StormSlot, AdvisoryNumber]]:
+    """Query the summary service's ``Forecast Cone`` attributes without geometry.
+
+    Args:
+        fetcher: The run's fetcher.
+        catalog: A catalog of ``NHC_tropical_weather_summary``.
+
+    Returns:
+        Each slot's advisory number and the answer.
+    """
+    source = catalog.provenance.source_id
+    service = SERVICES[source]
+    layer = resolve(catalog, FORECAST_CONE)
+    result = await attributes(fetcher, service, layer, CONE_ADVISORY_FIELDS)
+    return SourceResult(parse_cone_advisories(result.records, source), result.responses)

@@ -31,7 +31,12 @@ from weatherbot.models import AlertLevel, Assessment, ChangeEvent, Location
 from weatherbot.services.assessments import AssessedLocation
 from weatherbot.services.config import Settings
 from weatherbot.services.persistence.codec import validated
-from weatherbot.services.persistence.database import writing_session
+from weatherbot.services.persistence.database import (
+    DatabaseError,
+    MigrationFailedError,
+    UnknownRevisionError,
+    writing_session,
+)
 from weatherbot.services.persistence.tables import (
     AssessmentRow,
     LocationRow,
@@ -368,9 +373,16 @@ class NotificationService:
         self,
         notification: StoredNotification,
         decisions: tuple[StoredDecision, ...],
+        *,
+        include_toast: bool = True,
     ) -> StoredNotification:
+        active_channels = (
+            self._channels
+            if include_toast
+            else tuple(c for c in self._channels if c.name != "toast")
+        )
         channel_outcomes: list[tuple[str, datetime, Delivery]] = []
-        for channel in self._channels:
+        for channel in active_channels:
             attempted_at = self._now()
             outcome = await channel.deliver(notification)
             channel_outcomes.append((channel.name, attempted_at, outcome))
@@ -466,22 +478,36 @@ class NotificationService:
         )
 
     async def send(
-        self, kind: NotificationKind, *, title: str, body: Sequence[str]
+        self,
+        kind: NotificationKind,
+        *,
+        title: str,
+        body: Sequence[str],
+        cycle_id: int | None = None,
+        include_toast: bool = True,
     ) -> StoredNotification:
         """Store a notification that belongs to no location, then deliver it.
 
         Args:
-            kind: What it is about, such as ``test``.
+            kind: What it is about, such as ``test``, ``degraded``, or ``recovered``.
             title: Its title.
             body: Its lines, which name and never locate.
+            cycle_id: Optional monitor cycle id that triggered it.
+            include_toast: When ``False``, delivers to ``LogChannel`` only (holding the
+                toast back during quiet hours or when a recovery had no degraded toast).
 
         Returns:
-            The stored notification with one delivery per channel.
+            The stored notification with one delivery per active channel.
         """
         now = self._now()
         with writing_session(self._engine) as session:
             row = NotificationRow(
-                kind=kind, escalation=False, title=title, body=list(body), created_at=now
+                cycle_id=cycle_id,
+                kind=kind,
+                escalation=False,
+                title=title,
+                body=list(body),
+                created_at=now,
             )
             session.add(row)
             session.flush()
@@ -490,7 +516,7 @@ class NotificationService:
                 location_name=None,
                 location_time_zone=None,
                 assessment_id=None,
-                cycle_id=None,
+                cycle_id=cycle_id,
                 kind=kind,
                 level=None,
                 escalation=False,
@@ -499,7 +525,7 @@ class NotificationService:
                 created_at=now,
             )
         LOGGER.info("notification stored: id=%d kind=%s", notification.id, kind)
-        return await self._deliver_one(notification, ())
+        return await self._deliver_one(notification, (), include_toast=include_toast)
 
     def latest_delivery(self, channel: ChannelName) -> StoredDelivery | None:
         """Return the newest stored delivery through ``channel``, if any.
@@ -635,6 +661,52 @@ class NotificationService:
                     )
                 )
             return tuple(results)
+
+
+def database_error_kind(error: DatabaseError) -> str:
+    """Return the short kind label for a ``DatabaseError``."""
+    if isinstance(error, UnknownRevisionError):
+        return "unknown_revision"
+    if isinstance(error, MigrationFailedError):
+        return "migration_failed"
+    return "database_error"
+
+
+async def deliver_database_refused_toast(
+    toast: Channel,
+    error: DatabaseError,
+    *,
+    now: datetime | None = None,
+) -> Delivery:
+    """Deliver one database-free toast when ``open_database`` fails at monitor start.
+
+    Args:
+        toast: The toast channel (``Runtime.make_toast(settings)``).
+        error: The ``DatabaseError`` raised by ``open_database``.
+        now: The current UTC instant; defaults to ``datetime.now(UTC)``.
+
+    Returns:
+        The channel's ``Delivery`` outcome.
+    """
+    instant = now if now is not None else _now()
+    kind = database_error_kind(error)
+    title = f"Weatherbot cannot open its database: {kind}; reinstall or restore it."
+    notification = StoredNotification(
+        id=0,
+        location_name=None,
+        location_time_zone=None,
+        assessment_id=None,
+        cycle_id=None,
+        kind="degraded",
+        level=None,
+        escalation=False,
+        title=title,
+        body=("Reinstall Weatherbot or restore the database from a backup.",),
+        created_at=instant,
+    )
+    outcome = await toast.deliver(notification)
+    LOGGER.error("database cannot be opened (%s): toast result=%s", kind, outcome.result)
+    return outcome
 
 
 @dataclass(frozen=True, slots=True)

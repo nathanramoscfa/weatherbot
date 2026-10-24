@@ -33,6 +33,14 @@
         "migrate_lock_file": {
           "title": "Migrate Lock File",
           "type": "string"
+        },
+        "monitor_lock_file": {
+          "title": "Monitor Lock File",
+          "type": "string"
+        },
+        "log_file": {
+          "title": "Log File",
+          "type": "string"
         }
       },
       "required": [
@@ -42,7 +50,9 @@
         "database_file",
         "backup_dir",
         "cycle_lock_file",
-        "migrate_lock_file"
+        "migrate_lock_file",
+        "monitor_lock_file",
+        "log_file"
       ],
       "title": "ConfigPathData",
       "type": "object"

@@ -95,7 +95,11 @@ def test_config_path_names_the_files_under_the_data_and_config_directories() -> 
     assert Path(data.backup_dir) == paths.data_dir / "backups"
     assert Path(data.cycle_lock_file) == paths.data_dir / "cycle.lock"
     assert Path(data.migrate_lock_file) == paths.data_dir / "migrate.lock"
+    assert Path(data.monitor_lock_file) == paths.data_dir / "monitor.lock"
+    assert Path(data.log_file) == paths.data_dir / "logs" / "weatherbot.log"
     assert printed.exit_code == 0
     assert "Cycle lock" in printed.stdout
     assert "Migration lock" in printed.stdout
+    assert "Monitor lock" in printed.stdout
+    assert "Log file" in printed.stdout
     assert not paths.data_dir.exists()  # printing the paths creates nothing

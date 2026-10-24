@@ -165,6 +165,7 @@ def test_every_parsed_layer_is_a_register_layer() -> None:
     registered = {name.removeprefix(SLOT_PREFIX) for _, name in FEATURE_ROWS}
     assert set(nhc_map.FIELDS_READ) <= registered
     assert registered >= nhc_map.DISPLAY_LAYERS
+    assert nhc_map.FIELDS_READ[nhc_map.FORECAST_CONE] >= nhc_map.CONE_ADVISORIES_READ
 
 
 @pytest.mark.parametrize(("capture", "field"), DELETIONS, ids=[f"{c}:{f}" for c, f in DELETIONS])

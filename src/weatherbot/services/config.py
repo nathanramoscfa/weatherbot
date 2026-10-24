@@ -48,6 +48,9 @@ DATABASE_FILE: Final = "weatherbot.sqlite3"
 BACKUP_DIRECTORY: Final = "backups"
 CYCLE_LOCK_FILE: Final = "cycle.lock"
 MIGRATE_LOCK_FILE: Final = "migrate.lock"
+MONITOR_LOCK_FILE: Final = "monitor.lock"
+LOG_DIRECTORY: Final = "logs"
+LOG_FILE: Final = "weatherbot.log"
 OWNER_ONLY: Final = 0o700
 
 # The environment variable that overrides each setting, by its (table, key) in the file.
@@ -62,6 +65,20 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("engine", "development_chance_floor_pct"): "WEATHERBOT_ENGINE_DEVELOPMENT_CHANCE_FLOOR_PCT",
     ("monitor", "cycle_lock_wait_seconds"): "WEATHERBOT_MONITOR_CYCLE_LOCK_WAIT_SECONDS",
     ("monitor", "confirm_after_minutes"): "WEATHERBOT_MONITOR_CONFIRM_AFTER_MINUTES",
+    ("monitor", "window_offset_minutes"): "WEATHERBOT_MONITOR_WINDOW_OFFSET_MINUTES",
+    ("monitor", "window_jitter_seconds"): "WEATHERBOT_MONITOR_WINDOW_JITTER_SECONDS",
+    ("monitor", "window_close_minutes"): "WEATHERBOT_MONITOR_WINDOW_CLOSE_MINUTES",
+    ("monitor", "roster_poll_minutes"): "WEATHERBOT_MONITOR_ROSTER_POLL_MINUTES",
+    ("monitor", "roster_interval_minutes"): "WEATHERBOT_MONITOR_ROSTER_INTERVAL_MINUTES",
+    (
+        "monitor",
+        "roster_interval_relevant_minutes",
+    ): "WEATHERBOT_MONITOR_ROSTER_INTERVAL_RELEVANT_MINUTES",
+    ("monitor", "alert_interval_minutes"): "WEATHERBOT_MONITOR_ALERT_INTERVAL_MINUTES",
+    ("monitor", "retry_base_minutes"): "WEATHERBOT_MONITOR_RETRY_BASE_MINUTES",
+    ("monitor", "retry_count"): "WEATHERBOT_MONITOR_RETRY_COUNT",
+    ("monitor", "degraded_after_failures"): "WEATHERBOT_MONITOR_DEGRADED_AFTER_FAILURES",
+    ("monitor", "heartbeat_minutes"): "WEATHERBOT_MONITOR_HEARTBEAT_MINUTES",
     ("notifications", "cooldown_hours"): "WEATHERBOT_NOTIFICATIONS_COOLDOWN_HOURS",
     ("notifications", "quiet_hours_start"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_START",
     ("notifications", "quiet_hours_end"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_END",
@@ -159,6 +176,16 @@ class AppPaths:
         """The lock a process holds while it backs up and upgrades the database."""
         return self.data_dir / MIGRATE_LOCK_FILE
 
+    @property
+    def monitor_lock_path(self) -> Path:
+        """The lock the one running monitor process (``serve`` or ``check``) holds."""
+        return self.data_dir / MONITOR_LOCK_FILE
+
+    @property
+    def log_file_path(self) -> Path:
+        """The rotating log file ``serve`` and ``check`` write."""
+        return self.data_dir / LOG_DIRECTORY / LOG_FILE
+
 
 type LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
@@ -243,10 +270,21 @@ class EngineSettings(_Section):
 
 
 class MonitorSettings(_Section):
-    """``[monitor]``: how the monitor cycle runs."""
+    """``[monitor]``: how the monitor cycle and scheduler run."""
 
     cycle_lock_wait_seconds: int = Field(default=120, ge=1, le=3600)
     confirm_after_minutes: int = Field(default=5, ge=1, le=60)
+    window_offset_minutes: int = Field(default=15, ge=1, le=60)
+    window_jitter_seconds: int = Field(default=120, ge=1, le=600)
+    window_close_minutes: int = Field(default=60, ge=1, le=180)
+    roster_poll_minutes: int = Field(default=5, ge=1, le=60)
+    roster_interval_minutes: int = Field(default=15, ge=1, le=60)
+    roster_interval_relevant_minutes: int = Field(default=5, ge=1, le=60)
+    alert_interval_minutes: int = Field(default=5, ge=1, le=60)
+    retry_base_minutes: int = Field(default=5, ge=1, le=60)
+    retry_count: int = Field(default=3, ge=1, le=10)
+    degraded_after_failures: int = Field(default=3, ge=1, le=10)
+    heartbeat_minutes: int = Field(default=5, ge=1, le=60)
 
 
 class NotificationSettings(_Section):
