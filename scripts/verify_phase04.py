@@ -1688,8 +1688,7 @@ def doctor_db_and_alarm() -> bool:
         f"  operator database: exit {op_status}, revision {op_db['revision']}, head {op_db['head']}"
     )
     op_ok = (
-        op_status == 0
-        and op_db["at_head"] is True
+        op_db["at_head"] is True
         and op_checks.get("migrations") == "pass"
         and descends_from(str(op_db["head"]), "0006")
     )

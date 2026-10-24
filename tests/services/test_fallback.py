@@ -272,9 +272,11 @@ def test_fallback_held_lock_staying_stale_sends_not_responding_and_resets_after_
                 channels=(LogChannel(), toast),
                 lock_held=lambda _p: False,
                 serve_installed=True,
+                start_serve=lambda: started.append("serve"),
             )
         )
         assert again.alarmed is True
+        assert started == ["serve"]
         assert len(toast.handed) == 2  # noqa: PLR2004 - second distinct stale period
 
 
