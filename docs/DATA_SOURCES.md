@@ -19,7 +19,14 @@ records in 12 advisories, not 39 in 13). Amended again 2026-10-19, from the
 recorded 2026-10-12 capture, for Phase 3 Step 3: the "Fields v2 uses" list of
 `Watch_Warning_Breakpoints` under
 [`tropical/NHC_Breakpoints`](#tropicalnhc_breakpoints), which now reads
-`objectid` and `idp_filedate` for the breakpoint span. Every other statement
+`objectid` and `idp_filedate` for the breakpoint span. Amended again
+2026-10-23, for Phase 4 Step 5: the `nhc-current-storms`,
+`nhc-map-tropical-summary`, `nws-alerts-point`, and `nws-alerts-zone` rows,
+the cone layer's attribute query (`ATTRIBUTE_PARAMETERS`), and the monitor's
+polling cadence under [NHC current storms](#nhc-current-storms),
+[`tropical/NHC_tropical_weather_summary`](#tropicalnhc_tropical_weather_summary),
+and [User-Agent and polite use](#user-agent-and-polite-use) (including the NWS
+API documentation's 30-second recommendation). Every other statement
 keeps 2026-10-12, or the date its own amendment names.
 
 ## Purpose
@@ -120,10 +127,10 @@ response headers on an allowlist (never `set-cookie`).
 
 | Source id | Brief §5 source | Endpoint | Format | Fixture | Cadence | Terms | Verified |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `nhc-current-storms` | `CurrentStorms.json` | `https://www.nhc.noaa.gov/CurrentStorms.json` | JSON | `required` | Rewritten after each advisory (at 21:24 for the 21:00 advisory); advisories every 6 h with intermediates between; `max-age=300`, `ETag`, `Last-Modified`, 304 honored | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
+| `nhc-current-storms` | `CurrentStorms.json` | `https://www.nhc.noaa.gov/CurrentStorms.json` | JSON | `required` | Rewritten after each advisory (at 21:24 for the 21:00 advisory); advisories every 6 h with intermediates between; `max-age=300`, `ETag`, `Last-Modified`, 304 honored | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
 | `nhc-arrival-times` | `CurrentStorms.json` | `https://www.nhc.noaa.gov/storm_graphics/api/{ID}_{adv}adv_{earliest_reasonable,most_likely}_toa_34.kmz` | KMZ (KML 2.2 in a zip) | `required` | Per full advisory; `ETag`, `Last-Modified` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-17 |
 | `nhc-map-tropical-weather` | MapServer `tropical/NHC_tropical_weather` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | Per advisory for storm slots, per outlook for the outlook layers, per synoptic time (6 h) for probabilistic winds; queries `max-age=0,must-revalidate` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
-| `nhc-map-tropical-summary` | MapServer `tropical/NHC_tropical_weather_summary` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather_summary/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | As `nhc-map-tropical-weather` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
+| `nhc-map-tropical-summary` | MapServer `tropical/NHC_tropical_weather_summary` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather_summary/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | As `nhc-map-tropical-weather` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
 | `nhc-map-breakpoints` | MapServers `NHC_Breakpoints`, `NHC_PeakStormSurge`, `StormSurgeRisk` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_Breakpoints/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | Static catalogue; loaded 2026-04-30 | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-map-peak-surge` | MapServers `NHC_Breakpoints`, `NHC_PeakStormSurge`, `StormSurgeRisk` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_PeakStormSurge/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | Per advisory when NHC issues a peak-surge forecast; empty otherwise | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-map-surge-risk` | MapServers `NHC_Breakpoints`, `NHC_PeakStormSurge`, `StormSurgeRisk` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/StormSurgeRisk/MapServer` | ArcGIS JSON catalog; PNG from `export` | `required` | Static hazard maps | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
@@ -132,8 +139,8 @@ response headers on an allowlist (never `set-cookie`).
 | `nhc-text-products` | NHC text products (TCP, TWO) | `https://api.weather.gov/products/types/{TCP,TWO}/locations/{location}` | JSON-LD (`application/ld+json`) | `required` | TCP per advisory; TWO four times a day; `max-age=120` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-outlook-graphics` | NHC outlook graphics | `https://www.nhc.noaa.gov/xgtwo/two_{atl,pac,cpac}_{2d0,7d0}.png` | PNG | `required` | Per outlook, and redrawn with advisories; `max-age=300`, `ETag`, `Last-Modified`, 304 honored | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nws-points` | NWS API | `https://api.weather.gov/points/{lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Static per point; `max-age=86400` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-17 |
-| `nws-alerts-point` | NWS API | `https://api.weather.gov/alerts/active?point={lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-17 |
-| `nws-alerts-zone` | NWS API | `https://api.weather.gov/alerts/active/zone/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-17 |
+| `nws-alerts-point` | NWS API | `https://api.weather.gov/alerts/active?point={lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
+| `nws-alerts-zone` | NWS API | `https://api.weather.gov/alerts/active/zone/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
 | `nws-zones` | NWS API | `https://api.weather.gov/zones/{type}/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Static (zones effective 2026-04-16); `max-age` of weeks, `Last-Modified` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `basemap-osm-tiles` | OpenStreetMap tiles | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | PNG tiles | `none — display-only: the browser loads tiles directly and the code never parses one; the OSMF tile policy forbids bulk download` | Cached per the tile's own headers (`max-age` of days) | [OSMF Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/); visible attribution required | 2026-10-12 |
 | `overlay-radar` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/weather_radar/ows` | WMS 1.3.0 capabilities XML; PNG tiles | `required` | Mosaic about every 4 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE` | 2026-10-12 |
@@ -207,6 +214,18 @@ file was last modified at 21:24 for that storm's 21:00 advisory.
   `movement_speed_mph`. The recorded TCP agrees: Simon's 85 kt and 3
   appear there as 100 mph and "AT 3 MPH". The forecast points' speed is
   in knots (below), so the two speeds differ in unit.
+- **Monitor polling (amended 2026-10-23).** The scheduled monitor
+  (`weatherbot.services.schedule`) polls `CurrentStorms.json` conditionally
+  with its stored `ETag` and `Last-Modified` every 15 minutes when calm
+  (`[monitor] roster_interval_minutes`), every 5 minutes while any watched
+  location is above level 1 (`roster_interval_relevant_minutes`), and every
+  5 minutes inside the 8 three-hourly UTC product windows (`00`, `03`,
+  `06`, `09`, `12`, `15`, `18`, `21` UTC, starting at `:15` with positive
+  jitter up to 120 seconds, until `T + 60` minutes). A 304 Not Modified
+  response records the watch heartbeat and triggers no full cycle; a new
+  storm or a changed advisory triggers a `roster` cycle, and inside a
+  product window triggers a `window` cycle once the summary service's
+  `Forecast Cone` layer agrees.
 
 ## Arrival-time KMZ
 
@@ -317,6 +336,14 @@ The recorder and Phase 2's clients query a feature layer with
   `{"type": "FeatureCollection", "features": []}`, 42 bytes.
 - **Counts.** `returnCountOnly=true&f=json` returns `{"count": n}`. This
   register's per-layer counts came from it.
+- **Attributes only (amended 2026-10-23).** `weatherbot.sources.arcgis.ATTRIBUTE_PARAMETERS`
+  (`where=1=1`, `returnGeometry=false`, `f=json`, plus `outFields`) returns
+  only `features[*].attributes`. Inside a product window,
+  `weatherbot.sources.nhc_map.fetch_cone_advisories` queries `Forecast Cone`
+  on `NHC_tropical_weather_summary` with `outFields=binnumber,advisnum`
+  (`CONE_ADVISORIES_READ`, a subset of `FIELDS_READ[FORECAST_CONE]`) to
+  check whether the map service has ingested the advisory
+  `CurrentStorms.json` lists before running a full cycle.
 - **Dates.** `idp_filedate` and `idp_ingestdate` are epoch milliseconds.
   Simon's 21:00 cone, for example, carried an `idp_filedate` of 21:08:17.
 - **Caching.** Queries answer `Cache-Control: max-age=0,must-revalidate`
@@ -748,11 +775,20 @@ keyed source and need a decision.
 
 The rate limit "is not public information, but allows a generous amount
 for typical use". A request over the limit returns an error and "may be
-retried after the limit clears (typically within 5 seconds)".
+retried after the limit clears (typically within 5 seconds)". The NWS API
+[documentation](https://www.weather.gov/documentation/services-web-api) also
+advises: "If you are polling for updates, please do not poll more frequently
+than once every 30 seconds."
 
-v2 sends at most one request per second to `api.weather.gov` and polls
-alerts at the scheduler's cadence (Phase 4). It caches points and zones,
-whose own lifetimes are a day or more.
+v2 sends at most one request per second to `api.weather.gov` (1.2-second
+per-host pacing) and polls active alerts (`nws-alerts-point` and
+`nws-alerts-zone`) only while at least one location inside NWS coverage has
+a latest assessment above level 1, every 5 minutes by default
+(`[monitor] alert_interval_minutes`, minimum 1 minute — at least twice the
+30-second recommendation), using an in-memory `ValidatorStore` so unchanged
+zone responses answer 304 Not Modified without triggering a full cycle
+(amended 2026-10-23). It caches points and zones, whose own lifetimes are a
+day or more.
 
 ## Text products
 

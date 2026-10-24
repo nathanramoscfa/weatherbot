@@ -840,6 +840,8 @@ class ConfigPathData(_Document):
     backup_dir: str
     cycle_lock_file: str
     migrate_lock_file: str
+    monitor_lock_file: str
+    log_file: str
 
 
 class ConfigPathDocument(_Envelope):

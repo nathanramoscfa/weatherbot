@@ -110,6 +110,8 @@ def path(ctx: typer.Context, *, json_output: JsonOption = False) -> None:
         backup_dir=str(paths.backup_dir),
         cycle_lock_file=str(paths.cycle_lock_path),
         migrate_lock_file=str(paths.migrate_lock_path),
+        monitor_lock_file=str(paths.monitor_lock_path),
+        log_file=str(paths.log_file_path),
     )
     if json_output:
         output.document(
@@ -127,6 +129,8 @@ def path(ctx: typer.Context, *, json_output: JsonOption = False) -> None:
             ("Backups", data.backup_dir),
             ("Cycle lock", data.cycle_lock_file),
             ("Migration lock", data.migrate_lock_file),
+            ("Monitor lock", data.monitor_lock_file),
+            ("Log file", data.log_file),
         ],
     )
     raise typer.Exit(EXIT_OK)

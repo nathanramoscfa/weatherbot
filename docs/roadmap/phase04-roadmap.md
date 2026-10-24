@@ -4589,6 +4589,18 @@ runs. The conversation is new per phase-boundary hygiene.
       checks follow that pattern. The stale-monitor alarm sends
       through `NotificationService.send("stale_monitor", ...)`
       with `context.channels`.
+    - Carry-over from Step 5: `serve`, `check`, and `check --once`
+      open the database through `open_monitor_session(context,
+      output)` (`weatherbot.cli.runtime`), which catches
+      `UnknownRevisionError` and `MigrationFailedError`, logs the
+      refusal, delivers the database-free toast once via
+      `deliver_database_refused_toast` (`weatherbot.services.notifications`),
+      and exits 1; keep `check --once --if-stale` on
+      `open_monitor_session` so the fallback inherits the same
+      behaviour. `clear_runner_heartbeat_cadence` clears the
+      runner row's `expected_every_s` on a clean stop, so a
+      monitor stopped on purpose never triggers the fallback's
+      stale-monitor alarm.
     - Checked on 2026-10-21: this machine runs Windows 11 build
       26200, and the operator's account is an administrator under
       UAC whose shells run at medium integrity. Reported in two

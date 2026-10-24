@@ -8,6 +8,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 4 — Monitoring and notifications
+- Add the asyncio scheduler (`weatherbot.services.scheduler.Scheduler`, `Job`)
+  and the monitor's scheduled jobs (`weatherbot.services.schedule.MonitorSchedule`,
+  `run_monitor`, `run_heartbeat_task`): sleeps at most 60 seconds, draws one
+  positive jitter per due instant, runs one job at a time without starting a
+  running job twice, isolates and records job exceptions on their heartbeats,
+  and runs one coalesced `resume` cycle after a wake gap over 60 seconds.
+- Add `weatherbot.sources.arcgis.attributes` (`ATTRIBUTE_PARAMETERS`) and
+  `weatherbot.sources.nhc_map.fetch_cone_advisories` (`CONE_ADVISORIES_READ`,
+  `binnumber` and `advisnum`), which queries the summary service's `Forecast
+  Cone` layer without geometry. `MonitorSchedule` runs `startup`, `window` (at
+  each of NHC's eight UTC product hours plus 15 minutes with jitter, polling
+  every 5 minutes until the roster and the cone layer agree on an advisory at or
+  after the product hour, or at +60 minutes), `roster` (every 15 minutes, or 5
+  while a location is above level 1, sharing a 60-second roster cache and
+  `MemoryValidatorStore`), `alerts` (every 5 minutes while a US location is
+  above level 1), `confirm` (at `CycleResult.confirm_at`), and `retry` (5, 10,
+  and 20 minutes after a ladder source fails, up to 3 retries), plus an
+  independent 5-minute runner heartbeat task.
+- Add the degraded-data alarm and recovery (`degraded` notification after 3
+  consecutive failures of a ladder source or watch, and `recovered` when it
+  answers again, respecting quiet hours at levels 1 and 2) and the database-free
+  toast (`deliver_database_refused_toast`) when `open_database` refuses a newer
+  revision or fails a migration.
+- Add `weatherbot serve` and `weatherbot check` (without `--once`), which take
+  `data_dir/monitor.lock` (`ProcessLock`, exiting 2 when another monitor holds
+  it), write a rotating log file at `data_dir/logs/weatherbot.log` (1 MiB, five
+  files, UTC ISO-8601 timestamps, `RedactingFilter`, and `pythonw.exe`
+  `sys.stderr is None` support), and clear the runner heartbeat's expected
+  cadence on a clean stop. `[monitor]` gains the eleven schedule settings with
+  their `WEATHERBOT_MONITOR_*` overrides, `config path` adds `monitor_lock_file`
+  and `log_file`, and `scripts/simulate_advisory.py` proves the scheduled
+  advisory-to-toast chain in a temporary directory.
 - Add the Windows toast channel, `weatherbot.services.toast.ToastChannel`, over
   pywinrt (`winrt-runtime`, `winrt-Windows.UI.Notifications`,
   `winrt-Windows.Data.Xml.Dom`, `winrt-Windows.Foundation`, and

@@ -1,15 +1,18 @@
 # src/weatherbot/cli/check.py
-"""``weatherbot check --once``: one monitor cycle, on demand.
+"""``weatherbot check`` and ``weatherbot check --once``: the monitor loop or one cycle.
 
-It runs the cycle every scheduled run will (``MonitorService``, trigger ``manual``, runner
+``check --once`` runs one cycle on demand (``MonitorService``, trigger ``manual``, runner
 ``check-once``): it fetches and stores a snapshot, assesses and stores every location, and
 records the heartbeats and the cycle. It prints each location's level and the changes
 since its previous assessment, then the cycle's status. It exits 0 on a complete cycle, 1
-on a partial, failed, or skipped one, and 2 on a usage error. Without ``--once`` it exits
-2: the monitor loop arrives with the scheduler.
+on a partial, failed, or skipped one, and 2 on a usage error.
+
+Without ``--once``, ``check`` takes ``data_dir/monitor.lock`` (``ProcessLock``) and runs
+the scheduler in the terminal with runner ``check``, writing the rotating log file at
+``data_dir/logs/weatherbot.log`` until stopped.
 """
 
-from typing import Annotated, Final
+from typing import Annotated
 
 import typer
 
@@ -27,8 +30,9 @@ from weatherbot.cli.runtime import (
     Output,
     context_of,
     fail,
-    open_session,
+    open_monitor_session,
 )
+from weatherbot.cli.serve import run_monitor_loop
 from weatherbot.cli.snapshots import (
     ADD_HINT,
     JsonOption,
@@ -42,10 +46,6 @@ from weatherbot.cli.status import change_entries
 from weatherbot.services.assessments import AssessedLocation
 from weatherbot.services.disclaimer import NOTICE
 from weatherbot.services.monitor import CycleResult
-
-NO_LOOP: Final = (
-    "the monitor loop arrives with the scheduler; run one cycle with: weatherbot check --once"
-)
 
 
 def _location(result: AssessedLocation) -> CheckLocationEntry:
@@ -106,12 +106,14 @@ def check(
     once: Annotated[bool, typer.Option("--once", help="Run one monitor cycle and exit.")] = False,
     json_output: JsonOption = False,
 ) -> None:
-    """Run one monitor cycle: fetch, assess and store every location, and record it."""
+    """Run the monitor scheduler in the terminal, or one cycle on demand with ``--once``."""
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
     if not once:
-        fail(output, NO_LOOP, EXIT_USAGE)
-    with open_session(context, output) as database:
+        if json_output:
+            fail(output, "--json requires --once", EXIT_USAGE)
+        run_monitor_loop(ctx, runner="check")
+    with open_monitor_session(context, output) as database:
         snapshot, cycle = run_cycle(
             context, output, database, runner="check-once", no_fetch=False, assess=True
         )

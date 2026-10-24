@@ -12,8 +12,9 @@ services' errors into messages and exit codes: 0 complete, 1 a partial or failed
 or a failed check, and 2 a usage error.
 """
 
+import asyncio
 import sys
-from collections.abc import Callable, Generator, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Generator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -29,7 +30,11 @@ from weatherbot.services.config import AppPaths, ConfigError, Settings, load_set
 from weatherbot.services.disclaimer import ESSENTIALS, NOTICE, record_first_showing
 from weatherbot.services.logs import configure_logging
 from weatherbot.services.network import FetcherFactory, Network, default_fetcher
-from weatherbot.services.notifications import Channel, LogChannel
+from weatherbot.services.notifications import (
+    Channel,
+    LogChannel,
+    deliver_database_refused_toast,
+)
 from weatherbot.services.persistence.database import Database, DatabaseError, open_database
 from weatherbot.services.persistence.repositories import SettingsRepository
 from weatherbot.services.toast import Identity, system_identity, toast_channel
@@ -57,6 +62,7 @@ class Runtime:
     identity: Callable[[], Identity] = system_identity
     """The toast's application identity: the registry on Windows, none elsewhere."""
     now: Callable[[], datetime] = _now
+    sleep: Callable[[float], Awaitable[None]] | None = None
     terminal: bool | None = None
     """``None``: ask the console; ``True`` or ``False`` forces Rich tables or plain text."""
     width: int | None = None
@@ -72,6 +78,7 @@ class Context:
     problem: str | None = None
     """Why the paths or the settings could not be resolved, if they could not."""
     settings_file_exists: bool = False
+    verbose: bool = False
 
     @property
     def network(self) -> Network:
@@ -105,7 +112,7 @@ def start(runtime: Runtime, *, verbose: bool) -> Context:
     except ConfigError as error:
         problem = str(error)
     configure_logging("DEBUG" if verbose else settings.logging.level)
-    return Context(runtime, paths, settings, problem, exists)
+    return Context(runtime, paths, settings, problem, exists, verbose=verbose)
 
 
 def context_of(ctx: typer.Context) -> Context:
@@ -253,6 +260,33 @@ def open_session(context: Context, output: Output) -> Generator[Database]:
     try:
         database = open_database(context.paths)
     except DatabaseError as error:
+        fail(output, str(error))
+    with database:
+        _first_run(context, output, database)
+        yield database
+
+
+@contextmanager
+def open_monitor_session(context: Context, output: Output) -> Generator[Database]:
+    """Open the database for a monitor command, sending one toast if it cannot be opened.
+
+    Args:
+        context: The invocation's context.
+        output: The command's output.
+
+    Yields:
+        The open database, closed when the block ends.
+
+    Raises:
+        Exit: With status 1 when the configuration or the database is unusable.
+    """
+    if context.paths is None or context.problem:
+        fail(output, context.problem or "the configuration is unusable")
+    try:
+        database = open_database(context.paths)
+    except DatabaseError as error:
+        toast = context.runtime.make_toast(context.settings)
+        asyncio.run(deliver_database_refused_toast(toast, error, now=context.runtime.now()))
         fail(output, str(error))
     with database:
         _first_run(context, output, database)

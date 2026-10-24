@@ -106,12 +106,11 @@ def test_a_skipped_cycle_says_another_is_running_and_exits_1(
     assert cycle.status == "skipped"
 
 
-def test_check_without_once_is_a_usage_error() -> None:
-    result = run(["check"])
+def test_check_json_without_once_is_a_usage_error() -> None:
+    result = run(["check", "--json"])
 
     assert result.exit_code == USAGE
-    assert "the monitor loop arrives with the scheduler" in result.stderr
-    assert "weatherbot check --once" in result.stderr
+    assert "--json requires --once" in result.stderr
 
 
 def test_check_once_with_no_location_still_runs_the_cycle() -> None:

@@ -15,7 +15,7 @@ engine) are complete; Phase 4 (monitoring and notifications) is in progress.
 No version 2 package is released. The commands below read the official
 products, and `status` decides each location's level from them alone, with
 the evidence behind it, and notifies you of a change through the in-app log
-and a Windows toast; nothing runs on a schedule yet.
+and a Windows toast; `serve` and `check` run the monitor on NHC's UTC schedule.
 The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
 
 ## Commands
@@ -55,6 +55,8 @@ weatherbot doctor --offline          # local checks only, with the heartbeats
 
 # One monitor cycle on demand: fetch, assess and store every location, record the heartbeats.
 weatherbot check --once
+weatherbot check                     # run the scheduled monitor in the terminal until Ctrl+C
+weatherbot serve                     # run the long-lived scheduled monitor (and, in Phase 5, the web server)
 weatherbot notify log                # the newest stored notifications first, with their deliveries
 
 # Windows toasts: register Weatherbot's toast identity once (your account only; no administrator).
@@ -63,7 +65,7 @@ weatherbot notify test               # send a test notification through the log 
 weatherbot notify setup --remove     # remove the identity again
 
 weatherbot config show               # every setting's value, and whether it came from the default, weatherbot.toml, or the environment
-weatherbot config path               # where the settings file, the database, its backups, and the lock files live
+weatherbot config path               # where the settings file, the database, its backups, the log file, and the lock files live
 ```
 
 `status` prints, for each location, the level and its deciding rule with each
@@ -83,10 +85,17 @@ complete products for your own locations.
 Every command that fetches (`fetch`, `storms`, `alerts`, `status`, and
 `check --once`) runs one monitor cycle, under a lock every Weatherbot process
 shares, and records it with a heartbeat per source. When another cycle is
-running, the command says so and exits 1. `status` shows a yellow banner when a
-heartbeat is stale (its last success is older than twice the cadence a scheduled
-monitor promised for it); a manual command promises no cadence, so it never
-makes data look stale.
+running, the command says so and exits 1. `serve` and `check` run the scheduled
+monitor as the one monitor process (`monitor.lock`, writing
+`logs/weatherbot.log`): product windows 15 minutes after NHC's eight UTC product
+times (`00`, `03`, `06`, `09`, `12`, `15`, `18`, and `21` UTC), a roster watch
+every 15 minutes (every 5 while any location is above level 1), an NWS alert
+watch every 5 minutes while a US location is above level 1, confirmation cycles
+for held drops, retries at 5, 10, and 20 minutes after a ladder source fails,
+and a degraded-data alarm after 3 consecutive failures. `status` shows a yellow
+banner when a heartbeat is stale (its last success is older than twice the
+cadence a scheduled monitor promised for it); a manual command promises no
+cadence, so it never makes data look stale.
 
 `status` and `check --once` send each notification the policy decides through
 the in-app log and, on Windows, a toast: the title, its first two lines, and

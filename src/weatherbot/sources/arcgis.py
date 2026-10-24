@@ -10,7 +10,7 @@ complete. The ``/layers?f=json`` document (2.3 MB for the tropical service) is r
 ``doctor`` and the tests only, never per fetch.
 """
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Final, cast
@@ -35,6 +35,9 @@ QUERY_PARAMETERS: Final[Mapping[str, str]] = MappingProxyType(
 )
 COUNT_PARAMETERS: Final[Mapping[str, str]] = MappingProxyType(
     {"where": "1=1", "returnCountOnly": "true", "f": "json"}
+)
+ATTRIBUTE_PARAMETERS: Final[Mapping[str, str]] = MappingProxyType(
+    {"where": "1=1", "returnGeometry": "false", "f": "json"}
 )
 PAGE_ORDER: Final = "objectid"
 MAX_PAGES: Final = 100
@@ -251,7 +254,7 @@ def feature_collection(result: FetchResult, layer: str) -> Mapping[str, object]:
 
 
 def _query_url(service: MapService, layer_id: int, parameters: Mapping[str, str]) -> str:
-    return f"{service.url}/{layer_id}/query?{urlencode(parameters, safe='*')}"
+    return f"{service.url}/{layer_id}/query?{urlencode(parameters, safe='*,')}"
 
 
 async def query(
@@ -343,3 +346,60 @@ async def count(fetcher: Fetcher, service: MapService, layer: MapLayer) -> Sourc
         _query_url(service, layer.id, COUNT_PARAMETERS), source_id=service.source_id
     )
     return SourceResult(parse_count(result, layer.name), (result,))
+
+
+def parse_attributes(result: FetchResult, layer: str) -> tuple[Mapping[str, object], ...]:
+    """Parse an attribute-only ``query`` answer (``f=json`` or a recorded ``FeatureCollection``).
+
+    Args:
+        result: The answer.
+        layer: The layer name, for errors.
+
+    Returns:
+        Each feature's attribute mapping, in order.
+
+    Raises:
+        SourceHttpError: The answer is an ArcGIS error object.
+        SourceSchemaError: The answer has no ``features`` array or a feature lacks attributes.
+    """
+    source = result.source_id
+    what = f"the attributes of {layer!r}"
+    document = as_mapping(parse_document(result.body, source, what), source, what)
+    _refuse_error_object(document, source, what)
+    rows: list[Mapping[str, object]] = []
+    for index, item in enumerate(
+        as_sequence(document.get("features"), source, f"{what}'s features")
+    ):
+        feature = as_mapping(item, source, f"feature {index} of {what}")
+        raw = feature.get("attributes") if "attributes" in feature else feature.get("properties")
+        rows.append(as_mapping(raw, source, f"feature {index} of {what}'s attributes"))
+    return tuple(rows)
+
+
+async def attributes(
+    fetcher: Fetcher,
+    service: MapService,
+    layer: MapLayer,
+    fields: Iterable[str],
+) -> SourceResult[tuple[Mapping[str, object], ...]]:
+    """Query a layer's named attribute fields without geometry (``ATTRIBUTE_PARAMETERS``).
+
+    Args:
+        fetcher: The run's fetcher.
+        service: The service.
+        layer: The layer, resolved from this run's catalog.
+        fields: The ``outFields`` attribute names to request.
+
+    Returns:
+        The attribute rows and the answer.
+    """
+    parameters = {
+        "where": ATTRIBUTE_PARAMETERS["where"],
+        "outFields": ",".join(fields),
+        "returnGeometry": ATTRIBUTE_PARAMETERS["returnGeometry"],
+        "f": ATTRIBUTE_PARAMETERS["f"],
+    }
+    result = await fetcher.get(
+        _query_url(service, layer.id, parameters), source_id=service.source_id
+    )
+    return SourceResult(parse_attributes(result, layer.name), (result,))
