@@ -326,7 +326,11 @@ def _task_problems(
         )
     if not task.command or not interpreter_exists(Path(task.command)):
         problems.append(f"{name}: interpreter does not exist")
-    if task.last_task_result is not None and task.last_task_result not in HEALTHY_TASK_RESULTS:
+    if (
+        task.state.lower() != "running"
+        and task.last_task_result is not None
+        and task.last_task_result not in HEALTHY_TASK_RESULTS
+    ):
         problems.append(f"{name}: last result 0x{task.last_task_result:x}")
     return problems
 

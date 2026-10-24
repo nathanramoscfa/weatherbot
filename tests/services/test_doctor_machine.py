@@ -84,6 +84,14 @@ def test_tasks_check_passes_for_healthy_tasks_and_fails_with_reasons() -> None:
     assert passed.status == "pass"
     assert len(passed.name) <= 10  # noqa: PLR2004 - column width cap
 
+    running_after_ignore_new = (
+        _task("serve", state="Running", last_task_result=0x800710E0),
+        _task("check", state="Ready", arguments=CHECK_ARGUMENTS, last_task_result=0),
+    )
+    assert (
+        tasks_check(running_after_ignore_new, interpreter_exists=lambda _p: True).status == "pass"
+    )
+
     broken = (
         _task(
             "serve",

@@ -4967,7 +4967,7 @@ runs. The conversation is new per phase-boundary hygiene.
 
 ## Step 7 — QA & Verification Script ✅
 
-**Status:** Complete — PR #52 (2026-10-24)
+**Status:** Complete — PR #52, #53 (2026-10-24)
 
 > **Goal:** Package the verification matrix into `scripts/verify_phase04.py`
 > (with `--fast`, `--py`, `--live`, `--security`, `--all`, and `--post` modes),
@@ -5859,7 +5859,7 @@ workflow above maps directly to the corresponding row below.
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #46 |
 | 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #49 |
 | 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #50, #51 |
-| 7    | QA + verify_phase04.py        | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #52 |
+| 7    | QA + verify_phase04.py        | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #52, #53 |
 | V1   | Snapshot storage              | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V2   | Cycle + heartbeat + staleness | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V3   | Policy + notification log     | CI: ci.yml               | --           | --                  | --       | --   | --          |
