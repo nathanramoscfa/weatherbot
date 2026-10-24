@@ -115,6 +115,15 @@
           "title": "Heartbeats",
           "type": "array"
         },
+        "tasks": {
+          "default": [],
+          "description": "The scheduled tasks under \\Weatherbot\\ when queried on the default data directory.",
+          "items": {
+            "$ref": "#/$defs/ScheduledTaskEntry"
+          },
+          "title": "Tasks",
+          "type": "array"
+        },
         "failed": {
           "title": "Failed",
           "type": "boolean"
@@ -270,6 +279,69 @@
         "missing"
       ],
       "title": "LayerDiscoveryEntry",
+      "type": "object"
+    },
+    "ScheduledTaskEntry": {
+      "additionalProperties": false,
+      "description": "One scheduled task under ``\\Weatherbot\\`` as Task Scheduler reports it.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "state": {
+          "title": "State",
+          "type": "string"
+        },
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "last_run_time": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Run Time"
+        },
+        "next_run_time": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Run Time"
+        },
+        "last_task_result": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Task Result"
+        }
+      },
+      "required": [
+        "name",
+        "state",
+        "enabled"
+      ],
+      "title": "ScheduledTaskEntry",
       "type": "object"
     },
     "SourceId": {

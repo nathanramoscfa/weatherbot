@@ -13,7 +13,8 @@ import logging
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Final
+from pathlib import Path
+from typing import Final, Literal
 
 from sqlalchemy import Engine
 
@@ -27,6 +28,8 @@ from weatherbot.models import (
     StormSummary,
 )
 from weatherbot.services.config import AppPaths, Settings
+from weatherbot.services.health import staleness
+from weatherbot.services.locks import held
 from weatherbot.services.monitor import (
     SCHEDULED_SOURCE_CADENCE_S,
     CycleListener,
@@ -42,6 +45,7 @@ from weatherbot.services.persistence.repositories import (
     Heartbeat,
     HeartbeatRepository,
     LocationRepository,
+    SettingsRepository,
     SnapshotRepository,
 )
 from weatherbot.services.scheduler import (
@@ -68,6 +72,12 @@ LADDER_SOURCES: Final[tuple[SourceId, ...]] = (
     "nws-alerts-zone",
 )
 WATCH_NAMES: Final = ("roster", "alerts")
+
+FALLBACK_HEARTBEAT_CADENCE_S: Final = 3600
+FALLBACK_WAIT_S: Final = 180.0
+FALLBACK_POLL_S: Final = 5.0
+STALE_MONITOR_NOTIFIED_KEY: Final = "monitor.stale_notified_since"
+STALE_FALLBACK_NOTIFIED_KEY: Final = "monitor.fallback_stale_notified_since"
 
 
 def _utc_now() -> datetime:
@@ -739,6 +749,102 @@ async def _sleep_or_stop(
         await asyncio.gather(sleep_task, stop_task, return_exceptions=True)
 
 
+def _highest_stored_level(engine: Engine, clock: Callable[[], datetime]) -> int:
+    max_level = 1
+    locations = LocationRepository(engine, now=clock).list()
+    assessments = AssessmentRepository(engine, now=clock)
+    for location in locations:
+        latest = assessments.latest(location.name)
+        if latest is None:
+            continue
+        max_level = max(max_level, int(latest.assessment.level))
+    return max_level
+
+
+def _quiet_holds_toast(
+    engine: Engine, settings: Settings, now: datetime, clock: Callable[[], datetime]
+) -> bool:
+    quiet_hours = settings.notifications.quiet_hours(local_zone=now.astimezone().tzinfo)
+    if quiet_hours is None or not quiet_hours.contains(now):
+        return False
+    return _highest_stored_level(engine, clock) <= int(AlertLevel.TROPICAL_STORM_THREAT)
+
+
+def _default_task_installed(task_name: str) -> bool:
+    from weatherbot.services import tasks as tasks_service  # noqa: PLC0415 - avoids circular import
+
+    if not tasks_service.ON_WINDOWS:
+        return False
+    try:
+        found = tasks_service.query()
+    except tasks_service.TaskSchedulerError:
+        return False
+    return any(item.name == task_name for item in found)
+
+
+def _default_start_serve() -> None:
+    from weatherbot.services import tasks as tasks_service  # noqa: PLC0415 - avoids circular import
+
+    if not tasks_service.ON_WINDOWS:
+        return
+    try:
+        tasks_service.run("serve")
+    except (tasks_service.TaskSchedulerError, ValueError):
+        return
+
+
+async def _check_stale_fallback_row(  # noqa: PLR0913 - fallback watch state
+    engine: Engine,
+    now: datetime,
+    *,
+    clock: Callable[[], datetime],
+    settings: Settings | None,
+    channels: Sequence[Channel] | None,
+    check_installed: Callable[[], bool] | bool | None,
+) -> None:
+    heartbeats = HeartbeatRepository(engine, now=clock)
+    fallback_row = next(
+        (r for r in heartbeats.rows() if r.kind == "runner" and r.name == "fallback"),
+        None,
+    )
+    if fallback_row is None or fallback_row.expected_every_s is None:
+        return
+    settings_repo = SettingsRepository(engine)
+    report = staleness([fallback_row], now)[0]
+    if not report.stale:
+        if settings_repo.get(STALE_FALLBACK_NOTIFIED_KEY):
+            settings_repo.set(STALE_FALLBACK_NOTIFIED_KEY, "")
+        return
+    if isinstance(check_installed, bool):
+        installed = check_installed
+    elif check_installed is not None:
+        installed = check_installed()
+    else:
+        installed = _default_task_installed("check")
+    if not installed:
+        return
+    since = fallback_row.last_success_at or fallback_row.last_attempt_at
+    since_text = _iso_utc(since)
+    if settings_repo.get(STALE_FALLBACK_NOTIFIED_KEY) == since_text:
+        return
+    resolved_settings = settings or Settings()
+    quiet_holds = _quiet_holds_toast(engine, resolved_settings, now, clock)
+    title = f"Weatherbot: the hourly check has not run since {since_text}."
+    notifications = NotificationService(
+        engine,
+        settings=resolved_settings,
+        now=clock,
+        channels=channels,
+    )
+    await notifications.send(
+        "stale_monitor",
+        title=title,
+        body=(title,),
+        include_toast=not quiet_holds,
+    )
+    settings_repo.set(STALE_FALLBACK_NOTIFIED_KEY, since_text)
+
+
 async def run_heartbeat_task(  # noqa: PLR0913 - heartbeat loop parameters
     engine: Engine,
     runner: CycleRunner,
@@ -747,10 +853,14 @@ async def run_heartbeat_task(  # noqa: PLR0913 - heartbeat loop parameters
     stop: asyncio.Event,
     clock: Callable[[], datetime] = _utc_now,
     sleep: Callable[[float], Awaitable[None]] | None = None,
+    settings: Settings | None = None,
+    channels: Sequence[Channel] | None = None,
+    check_installed: Callable[[], bool] | bool | None = None,
 ) -> None:
-    """Record the runner's heartbeat every ``heartbeat_minutes`` on its own task."""
+    """Record the runner's heartbeat every ``heartbeat_minutes`` and watch ``fallback``."""
     expected_every_s = heartbeat_minutes * 60
     heartbeats = HeartbeatRepository(engine, now=clock)
+    settings_repo = SettingsRepository(engine)
     while not stop.is_set():
         now = clock()
         heartbeats.record(
@@ -760,6 +870,17 @@ async def run_heartbeat_task(  # noqa: PLR0913 - heartbeat loop parameters
             result="success",
             expected_every_s=expected_every_s,
         )
+        if runner in ("serve", "check") and settings_repo.get(STALE_MONITOR_NOTIFIED_KEY):
+            settings_repo.set(STALE_MONITOR_NOTIFIED_KEY, "")
+        if runner == "serve":
+            await _check_stale_fallback_row(
+                engine,
+                now,
+                clock=clock,
+                settings=settings,
+                channels=channels,
+                check_installed=check_installed,
+            )
         if stop.is_set():
             break
         await _sleep_or_stop(float(expected_every_s), stop, sleep)
@@ -773,6 +894,216 @@ def clear_runner_heartbeat_cadence(engine: Engine, runner: CycleRunner, *, now: 
         at=now,
         result="success",
         expected_every_s=None,
+    )
+
+
+type FallbackReason = Literal["monitor_fresh", "not_running", "not_responding", "unscheduled"]
+
+
+@dataclass(frozen=True)
+class FallbackResult:
+    """The outcome of ``weatherbot check --once --if-stale``."""
+
+    ran_cycle: bool
+    cycle: CycleResult | None
+    alarmed: bool
+    started_serve: bool
+    reason: FallbackReason
+
+
+def _active_monitor_row(rows: Sequence[Heartbeat]) -> Heartbeat | None:
+    runner_rows = [r for r in rows if r.kind == "runner" and r.name in ("serve", "check")]
+    if not runner_rows:
+        return None
+    serve_rows = [r for r in runner_rows if r.name == "serve"]
+    return serve_rows[0] if serve_rows else runner_rows[0]
+
+
+def _runner_is_fresh(row: Heartbeat | None, now: datetime) -> bool:
+    if row is None or row.expected_every_s is None or row.last_success_at is None:
+        return False
+    return not staleness([row], now)[0].stale
+
+
+def _resolve_task_installed(*, seam: Callable[[], bool] | bool | None, task_name: str) -> bool:
+    if isinstance(seam, bool):
+        return seam
+    if seam is not None:
+        return seam()
+    return _default_task_installed(task_name)
+
+
+async def _wait_for_fresh_monitor(  # noqa: PLR0913 - wait loop parameters
+    heartbeats: HeartbeatRepository,
+    lock_path: Path,
+    *,
+    clock: Callable[[], datetime],
+    sleep: Callable[[float], Awaitable[None]] | None,
+    lock_held: Callable[[Path], bool],
+    wait_s: float,
+    poll_s: float,
+) -> tuple[bool, bool, Heartbeat | None]:
+    deadline = clock() + timedelta(seconds=wait_s)
+    currently_held = lock_held(lock_path)
+    while currently_held:
+        now = clock()
+        row = _active_monitor_row(heartbeats.rows())
+        if _runner_is_fresh(row, now):
+            return True, True, row
+        remaining = (deadline - now).total_seconds()
+        if remaining <= 0:
+            break
+        step = min(poll_s, remaining)
+        if sleep is not None:
+            await sleep(step)
+        else:
+            await asyncio.sleep(step)
+        currently_held = lock_held(lock_path)
+    now = clock()
+    row = _active_monitor_row(heartbeats.rows())
+    return currently_held and _runner_is_fresh(row, now), currently_held, row
+
+
+def _fallback_classification(
+    *, currently_held: bool, installed: bool
+) -> tuple[FallbackReason, str, bool, bool]:
+    if currently_held:
+        return (
+            "not_responding",
+            "Weatherbot: the monitor is not responding; a check ran instead.",
+            True,
+            False,
+        )
+    if installed:
+        return (
+            "not_running",
+            "Weatherbot: the monitor is not running; a check ran instead.",
+            True,
+            True,
+        )
+    return ("unscheduled", "", False, False)
+
+
+async def run_fallback_check(  # noqa: PLR0913 - fallback check orchestration
+    engine: Engine,
+    paths: AppPaths,
+    *,
+    settings: Settings | None = None,
+    clock: Callable[[], datetime] = _utc_now,
+    sleep: Callable[[float], Awaitable[None]] | None = None,
+    make_fetcher: FetcherFactory | None = None,
+    channels: Sequence[Channel] | None = None,
+    listeners: Sequence[CycleListener] = (),
+    lock_held: Callable[[Path], bool] = held,
+    serve_installed: Callable[[], bool] | bool | None = None,
+    start_serve: Callable[[], object] | None = None,
+    wait_s: float = FALLBACK_WAIT_S,
+    poll_s: float = FALLBACK_POLL_S,
+) -> FallbackResult:
+    """Run ``check --once --if-stale``: wait for a held monitor, alarm, and run a cycle."""
+    resolved_settings = settings or Settings()
+    heartbeats = HeartbeatRepository(engine, now=clock)
+    settings_repo = SettingsRepository(engine)
+
+    fresh, currently_held, row = await _wait_for_fresh_monitor(
+        heartbeats,
+        paths.monitor_lock_path,
+        clock=clock,
+        sleep=sleep,
+        lock_held=lock_held,
+        wait_s=wait_s,
+        poll_s=poll_s,
+    )
+    now = clock()
+    if fresh:
+        LOGGER.info("fallback_skipped_monitor_healthy")
+        if settings_repo.get(STALE_MONITOR_NOTIFIED_KEY):
+            settings_repo.set(STALE_MONITOR_NOTIFIED_KEY, "")
+        heartbeats.record(
+            "runner",
+            "fallback",
+            at=now,
+            result="success",
+            expected_every_s=FALLBACK_HEARTBEAT_CADENCE_S,
+        )
+        return FallbackResult(
+            ran_cycle=False,
+            cycle=None,
+            alarmed=False,
+            started_serve=False,
+            reason="monitor_fresh",
+        )
+
+    installed = _resolve_task_installed(seam=serve_installed, task_name="serve")
+    marker = (
+        f"since:{_iso_utc(row.last_success_at)}"
+        if row is not None and row.last_success_at is not None
+        else "since:never"
+    )
+    reason, title, should_alarm, should_start_serve = _fallback_classification(
+        currently_held=currently_held, installed=installed
+    )
+
+    alarmed = False
+    if should_alarm and settings_repo.get(STALE_MONITOR_NOTIFIED_KEY) != marker:
+        quiet_holds = _quiet_holds_toast(engine, resolved_settings, now, clock)
+        notifications = NotificationService(
+            engine,
+            settings=resolved_settings,
+            now=clock,
+            channels=channels,
+        )
+        await notifications.send(
+            "stale_monitor",
+            title=title,
+            body=(title,),
+            include_toast=not quiet_holds,
+        )
+        settings_repo.set(STALE_MONITOR_NOTIFIED_KEY, marker)
+        alarmed = True
+
+    started_serve = False
+    if should_start_serve:
+        if start_serve is not None:
+            start_serve()
+        else:
+            _default_start_serve()
+        started_serve = True
+
+    network = (
+        Network(timeout_seconds=resolved_settings.http.timeout_seconds)
+        if make_fetcher is None
+        else Network(
+            timeout_seconds=resolved_settings.http.timeout_seconds,
+            make_fetcher=make_fetcher,
+        )
+    )
+    service = MonitorService(
+        engine,
+        paths=paths,
+        settings=resolved_settings,
+        runner="fallback",
+        network=network,
+        now=clock,
+        listeners=listeners,
+        cadence_s=SCHEDULED_SOURCE_CADENCE_S,
+        channels=channels,
+    )
+    cycle = await service.run_cycle("fallback")
+    heartbeats.record(
+        "runner",
+        "fallback",
+        at=clock(),
+        result="failure" if cycle.status == "error" else "success",
+        error_kind="CycleError" if cycle.status == "error" else None,
+        expected_every_s=FALLBACK_HEARTBEAT_CADENCE_S,
+    )
+    return FallbackResult(
+        ran_cycle=True,
+        cycle=cycle,
+        alarmed=alarmed,
+        started_serve=started_serve,
+        reason=reason,
     )
 
 
@@ -790,6 +1121,7 @@ async def run_monitor(  # noqa: PLR0913 - top-level monitor loop entry point
     channels: Sequence[Channel] | None = None,
     listeners: Sequence[CycleListener] = (),
     max_sleep_s: float = MAX_SLEEP_S,
+    check_installed: Callable[[], bool] | bool | None = None,
 ) -> None:
     """Run the process heartbeat task and the ``MonitorSchedule`` loop until ``stop``."""
     clock_moved = asyncio.Event()
@@ -841,6 +1173,9 @@ async def run_monitor(  # noqa: PLR0913 - top-level monitor loop entry point
             stop=stop,
             clock=clock,
             sleep=_heartbeat_sleep if sleep is not None else None,
+            settings=settings,
+            channels=channels,
+            check_installed=check_installed,
         )
     )
     try:

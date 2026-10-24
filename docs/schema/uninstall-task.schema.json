@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/uninstall-task.schema.json",
+  "$defs": {
+    "TaskOutcomeEntry": {
+      "additionalProperties": false,
+      "description": "One scheduled task's registration or removal result.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "task_name": {
+          "title": "Task Name",
+          "type": "string"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "returncode": {
+          "title": "Returncode",
+          "type": "integer"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "name",
+        "task_name",
+        "ok",
+        "returncode"
+      ],
+      "title": "TaskOutcomeEntry",
+      "type": "object"
+    },
+    "UninstallTaskData": {
+      "additionalProperties": false,
+      "description": "What ``uninstall-task`` stopped and removed from Task Scheduler.",
+      "properties": {
+        "stopped_serve": {
+          "title": "Stopped Serve",
+          "type": "boolean"
+        },
+        "outcomes": {
+          "items": {
+            "$ref": "#/$defs/TaskOutcomeEntry"
+          },
+          "title": "Outcomes",
+          "type": "array"
+        },
+        "failed": {
+          "title": "Failed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "stopped_serve",
+        "outcomes",
+        "failed"
+      ],
+      "title": "UninstallTaskData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot uninstall-task --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "uninstall-task",
+      "default": "uninstall-task",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/UninstallTaskData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "UninstallTaskDocument",
+  "type": "object"
+}

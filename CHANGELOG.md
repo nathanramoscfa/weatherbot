@@ -8,6 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 4 — Monitoring and notifications
+- Add Windows Task Scheduler registration and health checks
+  (`weatherbot.services.tasks`, `weatherbot install-task`, `weatherbot
+  uninstall-task`): registers `\Weatherbot\serve` (`LogonTrigger`, `PT0S`) and
+  `\Weatherbot\check` (hourly `TimeTrigger` at 25 minutes past, `PT30M`,
+  `StartWhenAvailable`) unelevated under `InteractiveToken` and
+  `LeastPrivilege` using `pythonw.exe` and `CREATE_NO_WINDOW`, queries task
+  state through Windows PowerShell 5.1 JSON, and ends `serve` and clears its
+  heartbeat cadence on uninstall. `install-task` and `uninstall-task` join the
+  committed JSON Schemas (fifteen).
+- Add the hourly fallback (`weatherbot check --once --if-stale`,
+  `run_fallback_check`): waits up to 3 minutes while `monitor.lock` is held for
+  the monitor's runner row to be fresh, sends one `stale_monitor` notification
+  per stale period when the monitor is not running or not responding, asks Task
+  Scheduler to start `\Weatherbot\serve` when the lock is free, runs a
+  `fallback` cycle, and records the `fallback` runner heartbeat; `serve`'s
+  heartbeat task watches `fallback` while `\Weatherbot\check` is installed and
+  notifies if the hourly check stops running.
+- Add `doctor`'s `tasks` and `path` machine checks (skipped under a
+  `WEATHERBOT_DATA_DIR` override, and `path` skipped for a checkout's
+  interpreter) and require a fresh `serve` runner row on the default data
+  directory when `\Weatherbot\serve` is installed; `doctor`'s document lists the
+  queried tasks. Add `tests/desktop/test_tasks_desktop.py` (`pytest -m desktop`).
 - Add the asyncio scheduler (`weatherbot.services.scheduler.Scheduler`, `Job`)
   and the monitor's scheduled jobs (`weatherbot.services.schedule.MonitorSchedule`,
   `run_monitor`, `run_heartbeat_task`): sleeps at most 60 seconds, draws one

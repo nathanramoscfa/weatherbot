@@ -55,8 +55,11 @@ weatherbot doctor --offline          # local checks only, with the heartbeats
 
 # One monitor cycle on demand: fetch, assess and store every location, record the heartbeats.
 weatherbot check --once
+weatherbot check --once --if-stale   # hourly fallback: skip if serve is running and fresh
 weatherbot check                     # run the scheduled monitor in the terminal until Ctrl+C
 weatherbot serve                     # run the long-lived scheduled monitor (and, in Phase 5, the web server)
+weatherbot install-task              # register \Weatherbot\serve (logon) and \Weatherbot\check (hourly) on Windows
+weatherbot uninstall-task            # stop \Weatherbot\serve and remove both scheduled tasks
 weatherbot notify log                # the newest stored notifications first, with their deliveries
 
 # Windows toasts: register Weatherbot's toast identity once (your account only; no administrator).
@@ -110,14 +113,58 @@ or was unavailable on Windows. Set `toast = false` under `[notifications]` in
 `weatherbot.toml` to keep notifications in the log only.
 
 `locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, `doctor`,
-`check --once`, `notify log`, `notify setup`, `notify test`, `config show`, and
-`config path` take `--json` and print one JSON document whose schema is in
-[docs/schema/](docs/schema/).
+`check --once`, `install-task`, `uninstall-task`, `notify log`, `notify setup`,
+`notify test`, `config show`, and `config path` take `--json` and print one JSON
+document whose schema is in [docs/schema/](docs/schema/).
 `--verbose` (before the command: `weatherbot --verbose fetch`) logs at DEBUG
 to standard error. The exit status is 0 when everything answered, 1 when a
 source failed or a check did, and 2 for a usage error. With one location,
 `alerts` needs no `--location`. The first command shows the disclaimer, and
 every read command ends with a one-line reminder of it.
+
+### Running unattended
+
+To run Weatherbot in the background on Windows without keeping a terminal open,
+install a standalone tool copy outside the source checkout and register its two
+Task Scheduler tasks:
+
+```sh
+uv tool install --from . weatherbot
+~/.local/bin/weatherbot install-task
+```
+
+After each merge that changes the monitor, reinstall the tool copy with
+`--reinstall` — the development version stays `2.0.0.dev0`, so a plain
+`uv tool install` of the same version changes nothing:
+
+```sh
+uv tool install --reinstall --from . weatherbot
+```
+
+`install-task` refuses to register a source checkout's `.venv` unless
+`--allow-checkout` is given, registers the toast identity if missing, and
+registers two tasks under `\Weatherbot\` without administrator rights
+(`InteractiveToken`, `LeastPrivilege`):
+
+- `\Weatherbot\serve` starts `pythonw.exe -m weatherbot serve` at logon with no
+  execution time limit and battery restrictions turned off.
+- `\Weatherbot\check` runs `pythonw.exe -m weatherbot check --once --if-stale`
+  at 25 minutes past every hour. While `serve` holds `monitor.lock` and its
+  runner heartbeat is fresh (waiting up to 3 minutes if the machine just
+  resumed), the fallback check exits 0 without fetching. If `serve` is not
+  running or stays silent, it sends one `stale_monitor` notification per stale
+  period, asks Task Scheduler to start `\Weatherbot\serve`, and runs a
+  `fallback` cycle. `serve` in turn watches the `fallback` runner heartbeat and
+  notifies if the hourly task stops firing.
+
+`uninstall-task` stops `\Weatherbot\serve`, removes both tasks, and clears the
+`serve` runner heartbeat's expected cadence so a deliberately removed monitor
+never reads as stale. Make sure `~/.local/bin` is on `PATH` ahead of any older
+Python environment (`doctor`'s `path` check reports if another `weatherbot`
+shadows the running installation). If a command run from a newer checkout
+migrates `weatherbot.sqlite3` past the installed tool copy's Alembic head, the
+installed monitor stops with a toast until you run
+`uv tool install --reinstall --from <checkout> weatherbot`.
 
 Version 1 is retired. It remains installable with
 `pip install weatherbot==1.0.0`, and its source is the

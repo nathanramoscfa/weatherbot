@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/install-task.schema.json",
+  "$defs": {
+    "InstallTaskData": {
+      "additionalProperties": false,
+      "description": "What ``install-task`` registered and read back from Task Scheduler.",
+      "properties": {
+        "identity_outcome": {
+          "enum": [
+            "registered",
+            "unchanged",
+            "removed",
+            "absent",
+            "not_needed"
+          ],
+          "title": "Identity Outcome",
+          "type": "string"
+        },
+        "outcomes": {
+          "items": {
+            "$ref": "#/$defs/TaskOutcomeEntry"
+          },
+          "title": "Outcomes",
+          "type": "array"
+        },
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/ScheduledTaskEntry"
+          },
+          "title": "Tasks",
+          "type": "array"
+        },
+        "failed": {
+          "title": "Failed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "identity_outcome",
+        "outcomes",
+        "tasks",
+        "failed"
+      ],
+      "title": "InstallTaskData",
+      "type": "object"
+    },
+    "ScheduledTaskEntry": {
+      "additionalProperties": false,
+      "description": "One scheduled task under ``\\Weatherbot\\`` as Task Scheduler reports it.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "state": {
+          "title": "State",
+          "type": "string"
+        },
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "last_run_time": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Run Time"
+        },
+        "next_run_time": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Run Time"
+        },
+        "last_task_result": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Task Result"
+        }
+      },
+      "required": [
+        "name",
+        "state",
+        "enabled"
+      ],
+      "title": "ScheduledTaskEntry",
+      "type": "object"
+    },
+    "TaskOutcomeEntry": {
+      "additionalProperties": false,
+      "description": "One scheduled task's registration or removal result.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "task_name": {
+          "title": "Task Name",
+          "type": "string"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "returncode": {
+          "title": "Returncode",
+          "type": "integer"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "name",
+        "task_name",
+        "ok",
+        "returncode"
+      ],
+      "title": "TaskOutcomeEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot install-task --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "install-task",
+      "default": "install-task",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/InstallTaskData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "InstallTaskDocument",
+  "type": "object"
+}

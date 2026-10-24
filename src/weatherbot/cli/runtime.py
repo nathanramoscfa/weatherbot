@@ -13,11 +13,13 @@ or a failed check, and 2 a usage error.
 """
 
 import asyncio
+import shutil
 import sys
 from collections.abc import Awaitable, Callable, Generator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Final, NoReturn
 
 import typer
@@ -37,6 +39,7 @@ from weatherbot.services.notifications import (
 )
 from weatherbot.services.persistence.database import Database, DatabaseError, open_database
 from weatherbot.services.persistence.repositories import SettingsRepository
+from weatherbot.services.tasks import ON_WINDOWS, SubprocessRunner, run_subprocess
 from weatherbot.services.toast import Identity, system_identity, toast_channel
 
 EXIT_OK: Final = 0
@@ -61,6 +64,14 @@ class Runtime:
     """The toast channel for the settings, as ``make_fetcher`` is the network."""
     identity: Callable[[], Identity] = system_identity
     """The toast's application identity: the registry on Windows, none elsewhere."""
+    task_runner: SubprocessRunner = run_subprocess
+    """The Task Scheduler subprocess seam."""
+    windows: bool = ON_WINDOWS
+    """Whether the platform is Windows, for Task Scheduler commands and checks."""
+    interpreter: Path | None = None
+    """The Python interpreter path; ``None`` uses ``sys.executable``."""
+    which: Callable[[str], str | None] = shutil.which
+    """Command lookup on ``PATH``, for ``doctor``'s ``path`` check."""
     now: Callable[[], datetime] = _now
     sleep: Callable[[float], Awaitable[None]] | None = None
     terminal: bool | None = None

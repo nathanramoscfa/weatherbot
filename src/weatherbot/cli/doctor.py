@@ -6,6 +6,7 @@ It never prints a coordinate: the locations are counted, and no probe sends one.
 """
 
 import asyncio
+import os
 from typing import Annotated
 
 import typer
@@ -17,12 +18,14 @@ from weatherbot.cli.documents import (
     DoctorDocument,
     DoctorPaths,
     LayerDiscoveryEntry,
+    ScheduledTaskEntry,
     SourceProbeEntry,
 )
 from weatherbot.cli.runtime import EXIT_FAILED, EXIT_OK, Context, Output, context_of
 from weatherbot.cli.runtime import open_tolerant_session as open_session
 from weatherbot.cli.snapshots import drift_entries, utc
 from weatherbot.cli.status import staleness_entries
+from weatherbot.services.config import DATA_DIR_VARIABLE
 from weatherbot.services.disclaimer import NOTICE
 from weatherbot.services.doctor import DoctorReport, diagnose, missing_summary
 from weatherbot.services.health import duration_text
@@ -85,6 +88,17 @@ def _data(context: Context, report: DoctorReport, *, offline: bool) -> DoctorDat
         drift_snapshot_id=report.drift_snapshot_id,
         drift_warnings=drift_entries(report.drift_warnings),
         heartbeats=staleness_entries(report.heartbeats),
+        tasks=tuple(
+            ScheduledTaskEntry(
+                name=task.name,
+                state=task.state,
+                enabled=task.enabled,
+                last_run_time=task.last_run_time,
+                next_run_time=task.next_run_time,
+                last_task_result=task.last_task_result,
+            )
+            for task in report.tasks
+        ),
         failed=report.failed,
     )
 
@@ -150,6 +164,22 @@ def _print(output: Output, data: DoctorData) -> None:
                 for beat in data.heartbeats
             ],
         )
+    if data.tasks:
+        output.table(
+            "Scheduled tasks",
+            ("Task", "State", "Enabled", "Last run", "Next run", "Last result"),
+            [
+                (
+                    task.name,
+                    task.state,
+                    "yes" if task.enabled else "no",
+                    utc(task.last_run_time) if task.last_run_time else "never",
+                    utc(task.next_run_time) if task.next_run_time else "-",
+                    f"0x{task.last_task_result:x}" if task.last_task_result is not None else "-",
+                )
+                for task in data.tasks
+            ],
+        )
     verdict = "FAILED: a check failed" if data.failed else "Every check passed."
     output.line(verdict, style="bold red" if data.failed else "bold green")
 
@@ -163,6 +193,8 @@ def doctor(
     """Check the paths, the database's revision, and every official source's reachability."""
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
+    env = os.environ if context.runtime.environ is None else context.runtime.environ
+    overridden = bool(env.get(DATA_DIR_VARIABLE, "").strip())
     with open_session(context, output) as (database, problem, created):
         report = asyncio.run(
             diagnose(
@@ -176,6 +208,11 @@ def doctor(
                 now=context.runtime.now(),
                 identity=context.runtime.identity().registered(),
                 toast_on=context.settings.notifications.toast,
+                data_dir_overridden=overridden,
+                windows=context.runtime.windows,
+                task_runner=context.runtime.task_runner,
+                interpreter=context.runtime.interpreter,
+                which=context.runtime.which,
             )
         )
     data = _data(context, report, offline=offline)
