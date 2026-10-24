@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 3 Complete — 2026-10-20; PR #38; v2.0.0-phase-3. Phase 4 (Monitoring and notifications) is in progress.
+> **Status:** Phase 4 Complete — 2026-10-24; PR #52; v2.0.0-phase-4. Phase 5 (Web app MVP) is next.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -607,9 +607,9 @@ checks 7, 9, and 12; the other Phase 2 checks stay live. Keep the `"01"` and
 
 ---
 
-### Phase 4 — Monitoring and notifications
+### Phase 4 — Monitoring and notifications ✅
 
-**Status:** In progress — phase04-roadmap.md
+**Status:** Complete — 2026-10-24; PR #52; v2.0.0-phase-4; phase04-roadmap.md
 
 **Goal:** Unattended operation on the operator's machine: a scheduler
 aligned to NHC's cadence, change detection, a notification policy that
@@ -754,6 +754,26 @@ This roadmap sets the API contract, the frontend architecture, and the
 packaging path that every later UI step extends. Opus 5.5 at `Max` on
 Claude Code (Max subscription); GPT-6 Astra on Codex as the funded
 backup, per `roadmodel score`.
+
+Phase 5 keeps Phase 4's verification green as it grows (Phase 4 Step 7,
+`docs/phase04-qa-findings.md`). `verify_phase04.py` was written so that new
+`[monitor]` or `[notifications]` settings, `ENVIRONMENT_OVERRIDES`, JSON
+Schemas, `FROZEN` migrations, and Alembic revisions (`V2.5` requires the
+database at a head that descends from `0006`) need no historical conversion.
+Seven checks are exact and stay live until a step deliberately changes what
+they read: check 8 reads the nine `CycleTrigger` literals in
+`services/monitor.py`; check 17 reads the seven `DECISION_KINDS` literals in
+`services/policy.py`; check 20 reads the two Irma notification goldens in
+`tests/golden/notifications/`; check 36 requires `cli/serve.py` to call
+`ProcessLock` and `run_monitor` (keep those calls in `cli/serve.py` when Phase
+5 adds the FastAPI server to `serve`, or convert check 36 to read
+`v2.0.0-phase-4` in the same PR); check 40 reads `TASK_NAMES = ("serve",
+"check")` in `services/tasks.py`; check 43 reads the five `NOTIFICATION_KINDS`
+literals in `services/notifications.py`; and check 46 reads `README.md`'s
+`## Status` naming Phase 4 complete and Phase 5 next (when Phase 5 updates
+`README.md`'s `## Status`, convert check 46 in the same PR to read
+`v2.0.0-phase-4:README.md`). Keep the `"01"`, `"02"`, `"03"`, and `"04"` matrix
+entries.
 
 #### 5.1 API
 - FastAPI routes: `/api/health` (version, scheduler state, heartbeat,
@@ -1619,7 +1639,7 @@ The following are deliberately deferred to a future version:
 | 1     | Foundation and discovery                      | Medium     | Complete |
 | 2     | Sources and persistence                       | Medium     | Complete |
 | 3     | Threat engine                                 | High       | Complete |
-| 4     | Monitoring and notifications                  | Medium     | In progress |
+| 4     | Monitoring and notifications                  | Medium     | Complete |
 | 5     | Web app MVP                                   | High       | Not started |
 | 6     | Claude layer                                  | High       | Not started |
 | 7     | Depth                                         | Medium     | Not started |

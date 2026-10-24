@@ -51,6 +51,7 @@ FROZEN = {
     "0003_assessments.py": "d2388aba5c3ab287e9953d37d36fe9f8b07d98c609129acd2c31a99bbf39681f",
     "0004_shared_geometry.py": "55d9619fdfcf2fc2566891ea603294ef18a8edcae5094d53cfe969cd3e0e6656",
     "0005_monitor.py": "f85816879172be57a0e3223da2bd99bbcaf1a0521da2895822f3e3c8e76f9520",
+    "0006_notifications.py": "88ad27ba143120845fb027270935cd617f8120f970c307fa85fb5d4b6400ee69",
 }
 SNAPSHOT_HEX = "8f0c4d1e5b7a4c2e9d3f1a2b3c4d5e6f"
 PROBE = "probe"
