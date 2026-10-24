@@ -281,8 +281,8 @@ def test_query_script_and_json_parsing_for_zero_one_two_and_running_tasks() -> N
             "command": r"C:\tools\weatherbot\Scripts\pythonw.exe",
             "arguments": CHECK_ARGUMENTS,
             "working_directory": r"C:\data\weatherbot",
-            "logon_type": "InteractiveToken",
-            "run_level": "LeastPrivilege",
+            "logon_type": "Interactive",
+            "run_level": "Limited",
             "last_run_time": "1999-11-30T00:00:00.0000000",
             "next_run_time": "2026-10-24T13:25:00.0000000-04:00",
             "last_task_result": 0x41303,
@@ -291,6 +291,8 @@ def test_query_script_and_json_parsing_for_zero_one_two_and_running_tasks() -> N
     payload = json.dumps(two_tasks)
     both = query(runner=runner)
     assert [t.name for t in both] == ["serve", "check"]
+    assert both[1].logon_type == "InteractiveToken"
+    assert both[1].run_level == "LeastPrivilege"
     assert both[1].last_run_time is None
     assert both[1].next_run_time == datetime(2026, 10, 24, 17, 25, tzinfo=UTC)
     assert both[1].last_task_result == TASK_NOT_RUN_RESULT

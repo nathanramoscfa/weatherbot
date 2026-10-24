@@ -248,6 +248,16 @@ def test_bands_of_two_synoptic_times_break_the_schema() -> None:
         nhc_map.parse_wind_probabilities("Probabilistic Winds 34 kts", collection, provenance)
 
 
+def test_null_geometry_wind_probability_band_is_skipped() -> None:
+    collection, provenance = _collection(TROPICAL_SUMMARY, "Probabilistic Winds 34 kts")
+    features = as_list(collection["features"])
+    full_count = len(features)
+    as_object(features[-1])["geometry"] = None
+    product = nhc_map.parse_wind_probabilities("Probabilistic Winds 34 kts", collection, provenance)
+    assert product is not None
+    assert len(product.bands) == full_count - 1
+
+
 def _storm_with(**changes: object) -> tuple[StormSummary, ...]:
     return (recorded_storms()[0].model_copy(update=changes),)
 

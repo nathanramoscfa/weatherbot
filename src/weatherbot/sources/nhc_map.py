@@ -711,6 +711,8 @@ def parse_wind_probabilities(
     for feature, fields in _features(collection, layer, source):
         label = fields.text("percentage")
         stamps.add(fields.text("idp_source"))
+        if feature.get("geometry") is None:
+            continue
         with model_errors(source, fields.where):
             bands.append(WindProbabilityBand.from_label(label, _geometry(feature, fields)))
     if not bands:

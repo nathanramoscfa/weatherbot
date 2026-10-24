@@ -544,6 +544,17 @@ def _bool_field(mapping: Mapping[str, object], *keys: str, default: bool = False
     return default
 
 
+_LOGON_TYPE_NAMES: Final[Mapping[str, str]] = {
+    "Interactive": "InteractiveToken",
+    "InteractiveOrPassword": "InteractiveTokenOrPassword",
+}
+
+_RUN_LEVEL_NAMES: Final[Mapping[str, str]] = {
+    "Limited": "LeastPrivilege",
+    "Highest": "HighestAvailable",
+}
+
+
 def _parse_task_object(item: object) -> ScheduledTask:
     if not isinstance(item, dict):
         msg = "Task Scheduler JSON item is not an object."
@@ -554,6 +565,8 @@ def _parse_task_object(item: object) -> ScheduledTask:
     if not name:
         msg = "Task Scheduler JSON item is missing a task name."
         raise TaskSchedulerError(msg)
+    raw_logon = _string_field(mapping, "logon_type", "LogonType")
+    raw_run_level = _string_field(mapping, "run_level", "RunLevel")
     return ScheduledTask(
         name=name,
         state=_string_field(mapping, "state", "State") or "Unknown",
@@ -561,8 +574,8 @@ def _parse_task_object(item: object) -> ScheduledTask:
         command=_string_field(mapping, "command", "Command", "Execute"),
         arguments=_string_field(mapping, "arguments", "Arguments"),
         working_directory=_string_field(mapping, "working_directory", "WorkingDirectory"),
-        logon_type=_string_field(mapping, "logon_type", "LogonType"),
-        run_level=_string_field(mapping, "run_level", "RunLevel"),
+        logon_type=_LOGON_TYPE_NAMES.get(raw_logon, raw_logon),
+        run_level=_RUN_LEVEL_NAMES.get(raw_run_level, raw_run_level),
         last_run_time=_parse_instant(mapping.get("last_run_time", mapping.get("LastRunTime"))),
         next_run_time=_parse_instant(mapping.get("next_run_time", mapping.get("NextRunTime"))),
         last_task_result=_parse_result(
