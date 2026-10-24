@@ -29,6 +29,7 @@ from weatherbot.services.logs import configure_logging
 from weatherbot.services.monitor import CycleRunner
 from weatherbot.services.persistence.database import Database
 from weatherbot.services.schedule import run_monitor
+from weatherbot.services.tasks import TaskSchedulerError, query
 
 
 def monitor_already_running_message(lock: ProcessLock) -> str:
@@ -52,6 +53,15 @@ async def _loop(
     paths: AppPaths,
     runner: CycleRunner,
 ) -> None:
+    def _check_installed() -> bool:
+        if not context.runtime.windows:
+            return False
+        try:
+            found = query(runner=context.runtime.task_runner)
+        except TaskSchedulerError:
+            return False
+        return any(item.name == "check" for item in found)
+
     stop = asyncio.Event()
     await run_monitor(
         database.engine,
@@ -63,6 +73,7 @@ async def _loop(
         sleep=context.runtime.sleep,
         make_fetcher=context.runtime.make_fetcher,
         channels=context.channels,
+        check_installed=_check_installed,
     )
 
 

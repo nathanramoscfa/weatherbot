@@ -608,6 +608,17 @@ class LayerDiscoveryEntry(_Document):
     missing: tuple[str, ...]
 
 
+class ScheduledTaskEntry(_Document):
+    r"""One scheduled task under ``\Weatherbot\`` as Task Scheduler reports it."""
+
+    name: str
+    state: str
+    enabled: bool
+    last_run_time: datetime | None = None
+    next_run_time: datetime | None = None
+    last_task_result: int | None = None
+
+
 class DoctorData(_Document):
     """Everything ``doctor`` checked."""
 
@@ -622,6 +633,12 @@ class DoctorData(_Document):
     drift_warnings: tuple[DriftWarningEntry, ...]
     heartbeats: tuple[StalenessEntry, ...] = Field(
         description="Every heartbeat, judged by the staleness rule; empty when none is stored."
+    )
+    tasks: tuple[ScheduledTaskEntry, ...] = Field(
+        default=(),
+        description=(
+            "The scheduled tasks under \\Weatherbot\\ when queried on the default data directory."
+        ),
     )
     failed: bool
 
@@ -851,6 +868,50 @@ class ConfigPathDocument(_Envelope):
     data: ConfigPathData
 
 
+# tasks -------------------------------------------------------------------------------------
+
+
+class TaskOutcomeEntry(_Document):
+    """One scheduled task's registration or removal result."""
+
+    name: str
+    task_name: str
+    ok: bool
+    returncode: int
+    detail: str | None = None
+
+
+class InstallTaskData(_Document):
+    """What ``install-task`` registered and read back from Task Scheduler."""
+
+    identity_outcome: Literal["registered", "unchanged", "removed", "absent", "not_needed"]
+    outcomes: tuple[TaskOutcomeEntry, ...]
+    tasks: tuple[ScheduledTaskEntry, ...]
+    failed: bool
+
+
+class InstallTaskDocument(_Envelope):
+    """``weatherbot install-task --json``."""
+
+    command: Literal["install-task"] = "install-task"
+    data: InstallTaskData
+
+
+class UninstallTaskData(_Document):
+    """What ``uninstall-task`` stopped and removed from Task Scheduler."""
+
+    stopped_serve: bool
+    outcomes: tuple[TaskOutcomeEntry, ...]
+    failed: bool
+
+
+class UninstallTaskDocument(_Envelope):
+    """``weatherbot uninstall-task --json``."""
+
+    command: Literal["uninstall-task"] = "uninstall-task"
+    data: UninstallTaskData
+
+
 DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "locations": LocationsDocument,
     "fetch": FetchDocument,
@@ -865,6 +926,8 @@ DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "notifications": NotificationsDocument,
     "notify-setup": NotifySetupDocument,
     "notify-test": NotifyTestDocument,
+    "install-task": InstallTaskDocument,
+    "uninstall-task": UninstallTaskDocument,
 }
 """Each schema's file stem and its document model."""
 

@@ -11,7 +11,7 @@ from typing import Annotated
 import typer
 
 from weatherbot import __version__
-from weatherbot.cli import check, config, locations, notify, serve, snapshots
+from weatherbot.cli import check, config, locations, notify, serve, snapshots, tasks
 from weatherbot.cli import doctor as doctor_command
 from weatherbot.cli import replay as replay_command
 from weatherbot.cli import status as status_command
@@ -34,6 +34,8 @@ app.command("replay")(replay_command.replay)
 app.command("doctor")(doctor_command.doctor)
 app.command("check")(check.check)
 app.command("serve")(serve.serve)
+app.command("install-task")(tasks.install_task)
+app.command("uninstall-task")(tasks.uninstall_task)
 
 
 def _print_version_and_exit(*, value: bool) -> None:

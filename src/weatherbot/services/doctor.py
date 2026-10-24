@@ -25,6 +25,9 @@ exit status 1.
 
 import asyncio
 import functools
+import os
+import shutil
+import sys
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -33,6 +36,7 @@ from typing import Final, Literal
 from uuid import UUID
 
 from weatherbot.models import MapCatalog, SourceId, StormSummary
+from weatherbot.services.config import DATA_DIR_VARIABLE
 from weatherbot.services.health import Staleness, staleness
 from weatherbot.services.network import Network
 from weatherbot.services.notifications import NotificationService, StoredDelivery
@@ -49,6 +53,19 @@ from weatherbot.services.persistence.repositories import (
     SnapshotRepository,
 )
 from weatherbot.services.register import MAP_LAYERS, NOT_PROBED, SHARED_HOST, expand
+from weatherbot.services.tasks import (
+    HEALTHY_TASK_RESULTS,
+    ON_WINDOWS,
+    TASK_NAMES,
+    ScheduledTask,
+    SubprocessRunner,
+    TaskSchedulerError,
+    is_checkout_interpreter,
+    run_subprocess,
+)
+from weatherbot.services.tasks import (
+    query as query_tasks,
+)
 from weatherbot.services.toast import APP_ID, MISSING_IDENTITY, TOAST_OFF, delivery_failed
 from weatherbot.sources import (
     arcgis,
@@ -146,6 +163,7 @@ class DoctorReport:
     drift_snapshot_id: UUID | None
     drift_warnings: tuple[DriftWarning, ...]
     heartbeats: tuple[Staleness, ...] = ()
+    tasks: tuple[ScheduledTask, ...] = ()
 
     @property
     def failed(self) -> bool:
@@ -242,15 +260,43 @@ def toast_check(
     return Check("toast", "pass", f"the latest toast {latest.result}")
 
 
-def heartbeat_check(judged: Sequence[Staleness]) -> Check:
-    """Judge the heartbeats: skip with no cadence promised, else pass or fail on staleness.
+def heartbeat_check(
+    judged: Sequence[Staleness],
+    *,
+    serve_installed: bool = False,
+    data_dir_overridden: bool = False,
+) -> Check:
+    r"""Judge the heartbeats: skip with no cadence promised, else pass or fail on staleness.
+
+    On the default data directory (when ``data_dir_overridden`` is ``False``), also fails
+    when the ``serve`` task is installed and the ``serve`` runner row is stale or absent.
 
     Args:
         judged: The staleness rule's judgements.
+        serve_installed: Whether ``\Weatherbot\serve`` is installed in Task Scheduler.
+        data_dir_overridden: Whether ``WEATHERBOT_DATA_DIR`` overrides the default data directory.
 
     Returns:
         The ``heartbeat`` check.
     """
+    if not data_dir_overridden and serve_installed:
+        serve_row = next(
+            (item for item in judged if item.kind == "runner" and item.name == "serve"),
+            None,
+        )
+        if serve_row is None:
+            return Check(
+                "heartbeat",
+                "fail",
+                "the serve task is installed, but the serve runner heartbeat is absent",
+            )
+        if serve_row.expected_every_s is None or serve_row.stale:
+            stale = [
+                item.name for item in judged if item.expected_every_s is not None and item.stale
+            ]
+            if "serve" not in stale:
+                stale = ["serve", *stale]
+            return Check("heartbeat", "fail", f"stale: {', '.join(stale)}")
     promised = [item for item in judged if item.expected_every_s is not None]
     if not promised:
         return Check("heartbeat", "skip", "no heartbeat promises a cadence: no scheduler has run")
@@ -258,6 +304,128 @@ def heartbeat_check(judged: Sequence[Staleness]) -> Check:
     if stale:
         return Check("heartbeat", "fail", f"stale: {', '.join(stale)}")
     return Check("heartbeat", "pass", f"{len(promised)} with a cadence, none stale")
+
+
+def _task_problems(
+    name: str,
+    task: ScheduledTask | None,
+    interpreter_exists: Callable[[Path], bool],
+) -> list[str]:
+    if task is None:
+        return [f"{name}: not installed"]
+    problems: list[str] = []
+    if not task.enabled or task.state.lower() == "disabled":
+        problems.append(f"{name}: disabled ({task.state})")
+    if task.logon_type != "InteractiveToken":
+        problems.append(
+            f"{name}: logon type is {task.logon_type or 'unset'}, expected InteractiveToken"
+        )
+    if task.run_level != "LeastPrivilege":
+        problems.append(
+            f"{name}: run level is {task.run_level or 'unset'}, expected LeastPrivilege"
+        )
+    if not task.command or not interpreter_exists(Path(task.command)):
+        problems.append(f"{name}: interpreter does not exist")
+    if task.last_task_result is not None and task.last_task_result not in HEALTHY_TASK_RESULTS:
+        problems.append(f"{name}: last result 0x{task.last_task_result:x}")
+    return problems
+
+
+def tasks_check(
+    tasks: Sequence[ScheduledTask],
+    *,
+    data_dir_overridden: bool = False,
+    windows: bool = True,
+    interpreter_exists: Callable[[Path], bool] = Path.is_file,
+    query_error: str | None = None,
+) -> Check:
+    r"""Judge the ``\Weatherbot\`` scheduled tasks.
+
+    Skipped off Windows, under a ``WEATHERBOT_DATA_DIR`` override, and when neither task is
+    installed. Passes when both ``serve`` and ``check`` are enabled, use ``InteractiveToken``
+    and ``LeastPrivilege``, point at an interpreter that exists, and last returned 0,
+    ``0x41301`` (running), or ``0x41303`` (has not run); fails naming the task and reason
+    otherwise.
+    """
+    if data_dir_overridden:
+        return Check("tasks", "skip", f"{DATA_DIR_VARIABLE} is set: machine checks are skipped")
+    if not windows:
+        return Check("tasks", "skip", "not Windows: there is no Task Scheduler")
+    if query_error is not None:
+        return Check("tasks", "fail", f"Task Scheduler query failed ({query_error})")
+    by_name = {task.name: task for task in tasks}
+    if not any(name in by_name for name in TASK_NAMES):
+        return Check("tasks", "skip", "no Weatherbot task is installed")
+    problems: list[str] = []
+    for name in TASK_NAMES:
+        problems.extend(_task_problems(name, by_name.get(name), interpreter_exists))
+    if problems:
+        return Check("tasks", "fail", "; ".join(problems))
+    return Check(
+        "tasks",
+        "pass",
+        f"serve ({by_name['serve'].state}) and check ({by_name['check'].state}) enabled",
+    )
+
+
+def _belongs_to_installation(found: Path, interpreter: Path) -> bool:
+    if found.parent == interpreter.parent:
+        return True
+    try:
+        if found.resolve().parent == interpreter.resolve().parent:
+            return True
+    except OSError:
+        pass
+    parts_lower = tuple(part.lower() for part in interpreter.parts)
+    if "uv" in parts_lower and "tools" in parts_lower:
+        local_bin = Path.home() / ".local" / "bin"
+        tool_bin_env = os.environ.get("UV_TOOL_BIN_DIR", "").strip()
+        allowed_bins = {local_bin}
+        if tool_bin_env:
+            allowed_bins.add(Path(tool_bin_env))
+        if found.parent in allowed_bins:
+            return True
+        try:
+            if found.resolve().parent in {p.resolve() for p in allowed_bins}:
+                return True
+        except OSError:
+            pass
+    return False
+
+
+def path_check(
+    *,
+    data_dir_overridden: bool = False,
+    interpreter: Path | None = None,
+    which: Callable[[str], str | None] = shutil.which,
+) -> Check:
+    """Judge whether a bare ``weatherbot`` on ``PATH`` reaches the running installation.
+
+    Skipped under a ``WEATHERBOT_DATA_DIR`` override and when ``interpreter`` belongs to a
+    source checkout's environment. Passes when ``which("weatherbot")`` belongs to the
+    running installation; fails naming the shadowing directory and the fix otherwise.
+    """
+    if data_dir_overridden:
+        return Check("path", "skip", f"{DATA_DIR_VARIABLE} is set: machine checks are skipped")
+    resolved_interpreter = Path(sys.executable) if interpreter is None else Path(interpreter)
+    if is_checkout_interpreter(resolved_interpreter):
+        return Check("path", "skip", "running from a source checkout environment")
+    found = which("weatherbot")
+    if found is None:
+        return Check(
+            "path",
+            "fail",
+            "weatherbot is not on PATH; put ~/.local/bin on PATH",
+        )
+    found_path = Path(found)
+    if _belongs_to_installation(found_path, resolved_interpreter):
+        return Check("path", "pass", f"PATH resolves weatherbot to {found_path.parent}")
+    return Check(
+        "path",
+        "fail",
+        f"PATH resolves weatherbot to {found_path.parent}; "
+        "put ~/.local/bin earlier on PATH, or remove the other copy",
+    )
 
 
 async def _probe(source_id: SourceId, work: Callable[[], Awaitable[str]]) -> SourceProbe:
@@ -405,8 +573,16 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
     now: datetime | None = None,
     identity: bool | None = None,
     toast_on: bool = True,
+    data_dir_overridden: bool | None = None,
+    windows: bool = ON_WINDOWS,
+    tasks: Sequence[ScheduledTask] | None = None,
+    tasks_query_error: str | None = None,
+    task_runner: SubprocessRunner = run_subprocess,
+    interpreter: Path | None = None,
+    interpreter_exists: Callable[[Path], bool] = Path.is_file,
+    which: Callable[[str], str | None] = shutil.which,
 ) -> DoctorReport:
-    """Run every check, and every probe unless ``offline``.
+    r"""Run every check, and every probe unless ``offline``.
 
     Args:
         settings_problem: Why the settings did not load, if they did not.
@@ -419,6 +595,14 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         now: The instant the heartbeats are judged at; the clock's when omitted.
         identity: Whether the toast identity is registered; ``None`` off Windows.
         toast_on: ``[notifications] toast``.
+        data_dir_overridden: Whether ``WEATHERBOT_DATA_DIR`` overrides the default data directory.
+        windows: Whether the platform is Windows.
+        tasks: Pre-queried ``\Weatherbot\`` tasks; queried on Windows when ``None``.
+        tasks_query_error: Error from querying Task Scheduler, if any.
+        task_runner: Subprocess seam for querying Task Scheduler when ``tasks`` is ``None``.
+        interpreter: Running interpreter path for the ``path`` check.
+        interpreter_exists: Seam checking whether a task's interpreter exists.
+        which: Seam resolving ``weatherbot`` on ``PATH``.
 
     Returns:
         The report.
@@ -429,6 +613,33 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         database=database,
         database_problem=database_problem,
         created=created,
+    )
+    overridden = (
+        bool(os.environ.get(DATA_DIR_VARIABLE, "").strip())
+        if data_dir_overridden is None
+        else data_dir_overridden
+    )
+    queried_tasks: tuple[ScheduledTask, ...] = ()
+    query_error = tasks_query_error
+    if tasks is not None:
+        queried_tasks = tuple(tasks)
+    elif not overridden and windows and query_error is None:
+        try:
+            queried_tasks = query_tasks(runner=task_runner)
+        except TaskSchedulerError as error:
+            query_error = str(error)
+    serve_installed = any(task.name == "serve" for task in queried_tasks)
+    t_check = tasks_check(
+        queried_tasks,
+        data_dir_overridden=overridden,
+        windows=windows,
+        interpreter_exists=interpreter_exists,
+        query_error=query_error,
+    )
+    p_check = path_check(
+        data_dir_overridden=overridden,
+        interpreter=interpreter,
+        which=which,
     )
     drift_id: UUID | None = None
     warnings: tuple[DriftWarning, ...] = ()
@@ -446,12 +657,19 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
             toast_on=toast_on,
             delivered_before=deliveries.delivered_before("toast"),
         )
-        checks = (*checks, heartbeat_check(judged), toast)
+        h_check = heartbeat_check(
+            judged,
+            serve_installed=serve_installed,
+            data_dir_overridden=overridden,
+        )
+        checks = (*checks, h_check, toast, t_check, p_check)
     else:
         checks = (
             *checks,
             Check("heartbeat", "skip", DATABASE_CLOSED),
             Check("toast", "skip", DATABASE_CLOSED),
+            t_check,
+            p_check,
         )
     probes: tuple[SourceProbe, ...] = ()
     layers: tuple[LayerDiscovery, ...] = ()
@@ -469,6 +687,7 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         drift_snapshot_id=drift_id,
         drift_warnings=warnings,
         heartbeats=judged,
+        tasks=queried_tasks,
     )
 
 

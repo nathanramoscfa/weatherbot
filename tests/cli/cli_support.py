@@ -13,10 +13,12 @@ map-layer product, and its advisory mismatch is the run's Source-drift warning.
 import asyncio
 import json
 import re
-from collections.abc import Generator, Mapping, Sequence
+import subprocess
+from collections.abc import Awaitable, Callable, Generator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Final
 
 import httpx
@@ -43,6 +45,7 @@ from weatherbot.services.notifications import (
 )
 from weatherbot.services.persistence.database import open_database
 from weatherbot.services.persistence.repositories import AssessmentRepository, StoredAssessment
+from weatherbot.services.tasks import CREATE_NO_WINDOW, SubprocessRunner
 from weatherbot.services.toast import DISPLAY_NAME, Identity
 from weatherbot.sources.http import Fetcher, HostPacer, ValidatorStore
 
@@ -188,13 +191,82 @@ class FakeRegistry:
         self.removals += 1
 
 
-def runtime(
+class FakeTaskRunner:
+    """In-memory Task Scheduler subprocess runner for command tests."""
+
+    def __init__(  # noqa: PLR0913 - canned return codes for each schtasks verb
+        self,
+        *,
+        query_json: str = "[]",
+        create_returncode: int = 0,
+        end_returncode: int = 0,
+        delete_returncode: int = 0,
+        delete_stderr: str = "",
+        run_returncode: int = 0,
+    ) -> None:
+        """Configure canned return codes and PowerShell JSON output."""
+        self.query_json = query_json
+        self.create_returncode = create_returncode
+        self.end_returncode = end_returncode
+        self.delete_returncode = delete_returncode
+        self.delete_stderr = delete_stderr
+        self.run_returncode = run_returncode
+        self.calls: list[tuple[tuple[str, ...], int]] = []
+        self.written_xml: dict[str, bytes] = {}
+
+    def __call__(
+        self, argv: Sequence[str], *, creationflags: int = CREATE_NO_WINDOW
+    ) -> subprocess.CompletedProcess[str]:
+        """Record ``argv`` and return the configured process result."""
+        args = tuple(argv)
+        self.calls.append((args, creationflags))
+        if "/Create" in args and "/XML" in args:
+            tn_idx = args.index("/TN") + 1
+            xml_idx = args.index("/XML") + 1
+            self.written_xml[args[tn_idx]] = Path(args[xml_idx]).read_bytes()
+            return subprocess.CompletedProcess(
+                list(args),
+                self.create_returncode,
+                stdout="SUCCESS\n" if self.create_returncode == 0 else "",
+                stderr="" if self.create_returncode == 0 else "ERROR: Access is denied.\n",
+            )
+        if "/End" in args:
+            return subprocess.CompletedProcess(
+                list(args),
+                self.end_returncode,
+                stdout="" if self.end_returncode else "SUCCESS\n",
+                stderr="ERROR: The task is not running.\n" if self.end_returncode else "",
+            )
+        if "/Delete" in args:
+            return subprocess.CompletedProcess(
+                list(args),
+                self.delete_returncode,
+                stdout="SUCCESS\n" if self.delete_returncode == 0 else "",
+                stderr=self.delete_stderr,
+            )
+        if "/Run" in args:
+            return subprocess.CompletedProcess(
+                list(args),
+                self.run_returncode,
+                stdout="SUCCESS\n" if self.run_returncode == 0 else "",
+                stderr="" if self.run_returncode == 0 else "ERROR: Cannot run task.\n",
+            )
+        return subprocess.CompletedProcess(list(args), 0, stdout=self.query_json, stderr="")
+
+
+def runtime(  # noqa: PLR0913 - test runtime seams
     *,
     terminal: bool = False,
     now: datetime = NOW,
     width: int | None = None,
     toast: Channel | None = None,
     identity: Identity | None = None,
+    task_runner: SubprocessRunner | None = None,
+    windows: bool = True,
+    interpreter: Path | None = None,
+    which: Callable[[str], str | None] = lambda _cmd: None,
+    environ: Mapping[str, str] | None = None,
+    sleep: Callable[[float], Awaitable[None]] | None = None,
 ) -> Runtime:
     """A runtime with the quiet fetcher, a fixed clock, and plain text unless asked.
 
@@ -203,11 +275,18 @@ def runtime(
     """
     channel = toast or FakeToast()
     found = identity or Identity(FakeRegistry(DISPLAY_NAME))
+    runner = task_runner or FakeTaskRunner()
     return Runtime(
+        environ=environ,
         make_fetcher=quiet_fetcher,
         make_toast=lambda _settings: channel,
         identity=lambda: found,
+        task_runner=runner,
+        windows=windows,
+        interpreter=interpreter,
+        which=which,
         now=lambda: now,
+        sleep=sleep,
         terminal=terminal,
         width=width,
     )

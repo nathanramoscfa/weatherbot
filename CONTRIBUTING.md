@@ -567,6 +567,39 @@ uv run weatherbot notify setup
 uv run python scripts/simulate_advisory.py
 ```
 
+### Task Scheduler, the hourly fallback, and machine health checks
+
+`weatherbot.services.tasks` builds and manages the two Windows Task Scheduler
+1.2 definitions under `\Weatherbot\` without administrator elevation
+(`InteractiveToken`, `LeastPrivilege`), running `%SystemRoot%\System32\schtasks.exe`
+and `%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe` with
+`CREATE_NO_WINDOW = 0x08000000` behind a `SubprocessRunner` seam:
+
+- `\Weatherbot\serve` runs `pythonw.exe -m weatherbot serve` on `LogonTrigger`
+  for the current `USERDOMAIN\USERNAME`, with `ExecutionTimeLimit` `PT0S`,
+  `MultipleInstancesPolicy` `IgnoreNew`, and battery restrictions disabled.
+- `\Weatherbot\check` runs `pythonw.exe -m weatherbot check --once --if-stale`
+  on an hourly `TimeTrigger` starting at 25 minutes past the hour, with
+  `ExecutionTimeLimit` `PT30M` and `StartWhenAvailable` enabled.
+
+`weatherbot install-task [--allow-checkout] [--json]` refuses a source
+checkout's `.venv` unless `--allow-checkout` is passed, registers the toast
+identity, writes temporary UTF-16 XML files in `data_dir`, registers both tasks,
+deletes the temporary XML files, and queries Task Scheduler via PowerShell 5.1
+JSON (`query()`). `weatherbot uninstall-task [--json]` ends `\Weatherbot\serve`,
+deletes both tasks, and clears the `serve` runner heartbeat's expected cadence.
+
+On the default data directory (skipped when `WEATHERBOT_DATA_DIR` is set),
+`doctor` adds `tasks` and `path` checks and fails `heartbeat` when
+`\Weatherbot\serve` is installed but its runner heartbeat is stale or absent.
+`tests/desktop/test_tasks_desktop.py` (`pytest -m desktop`) proves unelevated
+registration, readback, and deletion of a disabled `\Weatherbot\probe` task on
+your Windows machine:
+
+```sh
+uv run pytest -m desktop tests/desktop/test_tasks_desktop.py
+```
+
 The tests never touch any of this. An autouse fixture in `tests/conftest.py`
 points both directories into each test's temporary directory, clears every
 other `WEATHERBOT_*` variable except the development tools'

@@ -12,6 +12,8 @@ the scheduler in the terminal with runner ``check``, writing the rotating log fi
 ``data_dir/logs/weatherbot.log`` until stopped.
 """
 
+import asyncio
+import contextlib
 from typing import Annotated
 
 import typer
@@ -27,6 +29,7 @@ from weatherbot.cli.runtime import (
     EXIT_FAILED,
     EXIT_OK,
     EXIT_USAGE,
+    Context,
     Output,
     context_of,
     fail,
@@ -35,6 +38,7 @@ from weatherbot.cli.runtime import (
 from weatherbot.cli.serve import run_monitor_loop
 from weatherbot.cli.snapshots import (
     ADD_HINT,
+    BUSY,
     JsonOption,
     drift_entries,
     print_header,
@@ -45,7 +49,12 @@ from weatherbot.cli.snapshots import (
 from weatherbot.cli.status import change_entries
 from weatherbot.services.assessments import AssessedLocation
 from weatherbot.services.disclaimer import NOTICE
+from weatherbot.services.logs import configure_logging
 from weatherbot.services.monitor import CycleResult
+from weatherbot.services.persistence.database import Database
+from weatherbot.services.schedule import FallbackResult, run_fallback_check
+from weatherbot.services.tasks import TaskSchedulerError, query
+from weatherbot.services.tasks import run as run_task
 
 
 def _location(result: AssessedLocation) -> CheckLocationEntry:
@@ -100,23 +109,86 @@ def _print(output: Output, data: CheckData) -> None:
     output.line(f"Cycle {cycle.cycle_id} ({cycle.runner}, {cycle.trigger}): {cycle.status}.")
 
 
+def _run_if_stale(context: Context, output: Output, database: Database) -> FallbackResult:
+    paths = context.paths
+    if paths is None:  # pragma: no cover - open_monitor_session refuses unresolved paths
+        fail(output, context.problem or "the configuration is unusable")
+
+    def _serve_installed() -> bool:
+        if not context.runtime.windows:
+            return False
+        try:
+            found = query(runner=context.runtime.task_runner)
+        except TaskSchedulerError:
+            return False
+        return any(item.name == "serve" for item in found)
+
+    def _start_serve() -> None:
+        if not context.runtime.windows:
+            return
+        with contextlib.suppress(TaskSchedulerError, ValueError):
+            run_task("serve", runner=context.runtime.task_runner)
+
+    return asyncio.run(
+        run_fallback_check(
+            database.engine,
+            paths,
+            settings=context.settings,
+            clock=context.runtime.now,
+            sleep=context.runtime.sleep,
+            make_fetcher=context.runtime.make_fetcher,
+            channels=context.channels,
+            serve_installed=_serve_installed,
+            start_serve=_start_serve,
+        )
+    )
+
+
 def check(
     ctx: typer.Context,
     *,
     once: Annotated[bool, typer.Option("--once", help="Run one monitor cycle and exit.")] = False,
+    if_stale: Annotated[
+        bool,
+        typer.Option(
+            "--if-stale",
+            help="Skip the cycle if the background monitor holds the lock and is fresh.",
+        ),
+    ] = False,
     json_output: JsonOption = False,
 ) -> None:
     """Run the monitor scheduler in the terminal, or one cycle on demand with ``--once``."""
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
     if not once:
+        if if_stale:
+            fail(output, "--if-stale requires --once", EXIT_USAGE)
         if json_output:
             fail(output, "--json requires --once", EXIT_USAGE)
         run_monitor_loop(ctx, runner="check")
-    with open_monitor_session(context, output) as database:
-        snapshot, cycle = run_cycle(
-            context, output, database, runner="check-once", no_fetch=False, assess=True
+    if if_stale:
+        if context.paths is None or context.problem:
+            fail(output, context.problem or "the configuration is unusable")
+        configure_logging(
+            "DEBUG" if context.verbose else context.settings.logging.level,
+            log_file=context.paths.log_file_path,
         )
+        with open_monitor_session(context, output) as database:
+            fallback = _run_if_stale(context, output, database)
+        if not fallback.ran_cycle:
+            if not json_output:
+                output.line("Monitor is healthy; fallback check skipped.")
+                output.notice()
+            raise typer.Exit(EXIT_OK)
+        if fallback.cycle is None or fallback.cycle.snapshot is None:
+            fail(output, BUSY)
+        snapshot = fallback.cycle.snapshot
+        cycle = fallback.cycle
+    else:
+        with open_monitor_session(context, output) as database:
+            snapshot, cycle = run_cycle(
+                context, output, database, runner="check-once", no_fetch=False, assess=True
+            )
     now = context.runtime.now()
     info = snapshot_info(snapshot, now)
     data = CheckData(
