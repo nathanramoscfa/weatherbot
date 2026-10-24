@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 3 Complete — 2026-10-20; PR #38; v2.0.0-phase-3. Phase 4 (Monitoring and notifications) is in progress.
+> **Status:** Phase 4 Complete — 2026-10-24; PR #52; v2.0.0-phase-4. Phase 5 (Web app MVP) is next.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -607,9 +607,9 @@ checks 7, 9, and 12; the other Phase 2 checks stay live. Keep the `"01"` and
 
 ---
 
-### Phase 4 — Monitoring and notifications
+### Phase 4 — Monitoring and notifications ✅
 
-**Status:** In progress — phase04-roadmap.md
+**Status:** Complete — 2026-10-24; PR #52; v2.0.0-phase-4; phase04-roadmap.md
 
 **Goal:** Unattended operation on the operator's machine: a scheduler
 aligned to NHC's cadence, change detection, a notification policy that
@@ -1639,7 +1639,7 @@ The following are deliberately deferred to a future version:
 | 1     | Foundation and discovery                      | Medium     | Complete |
 | 2     | Sources and persistence                       | Medium     | Complete |
 | 3     | Threat engine                                 | High       | Complete |
-| 4     | Monitoring and notifications                  | Medium     | In progress |
+| 4     | Monitoring and notifications                  | Medium     | Complete |
 | 5     | Web app MVP                                   | High       | Not started |
 | 6     | Claude layer                                  | High       | Not started |
 | 7     | Depth                                         | Medium     | Not started |

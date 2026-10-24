@@ -96,6 +96,8 @@ Sources: [PR #50](https://github.com/nathanramoscfa/weatherbot/pull/50) and
 
 ## Step 7 — Verification and closure
 
+Source: [PR #52](https://github.com/nathanramoscfa/weatherbot/pull/52).
+
 | Finding | Class | Destination | Guard |
 | --- | --- | --- | --- |
 | Phase 4's `--post` sweep spans three pytest suites (`offline` with engine and policy branch-coverage floors, `live`, and `desktop`) plus `scripts/simulate_advisory.py`, Phase 3's `--post`, the installed tool's `doctor --offline --json`, a synthetic stale-heartbeat alarm proof, and Task Scheduler readbacks. | Verification design | `scripts/verify_phase04.py` runs 51 static checks and the 29-row V1–V7 matrix (`(4, 5, 4, 3, 4, 5, 4)` = 80 total in `--post`). Every `Select` must match at least one test, any failed or skipped test prevents `PASS`, and `Select(..., without=...)` excludes only the two OS-permission-dependent skips (`a_link_out` and `refuses_world_accessible`). | Static checks 47–51; `tests/test_phase04_verification.py`. |

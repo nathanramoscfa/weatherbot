@@ -1,6 +1,6 @@
-# Phase 4 Roadmap — Monitoring and notifications
+# Phase 4 Roadmap — Monitoring and notifications ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-10-24
 
 ## Overview
 
@@ -4965,9 +4965,9 @@ runs. The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 7 — QA & Verification Script
+## Step 7 — QA & Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #52 (2026-10-24)
 
 > **Goal:** Package the verification matrix into `scripts/verify_phase04.py`
 > (with `--fast`, `--py`, `--live`, `--security`, `--all`, and `--post` modes),
@@ -4999,6 +4999,8 @@ peel to the merge commit.
 | Conversation | **New**                                  | **New**                              | **New**                                    |
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that column's usage pool reads `tight`, run its Backup when the Backup's pool has headroom, else the Cost column; if it reads `exhausted`, run its Backup.
+
+> Ran 2026-10-24: Balanced column — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Selected by the **Runs:** rule (Google AI Pro pool reads headroom).
 
 **Model rationale:** Step 7 is coding with an agentic secondary category —
 GitHub readbacks, on-machine sweeps, and the closure — at Medium complexity: it
@@ -5857,7 +5859,7 @@ workflow above maps directly to the corresponding row below.
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #46 |
 | 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #49 |
 | 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #50, #51 |
-| 7    | QA + verify_phase04.py        | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
+| 7    | QA + verify_phase04.py        | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #52 |
 | V1   | Snapshot storage              | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V2   | Cycle + heartbeat + staleness | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V3   | Policy + notification log     | CI: ci.yml               | --           | --                  | --       | --   | --          |
