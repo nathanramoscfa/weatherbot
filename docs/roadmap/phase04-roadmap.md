@@ -4249,7 +4249,7 @@ High) runs. The conversation is new per phase-boundary hygiene.
 
 ## Step 6 — Task Scheduler and health ✅
 
-**Status:** Complete — PR #50 (2026-10-24)
+**Status:** Complete — PR #50, #51 (2026-10-24)
 
 > **Goal:** Keep the monitor running when no one is watching, and say so when it
 > stops. `weatherbot.services.tasks` writes two task definitions as escaped XML
@@ -5856,7 +5856,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #43 |
 | 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #46 |
 | 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #49 |
-| 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #50 |
+| 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #50, #51 |
 | 7    | QA + verify_phase04.py        | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Not started |
 | V1   | Snapshot storage              | CI: ci.yml               | --           | --                  | --       | --   | --          |
 | V2   | Cycle + heartbeat + staleness | CI: ci.yml               | --           | --                  | --       | --   | --          |
