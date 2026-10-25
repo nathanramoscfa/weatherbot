@@ -208,6 +208,12 @@ These gaps drive the phase ordering below.
   1500, and 2100 UTC and the intermediates and outlooks at 0000, 0600,
   1200, and 1800 UTC (NWS Instruction 10-607), so their Eastern times
   move an hour when daylight time ends; the monitor schedules in UTC.
+- **The CLI hosts the web app.** The brief's §6 draws the CLI and the
+  web app as two front doors over the services. Both still are, but
+  `weatherbot serve` runs the web server inside its own process, so the
+  import contract puts `weatherbot.cli` above `weatherbot.web`: the CLI
+  may import the web layer to host it, and the web layer never imports
+  the CLI (`phase05-roadmap.md`, "Design rationale").
 
 Everything else in the brief applies unchanged: the decisions D1–D10,
 the data sources (with the graphic names, the text-product path, the
@@ -220,7 +226,7 @@ above), and the success criteria.
 ## 3. Target Architecture
 
 ```
- Operator's machine (Windows 11). The only trust boundary is loopback.
+ Operator's machine (Windows 11). Loopback only; other web pages untrusted.
  ┌──────────────────────────────────────────────────────────────────────┐
  │  Browser ──HTTP + SSE──▶ 127.0.0.1:8765  FastAPI  (weatherbot.web)   │
  │  Terminal ────────────▶  Typer CLI       (weatherbot.cli)            │
@@ -250,8 +256,13 @@ server-sent events stream; the CLI uses the same services and the same
 SQLite database, so both front doors show the same assessment. Outbound
 traffic is HTTPS to public NOAA services with a project User-Agent, to
 the Anthropic API with a key read from the environment, and, from Phase
-7, to an ntfy server with a topic token. There is no public ingress; an
-optional LAN mode in Phase 8 is the only widening, and it is gated.
+7, to an ntfy server with a topic token; from Phase 5 the browser itself
+also fetches the map's raster tiles from OpenStreetMap. There is no
+public ingress; an optional LAN mode in Phase 8 is the only widening,
+and it is gated. Loopback is not a trust boundary against the browser:
+any other site's page open in it can send requests to 127.0.0.1, so the
+server answers only its own host names, grants no cross-origin read,
+and accepts writes only from its own origin (Phase 5).
 
 ---
 
@@ -777,33 +788,51 @@ entries.
 
 #### 5.1 API
 - FastAPI routes: `/api/health` (version, scheduler state, heartbeat,
-  database head), `/api/locations`, `/api/storms`, `/api/assessments`,
-  `/api/alerts`, `/api/timeline`, `/api/settings`, and `/api/events`
-  (server-sent events emitted when a snapshot, assessment, alert, or
-  notification is stored); OpenAPI schema committed and diffed in CI.
-- Bound to 127.0.0.1 on a configurable port (default 8765); CORS
-  limited to the served origin; a content-security policy on the SPA.
+  database head, and the built interface's identity), `/api/locations`,
+  `/api/storms`, `/api/assessments`, `/api/alerts`, `/api/timeline`,
+  `/api/notifications`, `/api/settings`, `/api/map` (the latest
+  snapshot's geometry), `/api/replay` (a replay corpus's advisories,
+  when `serve --corpus` names one), and `/api/events` (server-sent
+  events emitted when a snapshot, assessment, alert, or notification
+  is stored, from `serve`'s own cycles and from other processes'); four
+  writes for first-run setup, the evacuation toggle, "check now", and a
+  test notification; OpenAPI schema committed at `docs/api/openapi.json`
+  and diffed in CI.
+- Bound to 127.0.0.1 on a configurable port (default 8765), inside the
+  `serve` process beside the monitor; a host allowlist against DNS
+  rebinding; no cross-origin read permission at all (the page is
+  same-origin), which is CORS limited to the served origin; same-origin
+  JSON for every write; a content-security policy on the SPA, with a
+  per-answer nonce for the styles its components inject
+  (`phase05-roadmap.md`, "Design rationale").
 
 #### 5.2 Frontend
 - `frontend/` with Vite, React 19, TypeScript, Tailwind, TanStack Query,
-  react-leaflet, Radix primitives, and lucide icons; dark and light
-  themes; responsive to phone width; a generated API client from the
-  OpenAPI schema.
+  Leaflet, Radix primitives, and lucide icons; dark and light themes;
+  responsive to phone width; types generated from the OpenAPI schema.
+  Leaflet is used directly, not through react-leaflet, whose licence is
+  the Hippocratic License 2.1 (not OSI-approved) and would ship inside
+  the MIT wheel (`phase05-roadmap.md`, "Design rationale").
 - Pages: Dashboard (level card with evidence, storms, alerts, next
   product time, staleness banner), Map (cones, tracks, points, watch
   and warning lines, outlook areas, locations), Storms, Alerts,
   Timeline (assessment history and the change feed), Settings
-  (first-run location setup, notification preferences).
+  (first-run location setup, the evacuation toggle, browser
+  notifications, and the effective settings, read-only; editing them
+  and per-location preferences are Phase 7's).
 - The page subscribes to `/api/events` and invalidates only the queries
-  an event names; no interval polling anywhere.
+  an event names; no interval polling anywhere. Browser notifications
+  (brief §9) arrive as a channel beside the toast, delivered to the open
+  pages.
 
 #### 5.3 Packaging and developer loop
 - The Vite build is copied into `src/weatherbot/web/static` by a build
   step that CI and the release workflow run; the wheel includes it;
-  `weatherbot serve` opens the browser; development runs the Vite dev
-  server proxied to FastAPI.
+  `weatherbot serve` opens the browser when started from a terminal;
+  development runs the Vite dev server proxied to FastAPI.
 - Frontend tests with Vitest and Testing Library; a Playwright smoke
-  that loads the dashboard against replay data.
+  that loads the dashboard over recorded answers and draws the replay
+  corpus on the map.
 - Dependabot gains the `npm` ecosystem for `frontend/` (Phase 1 left it
   out until a manifest exists).
 
@@ -820,7 +849,9 @@ entries.
   and run in the gate; the server refuses non-loopback binds unless the
   Phase 8 LAN mode is explicitly enabled.
 - **Deployed & verified:** `/api/health` on the operator's running
-  service reports this phase's version after upgrade.
+  service reports this phase's build after upgrade (the package
+  version stays `2.0.0.dev0`, so health names the built interface's
+  identity).
 - **Security:** gate green; CSP and CORS headers verified by a test;
   no secrets reach the client bundle; coordinates never appear in
   browser console logs.
@@ -1398,16 +1429,21 @@ the database schema version is the Alembic head and is reported by
 The assets are the operator's location coordinates, the API and push
 tokens, and the integrity of the level the application shows. The trust
 boundaries are the loopback interface between browser and server, the
-HTTPS edges to NOAA and Anthropic, and the supply chain through GitHub
-Actions, PyPI, and npm. Realistic adversaries are an accidental commit
-or a leaked agent transcript that publishes personal data from a public
-repository, a compromised dependency or unpinned action, a device on
-the same network if the server is ever bound wider, hostile text inside
-a fetched advisory aimed at the model's tools, and a silent change in a
-NOAA service that would make stale or wrong data look current. The
-design must resist five abuse cases: personal data or a secret reaching
-the public repository; model output being treated as a fact; the API
-being reachable without a token off loopback; a supply-chain compromise
+browser itself (any other site's page open in it can send requests to
+the loopback server), the HTTPS edges to NOAA, Anthropic, and the map's
+tile server, and the supply chain through GitHub Actions, PyPI, and
+npm. Realistic adversaries are an accidental commit or a leaked agent
+transcript that publishes personal data from a public repository, a
+compromised dependency or unpinned action, a hostile website open in the
+operator's browser that forges requests to the loopback server or
+rebinds a DNS name to it, a device on the same network if the server is
+ever bound wider, hostile text inside a fetched advisory aimed at the
+model's tools, and a silent change in a NOAA service that would make
+stale or wrong data look current. The design must resist six abuse
+cases: personal data or a secret reaching the public repository; model
+output being treated as a fact; another site's page reading the API or
+triggering its writes through the operator's browser; the API being
+reachable without a token off loopback; a supply-chain compromise
 landing through CI; and stale data presented as live.
 
 #### Per-step security gate
