@@ -1078,23 +1078,30 @@ must be green.
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-**Cost**
+|                                  | Cost               | Balanced ✓         | Quality            |
+| -------------------------------- | ------------------ | ------------------ | ------------------ |
+| **Pick**                         |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
+| **Runner‑up**                    |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| **Backup**                       |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
 
-- Pick: **GPT-6.1 Sol** · Codex · Intelligence High · AA 50.2
-- Runner-up: **Sonnet 5.5** · Claude Code · Effort XHigh · AA 51.9
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-
-**Balanced** — runs by default
-
-- Pick: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-- Runner-up: **Opus 5.5** · Claude Code · Effort High · AA 53.6
-- Backup: **GPT-6.1 Sol** · Codex · Intelligence XHigh · AA 51
-
-**Quality**
-
-- Pick: **Opus 5.5** · Claude Code · Effort XHigh · AA 56
-- Runner-up: **Fable 5.1** · Claude Code · Effort XHigh · AA 53.2
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
 
 **Conversation:** New
 
@@ -1990,23 +1997,30 @@ until Step 7 redeploys it. GitHub Actions → the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-**Cost**
+|                                  | Cost               | Balanced ✓         | Quality            |
+| -------------------------------- | ------------------ | ------------------ | ------------------ |
+| **Pick**                         |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
+| **Runner‑up**                    |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| **Backup**                       |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
 
-- Pick: **GPT-6.1 Sol** · Codex · Intelligence High · AA 50.2
-- Runner-up: **Sonnet 5.5** · Claude Code · Effort XHigh · AA 51.9
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-
-**Balanced** — runs by default
-
-- Pick: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-- Runner-up: **Opus 5.5** · Claude Code · Effort High · AA 53.6
-- Backup: **GPT-6.1 Sol** · Codex · Intelligence XHigh · AA 51
-
-**Quality**
-
-- Pick: **Opus 5.5** · Claude Code · Effort XHigh · AA 56
-- Runner-up: **Fable 5.1** · Claude Code · Effort XHigh · AA 53.2
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
 
 **Conversation:** New
 
@@ -2598,23 +2612,30 @@ until Step 7 redeploys it. GitHub Actions → the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-**Cost**
+|                                  | Cost               | Balanced ✓         | Quality            |
+| -------------------------------- | ------------------ | ------------------ | ------------------ |
+| **Pick**                         |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
+| **Runner‑up**                    |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| **Backup**                       |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
 
-- Pick: **GPT-6.1 Sol** · Codex · Intelligence High · AA 50.2
-- Runner-up: **Sonnet 5.5** · Claude Code · Effort XHigh · AA 51.9
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-
-**Balanced** — runs by default
-
-- Pick: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-- Runner-up: **Opus 5.5** · Claude Code · Effort High · AA 53.6
-- Backup: **GPT-6.1 Sol** · Codex · Intelligence XHigh · AA 51
-
-**Quality**
-
-- Pick: **Opus 5.5** · Claude Code · Effort XHigh · AA 56
-- Runner-up: **Fable 5.1** · Claude Code · Effort XHigh · AA 53.2
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
 
 **Conversation:** New
 
@@ -3261,23 +3282,30 @@ the `package` job builds the interface; the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-**Cost**
+|                                  | Cost               | Balanced ✓         | Quality            |
+| -------------------------------- | ------------------ | ------------------ | ------------------ |
+| **Pick**                         |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
+| **Runner‑up**                    |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| **Backup**                       |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
 
-- Pick: **GPT-6.1 Sol** · Codex · Intelligence High · AA 50.2
-- Runner-up: **Sonnet 5.5** · Claude Code · Effort XHigh · AA 51.9
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-
-**Balanced** — runs by default
-
-- Pick: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-- Runner-up: **Opus 5.5** · Claude Code · Effort High · AA 53.6
-- Backup: **GPT-6.1 Sol** · Codex · Intelligence XHigh · AA 51
-
-**Quality**
-
-- Pick: **Opus 5.5** · Claude Code · Effort XHigh · AA 56
-- Runner-up: **Fable 5.1** · Claude Code · Effort XHigh · AA 53.2
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
 
 **Conversation:** New
 
@@ -3903,23 +3931,30 @@ until Step 7 redeploys it. GitHub Actions → the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-**Cost**
+|                                  | Cost               | Balanced ✓         | Quality            |
+| -------------------------------- | ------------------ | ------------------ | ------------------ |
+| **Pick**                         |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
+| **Runner‑up**                    |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| **Backup**                       |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
 
-- Pick: **GPT-6.1 Sol** · Codex · Intelligence High · AA 50.2
-- Runner-up: **Sonnet 5.5** · Claude Code · Effort XHigh · AA 51.9
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-
-**Balanced** — runs by default
-
-- Pick: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-- Runner-up: **Opus 5.5** · Claude Code · Effort High · AA 53.6
-- Backup: **GPT-6.1 Sol** · Codex · Intelligence XHigh · AA 51
-
-**Quality**
-
-- Pick: **Opus 5.5** · Claude Code · Effort XHigh · AA 56
-- Runner-up: **Fable 5.1** · Claude Code · Effort XHigh · AA 53.2
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
 
 **Conversation:** New
 
@@ -4456,23 +4491,30 @@ until Step 7 redeploys it. GitHub Actions → the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-**Cost**
+|                                  | Cost               | Balanced ✓         | Quality            |
+| -------------------------------- | ------------------ | ------------------ | ------------------ |
+| **Pick**                         |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
+| **Runner‑up**                    |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| **Backup**                       |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
 
-- Pick: **GPT-6.1 Sol** · Codex · Intelligence High · AA 50.2
-- Runner-up: **Sonnet 5.5** · Claude Code · Effort XHigh · AA 51.9
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-
-**Balanced** — runs by default
-
-- Pick: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-- Runner-up: **Opus 5.5** · Claude Code · Effort High · AA 53.6
-- Backup: **GPT-6.1 Sol** · Codex · Intelligence XHigh · AA 51
-
-**Quality**
-
-- Pick: **Opus 5.5** · Claude Code · Effort XHigh · AA 56
-- Runner-up: **Fable 5.1** · Claude Code · Effort XHigh · AA 53.2
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
 
 **Conversation:** New
 
@@ -4983,23 +5025,30 @@ this build's `index_sha256`, `doctor` must pass `web`, and the operator opens
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-**Cost**
+|                                  | Cost               | Balanced ✓         | Quality            |
+| -------------------------------- | ------------------ | ------------------ | ------------------ |
+| **Pick**                         |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex              | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
+| **Runner‑up**                    |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| **Backup**                       |                    |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
 
-- Pick: **GPT-6.1 Sol** · Codex · Intelligence High · AA 50.2
-- Runner-up: **Sonnet 5.5** · Claude Code · Effort XHigh · AA 51.9
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-
-**Balanced** — runs by default
-
-- Pick: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-- Runner-up: **Opus 5.5** · Claude Code · Effort High · AA 53.6
-- Backup: **GPT-6.1 Sol** · Codex · Intelligence XHigh · AA 51
-
-**Quality**
-
-- Pick: **Opus 5.5** · Claude Code · Effort XHigh · AA 56
-- Runner-up: **Fable 5.1** · Claude Code · Effort XHigh · AA 53.2
-- Backup: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
 
 **Conversation:** New
 
@@ -5519,25 +5568,30 @@ peel to the merge commit.
 
 Settings — ladder (`roadmodel ladder --category coding --complexity medium`):
 
-**Cost**
+|                                  | Cost                 | Balanced ✓         | Quality            |
+| -------------------------------- | -------------------- | ------------------ | ------------------ |
+| **Pick**                         |                      |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Codex                | Antigravity        | Claude Code        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                  | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 42.1                 | 52.6               | 53.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
+| **Runner‑up**                    |                      |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity          | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | Medium             | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 39.8                 | 51.2               | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
+| **Backup**                       |                      |                    |                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6.1 Sol**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code          | Codex              | Codex              |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 40.8                 | 50.2               | 50.2               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M             | $2.18/1M           | $2.18/1M           |
 
-- Pick: **GPT-6.1 Sol** · Codex · Intelligence Low · AA 42.1
-- Runner-up: **Gemini 3.8 Flash** · Antigravity · Effort Medium · Thinking On
-  · AA 39.8
-- Backup: **Sonnet 5.5** · Claude Code · Effort Medium · AA 40.8
-
-**Balanced** — runs by default
-
-- Pick: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On · AA 52.6
-- Runner-up: **Opus 5.5** · Claude Code · Effort Medium · AA 51.2
-- Backup: **GPT-6.1 Sol** · Codex · Intelligence High · AA 50.2
-
-**Quality**
-
-- Pick: **Opus 5.5** · Claude Code · Effort High · AA 53.6
-- Runner-up: **Gemini 4 Argon** · Antigravity · Effort High · Thinking On
-  · AA 52.6
-- Backup: **GPT-6.1 Sol** · Codex · Intelligence High · AA 50.2
+✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
+model uses at that level; * token use not yet measured, a typical model's at
+that level assumed.
 
 **Conversation:** New
 
