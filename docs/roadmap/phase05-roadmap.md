@@ -1087,28 +1087,31 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 | &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
 | **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
 | **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Codex              |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | XHigh              | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | 51                 | 52.4               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
-model uses at that level; * token use not yet measured, a typical model's at
-that level assumed.
+Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
+tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
+yet measured, a typical model's at that level assumed.
 
 **Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that
 column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
-and Backup whose pool has headroom; with neither, a `tight` column runs the Cost
+and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
+Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Step 1 is coding with an agentic secondary category: an
 ASGI server embedded in an asyncio loop that already runs the scheduler,
@@ -2006,28 +2009,31 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 | &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
 | **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
 | **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Codex              |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | XHigh              | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | 51                 | 52.4               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
-model uses at that level; * token use not yet measured, a typical model's at
-that level assumed.
+Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
+tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
+yet measured, a typical model's at that level assumed.
 
 **Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that
 column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
-and Backup whose pool has headroom; with neither, a `tight` column runs the Cost
+and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
+Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Step 2 is coding with a knowledge secondary category: ten
 read routes over stored domain records, a GeoJSON rendering of NHC's products
@@ -2621,28 +2627,31 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 | &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
 | **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
 | **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Codex              |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | XHigh              | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | 51                 | 52.4               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
-model uses at that level; * token use not yet measured, a typical model's at
-that level assumed.
+Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
+tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
+yet measured, a typical model's at that level assumed.
 
 **Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that
 column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
-and Backup whose pool has headroom; with neither, a `tight` column runs the Cost
+and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
+Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Step 3 is coding with an agentic secondary category: a
 publish-subscribe hub that receives from the event loop and from worker threads,
@@ -3291,28 +3300,31 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 | &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
 | **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
 | **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Codex              |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | XHigh              | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | 51                 | 52.4               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
-model uses at that level; * token use not yet measured, a typical model's at
-that level assumed.
+Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
+tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
+yet measured, a typical model's at that level assumed.
 
 **Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that
 column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
-and Backup whose pool has headroom; with neither, a `tight` column runs the Cost
+and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
+Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Step 4 is coding with an agentic secondary category: a new
 toolchain on a new Node line, generated types and a drift gate, the shell and
@@ -3940,28 +3952,31 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 | &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
 | **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
 | **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Codex              |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | XHigh              | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | 51                 | 52.4               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
-model uses at that level; * token use not yet measured, a typical model's at
-that level assumed.
+Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
+tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
+yet measured, a typical model's at that level assumed.
 
 **Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that
 column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
-and Backup whose pool has headroom; with neither, a `tight` column runs the Cost
+and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
+Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Step 5 is coding with a multimodal secondary category: five
 pages over a fixed contract, a level card whose evidence and missing inputs must
@@ -4500,28 +4515,31 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 | &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
 | **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
 | **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Codex              |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | XHigh              | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | 51                 | 52.4               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
-model uses at that level; * token use not yet measured, a typical model's at
-that level assumed.
+Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
+tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
+yet measured, a typical model's at that level assumed.
 
 **Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that
 column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
-and Backup whose pool has headroom; with neither, a `tight` column runs the Cost
+and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
+Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Step 6 is coding with a knowledge secondary category:
 Leaflet layers for NHC's products, drawn faithfully to their CRS and continuous
@@ -5034,28 +5052,31 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 | &nbsp;&nbsp;&nbsp;&nbsp;AA       | 50.2               | 52.6               | 56                 |
 | &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.18/1M           | $4.00/1M*          | $8.46/1M           |
 | **Runner‑up**                    |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Fable 5.1**      |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Claude Code        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | XHigh              |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 53.2               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $22.20/1M          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**     | **Opus 5.5**       | **Gemini 4 Argon** |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code        | Claude Code        | Antigravity        |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | XHigh              | High               | High               |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 51.9               | 53.6               | 52.6               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
 | **Backup**                       |                    |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Antigravity        |
-| &nbsp;&nbsp;&nbsp;&nbsp;Level    | High               | XHigh              | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 52.6               | 51                 | 52.6               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $4.00/1M*          | $4.00/1M           | $4.00/1M*          |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Platform | Antigravity        | Codex              | Codex              |
+| &nbsp;&nbsp;&nbsp;&nbsp;Level    | Low                | XHigh              | XHigh              |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | not measured       | 51                 | 52.4               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
-model uses at that level; * token use not yet measured, a typical model's at
-that level assumed.
+Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
+tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
+yet measured, a typical model's at that level assumed.
 
 **Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that
 column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
-and Backup whose pool has headroom; with neither, a `tight` column runs the Cost
+and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
+Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Step 7 is coding with an agentic secondary category: a
 demonstration server built on Phase 4's recorded-answer simulation, a Playwright
@@ -5583,22 +5604,25 @@ Settings — ladder (`roadmodel ladder --category coding --complexity medium`):
 | &nbsp;&nbsp;&nbsp;&nbsp;AA       | 39.8                 | 51.2               | 52.6               |
 | &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
 | **Backup**                       |                      |                    |                    |
-| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6.1 Sol**    |
+| &nbsp;&nbsp;&nbsp;&nbsp;Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
 | &nbsp;&nbsp;&nbsp;&nbsp;Platform | Claude Code          | Codex              | Codex              |
 | &nbsp;&nbsp;&nbsp;&nbsp;Level    | Medium               | High               | High               |
-| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 40.8                 | 50.2               | 50.2               |
-| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M             | $2.18/1M           | $2.18/1M           |
+| &nbsp;&nbsp;&nbsp;&nbsp;AA       | 40.8                 | 50.2               | 50.9               |
+| &nbsp;&nbsp;&nbsp;&nbsp;Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
 
-✓ runs by default. Price: list $ per 1M tokens (3 in : 1 out) × the tokens the
-model uses at that level; * token use not yet measured, a typical model's at
-that level assumed.
+Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
+tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
+yet measured, a typical model's at that level assumed.
 
 **Conversation:** New
 
 **Runs:** Balanced — the user-context's Budget priority is `balanced`. If that
 column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
-and Backup whose pool has headroom; with neither, a `tight` column runs the Cost
+and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
+Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Step 8 is coding with an agentic secondary category —
 GitHub readbacks, on-machine sweeps, and the closure — at Medium complexity: it
