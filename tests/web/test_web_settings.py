@@ -24,20 +24,32 @@ def _write_toml(paths: AppPaths, text: str) -> None:
 
 def test_web_settings_defaults_and_overrides() -> None:
     defaults = Settings()
-    assert defaults.web == WebSettings(host="127.0.0.1", port=8765)
+    assert defaults.web == WebSettings(host="127.0.0.1", port=8765, corpus="")
     assert defaults.web.address() == "http://127.0.0.1:8765"
     assert WebSettings(host="::1", port=9000).address() == "http://[::1]:9000"
 
     paths = AppPaths.resolve()
-    _write_toml(paths, '[web]\nhost = "localhost"\nport = 8800\n')
+    _write_toml(paths, '[web]\nhost = "localhost"\nport = 8800\ncorpus = "tests/fixtures/replay"\n')
     from_file = load_settings(paths, {})
-    assert (from_file.web.host, from_file.web.port) == ("localhost", 8800)
+    assert (from_file.web.host, from_file.web.port, from_file.web.corpus) == (
+        "localhost",
+        8800,
+        "tests/fixtures/replay",
+    )
 
     from_env = load_settings(
         paths,
-        {"WEATHERBOT_WEB_HOST": "::1", "WEATHERBOT_WEB_PORT": "9100"},
+        {
+            "WEATHERBOT_WEB_HOST": "::1",
+            "WEATHERBOT_WEB_PORT": "9100",
+            "WEATHERBOT_WEB_CORPUS": "/var/data/corpus",
+        },
     )
-    assert (from_env.web.host, from_env.web.port) == ("::1", 9100)
+    assert (from_env.web.host, from_env.web.port, from_env.web.corpus) == (
+        "::1",
+        9100,
+        "/var/data/corpus",
+    )
 
     origins = {
         (item.table, item.key): item
@@ -47,6 +59,8 @@ def test_web_settings_defaults_and_overrides() -> None:
     assert origins["web", "host"].value == "localhost"
     assert origins["web", "port"].origin == "environment"
     assert origins["web", "port"].value == 0
+    assert origins["web", "corpus"].origin == "file"
+    assert origins["web", "corpus"].value == "tests/fixtures/replay"
 
 
 def test_config_show_json_includes_web_table() -> None:
@@ -54,8 +68,10 @@ def test_config_show_json_includes_web_table() -> None:
     entries = {(entry.table, entry.key): entry for entry in doc.data.settings}
     assert ("web", "host") in entries
     assert ("web", "port") in entries
+    assert ("web", "corpus") in entries
     assert entries["web", "host"].variable == "WEATHERBOT_WEB_HOST"
     assert entries["web", "port"].variable == "WEATHERBOT_WEB_PORT"
+    assert entries["web", "corpus"].variable == "WEATHERBOT_WEB_CORPUS"
 
 
 @pytest.mark.parametrize(

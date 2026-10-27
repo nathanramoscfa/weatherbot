@@ -2,7 +2,6 @@
 """``GET /api/health``: process, database, scheduler, heartbeat, and UI status."""
 
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from fastapi import APIRouter, Request
@@ -87,10 +86,6 @@ def get_health(request: Request) -> HealthResponse:
         )
     )
 
-    corpus_available = (
-        state.corpus.is_dir() if isinstance(state.corpus, Path) else bool(state.corpus)
-    )
-
     return HealthResponse(
         version=__version__,
         started_at=state.started_at.astimezone(UTC),
@@ -101,6 +96,6 @@ def get_health(request: Request) -> HealthResponse:
         stale=any(item.stale for item in heartbeats),
         next_product_at=next_product_hour(now),
         ui=UiHealth(present=bundle.present, index_sha256=bundle.index_sha256),
-        corpus=corpus_available,
+        corpus=state.corpus is not None,
         notice=NOTICE,
     )

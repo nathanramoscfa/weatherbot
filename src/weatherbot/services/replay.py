@@ -332,6 +332,43 @@ class ReplayCorpus:
             raise ReplayError(converted.file, "the cone's ADVDATE names no instant")
         return cone.advisory.issued_at, storm.name
 
+    def advisories(self, atcf_id: str) -> tuple[str, ...]:
+        """Return a storm's advisory numbers in manifest issuance order.
+
+        Args:
+            atcf_id: The storm's ATCF id, such as ``AL112017``.
+
+        Returns:
+            The advisory numbers in the manifest's issuance order.
+
+        Raises:
+            ReplayError: The storm is not in the corpus manifest.
+        """
+        return tuple(self._advisories(atcf_id))
+
+    def snapshot(self, atcf_id: str, advisory: str) -> Snapshot:
+        """Assemble one replayed advisory's ``Snapshot`` without decoding other advisories.
+
+        Args:
+            atcf_id: The storm's ATCF id, such as ``AL112017``.
+            advisory: The advisory number in the manifest, such as ``001`` or ``026A``.
+
+        Returns:
+            The replayed advisory's ``Snapshot``.
+
+        Raises:
+            ReplayError: The storm or advisory is not in the corpus, or a file is missing,
+                tampered, outside the directory, or unreadable.
+        """
+        advisories = self.advisories(atcf_id)
+        if advisory not in advisories:
+            raise ReplayError(
+                MANIFEST_NAME,
+                f"the manifest lists no advisory {advisory!r} for {atcf_id}",
+            )
+        index = advisories.index(advisory)
+        return self._snapshot(atcf_id, advisory, advisories[: index + 1])
+
     def snapshots(self, atcf_id: str) -> Iterator[Snapshot]:
         """Yield one replay snapshot per advisory of a storm, in the manifest's order.
 
@@ -345,7 +382,7 @@ class ReplayCorpus:
             ReplayError: The storm is not in the corpus, or a file is missing, tampered,
                 outside the directory, or unreadable.
         """
-        advisories = self._advisories(atcf_id)
+        advisories = self.advisories(atcf_id)
         for index, advisory in enumerate(advisories):
             yield self._snapshot(atcf_id, advisory, advisories[: index + 1])
 

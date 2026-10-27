@@ -1968,9 +1968,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 2 — The read API and the map's geometry
+## Step 2 — The read API and the map's geometry ✅
 
-**Status:** Not started
+**Status:** Complete — PR #62 (2026-10-27)
 
 > **Goal:** Serve everything the pages read, in the web layer's own models.
 > `weatherbot.web.schemas` gains the response models and `weatherbot.web.routes`
@@ -2033,6 +2033,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+>
+> Ran 2026-10-27: Balanced Pick — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Selected by the **Runs:** rule (Google AI Pro pool reads headroom).
 
 **Model rationale:** Step 2 is coding with a knowledge secondary category: ten
 read routes over stored domain records, a GeoJSON rendering of NHC's products
@@ -6500,7 +6502,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Web server inside serve        | Gemini 4 Argon | Complete — PR #61  |
-| 2    | Read API + map geometry        | Gemini 4 Argon | Not started        |
+| 2    | Read API + map geometry        | Gemini 4 Argon | Complete — PR #62  |
 | 3    | Events + browser + actions     | Gemini 4 Argon | Not started        |
 | 4    | Frontend chassis + wheel       | Gemini 4 Argon | Not started        |
 | 5    | Dashboard + pages              | Gemini 4 Argon | Not started        |

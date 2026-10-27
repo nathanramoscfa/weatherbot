@@ -338,6 +338,7 @@ toast = true                        # false: notifications go to the in-app log 
 [web]
 host = "127.0.0.1"                  # "127.0.0.1", "::1", or "localhost" (loopback only)
 port = 8765                         # 1024 to 65535 (or 0 for an ephemeral port in tests)
+corpus = ""                         # replay corpus directory for /api/replay, or "" for none
 ```
 
 An unknown key or a bad value stops the program with a message that names the
@@ -661,11 +662,52 @@ values and coordinates are never echoed back.
 at app creation, injects a per-response cryptographic nonce into `index.html` and
 its `style-src` CSP directive, serves `/assets/*` as `public, max-age=31536000,
 immutable`, and serves a plain HTML fallback naming `CONTRIBUTING.md` when the
-frontend bundle has not been built yet. `GET /api/health` (`def get_health`,
-sync route handler on FastAPI's threadpool) returns the database revision,
-scheduler state, source/watch/runner heartbeats, UI bundle status, and the
-disclaimer reminder. Regenerate the committed OpenAPI 3.1 schema after changing
-a route or schema model:
+frontend bundle has not been built yet. Every route handler that reads a
+repository is a synchronous `def` function so FastAPI runs its SQLite reads on
+the worker threadpool without blocking the asyncio loop:
+
+- `GET /api/health` (`HealthResponse`): version, database revision against head,
+  scheduler state and next UTC product hour, heartbeats with staleness, UI
+  bundle state, `corpus` availability, and the disclaimer reminder.
+- `GET /api/locations` (`LocationsResponse`): watched locations ordered by name,
+  with coordinates, NWS coverage, stored county or forecast zone polygon (with
+  CRS), evacuation toggle state, and nearest breakpoint span.
+- `GET /api/assessments` (`AssessmentsResponse`): latest stored assessment per
+  location from the latest snapshot (never assessing live on the request path),
+  with rounded distances and bearings, `toggle_changed` / `toggle_note` when the
+  evacuation toggle changed after the assessment was stored, and snapshot
+  metadata.
+- `GET /api/storms` (`StormsResponse`) and `GET /api/alerts` (`AlertsResponse`):
+  active storms, products, graphical outlook, 5 km wind-speed probabilities, and
+  per-location NWS alerts (`is_county_context`) or watch-warning segments
+  (`segment_ends`) from the latest stored snapshot.
+- `GET /api/timeline` (`TimelineResponse`) and `GET /api/notifications`
+  (`NotificationsResponse`): unified reverse-chronological history of stored
+  assessments (each with its change events and deciding evidence) and stored
+  notifications (with per-channel deliveries and policy decisions), bounded by
+  `limit` (`1..500`, default `100`) and optional `?location=` query parameter.
+- `GET /api/settings` (`SettingsResponse`) and `GET /api/disclaimer`
+  (`DisclaimerResponse`): effective settings with per-field origin (`default`,
+  `file`, or `env`) and whether `weatherbot.toml` was modified since `serve`
+  started, plus the full `DISCLAIMER.md` text and essentials.
+- `GET /api/map` (`MapResponse`) and `weatherbot.web.map_layers`: pure GeoJSON
+  layer builder serving cones, forecast tracks, forecast points, watch-warning
+  segments (with `breakpoint_names` from `segment_ends`), graphical outlook
+  areas, and watched location points and polygons, each carrying its explicit
+  `crs` (`name` and `datum`, without `wkt`). Central Pacific storms crossing the
+  antimeridian have longitudes unwrapped by `±360°` relative to the storm's first
+  forecast point (`|lon - ref_lon| > 180°`). A bounded 8-snapshot LRU cache
+  (`SNAPSHOT_CACHE`) is shared across `/api/map`, `/api/storms`, and
+  `/api/alerts` so polling all three decodes the latest snapshot once.
+- `GET /api/replay` (`ReplayStormsResponse`) and
+  `GET /api/replay/{atcf_id}/{advisory}` (`MapResponse` with `origin="replay"`
+  and `native` / `D_Sphere` CRS): enabled via `weatherbot serve --corpus DIR`
+  (which exits 2 before taking `monitor.lock` if `DIR` is not a valid corpus) or
+  `[web] corpus` / `WEATHERBOT_WEB_CORPUS` (which logs a `WARNING` and starts
+  with replay off if invalid). Without a corpus, both routes return `404`.
+
+Regenerate the committed OpenAPI 3.1 schema after changing a route or schema
+model:
 
 ```sh
 uv run python scripts/export_openapi.py           # writes docs/api/openapi.json

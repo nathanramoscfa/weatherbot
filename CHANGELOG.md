@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 5 — Web app (MVP)
+- Add the ten read API routes (`GET /api/locations`, `/api/assessments`,
+  `/api/storms`, `/api/alerts`, `/api/timeline`, `/api/notifications`,
+  `/api/settings`, `/api/disclaimer`, `/api/map`, and `/api/replay` plus
+  `/api/replay/{atcf_id}/{advisory}`) with frozen Pydantic response schemas in
+  `weatherbot.web.schemas` (`extra="forbid"`, full field descriptions) and
+  regenerate `docs/api/openapi.json`. Every route reading a repository is a
+  synchronous `def` function so SQLite reads run on FastAPI's worker threadpool;
+  location names are passed as query parameters rather than path segments; and
+  only `/api/locations` and the map's location layers carry coordinates.
+- Add `weatherbot.web.map_layers` (`build_map_response`,
+  `build_storm_map_layers`, `unwrap_longitude`, `SnapshotLayerCache`, and the
+  shared 8-snapshot LRU `SNAPSHOT_CACHE` used by `/api/map`, `/api/storms`, and
+  `/api/alerts`): serves cones, forecast tracks, forecast points, watch-warning
+  segments (with `breakpoint_names` from `segment_ends`), outlook areas, and
+  location points and polygons with each geometry's explicit `crs` (`name` and
+  `datum`, without `wkt`), unwrapping Central Pacific antimeridian crossings by
+  `±360°` relative to the storm's first forecast point and omitting wind radii
+  and wind-speed probabilities from `/api/map`.
+- Add `ReplayCorpus.advisories(atcf_id)` and
+  `ReplayCorpus.snapshot(atcf_id, advisory)`, `[web] corpus`
+  (`WEATHERBOT_WEB_CORPUS`), `weatherbot serve --corpus DIR` (validating before
+  `monitor.lock` and exiting 2 on a non-corpus directory, while an unusable
+  configured `[web] corpus` logs a `WARNING` and starts `serve` with replay
+  off), and `HealthResponse.corpus`.
 - Add `weatherbot.web` (`create_app`, `WebState`, `WebServer`, `guards`,
   `static_files`, `schemas`, and `routes.health`) and embed Uvicorn inside
   `weatherbot serve [--open|--no-open]` on the same `asyncio` event loop as

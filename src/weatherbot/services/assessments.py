@@ -34,8 +34,17 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
 from weatherbot.engine import RULES, assess, diff
+from weatherbot.engine.breakpoints import segment_ends
 from weatherbot.engine.official import OUTSIDE_ZONES
-from weatherbot.models import Location, OfficialProduct, RuleId, Snapshot, Thresholds
+from weatherbot.models import (
+    Breakpoint,
+    Geometry,
+    Location,
+    OfficialProduct,
+    RuleId,
+    Snapshot,
+    Thresholds,
+)
 from weatherbot.services.persistence.database import writing_session
 from weatherbot.services.persistence.repositories import (
     AssessmentRepository,
@@ -199,3 +208,18 @@ def is_county_context(product: OfficialProduct) -> bool:
         Whether it is that context.
     """
     return product.kind == "nws_alert" and not product.covers and product.reason == OUTSIDE_ZONES
+
+
+def segment_breakpoint_names(
+    segment: Geometry, breakpoints: Sequence[Breakpoint]
+) -> tuple[str, ...]:
+    """Name a watch-warning segment's ends from the snapshot's breakpoint catalogue.
+
+    Args:
+        segment: The watch-warning segment geometry.
+        breakpoints: The snapshot's coastal breakpoint catalogue.
+
+    Returns:
+        The catalogue breakpoint names at the segment's ends, in segment order.
+    """
+    return segment_ends(segment, breakpoints)
