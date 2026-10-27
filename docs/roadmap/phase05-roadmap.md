@@ -2654,6 +2654,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+>
+> Ran 2026-10-27: Balanced Pick — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Selected by the **Runs:** rule (Google AI Pro pool reads headroom).
 
 **Model rationale:** Step 3 is coding with an agentic secondary category: a
 publish-subscribe hub that receives from the event loop and from worker threads,
