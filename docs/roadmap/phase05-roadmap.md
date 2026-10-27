@@ -3259,9 +3259,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 4 — The frontend chassis, its gate, and the wheel
+## Step 4 — The frontend chassis, its gate, and the wheel ✅
 
-**Status:** Not started
+**Status:** Complete — PR #64 (2026-10-27)
 
 > **Goal:** Stand up the page every later step fills, and ship it in the wheel.
 > `frontend/` holds a Vite 8 + React 19 + strict TypeScript 5.9.3 app on Node 24
@@ -6505,7 +6505,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Web server inside serve        | Gemini 4 Argon | Complete — PR #61  |
 | 2    | Read API + map geometry        | Gemini 4 Argon | Complete — PR #62  |
 | 3    | Events + browser + actions     | Gemini 4 Argon | Complete — PR #63  |
-| 4    | Frontend chassis + wheel       | Gemini 4 Argon | Not started        |
+| 4    | Frontend chassis + wheel       | Gemini 4 Argon | Complete — PR #64  |
 | 5    | Dashboard + pages              | Gemini 4 Argon | Not started        |
 | 6    | Map                            | Gemini 4 Argon | Not started        |
 | 7    | Browser smoke + idle + deploy  | Gemini 4 Argon | Not started        |
