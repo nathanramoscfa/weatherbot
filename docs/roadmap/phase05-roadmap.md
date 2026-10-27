@@ -2594,9 +2594,9 @@ Runner-up or Backup. The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 3 — The event stream, browser notifications, and the API's actions
+## Step 3 — The event stream, browser notifications, and the API's actions ✅
 
-**Status:** Not started
+**Status:** Complete — PR #63 (2026-10-27)
 
 > **Goal:** Tell an open page what changed, and let it act. A new
 > `weatherbot.services.events` holds `EventHub` (publish from any thread; one
@@ -6503,7 +6503,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Web server inside serve        | Gemini 4 Argon | Complete — PR #61  |
 | 2    | Read API + map geometry        | Gemini 4 Argon | Complete — PR #62  |
-| 3    | Events + browser + actions     | Gemini 4 Argon | Not started        |
+| 3    | Events + browser + actions     | Gemini 4 Argon | Complete — PR #63  |
 | 4    | Frontend chassis + wheel       | Gemini 4 Argon | Not started        |
 | 5    | Dashboard + pages              | Gemini 4 Argon | Not started        |
 | 6    | Map                            | Gemini 4 Argon | Not started        |
