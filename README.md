@@ -185,12 +185,15 @@ made from it. Read the full text in
 
 ## Development quickstart
 
-Weatherbot uses [uv](https://docs.astral.sh/uv/) and Python 3.13.
+Weatherbot uses [uv](https://docs.astral.sh/uv/), Python 3.13, and Node 24
+(`frontend/.nvmrc`).
 
 ```sh
-uv sync                      # create .venv and install the locked dependencies
-uv run weatherbot --version  # prints 2.0.0.dev0
-uv run pytest                # run the tests
+uv sync                                # create .venv and install the locked dependencies
+npm --prefix frontend ci               # install the locked frontend dependencies
+npm --prefix frontend run build        # build the web UI into src/weatherbot/web/static/
+uv run weatherbot --version            # prints 2.0.0.dev0
+uv run pytest                          # run the tests
 ```
 
 [CONTRIBUTING.md](CONTRIBUTING.md) describes the full development loop.
