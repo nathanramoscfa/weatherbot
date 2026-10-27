@@ -1122,6 +1122,7 @@ async def run_monitor(  # noqa: PLR0913 - top-level monitor loop entry point
     listeners: Sequence[CycleListener] = (),
     max_sleep_s: float = MAX_SLEEP_S,
     check_installed: Callable[[], bool] | bool | None = None,
+    on_schedule: Callable[[MonitorSchedule], None] | None = None,
 ) -> None:
     """Run the process heartbeat task and the ``MonitorSchedule`` loop until ``stop``."""
     clock_moved = asyncio.Event()
@@ -1164,6 +1165,8 @@ async def run_monitor(  # noqa: PLR0913 - top-level monitor loop entry point
         channels=channels,
         listeners=listeners,
     )
+    if on_schedule is not None:
+        on_schedule(schedule)
     sched = schedule.scheduler(max_sleep_s=max_sleep_s)
     heartbeat = asyncio.create_task(
         run_heartbeat_task(

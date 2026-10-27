@@ -41,6 +41,43 @@
             }
           }
         }
+      },
+      "post": {
+        "summary": "Create Location",
+        "description": "Validate and add a watched location via ``LocationService.add`` in a worker thread.",
+        "operationId": "create_location_api_locations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLocationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/assessments": {
@@ -316,6 +353,164 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "summary": "Stream Events",
+        "description": "Stream ``hello`` followed by live ``StreamEvent`` payloads until closed.",
+        "operationId": "stream_events_api_events_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string",
+                      "contentMediaType": "application/json",
+                      "contentSchema": {
+                        "$ref": "#/components/schemas/StreamEvent"
+                      }
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "retry": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/locations/evacuation": {
+      "put": {
+        "summary": "Update Evacuation",
+        "description": "Turn a watched location's evacuation-order toggle on or off.",
+        "operationId": "update_evacuation_api_locations_evacuation_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEvacuationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvacuationUpdateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cycles": {
+      "post": {
+        "summary": "Trigger Cycle",
+        "description": "Schedule a single-flight ``manual`` cycle on the server's event loop.",
+        "operationId": "trigger_cycle_api_cycles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerCycleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerCycleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/test": {
+      "post": {
+        "summary": "Send Test Notification",
+        "description": "Send a ``test`` notification through ``serve``'s channels on the server's loop.",
+        "operationId": "send_test_notification_api_notifications_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestNotificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationItemResponse"
                 }
               }
             }
@@ -1369,6 +1564,50 @@
         "title": "BreakpointSpan",
         "description": "The stretch of coast a location sits on, named from NHC's breakpoint catalogue.\n\nEither the two catalogue breakpoints, in catalogue order, between which the\nlocation's coast falls (one when its nearest breakpoint has no neighbour in the same\ncountry), or the one ``country (region)`` entry that holds it. The span names a\ncoast; it never decides whether a watch or warning covers the location."
       },
+      "CreateLocationRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Display name for the watched location."
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude",
+            "description": "Location latitude in decimal degrees [-90, 90]."
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude",
+            "description": "Location longitude in decimal degrees [-180, 180]."
+          },
+          "polygon": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "county",
+                  "forecast"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polygon",
+            "description": "Optional NWS zone polygon to store: county, forecast, or null."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "latitude",
+          "longitude"
+        ],
+        "title": "CreateLocationRequest",
+        "description": "Request body for ``POST /api/locations``."
+      },
       "DatabaseHealth": {
         "properties": {
           "revision": {
@@ -1491,6 +1730,46 @@
         ],
         "title": "EvacuationOrderResponse",
         "description": "State of the operator's manual evacuation-order toggle for a location."
+      },
+      "EvacuationUpdateResponse": {
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/LocationResponse",
+            "description": "Updated watched location in /api/locations' shape."
+          },
+          "changed": {
+            "type": "boolean",
+            "title": "Changed",
+            "description": "Whether the evacuation-order toggle changed from its previous state."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location",
+          "changed",
+          "notice"
+        ],
+        "title": "EvacuationUpdateResponse",
+        "description": "Response document for ``PUT /api/locations/evacuation``."
+      },
+      "EventKind": {
+        "type": "string",
+        "enum": [
+          "hello",
+          "cycle",
+          "snapshot",
+          "assessment",
+          "alert",
+          "notification",
+          "location",
+          "health"
+        ]
       },
       "GeoJsonCrsResponse": {
         "properties": {
@@ -2848,6 +3127,20 @@
         "title": "OutlookRiskCode",
         "description": "Formation risk in the Graphical Tropical Weather Outlook."
       },
+      "QueryKey": {
+        "type": "string",
+        "enum": [
+          "health",
+          "locations",
+          "assessments",
+          "storms",
+          "alerts",
+          "map",
+          "timeline",
+          "notifications",
+          "settings"
+        ]
+      },
       "ReplayStormSummaryResponse": {
         "properties": {
           "atcf_id": {
@@ -4021,6 +4314,269 @@
         "title": "StormsResponse",
         "description": "Response document for ``GET /api/storms``."
       },
+      "StreamEvent": {
+        "additionalProperties": false,
+        "description": "Server-sent event payload emitted by ``GET /api/events``.\n\nCarries only identifiers, location names, threat levels, kinds, and query keys to\ninvalidate — never coordinates, distances, or bearings.",
+        "properties": {
+          "id": {
+            "description": "Process-wide monotonically increasing event identifier.",
+            "minimum": 1,
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/EventKind",
+            "description": "Event category."
+          },
+          "at": {
+            "description": "UTC instant when the event was published.",
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "invalidate": {
+            "default": [],
+            "description": "Query keys that open dashboard pages must refetch.",
+            "items": {
+              "$ref": "#/components/schemas/QueryKey"
+            },
+            "title": "Invalidate",
+            "type": "array"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "UTC instant when the server started (set on hello events), or null.",
+            "title": "Started At"
+          },
+          "cycle_id": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Monitor cycle identifier, or null.",
+            "title": "Cycle Id"
+          },
+          "runner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Runner that executed the cycle, or null.",
+            "title": "Runner"
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Trigger that initiated the cycle, or null.",
+            "title": "Trigger"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Cycle or snapshot completion status, or null.",
+            "title": "Status"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Stored snapshot identifier (set on snapshot events), or null.",
+            "title": "Snapshot Id"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Watched location name (set on assessment, alert, notification, and location events), or null.",
+            "title": "Location"
+          },
+          "assessment_id": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Stored assessment identifier (set on assessment, alert, and notification events), or null.",
+            "title": "Assessment Id"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "maximum": 5,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Threat level integer from 1 to 5 (set on assessment and notification events), or null.",
+            "title": "Level"
+          },
+          "complete": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Whether the stored assessment had every required input (set on assessment events), or null.",
+            "title": "Complete"
+          },
+          "notification_id": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Stored notification identifier (set on notification events), or null.",
+            "title": "Notification Id"
+          },
+          "notification_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "location",
+                  "degraded",
+                  "recovered",
+                  "stale_monitor",
+                  "test"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Notification category (set on notification events), or null.",
+            "title": "Notification Kind"
+          },
+          "escalation": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Whether the notification announces an upward escalation (set on notification events), or null.",
+            "title": "Escalation"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Notification headline when delivered for display, or null.",
+            "title": "Title"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Notification body lines when delivered for display, or null.",
+            "title": "Body"
+          },
+          "display": {
+            "default": false,
+            "description": "Whether open dashboard pages should display this notification as an active alert.",
+            "title": "Display",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "at"
+        ],
+        "title": "StreamEvent",
+        "type": "object"
+      },
+      "TestNotificationRequest": {
+        "properties": {},
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TestNotificationRequest",
+        "description": "Empty JSON request body for ``POST /api/notifications/test``."
+      },
       "ThreatLevelResponse": {
         "properties": {
           "number": {
@@ -4321,6 +4877,50 @@
         "title": "TimelineResponse",
         "description": "Response document for ``GET /api/timeline``."
       },
+      "TriggerCycleRequest": {
+        "properties": {},
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TriggerCycleRequest",
+        "description": "Empty JSON request body for ``POST /api/cycles``."
+      },
+      "TriggerCycleResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "accepted",
+            "title": "Status",
+            "description": "Confirmation that the manual cycle was scheduled on the server loop.",
+            "default": "accepted"
+          },
+          "trigger": {
+            "type": "string",
+            "const": "manual",
+            "title": "Trigger",
+            "description": "Cycle trigger passed to the running schedule.",
+            "default": "manual"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At",
+            "description": "UTC instant when the manual cycle request was accepted."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "started_at",
+          "notice"
+        ],
+        "title": "TriggerCycleResponse",
+        "description": "Response document for ``POST /api/cycles`` (HTTP 202 Accepted)."
+      },
       "UiHealth": {
         "properties": {
           "present": {
@@ -4349,6 +4949,28 @@
         ],
         "title": "UiHealth",
         "description": "Whether the built frontend bundle is present on disk at startup."
+      },
+      "UpdateEvacuationRequest": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Name of the watched location to update."
+          },
+          "on": {
+            "type": "boolean",
+            "title": "On",
+            "description": "Whether an official evacuation order is in effect."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location",
+          "on"
+        ],
+        "title": "UpdateEvacuationRequest",
+        "description": "Request body for ``PUT /api/locations/evacuation``."
       },
       "ValidationError": {
         "properties": {

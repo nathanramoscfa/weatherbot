@@ -25,6 +25,7 @@ from weatherbot.models import (
     StormSlot,
     WatchWarningType,
 )
+from weatherbot.services.events import EventKind, QueryKey
 
 type GeometryKind = Literal[
     "Point",
@@ -1167,3 +1168,169 @@ class ReplayStormsResponse(_ApiModel):
         description="Historical storms available in the configured replay corpus."
     )
     notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+# Events (GET /api/events) ------------------------------------------------------------------
+
+
+class StreamEvent(_ApiModel):
+    """Server-sent event payload emitted by ``GET /api/events``.
+
+    Carries only identifiers, location names, threat levels, kinds, and query keys to
+    invalidate — never coordinates, distances, or bearings.
+    """
+
+    id: int = Field(ge=1, description="Process-wide monotonically increasing event identifier.")
+    kind: EventKind = Field(description="Event category.")
+    at: datetime = Field(description="UTC instant when the event was published.")
+    invalidate: tuple[QueryKey, ...] = Field(
+        default=(),
+        description="Query keys that open dashboard pages must refetch.",
+    )
+    started_at: datetime | None = Field(
+        default=None,
+        description="UTC instant when the server started (set on hello events), or null.",
+    )
+    cycle_id: int | None = Field(
+        default=None,
+        ge=1,
+        description="Monitor cycle identifier, or null.",
+    )
+    runner: str | None = Field(
+        default=None,
+        description="Runner that executed the cycle, or null.",
+    )
+    trigger: str | None = Field(
+        default=None,
+        description="Trigger that initiated the cycle, or null.",
+    )
+    status: str | None = Field(
+        default=None,
+        description="Cycle or snapshot completion status, or null.",
+    )
+    snapshot_id: UUID | None = Field(
+        default=None,
+        description="Stored snapshot identifier (set on snapshot events), or null.",
+    )
+    location: str | None = Field(
+        default=None,
+        description=(
+            "Watched location name (set on assessment, alert, notification, and location events), "
+            "or null."
+        ),
+    )
+    assessment_id: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Stored assessment identifier (set on assessment, alert, and notification events), "
+            "or null."
+        ),
+    )
+    level: int | None = Field(
+        default=None,
+        ge=1,
+        le=5,
+        description=(
+            "Threat level integer from 1 to 5 (set on assessment and notification events), or null."
+        ),
+    )
+    complete: bool | None = Field(
+        default=None,
+        description=(
+            "Whether the stored assessment had every required input (set on assessment events), "
+            "or null."
+        ),
+    )
+    notification_id: int | None = Field(
+        default=None,
+        ge=1,
+        description="Stored notification identifier (set on notification events), or null.",
+    )
+    notification_kind: (
+        Literal["location", "degraded", "recovered", "stale_monitor", "test"] | None
+    ) = Field(
+        default=None,
+        description="Notification category (set on notification events), or null.",
+    )
+    escalation: bool | None = Field(
+        default=None,
+        description=(
+            "Whether the notification announces an upward escalation (set on notification events), "
+            "or null."
+        ),
+    )
+    title: str | None = Field(
+        default=None,
+        description="Notification headline when delivered for display, or null.",
+    )
+    body: tuple[str, ...] | None = Field(
+        default=None,
+        description="Notification body lines when delivered for display, or null.",
+    )
+    display: bool = Field(
+        default=False,
+        description=(
+            "Whether open dashboard pages should display this notification as an active alert."
+        ),
+    )
+
+
+# Actions (POST /api/locations, PUT /api/locations/evacuation, POST /api/cycles,
+# POST /api/notifications/test) -------------------------------------------------------------
+
+
+class CreateLocationRequest(_ApiModel):
+    """Request body for ``POST /api/locations``."""
+
+    name: str = Field(description="Display name for the watched location.")
+    latitude: float = Field(description="Location latitude in decimal degrees [-90, 90].")
+    longitude: float = Field(description="Location longitude in decimal degrees [-180, 180].")
+    polygon: Literal["county", "forecast"] | None = Field(
+        default=None,
+        description="Optional NWS zone polygon to store: county, forecast, or null.",
+    )
+
+
+class UpdateEvacuationRequest(_ApiModel):
+    """Request body for ``PUT /api/locations/evacuation``."""
+
+    location: str = Field(description="Name of the watched location to update.")
+    on: bool = Field(description="Whether an official evacuation order is in effect.")
+
+
+class EvacuationUpdateResponse(_ApiModel):
+    """Response document for ``PUT /api/locations/evacuation``."""
+
+    location: LocationResponse = Field(
+        description="Updated watched location in /api/locations' shape."
+    )
+    changed: bool = Field(
+        description="Whether the evacuation-order toggle changed from its previous state."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class TriggerCycleRequest(_ApiModel):
+    """Empty JSON request body for ``POST /api/cycles``."""
+
+
+class TriggerCycleResponse(_ApiModel):
+    """Response document for ``POST /api/cycles`` (HTTP 202 Accepted)."""
+
+    status: Literal["accepted"] = Field(
+        default="accepted",
+        description="Confirmation that the manual cycle was scheduled on the server loop.",
+    )
+    trigger: Literal["manual"] = Field(
+        default="manual",
+        description="Cycle trigger passed to the running schedule.",
+    )
+    started_at: datetime = Field(
+        description="UTC instant when the manual cycle request was accepted."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class TestNotificationRequest(_ApiModel):
+    """Empty JSON request body for ``POST /api/notifications/test``."""
