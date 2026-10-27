@@ -1,0 +1,457 @@
+{
+  "locations": [
+    {
+      "assessment": {
+        "as_of": "2026-10-13T01:31:00Z",
+        "breakpoint_span": {
+          "catalog_loaded_at": "2026-04-30T18:42:35Z",
+          "country": "United States",
+          "is_region": false,
+          "names": [
+            "Ocean Reef",
+            "Miami-Dade/Broward County Line"
+          ]
+        },
+        "changes": [
+          {
+            "detail": "The level fell from 4 (Warning / Watch / Evacuation) to level 1 (All Clear), by the rule all_clear.",
+            "kind": "level_changed"
+          }
+        ],
+        "complete": true,
+        "evacuation_order": {
+          "on": false,
+          "set_at": "2026-10-13T01:31:00Z"
+        },
+        "evidence": [],
+        "id": 3,
+        "level": {
+          "actions": "Normal activities",
+          "label": "All Clear",
+          "number": 1
+        },
+        "official": [
+          {
+            "advisory": null,
+            "alert_id": "urn:oid:2.49.0.1.840.0.b63d50b627f64f46519e84641aee03ec8656738d.001.1",
+            "atcf_id": null,
+            "breakpoints": [],
+            "code": "Rip Current Statement",
+            "covers": true,
+            "distance_km": null,
+            "expires_at": "2026-10-18T08:00:00Z",
+            "is_county_context": false,
+            "issued_at": "2026-10-17T07:40:00Z",
+            "issuer": "NWS Miami FL",
+            "kind": "nws_alert",
+            "reason": "the point query returned it; the ladder reads no Rip Current Statement, so it sets no level",
+            "rule": null,
+            "storm_name": null,
+            "zones": [
+              "FLZ168",
+              "FLZ172",
+              "FLZ173"
+            ]
+          },
+          {
+            "advisory": null,
+            "alert_id": "urn:oid:register-example.FLC086",
+            "atcf_id": null,
+            "breakpoints": [],
+            "code": "Coastal Flood Statement",
+            "covers": false,
+            "distance_km": null,
+            "expires_at": "2026-10-13T12:30:00Z",
+            "is_county_context": true,
+            "issued_at": "2026-10-13T00:30:00Z",
+            "issuer": "NWS Miami FL",
+            "kind": "nws_alert",
+            "reason": "county-zone alert outside this location's zones",
+            "rule": null,
+            "storm_name": null,
+            "zones": [
+              "FLZ069",
+              "FLZ075",
+              "FLZ174"
+            ]
+          }
+        ],
+        "rule": "all_clear",
+        "rule_trigger": "No other rule matches.",
+        "ruleset": "c241a7ff882909314d943f1a18c64f056fd3a8fed706f5328bb7fe9a6a404226",
+        "snapshot_id": "00000000-0000-4000-8000-000000000001",
+        "stored_at": "2026-10-13T01:31:00Z",
+        "threats": [
+          {
+            "advisory": "22A",
+            "atcf_id": "EP202026",
+            "bearing_deg": 72,
+            "category": 2,
+            "closest_approach_at": "2026-10-16T18:00:00Z",
+            "closest_approach_km": 2667.0,
+            "development": "Hurricane",
+            "distance_km": 2798.0,
+            "earliest_arrival": {
+              "advisory": "22",
+              "approach_at": null,
+              "end": null,
+              "kind": "earliest_reasonable",
+              "label": null,
+              "origin": "kmz",
+              "reading": "unresolved",
+              "reason": "advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+              "start": null
+            },
+            "hurricane_by_approach": true,
+            "in_cone": false,
+            "issued_at": "2026-10-13T00:00:00Z",
+            "lead_h": 88.5,
+            "most_likely_arrival": {
+              "advisory": "22",
+              "approach_at": null,
+              "end": null,
+              "kind": "most_likely",
+              "label": null,
+              "origin": "kmz",
+              "reading": "unresolved",
+              "reason": "advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+              "start": null
+            },
+            "storm_name": "Simon"
+          }
+        ],
+        "toggle_changed": false,
+        "toggle_note": null,
+        "unavailable": [],
+        "wind_probabilities": [
+          {
+            "label": null,
+            "lower_pct": null,
+            "reading": "below_every_band",
+            "synoptic_at": "2026-10-12T18:00:00Z",
+            "threshold_kt": 34,
+            "upper_pct": null
+          },
+          {
+            "label": null,
+            "lower_pct": null,
+            "reading": "below_every_band",
+            "synoptic_at": "2026-10-12T18:00:00Z",
+            "threshold_kt": 50,
+            "upper_pct": null
+          },
+          {
+            "label": null,
+            "lower_pct": null,
+            "reading": "below_every_band",
+            "synoptic_at": "2026-10-12T18:00:00Z",
+            "threshold_kt": 64,
+            "upper_pct": null
+          }
+        ]
+      },
+      "breakpoint_span": {
+        "catalog_loaded_at": "2026-04-30T18:42:35Z",
+        "country": "United States",
+        "is_region": false,
+        "names": [
+          "Ocean Reef",
+          "Miami-Dade/Broward County Line"
+        ]
+      },
+      "evacuation_order": {
+        "on": false,
+        "set_at": "2026-10-13T01:31:00Z"
+      },
+      "inside_nws_coverage": true,
+      "name": "Miami-Dade County Hall",
+      "time_zone": "America/New_York"
+    },
+    {
+      "assessment": {
+        "as_of": "2026-10-13T01:31:00Z",
+        "breakpoint_span": {
+          "catalog_loaded_at": "2026-04-30T18:42:35Z",
+          "country": "The Bahamas",
+          "is_region": true,
+          "names": [
+            "Bahamas (NW)"
+          ]
+        },
+        "changes": [],
+        "complete": true,
+        "evacuation_order": {
+          "on": false,
+          "set_at": null
+        },
+        "evidence": [],
+        "id": 4,
+        "level": {
+          "actions": "Normal activities",
+          "label": "All Clear",
+          "number": 1
+        },
+        "official": [],
+        "rule": "all_clear",
+        "rule_trigger": "No other rule matches.",
+        "ruleset": "c241a7ff882909314d943f1a18c64f056fd3a8fed706f5328bb7fe9a6a404226",
+        "snapshot_id": "00000000-0000-4000-8000-000000000001",
+        "stored_at": "2026-10-13T01:31:00Z",
+        "threats": [
+          {
+            "advisory": "22A",
+            "atcf_id": "EP202026",
+            "bearing_deg": 75,
+            "category": 2,
+            "closest_approach_at": "2026-10-16T18:00:00Z",
+            "closest_approach_km": 2958.2,
+            "development": "Hurricane",
+            "distance_km": 3076.8,
+            "earliest_arrival": {
+              "advisory": "22",
+              "approach_at": null,
+              "end": null,
+              "kind": "earliest_reasonable",
+              "label": null,
+              "origin": "kmz",
+              "reading": "unresolved",
+              "reason": "advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+              "start": null
+            },
+            "hurricane_by_approach": true,
+            "in_cone": false,
+            "issued_at": "2026-10-13T00:00:00Z",
+            "lead_h": 88.5,
+            "most_likely_arrival": {
+              "advisory": "22",
+              "approach_at": null,
+              "end": null,
+              "kind": "most_likely",
+              "label": null,
+              "origin": "kmz",
+              "reading": "unresolved",
+              "reason": "advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+              "start": null
+            },
+            "storm_name": "Simon"
+          }
+        ],
+        "toggle_changed": false,
+        "toggle_note": null,
+        "unavailable": [],
+        "wind_probabilities": [
+          {
+            "label": null,
+            "lower_pct": null,
+            "reading": "below_every_band",
+            "synoptic_at": "2026-10-12T18:00:00Z",
+            "threshold_kt": 34,
+            "upper_pct": null
+          },
+          {
+            "label": null,
+            "lower_pct": null,
+            "reading": "below_every_band",
+            "synoptic_at": "2026-10-12T18:00:00Z",
+            "threshold_kt": 50,
+            "upper_pct": null
+          },
+          {
+            "label": null,
+            "lower_pct": null,
+            "reading": "below_every_band",
+            "synoptic_at": "2026-10-12T18:00:00Z",
+            "threshold_kt": 64,
+            "upper_pct": null
+          }
+        ]
+      },
+      "breakpoint_span": {
+        "catalog_loaded_at": "2026-04-30T18:42:35Z",
+        "country": "The Bahamas",
+        "is_region": true,
+        "names": [
+          "Bahamas (NW)"
+        ]
+      },
+      "evacuation_order": {
+        "on": false,
+        "set_at": null
+      },
+      "inside_nws_coverage": false,
+      "name": "Parliament Square",
+      "time_zone": null
+    }
+  ],
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "snapshot": {
+    "age_seconds": 240.0,
+    "completed_at": "2026-10-13T01:31:00Z",
+    "drift_warnings": [
+      {
+        "message": "EP202026 earliest_reasonable advisory 022: advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+        "source_id": "nhc-arrival-times"
+      },
+      {
+        "message": "EP202026 most_likely advisory 022: advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+        "source_id": "nhc-arrival-times"
+      }
+    ],
+    "snapshot_id": "00000000-0000-4000-8000-000000000001",
+    "source_outcomes": [
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-current-storms",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-arrival-times",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-map-tropical-summary",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-map-breakpoints",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-map-peak-surge",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-gis-rss",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-text-products",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-outlook-graphics",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nws-alerts-point",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nws-alerts-zone",
+        "status": "ok"
+      }
+    ],
+    "started_at": "2026-10-13T01:31:00Z",
+    "status": "complete"
+  },
+  "stale_banner": [],
+  "staleness": [
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-arrival-times",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-current-storms",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-gis-rss",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-map-breakpoints",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-map-peak-surge",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-map-tropical-summary",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-outlook-graphics",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-text-products",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nws-alerts-point",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nws-alerts-zone",
+      "stale": false
+    },
+    {
+      "age_s": 240,
+      "expected_every_s": null,
+      "kind": "runner",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "serve",
+      "stale": false
+    }
+  ]
+}

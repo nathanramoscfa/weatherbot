@@ -1,0 +1,266 @@
+{
+  "entries": [
+    {
+      "body": [
+        "If you can read this, toasts work."
+      ],
+      "changes": [],
+      "complete": null,
+      "decisions": [],
+      "deliveries": [
+        {
+          "attempted_at": "2026-10-13T01:32:00Z",
+          "channel": "log",
+          "detail": null,
+          "id": 4,
+          "result": "delivered"
+        },
+        {
+          "attempted_at": "2026-10-13T01:32:00Z",
+          "channel": "toast",
+          "detail": "turned off by [notifications] toast",
+          "id": 5,
+          "result": "unavailable"
+        },
+        {
+          "attempted_at": "2026-10-13T01:32:00Z",
+          "channel": "browser",
+          "detail": "no open dashboard",
+          "id": 6,
+          "result": "unavailable"
+        }
+      ],
+      "escalation": false,
+      "id": 2,
+      "kind": "notification",
+      "level": null,
+      "location": null,
+      "notification_kind": "test",
+      "occurred_at": "2026-10-13T01:32:00Z",
+      "occurred_at_local": null,
+      "rule": null,
+      "rule_trigger": null,
+      "snapshot_id": null,
+      "stored_at": null,
+      "time_zone": null,
+      "title": "Weatherbot test notification"
+    },
+    {
+      "body": [],
+      "changes": [],
+      "complete": true,
+      "decisions": [],
+      "deliveries": [],
+      "escalation": null,
+      "id": 4,
+      "kind": "assessment",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "location": "Parliament Square",
+      "notification_kind": null,
+      "occurred_at": "2026-10-13T01:31:00Z",
+      "occurred_at_local": null,
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches.",
+      "snapshot_id": "00000000-0000-4000-8000-000000000001",
+      "stored_at": "2026-10-13T01:31:00Z",
+      "time_zone": null,
+      "title": null
+    },
+    {
+      "body": [],
+      "changes": [
+        {
+          "detail": "The level fell from 4 (Warning / Watch / Evacuation) to level 1 (All Clear), by the rule all_clear.",
+          "kind": "level_changed"
+        }
+      ],
+      "complete": true,
+      "decisions": [],
+      "deliveries": [],
+      "escalation": null,
+      "id": 3,
+      "kind": "assessment",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "location": "Miami-Dade County Hall",
+      "notification_kind": null,
+      "occurred_at": "2026-10-13T01:31:00Z",
+      "occurred_at_local": "2026-10-12T21:31:00-04:00",
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches.",
+      "snapshot_id": "00000000-0000-4000-8000-000000000001",
+      "stored_at": "2026-10-13T01:31:00Z",
+      "time_zone": "America/New_York",
+      "title": null
+    },
+    {
+      "body": [
+        "Level 4: The operator's evacuation-order toggle is on.",
+        "NWS Miami FL issued a Rip Current Statement that covers the location."
+      ],
+      "changes": [],
+      "complete": null,
+      "decisions": [
+        {
+          "assessment_id": 1,
+          "change_position": 0,
+          "decided_at": "2026-10-13T01:30:00Z",
+          "decision": "escalation",
+          "event_key": null,
+          "id": 1,
+          "level_after": 4,
+          "location": "Miami-Dade County Hall",
+          "notification_id": 1,
+          "trigger": "level"
+        },
+        {
+          "assessment_id": 1,
+          "change_position": 1,
+          "decided_at": "2026-10-13T01:30:00Z",
+          "decision": "informational",
+          "event_key": null,
+          "id": 2,
+          "level_after": 4,
+          "location": "Miami-Dade County Hall",
+          "notification_id": 1,
+          "trigger": "advisory_issued"
+        },
+        {
+          "assessment_id": 1,
+          "change_position": 2,
+          "decided_at": "2026-10-13T01:30:00Z",
+          "decision": "sent",
+          "event_key": "official:nws_alert:Rip Current Statement",
+          "id": 3,
+          "level_after": 4,
+          "location": "Miami-Dade County Hall",
+          "notification_id": 1,
+          "trigger": "official_added"
+        }
+      ],
+      "deliveries": [
+        {
+          "attempted_at": "2026-10-13T01:30:00Z",
+          "channel": "log",
+          "detail": null,
+          "id": 1,
+          "result": "delivered"
+        },
+        {
+          "attempted_at": "2026-10-13T01:30:00Z",
+          "channel": "toast",
+          "detail": "turned off by [notifications] toast",
+          "id": 2,
+          "result": "unavailable"
+        },
+        {
+          "attempted_at": "2026-10-13T01:30:00Z",
+          "channel": "browser",
+          "detail": "no open dashboard",
+          "id": 3,
+          "result": "unavailable"
+        }
+      ],
+      "escalation": true,
+      "id": 1,
+      "kind": "notification",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "location": "Miami-Dade County Hall",
+      "notification_kind": "location",
+      "occurred_at": "2026-10-13T01:30:00Z",
+      "occurred_at_local": "2026-10-12T21:30:00-04:00",
+      "rule": null,
+      "rule_trigger": null,
+      "snapshot_id": null,
+      "stored_at": null,
+      "time_zone": "America/New_York",
+      "title": "Miami-Dade County Hall: level 4, Warning / Watch / Evacuation"
+    },
+    {
+      "body": [],
+      "changes": [
+        {
+          "detail": "The first assessment is at level 1 (All Clear), by the rule all_clear.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 22A for Simon, whose cone does not.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": true,
+      "decisions": [],
+      "deliveries": [],
+      "escalation": null,
+      "id": 2,
+      "kind": "assessment",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "location": "Parliament Square",
+      "notification_kind": null,
+      "occurred_at": "2026-10-13T01:30:00Z",
+      "occurred_at_local": null,
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches.",
+      "snapshot_id": "00000000-0000-4000-8000-000000000002",
+      "stored_at": "2026-10-13T01:30:00Z",
+      "time_zone": null,
+      "title": null
+    },
+    {
+      "body": [],
+      "changes": [
+        {
+          "detail": "The first assessment is at level 4 (Warning / Watch / Evacuation), by the rule evacuation_order.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 22A for Simon, whose cone does not.",
+          "kind": "advisory_issued"
+        },
+        {
+          "detail": "NWS Miami FL issued a Rip Current Statement that covers the location.",
+          "kind": "official_added"
+        }
+      ],
+      "complete": true,
+      "decisions": [],
+      "deliveries": [],
+      "escalation": null,
+      "id": 1,
+      "kind": "assessment",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "location": "Miami-Dade County Hall",
+      "notification_kind": null,
+      "occurred_at": "2026-10-13T01:30:00Z",
+      "occurred_at_local": "2026-10-12T21:30:00-04:00",
+      "rule": "evacuation_order",
+      "rule_trigger": "The operator's evacuation-order toggle is on.",
+      "snapshot_id": "00000000-0000-4000-8000-000000000002",
+      "stored_at": "2026-10-13T01:30:00Z",
+      "time_zone": "America/New_York",
+      "title": null
+    }
+  ],
+  "limit": 50,
+  "location": null,
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md."
+}

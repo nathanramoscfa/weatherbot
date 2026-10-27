@@ -5,22 +5,19 @@ import {
   Link,
   type RouteObject,
 } from "react-router";
+import { Alerts } from "../pages/Alerts.tsx";
+import { Dashboard } from "../pages/Dashboard.tsx";
+import { Settings } from "../pages/Settings.tsx";
+import { Storms } from "../pages/Storms.tsx";
+import { Timeline } from "../pages/Timeline.tsx";
 import { AppShell, type AppShellProps } from "./AppShell.tsx";
-import { ThreatLevelBadge } from "./ThreatLevelBadge.tsx";
 
 interface PlaceholderPageProps {
   readonly title: string;
   readonly summary: string;
-  readonly showLevelLegend?: boolean;
-  readonly includeDisclaimerAnchor?: boolean;
 }
 
-function PlaceholderPage({
-  title,
-  summary,
-  showLevelLegend = false,
-  includeDisclaimerAnchor = false,
-}: PlaceholderPageProps) {
+function PlaceholderPage({ title, summary }: PlaceholderPageProps) {
   return (
     <section className="space-y-4">
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
@@ -30,34 +27,7 @@ function PlaceholderPage({
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
           {summary}
         </p>
-        {showLevelLegend && (
-          <div className="mt-4 flex flex-wrap gap-2" aria-label="Threat level scale">
-            <ThreatLevelBadge level={1} />
-            <ThreatLevelBadge level={2} />
-            <ThreatLevelBadge level={3} />
-            <ThreatLevelBadge level={4} />
-            <ThreatLevelBadge level={5} />
-          </div>
-        )}
       </div>
-      {includeDisclaimerAnchor && (
-        <section
-          id="disclaimer"
-          aria-labelledby="disclaimer-heading"
-          className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
-        >
-          <h2
-            id="disclaimer-heading"
-            className="text-sm font-semibold text-slate-900 dark:text-slate-100"
-          >
-            Disclaimer
-          </h2>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-            Weatherbot is informational only and never a substitute for official
-            NHC, NWS, or local emergency-management guidance.
-          </p>
-        </section>
-      )}
     </section>
   );
 }
@@ -91,13 +61,7 @@ export function createAppRoutes(shellProps?: AppShellProps): RouteObject[] {
       children: [
         {
           index: true,
-          element: (
-            <PlaceholderPage
-              title="Dashboard"
-              summary="Location threat levels, deciding rules, active storms, and official watches and warnings."
-              showLevelLegend
-            />
-          ),
+          element: <Dashboard />,
         },
         {
           path: "map",
@@ -110,40 +74,19 @@ export function createAppRoutes(shellProps?: AppShellProps): RouteObject[] {
         },
         {
           path: "storms",
-          element: (
-            <PlaceholderPage
-              title="Storms"
-              summary="Active tropical cyclones and Tropical Weather Outlook areas from the latest NHC snapshot."
-            />
-          ),
+          element: <Storms />,
         },
         {
           path: "alerts",
-          element: (
-            <PlaceholderPage
-              title="Alerts"
-              summary="Active NWS alerts and NHC breakpoint segments for watched locations."
-            />
-          ),
+          element: <Alerts />,
         },
         {
           path: "timeline",
-          element: (
-            <PlaceholderPage
-              title="Timeline"
-              summary="Stored assessment history, threat changes, and notification delivery decisions."
-            />
-          ),
+          element: <Timeline />,
         },
         {
           path: "settings",
-          element: (
-            <PlaceholderPage
-              title="Settings"
-              summary="Watched locations, evacuation toggles, browser notification controls, effective settings, and licences."
-              includeDisclaimerAnchor
-            />
-          ),
+          element: <Settings />,
         },
         {
           path: "*",

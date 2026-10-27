@@ -1,0 +1,124 @@
+{
+  "corpus": true,
+  "database": {
+    "current": true,
+    "head": "0006",
+    "revision": "0006"
+  },
+  "heartbeats": [
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-arrival-times",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-current-storms",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-gis-rss",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-map-breakpoints",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-map-peak-surge",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-map-tropical-summary",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-outlook-graphics",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nhc-text-products",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nws-alerts-point",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "source",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "nws-alerts-zone",
+      "stale": false
+    },
+    {
+      "age_s": 240.0,
+      "consecutive_failures": 0,
+      "expected_every_s": null,
+      "kind": "runner",
+      "last_success_at": "2026-10-13T01:31:00Z",
+      "name": "serve",
+      "stale": false
+    }
+  ],
+  "next_product_at": "2026-10-13T03:00:00Z",
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "now": "2026-10-13T01:35:00Z",
+  "scheduler": {
+    "expected_every_s": null,
+    "last_success_at": "2026-10-13T01:31:00Z",
+    "stale": false
+  },
+  "stale": false,
+  "started_at": "2026-10-13T01:30:00Z",
+  "ui": {
+    "index_sha256": "000000000000",
+    "present": true
+  },
+  "version": "2.0.0.dev0"
+}

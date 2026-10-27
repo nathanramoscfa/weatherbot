@@ -53,15 +53,28 @@ export function describeThreatLevel(
 export interface ThreatLevelBadgeProps {
   readonly level: number;
   readonly label?: string;
+  readonly atLeast?: boolean;
+  readonly size?: "sm" | "md";
 }
 
-export function ThreatLevelBadge({ level, label }: ThreatLevelBadgeProps) {
+export function ThreatLevelBadge({
+  level,
+  label,
+  atLeast = false,
+  size = "md",
+}: ThreatLevelBadgeProps) {
   const descriptor = describeThreatLevel(level, label);
+  const sizeClass =
+    size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs";
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${descriptor.badgeClassName}`}
+      className={`inline-flex items-center gap-1.5 rounded-md border font-semibold ${sizeClass} ${descriptor.badgeClassName}`}
     >
-      <span>Level {String(descriptor.level)}</span>
+      <span>
+        {atLeast
+          ? `At least Level ${String(descriptor.level)}`
+          : `Level ${String(descriptor.level)}`}
+      </span>
       <span aria-hidden="true">·</span>
       <span>{descriptor.label}</span>
     </span>

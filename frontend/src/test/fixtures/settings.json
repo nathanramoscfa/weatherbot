@@ -1,0 +1,218 @@
+{
+  "file_modified_since_start": false,
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "settings": [
+    {
+      "key": "level",
+      "origin": "default",
+      "table": "logging",
+      "value": "INFO",
+      "variable": "WEATHERBOT_LOG_LEVEL"
+    },
+    {
+      "key": "timeout_seconds",
+      "origin": "default",
+      "table": "http",
+      "value": 30.0,
+      "variable": "WEATHERBOT_HTTP_TIMEOUT_SECONDS"
+    },
+    {
+      "key": "coastal_reach_km",
+      "origin": "default",
+      "table": "engine",
+      "value": 25.0,
+      "variable": "WEATHERBOT_ENGINE_COASTAL_REACH_KM"
+    },
+    {
+      "key": "segment_end_tolerance_km",
+      "origin": "default",
+      "table": "engine",
+      "value": 5.0,
+      "variable": "WEATHERBOT_ENGINE_SEGMENT_END_TOLERANCE_KM"
+    },
+    {
+      "key": "cone_horizon_h",
+      "origin": "default",
+      "table": "engine",
+      "value": 120,
+      "variable": "WEATHERBOT_ENGINE_CONE_HORIZON_H"
+    },
+    {
+      "key": "hurricane_wind_floor_pct",
+      "origin": "default",
+      "table": "engine",
+      "value": 10,
+      "variable": "WEATHERBOT_ENGINE_HURRICANE_WIND_FLOOR_PCT"
+    },
+    {
+      "key": "tropical_storm_wind_floor_pct",
+      "origin": "default",
+      "table": "engine",
+      "value": 5,
+      "variable": "WEATHERBOT_ENGINE_TROPICAL_STORM_WIND_FLOOR_PCT"
+    },
+    {
+      "key": "development_chance_floor_pct",
+      "origin": "default",
+      "table": "engine",
+      "value": 0,
+      "variable": "WEATHERBOT_ENGINE_DEVELOPMENT_CHANCE_FLOOR_PCT"
+    },
+    {
+      "key": "cycle_lock_wait_seconds",
+      "origin": "default",
+      "table": "monitor",
+      "value": 120,
+      "variable": "WEATHERBOT_MONITOR_CYCLE_LOCK_WAIT_SECONDS"
+    },
+    {
+      "key": "confirm_after_minutes",
+      "origin": "default",
+      "table": "monitor",
+      "value": 5,
+      "variable": "WEATHERBOT_MONITOR_CONFIRM_AFTER_MINUTES"
+    },
+    {
+      "key": "window_offset_minutes",
+      "origin": "default",
+      "table": "monitor",
+      "value": 15,
+      "variable": "WEATHERBOT_MONITOR_WINDOW_OFFSET_MINUTES"
+    },
+    {
+      "key": "window_jitter_seconds",
+      "origin": "default",
+      "table": "monitor",
+      "value": 120,
+      "variable": "WEATHERBOT_MONITOR_WINDOW_JITTER_SECONDS"
+    },
+    {
+      "key": "window_close_minutes",
+      "origin": "default",
+      "table": "monitor",
+      "value": 60,
+      "variable": "WEATHERBOT_MONITOR_WINDOW_CLOSE_MINUTES"
+    },
+    {
+      "key": "roster_poll_minutes",
+      "origin": "default",
+      "table": "monitor",
+      "value": 5,
+      "variable": "WEATHERBOT_MONITOR_ROSTER_POLL_MINUTES"
+    },
+    {
+      "key": "roster_interval_minutes",
+      "origin": "default",
+      "table": "monitor",
+      "value": 15,
+      "variable": "WEATHERBOT_MONITOR_ROSTER_INTERVAL_MINUTES"
+    },
+    {
+      "key": "roster_interval_relevant_minutes",
+      "origin": "default",
+      "table": "monitor",
+      "value": 5,
+      "variable": "WEATHERBOT_MONITOR_ROSTER_INTERVAL_RELEVANT_MINUTES"
+    },
+    {
+      "key": "alert_interval_minutes",
+      "origin": "default",
+      "table": "monitor",
+      "value": 5,
+      "variable": "WEATHERBOT_MONITOR_ALERT_INTERVAL_MINUTES"
+    },
+    {
+      "key": "retry_base_minutes",
+      "origin": "default",
+      "table": "monitor",
+      "value": 5,
+      "variable": "WEATHERBOT_MONITOR_RETRY_BASE_MINUTES"
+    },
+    {
+      "key": "retry_count",
+      "origin": "default",
+      "table": "monitor",
+      "value": 3,
+      "variable": "WEATHERBOT_MONITOR_RETRY_COUNT"
+    },
+    {
+      "key": "degraded_after_failures",
+      "origin": "default",
+      "table": "monitor",
+      "value": 3,
+      "variable": "WEATHERBOT_MONITOR_DEGRADED_AFTER_FAILURES"
+    },
+    {
+      "key": "heartbeat_minutes",
+      "origin": "default",
+      "table": "monitor",
+      "value": 5,
+      "variable": "WEATHERBOT_MONITOR_HEARTBEAT_MINUTES"
+    },
+    {
+      "key": "cooldown_hours",
+      "origin": "default",
+      "table": "notifications",
+      "value": 6,
+      "variable": "WEATHERBOT_NOTIFICATIONS_COOLDOWN_HOURS"
+    },
+    {
+      "key": "quiet_hours_start",
+      "origin": "default",
+      "table": "notifications",
+      "value": "",
+      "variable": "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_START"
+    },
+    {
+      "key": "quiet_hours_end",
+      "origin": "default",
+      "table": "notifications",
+      "value": "",
+      "variable": "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_END"
+    },
+    {
+      "key": "quiet_hours_time_zone",
+      "origin": "default",
+      "table": "notifications",
+      "value": "local",
+      "variable": "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_TIME_ZONE"
+    },
+    {
+      "key": "toast",
+      "origin": "default",
+      "table": "notifications",
+      "value": true,
+      "variable": "WEATHERBOT_NOTIFICATIONS_TOAST"
+    },
+    {
+      "key": "browser",
+      "origin": "default",
+      "table": "notifications",
+      "value": true,
+      "variable": "WEATHERBOT_NOTIFICATIONS_BROWSER"
+    },
+    {
+      "key": "host",
+      "origin": "default",
+      "table": "web",
+      "value": "127.0.0.1",
+      "variable": "WEATHERBOT_WEB_HOST"
+    },
+    {
+      "key": "port",
+      "origin": "default",
+      "table": "web",
+      "value": 8765,
+      "variable": "WEATHERBOT_WEB_PORT"
+    },
+    {
+      "key": "corpus",
+      "origin": "default",
+      "table": "web",
+      "value": "",
+      "variable": "WEATHERBOT_WEB_CORPUS"
+    }
+  ],
+  "settings_file": "/placeholder/config/weatherbot.toml",
+  "settings_file_exists": false
+}

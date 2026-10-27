@@ -810,12 +810,75 @@ npm --prefix frontend run dev             # serves the UI on http://127.0.0.1:51
 ```
 
 After changing any FastAPI route or Pydantic response model, regenerate both the
-committed OpenAPI schema and the TypeScript definitions:
+committed OpenAPI schema and the TypeScript definitions, and refresh the
+committed read-API JSON fixtures used by the frontend Vitest suite:
 
 ```sh
 uv run python scripts/export_openapi.py
 npm --prefix frontend run api:generate
+uv run python scripts/export_api_fixtures.py          # writes frontend/src/test/fixtures/*.json
+uv run python scripts/export_api_fixtures.py --check  # exits 1 if any fixture is missing or stale
 ```
+
+`scripts/export_api_fixtures.py` builds a temporary SQLite database over the
+recorded answers with both public landmarks (`scripts/public_landmarks.toml`)
+and the committed replay corpus, calls every read route (including
+`/api/replay` and `/api/replay/AL112017/036`) through `httpx.ASGITransport`,
+replaces random `uuid4` snapshot IDs, `settings_file`, and `ui.index_sha256`
+with deterministic placeholders, rounds GeoJSON geometry coordinates to two
+decimal places so `scripts/check_personal_data.py` rule R2 passes, and writes
+twelve JSON files under `frontend/src/test/fixtures/`.
+`tests/web/test_api_fixtures.py` fails if any committed fixture is stale or
+fails Pydantic `model_validate_json` against its response model.
+
+The five data pages live in `frontend/src/pages/` (`Dashboard.tsx`,
+`Storms.tsx`, `Alerts.tsx`, `Timeline.tsx`, and `Settings.tsx`, sharing pure
+formatters in `frontend/src/pages/format.ts`; `/map` is wired in Step 6):
+
+- `/` (`Dashboard`): one level card per watched location (`GET /api/assessments`
+  and `GET /api/locations`), showing its threat level badge (`At least Level N`
+  with the missing inputs when `complete` is `false`), deciding rule and
+  evidence, recommended actions, covering official products and county-zone
+  context alerts (labeled so they are never mistaken for covering alerts),
+  storm threats (`0.1 km` distances, integer degree bearings, `0.1 h` lead
+  hours, and arrival readings with origin), 5 km wind-speed probabilities,
+  changes since the previous assessment, breakpoint span, evacuation-order
+  toggle (`PUT /api/locations/evacuation`) with the `toggle_note` banner when
+  flipped after the stored assessment, an `aria-live="polite"` announcement
+  region, a `Check now` button (`POST /api/cycles`, disabled until a `cycle`
+  `StreamEvent` arrives), and an empty state showing the disclaimer essentials
+  with a link to `/settings`.
+- `/storms` (`Storms`, `GET /api/storms`): active cyclones from the latest
+  snapshot (classification, intensity, pressure, movement, and product summary
+  including arrival-time origin and unresolved reasons), graphical Tropical
+  Weather Outlook areas, 5 km wind-speed probability product summaries, and a
+  quiet-tropics empty state.
+- `/alerts` (`Alerts`, `GET /api/alerts`): per-location covering NWS alerts,
+  county-zone context alerts, and NHC coastal watch-warning segments (`HWR`,
+  `HWA`, `TWR`, `TWA`) with geodesic distances and breakpoint names.
+- `/timeline` (`Timeline`, `GET /api/timeline` and `GET /api/notifications`):
+  chronological history of stored assessments and notifications with a location
+  filter, showing change events, notification titles/bodies, per-channel
+  delivery results (`log`, `toast`, `browser`), and policy decisions.
+- `/settings` (`Settings`, `GET /api/settings`, `/api/disclaimer`,
+  `/api/locations`, and `/licenses.json`): add-location form
+  (`POST /api/locations`), browser notification switch and `Send test
+  notification` button (`POST /api/notifications/test`), effective settings table
+  with origins (`default`, `file`, `environment`) and the reload banner when
+  `file_modified_since_start` is true, the 11-rule alert ladder in fixed
+  evaluation order, the full `DISCLAIMER.md` text (`#disclaimer`), and bundled
+  frontend dependency licences from `/licenses.json`.
+
+`frontend/src/notifications/notify.ts` is the only frontend module that calls
+the Web Notifications API (`new Notification(...)` and
+`Notification.requestPermission()`), storing the operator's opt-in in
+`localStorage['weatherbot.notifications']`. When a `notification` `StreamEvent`
+with `display: true` arrives on `/api/events`, `AppShell` always shows an
+in-page Radix `Toast` banner (`role="status"`, `aria-live="polite"`) and calls
+`deliverBrowserNotification(event)`, which fires a system Web Notification only
+when the switch is on, `Notification.permission === "granted"`, and
+`document.visibilityState === "hidden"`. Every page renders official strings
+through React text nodes (`dangerouslySetInnerHTML` is never used).
 
 `npm --prefix frontend run build` writes the production bundle and Vite's
 machine-readable `licenses.json` into `src/weatherbot/web/static/`. That

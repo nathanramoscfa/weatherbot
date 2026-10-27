@@ -1,0 +1,124 @@
+{
+  "limit": 20,
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "notifications": [
+    {
+      "assessment_id": null,
+      "body": [
+        "If you can read this, toasts work."
+      ],
+      "created_at": "2026-10-13T01:32:00Z",
+      "created_at_local": null,
+      "cycle_id": null,
+      "decisions": [],
+      "deliveries": [
+        {
+          "attempted_at": "2026-10-13T01:32:00Z",
+          "channel": "log",
+          "detail": null,
+          "id": 4,
+          "result": "delivered"
+        },
+        {
+          "attempted_at": "2026-10-13T01:32:00Z",
+          "channel": "toast",
+          "detail": "turned off by [notifications] toast",
+          "id": 5,
+          "result": "unavailable"
+        },
+        {
+          "attempted_at": "2026-10-13T01:32:00Z",
+          "channel": "browser",
+          "detail": "no open dashboard",
+          "id": 6,
+          "result": "unavailable"
+        }
+      ],
+      "escalation": false,
+      "id": 2,
+      "kind": "test",
+      "level": null,
+      "location": null,
+      "time_zone": null,
+      "title": "Weatherbot test notification"
+    },
+    {
+      "assessment_id": 1,
+      "body": [
+        "Level 4: The operator's evacuation-order toggle is on.",
+        "NWS Miami FL issued a Rip Current Statement that covers the location."
+      ],
+      "created_at": "2026-10-13T01:30:00Z",
+      "created_at_local": "2026-10-12T21:30:00-04:00",
+      "cycle_id": 1,
+      "decisions": [
+        {
+          "assessment_id": 1,
+          "change_position": 0,
+          "decided_at": "2026-10-13T01:30:00Z",
+          "decision": "escalation",
+          "event_key": null,
+          "id": 1,
+          "level_after": 4,
+          "location": "Miami-Dade County Hall",
+          "notification_id": 1,
+          "trigger": "level"
+        },
+        {
+          "assessment_id": 1,
+          "change_position": 1,
+          "decided_at": "2026-10-13T01:30:00Z",
+          "decision": "informational",
+          "event_key": null,
+          "id": 2,
+          "level_after": 4,
+          "location": "Miami-Dade County Hall",
+          "notification_id": 1,
+          "trigger": "advisory_issued"
+        },
+        {
+          "assessment_id": 1,
+          "change_position": 2,
+          "decided_at": "2026-10-13T01:30:00Z",
+          "decision": "sent",
+          "event_key": "official:nws_alert:Rip Current Statement",
+          "id": 3,
+          "level_after": 4,
+          "location": "Miami-Dade County Hall",
+          "notification_id": 1,
+          "trigger": "official_added"
+        }
+      ],
+      "deliveries": [
+        {
+          "attempted_at": "2026-10-13T01:30:00Z",
+          "channel": "log",
+          "detail": null,
+          "id": 1,
+          "result": "delivered"
+        },
+        {
+          "attempted_at": "2026-10-13T01:30:00Z",
+          "channel": "toast",
+          "detail": "turned off by [notifications] toast",
+          "id": 2,
+          "result": "unavailable"
+        },
+        {
+          "attempted_at": "2026-10-13T01:30:00Z",
+          "channel": "browser",
+          "detail": "no open dashboard",
+          "id": 3,
+          "result": "unavailable"
+        }
+      ],
+      "escalation": true,
+      "id": 1,
+      "kind": "location",
+      "level": 4,
+      "location": "Miami-Dade County Hall",
+      "time_zone": "America/New_York",
+      "title": "Miami-Dade County Hall: level 4, Warning / Watch / Evacuation"
+    }
+  ]
+}
