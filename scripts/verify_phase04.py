@@ -34,6 +34,7 @@ from defusedxml import ElementTree
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 REPOSITORY: Final = "nathanramoscfa/weatherbot"
+PHASE_4_TAG: Final = "v2.0.0-phase-4"
 CI_WORKFLOW: Final = ".github/workflows/ci.yml"
 PHASE_WORKFLOW: Final = ".github/workflows/phase-verify.yml"
 ROADMAP: Final = "docs/roadmap/ROADMAP.md"
@@ -239,6 +240,11 @@ def tracked(prefix: str = "", *, root: Path = REPO_ROOT) -> set[str]:
     args = ["ls-files", "--", prefix] if prefix else ["ls-files"]
     output = git(*args, root=root)
     return set(output.splitlines()) if output else set()
+
+
+def tagged(relative: str, root: Path = REPO_ROOT) -> str:
+    """Read a repository-relative file as Phase 4's tag (``v2.0.0-phase-4``) recorded it."""
+    return git("show", f"{PHASE_4_TAG}:{relative}", root=root)
 
 
 def syntax(relative: str, root: Path = REPO_ROOT) -> ast.Module:
@@ -1058,10 +1064,10 @@ def check_45_step6_schemas(root: Path = REPO_ROOT) -> bool:
 
 
 def check_46_readme_phase04(root: Path = REPO_ROOT) -> bool:
-    """Check 46: README.md documents Phase 4 commands and Status names Phase 4 complete."""
+    """Check 46: README.md at v2.0.0-phase-4 documents Phase 4 commands and Status."""
     if not files_exist("README.md", root=root):
         return False
-    text = read("README.md", root=root)
+    text = tagged("README.md", root=root)
     commands = (
         "uv tool install",
         "weatherbot notify setup",

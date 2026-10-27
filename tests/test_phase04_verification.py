@@ -214,6 +214,7 @@ def test_a_changed_deliverable_turns_exactly_its_check_red(
     monkeypatch: pytest.MonkeyPatch, relative: str, old: str, new: str, check: str
 ) -> None:
     original = verification.read
+    original_tagged = verification.tagged
 
     def edited(path: str, root: Path = verification.REPO_ROOT) -> str:
         text = original(path, root)
@@ -222,7 +223,15 @@ def test_a_changed_deliverable_turns_exactly_its_check_red(
             return text.replace(old, new)
         return text
 
+    def edited_tagged(path: str, root: Path = verification.REPO_ROOT) -> str:
+        text = original_tagged(path, root)
+        if path == relative:
+            assert old in text
+            return text.replace(old, new)
+        return text
+
     monkeypatch.setattr(verification, "read", edited)
+    monkeypatch.setattr(verification, "tagged", edited_tagged)
     failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
 
     assert failed == [check]

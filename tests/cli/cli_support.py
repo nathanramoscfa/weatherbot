@@ -265,6 +265,7 @@ def runtime(  # noqa: PLR0913 - test runtime seams
     windows: bool = True,
     interpreter: Path | None = None,
     which: Callable[[str], str | None] = lambda _cmd: None,
+    open_browser: Callable[[str], None] = lambda _url: None,
     environ: Mapping[str, str] | None = None,
     sleep: Callable[[float], Awaitable[None]] | None = None,
 ) -> Runtime:
@@ -285,6 +286,7 @@ def runtime(  # noqa: PLR0913 - test runtime seams
         windows=windows,
         interpreter=interpreter,
         which=which,
+        open_browser=open_browser,
         now=lambda: now,
         sleep=sleep,
         terminal=terminal,

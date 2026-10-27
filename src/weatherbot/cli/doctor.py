@@ -213,6 +213,7 @@ def doctor(
                 task_runner=context.runtime.task_runner,
                 interpreter=context.runtime.interpreter,
                 which=context.runtime.which,
+                web_settings=context.settings.web,
             )
         )
     data = _data(context, report, offline=offline)

@@ -131,7 +131,11 @@ def nondeterminism(source: str) -> list[str]:
     return found
 
 
-def test_import_contracts_are_kept() -> None:
+def test_import_contracts_are_kept(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _noop_logging(*_args: object) -> None:
+        return None
+
+    monkeypatch.setattr("importlinter.cli._configure_logging", _noop_logging)
     exit_code = lint_imports(
         config_filename=str(REPOSITORY_ROOT / "pyproject.toml"),
         no_cache=True,
@@ -218,8 +222,11 @@ def test_models_are_the_lowest_layer() -> None:
         for contract in contracts["tool"]["importlinter"]["contracts"]
         if contract["type"] == "layers"
     )
+    layers = [str(item) for item in layered["layers"]]
 
-    assert layered["layers"][-1] == "weatherbot.models"
+    assert "weatherbot.cli | weatherbot.web" not in layers
+    assert layers.index("weatherbot.cli") < layers.index("weatherbot.web")
+    assert layers[-1] == "weatherbot.models"
 
 
 def test_only_the_services_may_import_the_database_libraries() -> None:

@@ -12,11 +12,12 @@ specifies both in [the project brief](docs/brief/weatherbot-v2-brief.md).
 Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
 discovery), Phase 2 (sources and persistence), Phase 3 (the threat engine),
 and Phase 4 (monitoring and notifications) are complete; Phase 5 (the web app
-MVP) is next. No version 2 package is released. The commands below read the
-official products, and `status` decides each location's level from them alone,
-with the evidence behind it, and notifies you of a change through the in-app
-log and a Windows toast; `serve` and `check` run the monitor on NHC's UTC
-schedule. The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
+MVP) is in progress. No version 2 package is released. The commands below read
+the official products, and `status` decides each location's level from them
+alone, with the evidence behind it, and notifies you of a change through the
+in-app log and a Windows toast; `serve` and `check` run the monitor on NHC's
+UTC schedule, and `serve` also hosts the local loopback web server. The plan
+lives in [the roadmap](docs/roadmap/ROADMAP.md).
 
 ## Commands
 
@@ -57,7 +58,8 @@ weatherbot doctor --offline          # local checks only, with the heartbeats
 weatherbot check --once
 weatherbot check --once --if-stale   # hourly fallback: skip if serve is running and fresh
 weatherbot check                     # run the scheduled monitor in the terminal until Ctrl+C
-weatherbot serve                     # run the long-lived scheduled monitor (and, in Phase 5, the web server)
+weatherbot serve                     # run the scheduled monitor and local web server (http://127.0.0.1:8765)
+weatherbot serve --open              # also open the dashboard in your browser once ready
 weatherbot install-task              # register \Weatherbot\serve (logon) and \Weatherbot\check (hourly) on Windows
 weatherbot uninstall-task            # stop \Weatherbot\serve and remove both scheduled tasks
 weatherbot notify log                # the newest stored notifications first, with their deliveries

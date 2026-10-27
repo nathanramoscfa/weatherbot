@@ -19,6 +19,7 @@ from contextlib import contextmanager
 from datetime import UTC, datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from types import TracebackType
 from typing import TYPE_CHECKING, Final, TextIO, cast, override
 
 from weatherbot.services.config import ensure_directory
@@ -30,17 +31,45 @@ from weatherbot.sources.http import RedactingFilter, redact_text
 if TYPE_CHECKING:
     from weatherbot.models import SourceId
 
+type _ExcInfo = (
+    tuple[type[BaseException], BaseException, TracebackType | None] | tuple[None, None, None]
+)
+
 FORMAT: Final = "%(levelname)s %(name)s: %(message)s"
 FILE_FORMAT: Final = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 LOG_MAX_BYTES: Final = 1_048_576
 LOG_BACKUP_COUNT: Final = 5
-QUIET_LIBRARIES: Final = ("httpx", "httpcore", "alembic")
+QUIET_LIBRARIES: Final = (
+    "httpx",
+    "httpcore",
+    "alembic",
+    "uvicorn",
+    "uvicorn.error",
+    "uvicorn.access",
+)
 """Libraries that log request URLs or migration chatter at INFO: WARNING unless DEBUG."""
 
 _DEVNULL_HOLDERS: list[TextIO] = []
 
 
-class UtcFormatter(logging.Formatter):
+class RedactingFormatter(logging.Formatter):
+    """Formats records and redacts formatted tracebacks (``formatException`` and ``exc_text``)."""
+
+    @override
+    def formatException(self, ei: _ExcInfo) -> str:
+        return redact_text(super().formatException(ei))
+
+    @override
+    def format(self, record: logging.LogRecord) -> str:
+        if record.exc_text is not None:
+            record.exc_text = redact_text(record.exc_text)
+        formatted = super().format(record)
+        if record.exc_text is not None:
+            record.exc_text = redact_text(record.exc_text)
+        return formatted
+
+
+class UtcFormatter(RedactingFormatter):
     """Formats ``%(asctime)s`` as a UTC ISO-8601 timestamp (``YYYY-MM-DDTHH:MM:SSZ``)."""
 
     @override
@@ -61,7 +90,7 @@ class StandardErrorHandler(logging.Handler):
         """Create the handler with the redaction filter and the format."""
         super().__init__()
         self.addFilter(RedactingFilter())
-        self.setFormatter(logging.Formatter(FORMAT))
+        self.setFormatter(RedactingFormatter(FORMAT))
 
     @override
     def emit(self, record: logging.LogRecord) -> None:
@@ -144,7 +173,9 @@ def configure_logging(level: str, *, log_file: Path | None = None) -> None:
     root.setLevel(level)
     quiet = logging.DEBUG if level == "DEBUG" else logging.WARNING
     for name in QUIET_LIBRARIES:
-        logging.getLogger(name).setLevel(quiet)
+        lib_logger = logging.getLogger(name)
+        lib_logger.setLevel(quiet)
+        lib_logger.propagate = True
 
 
 class DriftCollector(logging.Handler):

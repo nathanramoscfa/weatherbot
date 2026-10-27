@@ -1,16 +1,19 @@
 # src/weatherbot/cli/serve.py
-"""``weatherbot serve``: run the background monitor scheduler under ``monitor.lock``.
+"""``weatherbot serve`` and the shared scheduled monitor loop.
 
-Takes ``data_dir/monitor.lock`` without waiting, configures the rotating log file at
-``data_dir/logs/weatherbot.log``, and runs the monitor scheduler and process heartbeat
-with runner name ``serve`` until stopped (Ctrl+C or process termination). On a clean stop
-it clears the ``serve`` runner heartbeat's expected cadence so a monitor stopped on
-purpose never reads as stale. Phase 5 adds the local web server to the same process and
-event loop.
+``serve`` is the long-lived scheduled monitor and local web server; ``check`` (without
+``--once``) runs the same scheduled monitor loop in the terminal without the web server.
+Both acquire ``monitor.lock`` with zero wait (exiting 2 when another monitor process holds
+it), write the rotating log file ``logs/weatherbot.log``, and clear the runner heartbeat's
+expected cadence on a clean stop so a deliberately stopped monitor never reads as stale.
 """
 
 import asyncio
 import contextlib
+import logging
+import signal
+import sys
+from typing import Annotated, Final
 
 import typer
 
@@ -19,11 +22,12 @@ from weatherbot.cli.runtime import (
     EXIT_USAGE,
     Context,
     Output,
+    Runtime,
     context_of,
     fail,
     open_monitor_session,
 )
-from weatherbot.services.config import AppPaths
+from weatherbot.services.config import AppPaths, Settings, WebSettings, setting_origins
 from weatherbot.services.locks import ProcessLock
 from weatherbot.services.logs import configure_logging
 from weatherbot.services.monitor import CycleRunner
@@ -31,9 +35,14 @@ from weatherbot.services.persistence.database import Database
 from weatherbot.services.schedule import run_monitor
 from weatherbot.services.tasks import TaskSchedulerError, query
 
+LOGGER: Final = logging.getLogger("weatherbot.cli.serve")
+DEFAULT_WEB_PORT: Final = 8765
 
-def monitor_already_running_message(lock: ProcessLock) -> str:
-    """Format the ``EXIT_USAGE`` message naming the holder's pid and start instant."""
+
+def monitor_already_running_message(lock: ProcessLock, *, settings: Settings | None = None) -> str:
+    """Format the ``EXIT_USAGE`` message naming the holder's pid, start instant, and URL."""
+    web = settings.web if settings is not None else WebSettings()
+    address = web.address(web.port or DEFAULT_WEB_PORT)
     pid: str | None = None
     since: str | None = None
     with contextlib.suppress(OSError):
@@ -43,8 +52,26 @@ def monitor_already_running_message(lock: ProcessLock) -> str:
             elif line.startswith("since "):
                 since = line.removeprefix("since ").strip()
     if pid and since:
-        return f"the monitor is already running (pid {pid}, since {since})"
-    return "the monitor is already running"
+        return f"the monitor is already running (pid {pid}, since {since}); dashboard at {address}"
+    return f"the monitor is already running; dashboard at {address}"
+
+
+def _should_open_browser(rt: Runtime, *, open_flag: bool | None) -> bool:
+    if open_flag is not None:
+        return open_flag
+    if rt.terminal is not None:
+        return rt.terminal
+    return sys.__stdout__ is not None and sys.__stdout__.isatty()
+
+
+def _install_stop_signals(stop_event: asyncio.Event) -> None:
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(sig, stop_event.set)
+        except (NotImplementedError, RuntimeError, ValueError):
+            with contextlib.suppress(ValueError, OSError):
+                signal.signal(sig, lambda _s, _f: loop.call_soon_threadsafe(stop_event.set))
 
 
 async def _loop(
@@ -52,6 +79,8 @@ async def _loop(
     database: Database,
     paths: AppPaths,
     runner: CycleRunner,
+    *,
+    open_browser: bool = False,
 ) -> None:
     def _check_installed() -> bool:
         if not context.runtime.windows:
@@ -63,21 +92,83 @@ async def _loop(
         return any(item.name == "check" for item in found)
 
     stop = asyncio.Event()
-    await run_monitor(
-        database.engine,
-        paths,
-        settings=context.settings,
-        runner=runner,
-        stop=stop,
-        clock=context.runtime.now,
-        sleep=context.runtime.sleep,
-        make_fetcher=context.runtime.make_fetcher,
-        channels=context.channels,
-        check_installed=_check_installed,
+    _install_stop_signals(stop)
+
+    if runner != "serve":
+        await run_monitor(
+            database.engine,
+            paths,
+            settings=context.settings,
+            runner=runner,
+            stop=stop,
+            clock=context.runtime.now,
+            sleep=context.runtime.sleep,
+            make_fetcher=context.runtime.make_fetcher,
+            channels=context.channels,
+            check_installed=_check_installed,
+        )
+        return
+
+    from weatherbot.web.app import WebState, create_app  # noqa: PLC0415
+    from weatherbot.web.server import WebServer  # noqa: PLC0415
+
+    rt = context.runtime
+    settings = context.settings
+    origins = setting_origins(paths, rt.environ)
+    state = WebState(
+        database=database,
+        paths=paths,
+        settings=settings,
+        setting_origins=origins,
+        clock=rt.now,
+        started_at=rt.now(),
     )
+    web_app = create_app(state)
+    web_server = WebServer(
+        web_app,
+        host=settings.web.host,
+        port=settings.web.port,
+    )
+    web_task = asyncio.create_task(web_server.serve(stop))
+    started_task = asyncio.create_task(web_server.started.wait())
+    try:
+        await asyncio.wait(
+            {web_task, started_task},
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        if web_server.started.is_set():
+            address = web_server.address
+            LOGGER.info("dashboard at %s", address)
+            if open_browser:
+                rt.open_browser(address)
+        await run_monitor(
+            database.engine,
+            paths,
+            settings=settings,
+            runner=runner,
+            stop=stop,
+            clock=rt.now,
+            sleep=rt.sleep,
+            make_fetcher=rt.make_fetcher,
+            channels=context.channels,
+            check_installed=_check_installed,
+        )
+    finally:
+        if not started_task.done():
+            started_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await started_task
+        stop.set()
+        with contextlib.suppress(asyncio.CancelledError):
+            await web_task
 
 
-def run_monitor_loop(ctx: typer.Context, *, runner: CycleRunner) -> None:
+def run_monitor_loop(
+    ctx: typer.Context,
+    *,
+    runner: CycleRunner,
+    open_browser: bool | None = None,
+) -> None:
     """Take ``data_dir/monitor.lock``, configure ``weatherbot.log``, and run ``runner``."""
     context = context_of(ctx)
     output = Output(context.runtime)
@@ -91,18 +182,42 @@ def run_monitor_loop(ctx: typer.Context, *, runner: CycleRunner) -> None:
     )
     lock = ProcessLock(paths.monitor_lock_path)
     if not lock.try_acquire():
-        fail(output, monitor_already_running_message(lock), EXIT_USAGE)
+        fail(
+            output,
+            monitor_already_running_message(lock, settings=context.settings),
+            EXIT_USAGE,
+        )
     try:
+        should_open = _should_open_browser(context.runtime, open_flag=open_browser)
         with (
             open_monitor_session(context, output) as database,
             contextlib.suppress(KeyboardInterrupt),
         ):
-            asyncio.run(_loop(context, database, paths, runner))
+            asyncio.run(
+                _loop(
+                    context,
+                    database,
+                    paths,
+                    runner,
+                    open_browser=should_open,
+                )
+            )
     finally:
         lock.release()
+        configure_logging("DEBUG" if context.verbose else context.settings.logging.level)
     raise typer.Exit(EXIT_OK)
 
 
-def serve(ctx: typer.Context) -> None:
-    """Run the monitor scheduler (Phase 5 adds the web server to the same process and loop)."""
-    run_monitor_loop(ctx, runner="serve")
+def serve(
+    ctx: typer.Context,
+    open_browser: Annotated[
+        bool | None,
+        typer.Option(
+            "--open/--no-open",
+            help="Open the dashboard in the default browser once listening "
+            "(default: open in an interactive terminal, off when headless).",
+        ),
+    ] = None,
+) -> None:
+    """Run the long-lived scheduled monitor and local web server."""
+    run_monitor_loop(ctx, runner="serve", open_browser=open_browser)

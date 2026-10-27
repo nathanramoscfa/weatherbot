@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 5 — Web app (MVP)
+- Add `weatherbot.web` (`create_app`, `WebState`, `WebServer`, `guards`,
+  `static_files`, `schemas`, and `routes.health`) and embed Uvicorn inside
+  `weatherbot serve [--open|--no-open]` on the same `asyncio` event loop as
+  `MonitorSchedule` (`weatherbot.cli` now sits above `weatherbot.web` in the
+  downward-only import-linter contract). `WebServer` pre-binds a loopback socket
+  (`SO_EXCLUSIVEADDRUSE` on Windows, `SO_REUSEADDR` on POSIX, with five 2-second
+  retries on `EADDRINUSE`) and degrades gracefully with one `WARNING` if the
+  port cannot be bound, keeping the monitor alive; `weatherbot check` never
+  starts the web server. `fastapi`, `starlette`, and `uvicorn` join the runtime
+  dependencies.
+- Add `[web]` settings (`host` restricted to `"127.0.0.1"`, `"::1"`, or
+  `"localhost"`, naming `[web] host` and `Phase 8` on rejection; `port`
+  `1024..65535` or `0` for ephemeral test binding, default `8765`) with
+  `WEATHERBOT_WEB_HOST` and `WEATHERBOT_WEB_PORT` overrides. `tests/conftest.py`
+  sets `WEATHERBOT_WEB_PORT=0`.
+- Add loopback security guards (`SecurityHeadersMiddleware` outermost,
+  `TrustedHostMiddleware`, and `FetchMetadataAndWriteGuard`), stripping `input`
+  from FastAPI validation errors and redacting formatted exception tracebacks in
+  `RedactingFormatter`.
+- Add the in-memory static bundle loader (`load_static_bundle`,
+  `install_static_routes`) with per-response cryptographic style nonces on
+  `index.html`, immutable `/assets/*` caching, and an unbuilt fallback HTML page
+  naming `CONTRIBUTING.md`.
+- Add `GET /api/health` (`HealthResponse`: version, database revision,
+  scheduler status and next UTC product hour, heartbeats with staleness, UI
+  bundle state, and disclaimer notice), `doctor`'s `web` check, and
+  `scripts/export_openapi.py` (`docs/api/openapi.json`).
+- Update `scripts/verify_phase04.py` check 46 to read `v2.0.0-phase-4:README.md`
+  so `README.md` can advance into Phase 5 while `phase-verify (04)` stays green.
+
 ### Phase 4 — Monitoring and notifications
 - Add `scripts/verify_phase04.py`: 51 static checks over shared geometry
   storage, the monitor cycle and heartbeats, the notification policy and log,

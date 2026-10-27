@@ -35,8 +35,11 @@ from pathlib import Path
 from typing import Final, Literal
 from uuid import UUID
 
+import httpx
+
+from weatherbot import __version__
 from weatherbot.models import MapCatalog, SourceId, StormSummary
-from weatherbot.services.config import DATA_DIR_VARIABLE
+from weatherbot.services.config import DATA_DIR_VARIABLE, WebSettings
 from weatherbot.services.health import Staleness, staleness
 from weatherbot.services.network import Network
 from weatherbot.services.notifications import NotificationService, StoredDelivery
@@ -432,6 +435,85 @@ def path_check(
     )
 
 
+WEB_TIMEOUT_S: Final = 2.0
+DEFAULT_WEB_PORT: Final = 8765
+
+
+async def web_check(  # noqa: PLR0911, PLR0913 - early returns and keyword-only probe seams
+    judged: Sequence[Staleness] | None,
+    *,
+    web_settings: WebSettings | None = None,
+    data_dir_overridden: bool = False,
+    expected_version: str = __version__,
+    expected_head: str | None = None,
+    transport: httpx.AsyncBaseTransport | None = None,
+) -> Check:
+    """Judge whether the running ``serve`` web server answers ``GET /api/health``.
+
+    Skipped under a ``WEATHERBOT_DATA_DIR`` override, when the database is closed, and when
+    the ``serve`` runner heartbeat is absent, has ``expected_every_s is None`` ("serve is
+    not running"), or is stale. When ``serve`` is running and fresh, sends
+    ``GET http://<host>:<port>/api/health`` with a 2-second timeout and ``trust_env=False``;
+    passes when ``version`` and ``database.head`` match this installation, naming the
+    dashboard address in ``detail``, and fails otherwise.
+    """
+    if data_dir_overridden:
+        return Check("web", "skip", f"{DATA_DIR_VARIABLE} is set: machine checks are skipped")
+    if judged is None:
+        return Check("web", "skip", DATABASE_CLOSED)
+    serve_row = next(
+        (item for item in judged if item.kind == "runner" and item.name == "serve"),
+        None,
+    )
+    if serve_row is None or serve_row.expected_every_s is None:
+        return Check("web", "skip", "serve is not running")
+    if serve_row.stale:
+        return Check("web", "skip", "serve runner heartbeat is stale")
+
+    settings = web_settings if web_settings is not None else WebSettings()
+    address = settings.address(settings.port or DEFAULT_WEB_PORT)
+    url = f"{address}/api/health"
+    head = head_revision() if expected_head is None else expected_head
+
+    try:
+        async with httpx.AsyncClient(
+            trust_env=False,
+            timeout=WEB_TIMEOUT_S,
+            transport=transport,
+        ) as client:
+            response = await client.get(url)
+    except httpx.HTTPError as error:
+        return Check(
+            "web",
+            "fail",
+            f"{address} did not answer /api/health ({type(error).__name__})",
+        )
+
+    if response.status_code != 200:  # noqa: PLR2004
+        return Check("web", "fail", f"{address}/api/health answered HTTP {response.status_code}")
+
+    try:
+        payload: object = response.json()
+    except ValueError:
+        return Check("web", "fail", f"{address}/api/health returned invalid JSON")
+
+    if not isinstance(payload, dict):
+        return Check("web", "fail", f"{address}/api/health did not return a JSON object")
+
+    got_version = payload.get("version")  # pyright: ignore[reportUnknownMemberType,reportUnknownVariableType]
+    db_obj: object = payload.get("database")  # pyright: ignore[reportUnknownMemberType,reportUnknownVariableType]
+    got_head = db_obj.get("head") if isinstance(db_obj, dict) else None  # pyright: ignore[reportUnknownMemberType,reportUnknownVariableType]
+
+    if got_version != expected_version or got_head != head:
+        return Check(
+            "web",
+            "fail",
+            f"{address} reported version={got_version} head={got_head}, "
+            f"expected version={expected_version} head={head}",
+        )
+    return Check("web", "pass", f"dashboard reachable at {address}")
+
+
 async def _probe(source_id: SourceId, work: Callable[[], Awaitable[str]]) -> SourceProbe:
     detail: str | None = None
     failure: SourceError | None = None
@@ -585,6 +667,8 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
     interpreter: Path | None = None,
     interpreter_exists: Callable[[Path], bool] = Path.is_file,
     which: Callable[[str], str | None] = shutil.which,
+    web_settings: WebSettings | None = None,
+    web_transport: httpx.AsyncBaseTransport | None = None,
 ) -> DoctorReport:
     r"""Run every check, and every probe unless ``offline``.
 
@@ -607,6 +691,8 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         interpreter: Running interpreter path for the ``path`` check.
         interpreter_exists: Seam checking whether a task's interpreter exists.
         which: Seam resolving ``weatherbot`` on ``PATH``.
+        web_settings: ``[web]`` host and port settings for the ``web`` check.
+        web_transport: Optional httpx transport seam for probing ``GET /api/health``.
 
     Returns:
         The report.
@@ -666,14 +752,27 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
             serve_installed=serve_installed,
             data_dir_overridden=overridden,
         )
-        checks = (*checks, h_check, toast, t_check, p_check)
+        w_check = await web_check(
+            judged,
+            web_settings=web_settings,
+            data_dir_overridden=overridden,
+            transport=web_transport,
+        )
+        checks = (*checks, h_check, toast, t_check, p_check, w_check)
     else:
+        w_check = await web_check(
+            None,
+            web_settings=web_settings,
+            data_dir_overridden=overridden,
+            transport=web_transport,
+        )
         checks = (
             *checks,
             Check("heartbeat", "skip", DATABASE_CLOSED),
             Check("toast", "skip", DATABASE_CLOSED),
             t_check,
             p_check,
+            w_check,
         )
     probes: tuple[SourceProbe, ...] = ()
     layers: tuple[LayerDiscovery, ...] = ()

@@ -59,10 +59,13 @@ def test_the_guard_clears_every_other_weatherbot_variable() -> None:
         "WEATHERBOT_DENYLIST",
         "WEATHERBOT_CORPUS_CACHE",
         "WEATHERBOT_NOTIFICATIONS_TOAST",
+        "WEATHERBOT_WEB_PORT",
     }
     assert "WEATHERBOT_LOG_LEVEL" not in os.environ
-    # The guard turns the toast off, so no test shows a real one.
+    # The guard turns the toast off and picks a free web port, so no test shows a real
+    # toast or collides with a running monitor on 8765.
     assert os.environ["WEATHERBOT_NOTIFICATIONS_TOAST"] == "false"
+    assert os.environ["WEATHERBOT_WEB_PORT"] == "0"
 
 
 def test_the_patched_platformdirs_would_catch_a_lookup(

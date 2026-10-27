@@ -1,9 +1,10 @@
 # src/weatherbot/cli/__init__.py
-"""Command-line layer: Typer commands over the services.
+"""Command-line layer: Typer commands over the web and services layers.
 
-The cli layer sits above the services layer, with the web layer. It holds no business
-logic of its own: each command opens the database, calls a service, and prints the result
-as Rich tables in a terminal, plain text otherwise, or one JSON document with ``--json``.
+The cli layer sits above the web layer and the services layer (``weatherbot serve`` hosts
+the embedded web server). It holds no business logic of its own: each command opens the
+database, calls a service, and prints the result as Rich tables in a terminal, plain text
+otherwise, or one JSON document with ``--json``.
 """
 
 from typing import Annotated

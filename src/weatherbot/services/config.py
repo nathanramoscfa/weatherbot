@@ -84,6 +84,8 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("notifications", "quiet_hours_end"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_END",
     ("notifications", "quiet_hours_time_zone"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_TIME_ZONE",
     ("notifications", "toast"): "WEATHERBOT_NOTIFICATIONS_TOAST",
+    ("web", "host"): "WEATHERBOT_WEB_HOST",
+    ("web", "port"): "WEATHERBOT_WEB_PORT",
 }
 _TOML_POSITION: Final = re.compile(r"\(at line \d+, column \d+\)|\(at end of document\)")
 
@@ -351,14 +353,51 @@ class NotificationSettings(_Section):
         return QuietHours.parse(self.quiet_hours_start, self.quiet_hours_end, zone)
 
 
+LOOPBACK_HOSTS: Final[frozenset[str]] = frozenset({"127.0.0.1", "::1", "localhost"})
+PRIVILEGED_PORT_MAX: Final[int] = 1023
+
+
+class WebSettings(_Section):
+    """``[web]``: the local loopback host and port of the embedded web server."""
+
+    host: str = "127.0.0.1"
+    port: int = Field(default=8765, ge=0, le=65535)
+
+    @field_validator("host")
+    @classmethod
+    def _loopback_host(cls, value: str) -> str:
+        cleaned = value.strip()
+        if cleaned not in LOOPBACK_HOSTS:
+            message = (
+                "[web] host must be 127.0.0.1, ::1, or localhost (remote access belongs to Phase 8)"
+            )
+            raise ValueError(message)
+        return cleaned
+
+    @field_validator("port")
+    @classmethod
+    def _unprivileged_port(cls, value: int) -> int:
+        if 0 < value <= PRIVILEGED_PORT_MAX:
+            message = "[web] port must be 0 or 1024..65535 (ports 1..1023 are privileged)"
+            raise ValueError(message)
+        return value
+
+    def address(self, port: int | None = None) -> str:
+        """Return the ``http://...`` dashboard URL for ``self.host`` and ``port``."""
+        effective_port = self.port if port is None else port
+        host_text = f"[{self.host}]" if ":" in self.host else self.host
+        return f"http://{host_text}:{effective_port}"
+
+
 class Settings(_Section):
-    """The settings: ``[logging]``, ``[http]``, ``[engine]``, ``[monitor]``, ``[notifications]``."""
+    """The settings: ``[logging]``, ``[http]``, ``[engine]``, ``[monitor]``, ``[notifications]``, and ``[web]``."""  # noqa: E501 - list of all six config tables
 
     logging: LoggingSettings = LoggingSettings()
     http: HttpSettings = HttpSettings()
     engine: EngineSettings = EngineSettings()
     monitor: MonitorSettings = MonitorSettings()
     notifications: NotificationSettings = NotificationSettings()
+    web: WebSettings = WebSettings()
 
     def policy_settings(self, *, local_zone: tzinfo | None = None) -> PolicySettings:
         """Build the notification policy's settings for a cycle."""

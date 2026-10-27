@@ -88,10 +88,13 @@ shared `models` package. Each layer's `__init__.py` states its rule;
   `NotificationService.decide_cycle` decides each newly stored assessment
   exactly once. Every writing transaction begins `BEGIN IMMEDIATE`
   (`writing_session`).
-- `cli/` — Typer commands over the services.
-- `web/` — the FastAPI app over the same services.
+- `web/` — the FastAPI app over the services (`weatherbot.web`). It imports
+  `services` and `models` only (never `cli`, `sources`, or `engine`).
+- `cli/` — Typer commands over the services and `web` (`weatherbot serve`
+  hosts the embedded web server).
 
-Imports run downward only: `cli` and `web` may import `services`;
+Imports run downward only: `cli` sits above `web` (`cli` may import `web`
+and `services`; `web` may import `services` and never imports `cli`);
 `services` may import `sources` and `engine`; `sources` and `engine` are
 independent siblings and import neither each other nor anything above;
 and every layer may import `weatherbot.models`, the lowest layer, which
