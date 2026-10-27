@@ -31,9 +31,11 @@ def test_config_show_lists_every_setting_at_its_default() -> None:
 
     entries = {(entry.table, entry.key): entry for entry in document.data.settings}
     assert set(entries) == set(ENVIRONMENT_OVERRIDES)
-    # tests/conftest.py turns the toast off through its override for every test.
+    # tests/conftest.py turns the toast off and binds port 0 for every test.
     toast = entries.pop(("notifications", "toast"))
     assert (toast.value, toast.origin) == (False, "environment")
+    web_port = entries.pop(("web", "port"))
+    assert (web_port.value, web_port.origin) == (0, "environment")
     assert all(entry.origin == "default" for entry in entries.values())
     assert all(entry.variable == ENVIRONMENT_OVERRIDES[key] for key, entry in entries.items())
     defaults = Settings()

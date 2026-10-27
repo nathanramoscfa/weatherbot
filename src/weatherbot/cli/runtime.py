@@ -15,6 +15,7 @@ or a failed check, and 2 a usage error.
 import asyncio
 import shutil
 import sys
+import webbrowser
 from collections.abc import Awaitable, Callable, Generator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -51,6 +52,10 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
+def _open_browser(url: str) -> None:
+    webbrowser.open(url)
+
+
 type ToastFactory = Callable[[Settings], Channel]
 
 
@@ -72,6 +77,8 @@ class Runtime:
     """The Python interpreter path; ``None`` uses ``sys.executable``."""
     which: Callable[[str], str | None] = shutil.which
     """Command lookup on ``PATH``, for ``doctor``'s ``path`` check."""
+    open_browser: Callable[[str], None] = _open_browser
+    """Browser launch seam for ``weatherbot serve``."""
     now: Callable[[], datetime] = _now
     sleep: Callable[[float], Awaitable[None]] | None = None
     terminal: bool | None = None

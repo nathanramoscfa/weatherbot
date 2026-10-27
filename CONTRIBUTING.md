@@ -290,8 +290,9 @@ directories. Each must be an absolute path. `weatherbot.toml` holds the
 settings below, and an environment variable overrides each one (environment,
 then file, then default): `WEATHERBOT_LOG_LEVEL`,
 `WEATHERBOT_HTTP_TIMEOUT_SECONDS`, and `WEATHERBOT_<TABLE>_<KEY>` for each key
-of `[engine]`, `[monitor]`, and `[notifications]`, such as
-`WEATHERBOT_ENGINE_COASTAL_REACH_KM` or `WEATHERBOT_NOTIFICATIONS_TOAST`.
+of `[engine]`, `[monitor]`, `[notifications]`, and `[web]`, such as
+`WEATHERBOT_ENGINE_COASTAL_REACH_KM`, `WEATHERBOT_NOTIFICATIONS_TOAST`, or
+`WEATHERBOT_WEB_PORT`.
 `weatherbot config show` prints every effective value and where it came from;
 `weatherbot config path` prints where the files live. The `[engine]`
 values are the alert ladder's calibrated defaults; their outcome intervals and
@@ -333,6 +334,10 @@ cooldown_hours = 6                  # 0 to 48: repeat window per event key
 # quiet_hours_end = "07:00"         # HH:MM (up to 24:00); start != end
 quiet_hours_time_zone = "local"     # "local" or an IANA zone name
 toast = true                        # false: notifications go to the in-app log only
+
+[web]
+host = "127.0.0.1"                  # "127.0.0.1", "::1", or "localhost" (loopback only)
+port = 8765                         # 1024 to 65535 (or 0 for an ephemeral port in tests)
 ```
 
 An unknown key or a bad value stops the program with a message that names the
@@ -623,7 +628,49 @@ uv run pytest -m desktop tests/desktop/test_tasks_desktop.py
 The tests never touch any of this. An autouse fixture in `tests/conftest.py`
 points both directories into each test's temporary directory, clears every
 other `WEATHERBOT_*` variable except the development tools'
-`WEATHERBOT_DENYLIST` and `WEATHERBOT_CORPUS_CACHE`, and turns the toast off.
+`WEATHERBOT_DENYLIST` and `WEATHERBOT_CORPUS_CACHE`, turns the toast off, and
+sets `WEATHERBOT_WEB_PORT=0`.
+
+### The web server, security guards, and OpenAPI schema
+
+`weatherbot.web` is the FastAPI layer (`weatherbot.cli` sits above
+`weatherbot.web` in the import-linter hierarchy so `weatherbot serve` lazy-loads
+the web server while `weatherbot.web` never imports `weatherbot.cli`). `serve`
+starts `WebServer` alongside `run_monitor` on the same `asyncio` loop over a
+pre-bound loopback socket (`SO_EXCLUSIVEADDRUSE` on Windows, `SO_REUSEADDR` on
+POSIX, with up to five 2-second bind retries on `EADDRINUSE` / `WSAEADDRINUSE`);
+if the port cannot be bound or Uvicorn exits during startup, `serve` logs one
+`WARNING` and keeps the monitor running without the web server. `weatherbot
+check` never starts the web server.
+
+`weatherbot.web.guards` wraps every response in a pure ASGI security-header
+middleware (`Content-Security-Policy` allowing OpenStreetMap tiles at
+`https://tile.openstreetmap.org` and `frame-ancestors 'none'`, `X-Frame-Options:
+DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy:
+strict-origin-when-cross-origin`, `Cross-Origin-Opener-Policy: same-origin`,
+`Cross-Origin-Resource-Policy: same-origin`, `Permissions-Policy`,
+`Cache-Control: no-store` on `/api/*`, and no `Access-Control-Allow-*` headers),
+Starlette's `TrustedHostMiddleware` (`127.0.0.1`, `localhost`, `[::1]`), and a
+Fetch Metadata and write guard (`OPTIONS` returns `405`; `/api/` requests with
+`Sec-Fetch-Site` outside `same-origin`/`none` return `403`; state-changing
+methods require a matching loopback `Origin` when present and `Content-Type:
+application/json`). Validation errors strip `input` from every item so request
+values and coordinates are never echoed back.
+
+`weatherbot.web.static_files` loads `src/weatherbot/web/static/` into memory once
+at app creation, injects a per-response cryptographic nonce into `index.html` and
+its `style-src` CSP directive, serves `/assets/*` as `public, max-age=31536000,
+immutable`, and serves a plain HTML fallback naming `CONTRIBUTING.md` when the
+frontend bundle has not been built yet. `GET /api/health` (`def get_health`,
+sync route handler on FastAPI's threadpool) returns the database revision,
+scheduler state, source/watch/runner heartbeats, UI bundle status, and the
+disclaimer reminder. Regenerate the committed OpenAPI 3.1 schema after changing
+a route or schema model:
+
+```sh
+uv run python scripts/export_openapi.py           # writes docs/api/openapi.json
+uv run python scripts/export_openapi.py --check   # exits 1 if docs/api/openapi.json is stale
+```
 
 To start over, delete the data directory. Weatherbot creates a new database
 the next time it opens one. `uv run weatherbot doctor --offline` shows both

@@ -71,3 +71,4 @@ def isolate_application_directories(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     monkeypatch.setenv("WEATHERBOT_CONFIG_DIR", str(tmp_path / "weatherbot-config"))
     monkeypatch.setenv("WEATHERBOT_DATA_DIR", str(tmp_path / "weatherbot-data"))
     monkeypatch.setenv("WEATHERBOT_NOTIFICATIONS_TOAST", "false")
+    monkeypatch.setenv("WEATHERBOT_WEB_PORT", "0")

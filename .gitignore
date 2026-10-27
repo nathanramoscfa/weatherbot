@@ -44,3 +44,6 @@ planning/user-context.md
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Built web frontend bundle (populated by npm --prefix web run build; shipped in Step 7)
+/src/weatherbot/web/static/

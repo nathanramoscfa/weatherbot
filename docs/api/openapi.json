@@ -1,0 +1,266 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Weatherbot",
+    "version": "2.0.0.dev0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Get Health",
+        "description": "Return process, database, scheduler, heartbeat, and built-UI health.",
+        "operationId": "get_health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DatabaseHealth": {
+        "properties": {
+          "revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
+          "head": {
+            "type": "string",
+            "title": "Head"
+          },
+          "current": {
+            "type": "boolean",
+            "title": "Current"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "head",
+          "current"
+        ],
+        "title": "DatabaseHealth",
+        "description": "Database revision status reported by ``GET /api/health``."
+      },
+      "HealthResponse": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Now"
+          },
+          "database": {
+            "$ref": "#/components/schemas/DatabaseHealth"
+          },
+          "scheduler": {
+            "$ref": "#/components/schemas/SchedulerHealth"
+          },
+          "heartbeats": {
+            "items": {
+              "$ref": "#/components/schemas/HeartbeatHealth"
+            },
+            "type": "array",
+            "title": "Heartbeats"
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale"
+          },
+          "next_product_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Next Product At"
+          },
+          "ui": {
+            "$ref": "#/components/schemas/UiHealth"
+          },
+          "corpus": {
+            "type": "boolean",
+            "title": "Corpus"
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version",
+          "started_at",
+          "now",
+          "database",
+          "scheduler",
+          "heartbeats",
+          "stale",
+          "next_product_at",
+          "ui",
+          "corpus",
+          "notice"
+        ],
+        "title": "HealthResponse",
+        "description": "Response document for ``GET /api/health``."
+      },
+      "HeartbeatHealth": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "last_success_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "age_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age S"
+          },
+          "consecutive_failures": {
+            "type": "integer",
+            "title": "Consecutive Failures"
+          },
+          "expected_every_s": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Every S"
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "name",
+          "last_success_at",
+          "age_s",
+          "consecutive_failures",
+          "expected_every_s",
+          "stale"
+        ],
+        "title": "HeartbeatHealth",
+        "description": "One source, watch, or runner heartbeat row reported by ``GET /api/health``."
+      },
+      "SchedulerHealth": {
+        "properties": {
+          "last_success_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Success At"
+          },
+          "expected_every_s": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Every S"
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "last_success_at",
+          "expected_every_s",
+          "stale"
+        ],
+        "title": "SchedulerHealth",
+        "description": "The ``serve`` runner heartbeat summary reported by ``GET /api/health``."
+      },
+      "UiHealth": {
+        "properties": {
+          "present": {
+            "type": "boolean",
+            "title": "Present"
+          },
+          "index_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Sha256"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "present",
+          "index_sha256"
+        ],
+        "title": "UiHealth",
+        "description": "Whether the built frontend bundle is present on disk at startup."
+      }
+    }
+  }
+}
