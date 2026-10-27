@@ -1,0 +1,249 @@
+{
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "outlook": [
+    {
+      "basin": "Atlantic",
+      "chance_2day_pct": 20,
+      "chance_7day_pct": 20,
+      "issued_at": "2026-10-12T23:17:54Z",
+      "kind": "two_day_location",
+      "risk_2day": {
+        "code": "Low",
+        "raw": "Low",
+        "recognized": true
+      },
+      "risk_7day": {
+        "code": "Low",
+        "raw": "Low",
+        "recognized": true
+      }
+    },
+    {
+      "basin": "Pacific",
+      "chance_2day_pct": 100,
+      "chance_7day_pct": 100,
+      "issued_at": "2026-10-12T23:17:54Z",
+      "kind": "two_day_location",
+      "risk_2day": {
+        "code": "High",
+        "raw": "High",
+        "recognized": true
+      },
+      "risk_7day": {
+        "code": "High",
+        "raw": "High",
+        "recognized": true
+      }
+    },
+    {
+      "basin": "Atlantic",
+      "chance_2day_pct": 20,
+      "chance_7day_pct": 20,
+      "issued_at": "2026-10-12T23:17:54Z",
+      "kind": "seven_day_location",
+      "risk_2day": {
+        "code": "Low",
+        "raw": "Low",
+        "recognized": true
+      },
+      "risk_7day": {
+        "code": "Low",
+        "raw": "Low",
+        "recognized": true
+      }
+    },
+    {
+      "basin": "Pacific",
+      "chance_2day_pct": 100,
+      "chance_7day_pct": 100,
+      "issued_at": "2026-10-12T23:17:54Z",
+      "kind": "seven_day_location",
+      "risk_2day": {
+        "code": "High",
+        "raw": "High",
+        "recognized": true
+      },
+      "risk_7day": {
+        "code": "High",
+        "raw": "High",
+        "recognized": true
+      }
+    },
+    {
+      "basin": "Atlantic",
+      "chance_2day_pct": 20,
+      "chance_7day_pct": 20,
+      "issued_at": "2026-10-12T23:17:54Z",
+      "kind": "development_region",
+      "risk_2day": {
+        "code": "Low",
+        "raw": "Low",
+        "recognized": true
+      },
+      "risk_7day": {
+        "code": "Low",
+        "raw": "Low",
+        "recognized": true
+      }
+    },
+    {
+      "basin": "Pacific",
+      "chance_2day_pct": 100,
+      "chance_7day_pct": 100,
+      "issued_at": "2026-10-12T23:17:54Z",
+      "kind": "development_region",
+      "risk_2day": {
+        "code": "High",
+        "raw": "High",
+        "recognized": true
+      },
+      "risk_7day": {
+        "code": "High",
+        "raw": "High",
+        "recognized": true
+      }
+    }
+  ],
+  "snapshot": {
+    "age_seconds": 240.0,
+    "completed_at": "2026-10-13T01:31:00Z",
+    "drift_warnings": [
+      {
+        "message": "EP202026 earliest_reasonable advisory 022: advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+        "source_id": "nhc-arrival-times"
+      },
+      {
+        "message": "EP202026 most_likely advisory 022: advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+        "source_id": "nhc-arrival-times"
+      }
+    ],
+    "snapshot_id": "00000000-0000-4000-8000-000000000001",
+    "source_outcomes": [
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-current-storms",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-arrival-times",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-map-tropical-summary",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-map-breakpoints",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-map-peak-surge",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-gis-rss",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-text-products",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-outlook-graphics",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nws-alerts-point",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nws-alerts-zone",
+        "status": "ok"
+      }
+    ],
+    "started_at": "2026-10-13T01:31:00Z",
+    "status": "complete"
+  },
+  "storms": [
+    {
+      "advisory": "22A",
+      "advisory_issued_at": "2026-10-13T00:00:00Z",
+      "atcf_id": "EP202026",
+      "classification": {
+        "code": "HU",
+        "raw": "HU",
+        "recognized": true
+      },
+      "intensity_kt": 85,
+      "last_update": "2026-10-13T00:00:00Z",
+      "movement_dir_deg": 300.0,
+      "movement_speed_mph": 3.0,
+      "name": "Simon",
+      "pressure_mb": 969,
+      "products": {
+        "arrival_times": [
+          {
+            "advisory": "22",
+            "kind": "earliest_reasonable",
+            "lines": 1,
+            "origin": "kmz",
+            "published_at": "2026-10-16T21:00:00Z",
+            "time_zone": "MST",
+            "withheld_reason": "advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z"
+          },
+          {
+            "advisory": "22",
+            "kind": "most_likely",
+            "lines": 1,
+            "origin": "kmz",
+            "published_at": "2026-10-16T21:00:00Z",
+            "time_zone": "MST",
+            "withheld_reason": "advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z"
+          }
+        ],
+        "cone": true,
+        "track": true,
+        "track_points": 8,
+        "watch_warning_segments": 2,
+        "wind_radii": 24
+      },
+      "slot": "EP5"
+    }
+  ],
+  "wind_probabilities": [
+    {
+      "bands": 11,
+      "synoptic_at": "2026-10-12T18:00:00Z",
+      "threshold_kt": 34
+    },
+    {
+      "bands": 11,
+      "synoptic_at": "2026-10-12T18:00:00Z",
+      "threshold_kt": 50
+    },
+    {
+      "bands": 11,
+      "synoptic_at": "2026-10-12T18:00:00Z",
+      "threshold_kt": 64
+    }
+  ]
+}

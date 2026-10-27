@@ -1,6 +1,8 @@
 // frontend/src/app/AppShell.tsx
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Radio, ShieldAlert, WifiOff } from "lucide-react";
+import { AlertTriangle, Radio, ShieldAlert, WifiOff, X } from "lucide-react";
+import { Toast } from "radix-ui";
+import { useCallback, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
@@ -9,6 +11,9 @@ import {
   type StreamEvent,
   useEventStream,
 } from "../events/useEventStream.ts";
+import { deliverBrowserNotification } from "../notifications/notify.ts";
+import { formatUtc } from "../pages/format.ts";
+import { ThreatLevelBadge } from "./ThreatLevelBadge.tsx";
 import { ThemeMenu } from "./ThemeMenu.tsx";
 
 export type HealthResponse = components["schemas"]["HealthResponse"];
@@ -76,7 +81,20 @@ export function AppShell({
   onNotificationDisplay,
   fetchHealth = defaultFetchHealth,
 }: AppShellProps) {
-  const eventStream = useEventStream({ onNotificationDisplay });
+  const [toastEvents, setToastEvents] = useState<StreamEvent[]>([]);
+
+  const handleNotificationDisplay = useCallback(
+    (event: StreamEvent) => {
+      onNotificationDisplay?.(event);
+      deliverBrowserNotification(event);
+      setToastEvents((prev) => [...prev.slice(-4), event]);
+    },
+    [onNotificationDisplay],
+  );
+
+  const eventStream = useEventStream({
+    onNotificationDisplay: handleNotificationDisplay,
+  });
   const healthQuery = useQuery({
     queryKey: queryKeys.health(),
     queryFn: fetchHealth,
@@ -87,7 +105,8 @@ export function AppShell({
   const noticeText = health?.notice ?? DEFAULT_DISCLAIMER_NOTICE;
 
   return (
-    <div className="flex min-h-screen w-full max-w-full flex-col overflow-x-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <Toast.Provider swipeDirection="right" duration={10000}>
+      <div className="flex min-h-screen w-full max-w-full flex-col overflow-x-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-3 py-2.5 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -185,6 +204,54 @@ export function AppShell({
           </Link>
         </div>
       </footer>
+
+      {toastEvents.map((toastEvt) => (
+        <Toast.Root
+          key={toastEvt.id}
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              setToastEvents((prev) =>
+                prev.filter((item) => item.id !== toastEvt.id),
+              );
+            }
+          }}
+          className="rounded-lg border border-slate-300 bg-white p-3.5 text-xs shadow-lg dark:border-slate-700 dark:bg-slate-900"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                {toastEvt.level !== null && toastEvt.level !== undefined && (
+                  <ThreatLevelBadge level={toastEvt.level} size="sm" />
+                )}
+                <Toast.Title className="font-bold text-slate-900 dark:text-slate-100">
+                  {toastEvt.title ?? "Weatherbot notification"}
+                </Toast.Title>
+              </div>
+              {toastEvt.body && toastEvt.body.length > 0 && (
+                <Toast.Description className="space-y-0.5 text-slate-700 dark:text-slate-300">
+                  {toastEvt.body.map((line, idx) => (
+                    <span key={idx} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </Toast.Description>
+              )}
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                {formatUtc(toastEvt.at)}
+              </p>
+            </div>
+            <Toast.Close
+              aria-label="Dismiss notification"
+              className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden="true" />
+            </Toast.Close>
+          </div>
+        </Toast.Root>
+      ))}
+      <Toast.Viewport className="fixed right-4 bottom-4 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2" />
     </div>
+    </Toast.Provider>
   );
 }

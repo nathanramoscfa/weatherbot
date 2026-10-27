@@ -8,6 +8,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 5 — Web app (MVP)
+- Add the five dashboard and data pages (`frontend/src/pages/{Dashboard,Storms,Alerts,Timeline,Settings}.tsx`
+  and `frontend/src/pages/format.ts`), browser notification delivery
+  (`frontend/src/notifications/notify.ts` and in-page Radix `Toast` in
+  `AppShell.tsx`), and the deterministic API fixture exporter
+  (`scripts/export_api_fixtures.py`, `frontend/src/test/fixtures/*.json`, and
+  `tests/web/test_api_fixtures.py`):
+  - `/` (`Dashboard`): per-location threat level cards with `At least Level N`
+    and missing-input floor banners when `complete` is `false`, deciding rule and
+    evidence, recommended actions, covering official products and county-zone
+    context alerts, storm threats (`0.1 km`, integer `deg`, `0.1 h`, and arrival
+    readings with origin), 5 km wind-speed probabilities, changes since the
+    previous assessment, evacuation-order toggle (`PUT /api/locations/evacuation`)
+    with `toggle_note`, `aria-live="polite"` level announcements, `Check now`
+    (`POST /api/cycles`, disabled until a `cycle` `StreamEvent` arrives, with
+    plain `409`/`429` messages), and an empty state with disclaimer essentials.
+  - `/storms` (`Storms`), `/alerts` (`Alerts`), `/timeline` (`Timeline`), and
+    `/settings` (`Settings`): active cyclones and products, graphical outlook
+    areas, wind-speed probability summaries, covering vs. county-zone context
+    NWS alerts, NHC watch-warning segments, chronological assessment and
+    notification history with location filter and delivery/decision badges,
+    add-location form (`POST /api/locations` with `409`/`422` handling), browser
+    notification permission switch and test notification button
+    (`POST /api/notifications/test`), effective settings table with origins and
+    `file_modified_since_start` reload banner, 11-rule alert ladder reference,
+    full `DISCLAIMER.md` text (`#disclaimer`), and bundled `/licenses.json`
+    viewer.
+  - `frontend/src/notifications/notify.ts`: sole caller of `new Notification(...)`
+    and `Notification.requestPermission()`, firing a background Web Notification
+    only when `display: true`, `localStorage['weatherbot.notifications']` is on,
+    permission is `granted`, and `document.visibilityState === "hidden"`, while
+    `AppShell` shows an in-page Radix `Toast` on every `display: true`
+    notification event.
 - Add the `frontend/` web chassis on Node 24 (`frontend/.nvmrc`, Vite 8.3.5,
   React 19.3.1, strict TypeScript 5.9.3, Tailwind CSS 4.3.3, TanStack Query
   5.104.5, React Router 8.5.0 in data mode, `radix-ui` 1.8.1, `lucide-react`

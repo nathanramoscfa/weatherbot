@@ -1,12 +1,91 @@
 // frontend/src/app/AppShell.test.tsx
-import { QueryClientProvider } from "@tanstack/react-query";
+import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RouterProvider } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { queryKeys } from "../api/keys.ts";
+import type { components } from "../api/schema.ts";
 import { createAppQueryClient, initCspNonce } from "../main.tsx";
+import { asSchema, type JsonFixture } from "../pages/format.ts";
+import alertsFixture from "../test/fixtures/alerts.json";
+import assessmentsFixture from "../test/fixtures/assessments.json";
+import disclaimerFixture from "../test/fixtures/disclaimer.json";
+import locationsFixture from "../test/fixtures/locations.json";
+import notificationsFixture from "../test/fixtures/notifications.json";
+import settingsFixture from "../test/fixtures/settings.json";
+import stormsFixture from "../test/fixtures/storms.json";
+import timelineFixture from "../test/fixtures/timeline.json";
 import type { HealthResponse } from "./AppShell.tsx";
 import { createAppMemoryRouter } from "./routes.tsx";
+
+function seedFixtureCache(queryClient: QueryClient): void {
+  queryClient.setQueryData(
+    queryKeys.assessments(),
+    asSchema<components["schemas"]["AssessmentsResponse"]>(
+      assessmentsFixture satisfies JsonFixture<
+        components["schemas"]["AssessmentsResponse"]
+      >,
+    ),
+  );
+  queryClient.setQueryData(
+    queryKeys.locations(),
+    asSchema<components["schemas"]["LocationsResponse"]>(
+      locationsFixture satisfies JsonFixture<
+        components["schemas"]["LocationsResponse"]
+      >,
+    ),
+  );
+  queryClient.setQueryData(
+    queryKeys.storms(),
+    asSchema<components["schemas"]["StormsResponse"]>(
+      stormsFixture satisfies JsonFixture<
+        components["schemas"]["StormsResponse"]
+      >,
+    ),
+  );
+  queryClient.setQueryData(
+    queryKeys.alerts(),
+    asSchema<components["schemas"]["AlertsResponse"]>(
+      alertsFixture satisfies JsonFixture<
+        components["schemas"]["AlertsResponse"]
+      >,
+    ),
+  );
+  queryClient.setQueryData(
+    queryKeys.timeline(),
+    asSchema<components["schemas"]["TimelineResponse"]>(
+      timelineFixture satisfies JsonFixture<
+        components["schemas"]["TimelineResponse"]
+      >,
+    ),
+  );
+  queryClient.setQueryData(
+    queryKeys.notifications(),
+    asSchema<components["schemas"]["NotificationsResponse"]>(
+      notificationsFixture satisfies JsonFixture<
+        components["schemas"]["NotificationsResponse"]
+      >,
+    ),
+  );
+  queryClient.setQueryData(
+    queryKeys.settings(),
+    asSchema<components["schemas"]["SettingsResponse"]>(
+      settingsFixture satisfies JsonFixture<
+        components["schemas"]["SettingsResponse"]
+      >,
+    ),
+  );
+  queryClient.setQueryData(
+    queryKeys.disclaimer(),
+    asSchema<components["schemas"]["DisclaimerResponse"]>(
+      disclaimerFixture satisfies JsonFixture<
+        components["schemas"]["DisclaimerResponse"]
+      >,
+    ),
+  );
+  queryClient.setQueryData(queryKeys.licenses(), []);
+}
 
 class MockEventSource {
   static instances: MockEventSource[] = [];
@@ -120,6 +199,7 @@ describe("AppShell and routes", () => {
   it("renders the six routes, keyboard navigation, threat level text+number badges, and footer notice", async () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
+    seedFixtureCache(queryClient);
     const health = buildHealthResponse({
       notice: "Custom health notice — verify with NHC and NWS.",
     });
@@ -136,12 +216,8 @@ describe("AppShell and routes", () => {
     expect(
       screen.getByRole("heading", { name: "Dashboard" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Level 1")).toBeInTheDocument();
-    expect(screen.getByText("All Clear")).toBeInTheDocument();
-    expect(screen.getByText("Level 5")).toBeInTheDocument();
-    expect(
-      screen.getByText("Hurricane Warning / Evacuation"),
-    ).toBeInTheDocument();
+    expect(screen.getAllByText("Level 1").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("All Clear").length).toBeGreaterThanOrEqual(1);
 
     await waitFor(() => {
       expect(
@@ -199,6 +275,7 @@ describe("AppShell and routes", () => {
 
   it("displays the staleness banner naming stale sources and their ages, and the reconnecting indicator", async () => {
     const queryClient = createAppQueryClient();
+    seedFixtureCache(queryClient);
     const staleHealth = buildHealthResponse({
       stale: true,
       heartbeats: [

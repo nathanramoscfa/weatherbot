@@ -1,0 +1,232 @@
+{
+  "locations": [
+    {
+      "alerts": [
+        {
+          "affected_zone_ids": [
+            "FLZ168",
+            "FLZ172",
+            "FLZ173"
+          ],
+          "certainty": {
+            "code": "Likely",
+            "raw": "Likely",
+            "recognized": true
+          },
+          "coverage": "the point query returned it; the ladder reads no Rip Current Statement, so it sets no level",
+          "covers": true,
+          "effective": "2026-10-17T07:40:00Z",
+          "effective_local": "2026-10-17T03:40:00-04:00",
+          "event": "Rip Current Statement",
+          "expires": "2026-10-18T08:00:00Z",
+          "expires_local": "2026-10-18T04:00:00-04:00",
+          "found_by": [
+            {
+              "kind": "point",
+              "zone_id": null
+            },
+            {
+              "kind": "zone",
+              "zone_id": "FLZ173"
+            }
+          ],
+          "headline": "Rip Current Statement issued October 17 at 3:40AM EDT until October 20 at 2:00AM EDT by NWS Miami FL",
+          "id": "urn:oid:2.49.0.1.840.0.b63d50b627f64f46519e84641aee03ec8656738d.001.1",
+          "is_county_context": false,
+          "rule": null,
+          "sender_name": "NWS Miami FL",
+          "severity": {
+            "code": "Moderate",
+            "raw": "Moderate",
+            "recognized": true
+          },
+          "urgency": {
+            "code": "Expected",
+            "raw": "Expected",
+            "recognized": true
+          },
+          "vtec": [
+            "/O.NEW.KMFL.RP.S.0032.261018T0600Z-261020T0600Z/"
+          ]
+        },
+        {
+          "affected_zone_ids": [
+            "FLZ069",
+            "FLZ075",
+            "FLZ174"
+          ],
+          "certainty": {
+            "code": "Likely",
+            "raw": "Likely",
+            "recognized": true
+          },
+          "coverage": "county-zone alert outside this location's zones",
+          "covers": false,
+          "effective": "2026-10-13T00:30:00Z",
+          "effective_local": "2026-10-12T20:30:00-04:00",
+          "event": "Coastal Flood Statement",
+          "expires": "2026-10-13T12:30:00Z",
+          "expires_local": "2026-10-13T08:30:00-04:00",
+          "found_by": [
+            {
+              "kind": "zone",
+              "zone_id": "FLC086"
+            }
+          ],
+          "headline": "Coastal Flood Statement issued by NWS Miami FL",
+          "id": "urn:oid:register-example.FLC086",
+          "is_county_context": true,
+          "rule": null,
+          "sender_name": "NWS Miami FL",
+          "severity": {
+            "code": "Minor",
+            "raw": "Minor",
+            "recognized": true
+          },
+          "urgency": {
+            "code": "Expected",
+            "raw": "Expected",
+            "recognized": true
+          },
+          "vtec": []
+        }
+      ],
+      "location": {
+        "county_zone": "FLC086",
+        "forecast_zone": "FLZ173",
+        "inside_nws_coverage": true,
+        "name": "Miami-Dade County Hall",
+        "time_zone": "America/New_York"
+      },
+      "note": null,
+      "watch_warnings": []
+    },
+    {
+      "alerts": null,
+      "location": {
+        "county_zone": null,
+        "forecast_zone": null,
+        "inside_nws_coverage": false,
+        "name": "Parliament Square",
+        "time_zone": null
+      },
+      "note": "The NWS does not cover Parliament Square; NHC's segments are its watches and warnings.",
+      "watch_warnings": [
+        {
+          "advisory": "22A",
+          "at_end": null,
+          "atcf_id": "EP202026",
+          "breakpoints": [],
+          "coverage": null,
+          "covers": false,
+          "distance_km": null,
+          "issued_at": "2026-10-13T00:00:00Z",
+          "rule": null,
+          "storm_name": "Simon",
+          "tcww": {
+            "code": "HWA",
+            "raw": "HWA",
+            "recognized": true
+          }
+        },
+        {
+          "advisory": "22A",
+          "at_end": null,
+          "atcf_id": "EP202026",
+          "breakpoints": [],
+          "coverage": null,
+          "covers": false,
+          "distance_km": null,
+          "issued_at": "2026-10-13T00:00:00Z",
+          "rule": null,
+          "storm_name": "Simon",
+          "tcww": {
+            "code": "HWR",
+            "raw": "HWR",
+            "recognized": true
+          }
+        }
+      ]
+    }
+  ],
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "snapshot": {
+    "age_seconds": 240.0,
+    "completed_at": "2026-10-13T01:31:00Z",
+    "drift_warnings": [
+      {
+        "message": "EP202026 earliest_reasonable advisory 022: advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+        "source_id": "nhc-arrival-times"
+      },
+      {
+        "message": "EP202026 most_likely advisory 022: advisoryNum 38 is not the URL's advisory 22; advisoryNum 38 is not the roster's advNum 22; pubAdvTime is more than an hour from the roster's issuance 2026-10-12T21:00Z",
+        "source_id": "nhc-arrival-times"
+      }
+    ],
+    "snapshot_id": "00000000-0000-4000-8000-000000000001",
+    "source_outcomes": [
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-current-storms",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-arrival-times",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-map-tropical-summary",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-map-breakpoints",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-map-peak-surge",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-gis-rss",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-text-products",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nhc-outlook-graphics",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nws-alerts-point",
+        "status": "ok"
+      },
+      {
+        "error_kind": null,
+        "reason": null,
+        "source_id": "nws-alerts-zone",
+        "status": "ok"
+      }
+    ],
+    "started_at": "2026-10-13T01:31:00Z",
+    "status": "complete"
+  }
+}

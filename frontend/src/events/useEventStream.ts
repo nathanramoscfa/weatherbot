@@ -12,6 +12,8 @@ export type StreamEvent = components["schemas"]["StreamEvent"];
 export type EventKind = components["schemas"]["EventKind"];
 export type EventStreamStatus = "connecting" | "connected" | "reconnecting";
 
+export const STREAM_EVENT_DOM_NAME = "weatherbot:stream-event";
+
 export interface UseEventStreamOptions {
   readonly onNotificationDisplay?: (event: StreamEvent) => void;
   readonly url?: string;
@@ -116,6 +118,13 @@ export function useEventStream(
 
       if (parsed.kind === "notification" && parsed.display) {
         onNotificationRef.current?.(parsed);
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent<StreamEvent>(STREAM_EVENT_DOM_NAME, {
+            detail: parsed,
+          }),
+        );
       }
     };
 
