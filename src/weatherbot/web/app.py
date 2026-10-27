@@ -14,8 +14,19 @@ from starlette.responses import JSONResponse
 from weatherbot import __version__
 from weatherbot.services.config import AppPaths, SettingOrigin, Settings
 from weatherbot.services.persistence.database import Database
+from weatherbot.services.replay import ReplayCorpus
 from weatherbot.web.guards import install_guards
+from weatherbot.web.routes.alerts import router as alerts_router
+from weatherbot.web.routes.assessments import router as assessments_router
+from weatherbot.web.routes.disclaimer import router as disclaimer_router
 from weatherbot.web.routes.health import router as health_router
+from weatherbot.web.routes.locations import router as locations_router
+from weatherbot.web.routes.map import router as map_router
+from weatherbot.web.routes.notifications import router as notifications_router
+from weatherbot.web.routes.replay import router as replay_router
+from weatherbot.web.routes.settings import router as settings_router
+from weatherbot.web.routes.storms import router as storms_router
+from weatherbot.web.routes.timeline import router as timeline_router
 from weatherbot.web.static_files import install_static_routes, load_static_bundle
 
 
@@ -30,7 +41,7 @@ class WebState:
     clock: Callable[[], datetime] = lambda: datetime.now(UTC)
     started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     static_dir: Path | None = None
-    corpus: Path | bool | None = None
+    corpus: ReplayCorpus | None = None
 
 
 def _sanitize_validation_errors(errors: Sequence[object]) -> list[dict[str, object]]:
@@ -90,5 +101,15 @@ def create_app(state: WebState) -> FastAPI:
 
     install_guards(app)
     app.include_router(health_router)
+    app.include_router(locations_router)
+    app.include_router(assessments_router)
+    app.include_router(storms_router)
+    app.include_router(alerts_router)
+    app.include_router(timeline_router)
+    app.include_router(notifications_router)
+    app.include_router(settings_router)
+    app.include_router(disclaimer_router)
+    app.include_router(map_router)
+    app.include_router(replay_router)
     install_static_routes(app, bundle)
     return app

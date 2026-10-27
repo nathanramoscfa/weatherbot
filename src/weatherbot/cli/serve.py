@@ -13,6 +13,7 @@ import contextlib
 import logging
 import signal
 import sys
+from pathlib import Path
 from typing import Annotated, Final
 
 import typer
@@ -32,6 +33,7 @@ from weatherbot.services.locks import ProcessLock
 from weatherbot.services.logs import configure_logging
 from weatherbot.services.monitor import CycleRunner
 from weatherbot.services.persistence.database import Database
+from weatherbot.services.replay import ReplayCorpus, ReplayError
 from weatherbot.services.schedule import run_monitor
 from weatherbot.services.tasks import TaskSchedulerError, query
 
@@ -74,13 +76,40 @@ def _install_stop_signals(stop_event: asyncio.Event) -> None:
                 signal.signal(sig, lambda _s, _f: loop.call_soon_threadsafe(stop_event.set))
 
 
-async def _loop(
+def _open_cli_corpus(output: Output, corpus_dir: Path) -> ReplayCorpus:
+    """Validate and open ``--corpus DIR`` before acquiring ``monitor.lock``."""
+    if not corpus_dir.is_dir():
+        fail(output, f"--corpus must name a directory: {corpus_dir}", EXIT_USAGE)
+    try:
+        return ReplayCorpus.open(corpus_dir)
+    except ReplayError as error:
+        fail(output, f"{corpus_dir} is not a replay corpus: {error}", EXIT_USAGE)
+
+
+def _open_configured_corpus(settings: Settings) -> ReplayCorpus | None:
+    """Open ``[web] corpus`` when configured; log a warning and return ``None`` on failure."""
+    raw = settings.web.corpus
+    if not raw:
+        return None
+    directory = Path(raw)
+    if not directory.is_dir():
+        LOGGER.warning("[web] corpus is not a directory; starting without replay")
+        return None
+    try:
+        return ReplayCorpus.open(directory)
+    except ReplayError as error:
+        LOGGER.warning("[web] corpus is unusable (%s); starting without replay", error)
+        return None
+
+
+async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus options
     context: Context,
     database: Database,
     paths: AppPaths,
     runner: CycleRunner,
     *,
     open_browser: bool = False,
+    corpus: ReplayCorpus | None = None,
 ) -> None:
     def _check_installed() -> bool:
         if not context.runtime.windows:
@@ -122,6 +151,7 @@ async def _loop(
         setting_origins=origins,
         clock=rt.now,
         started_at=rt.now(),
+        corpus=corpus,
     )
     web_app = create_app(state)
     web_server = WebServer(
@@ -168,6 +198,7 @@ def run_monitor_loop(
     *,
     runner: CycleRunner,
     open_browser: bool | None = None,
+    corpus: Path | None = None,
 ) -> None:
     """Take ``data_dir/monitor.lock``, configure ``weatherbot.log``, and run ``runner``."""
     context = context_of(ctx)
@@ -176,10 +207,15 @@ def run_monitor_loop(
     if paths is None or context.problem:
         fail(output, context.problem or "the configuration is unusable")
 
+    opened_corpus = _open_cli_corpus(output, corpus) if corpus is not None else None
+
     configure_logging(
         "DEBUG" if context.verbose else context.settings.logging.level,
         log_file=paths.log_file_path,
     )
+    if opened_corpus is None and runner == "serve":
+        opened_corpus = _open_configured_corpus(context.settings)
+
     lock = ProcessLock(paths.monitor_lock_path)
     if not lock.try_acquire():
         fail(
@@ -200,6 +236,7 @@ def run_monitor_loop(
                     paths,
                     runner,
                     open_browser=should_open,
+                    corpus=opened_corpus,
                 )
             )
     finally:
@@ -218,6 +255,14 @@ def serve(
             "(default: open in an interactive terminal, off when headless).",
         ),
     ] = None,
+    corpus: Annotated[
+        Path | None,
+        typer.Option(
+            "--corpus",
+            help="Replay corpus directory for the map's historical replay "
+            "(overrides [web] corpus).",
+        ),
+    ] = None,
 ) -> None:
     """Run the long-lived scheduled monitor and local web server."""
-    run_monitor_loop(ctx, runner="serve", open_browser=open_browser)
+    run_monitor_loop(ctx, runner="serve", open_browser=open_browser, corpus=corpus)

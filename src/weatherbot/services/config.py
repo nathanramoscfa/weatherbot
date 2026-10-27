@@ -86,6 +86,7 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("notifications", "toast"): "WEATHERBOT_NOTIFICATIONS_TOAST",
     ("web", "host"): "WEATHERBOT_WEB_HOST",
     ("web", "port"): "WEATHERBOT_WEB_PORT",
+    ("web", "corpus"): "WEATHERBOT_WEB_CORPUS",
 }
 _TOML_POSITION: Final = re.compile(r"\(at line \d+, column \d+\)|\(at end of document\)")
 
@@ -358,10 +359,11 @@ PRIVILEGED_PORT_MAX: Final[int] = 1023
 
 
 class WebSettings(_Section):
-    """``[web]``: the local loopback host and port of the embedded web server."""
+    """``[web]``: the local loopback host, port, and optional replay corpus directory."""
 
     host: str = "127.0.0.1"
     port: int = Field(default=8765, ge=0, le=65535)
+    corpus: str = ""
 
     @field_validator("host")
     @classmethod
@@ -381,6 +383,11 @@ class WebSettings(_Section):
             message = "[web] port must be 0 or 1024..65535 (ports 1..1023 are privileged)"
             raise ValueError(message)
         return value
+
+    @field_validator("corpus")
+    @classmethod
+    def _strip_corpus(cls, value: str) -> str:
+        return value.strip()
 
     def address(self, port: int | None = None) -> str:
         """Return the ``http://...`` dashboard URL for ``self.host`` and ``port``."""
