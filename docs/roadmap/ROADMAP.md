@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 4 Complete — 2026-10-24; PR #52, #53; v2.0.0-phase-4. Phase 5 (Web app MVP) is next.
+> **Status:** Phase 4 Complete — 2026-10-24; PR #52, #53; v2.0.0-phase-4. Phase 5 (Web app MVP) is in progress.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -738,7 +738,7 @@ that deliberately adds a change kind converts check 32 in the same PR to read
 
 ### Phase 5 — Web app MVP
 
-**Status:** Not started
+**Status:** In progress — phase05-roadmap.md
 
 **Goal:** A local web app that looks and feels like a modern website:
 a FastAPI API with a server-sent events stream and a React single-page
@@ -1676,7 +1676,7 @@ The following are deliberately deferred to a future version:
 | 2     | Sources and persistence                       | Medium     | Complete |
 | 3     | Threat engine                                 | High       | Complete |
 | 4     | Monitoring and notifications                  | Medium     | Complete |
-| 5     | Web app MVP                                   | High       | Not started |
+| 5     | Web app MVP                                   | High       | In progress |
 | 6     | Claude layer                                  | High       | Not started |
 | 7     | Depth                                         | Medium     | Not started |
 | 8     | Release 2.0                                   | Medium     | Not started |

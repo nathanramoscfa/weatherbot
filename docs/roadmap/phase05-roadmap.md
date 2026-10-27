@@ -1,6 +1,6 @@
 # Phase 5 Roadmap — Web app MVP
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -1040,9 +1040,9 @@ the Worktree rule permits no concurrent steps.
 
 ---
 
-## Step 1 — The web server inside serve
+## Step 1 — The web server inside serve ✅
 
-**Status:** Not started
+**Status:** Complete — PR #61 (2026-10-26)
 
 > **Goal:** Put a guarded web server into the `serve` process before any route
 > carries data. `weatherbot.web.create_app(state)` builds the FastAPI app with
@@ -1109,6 +1109,8 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+>
+> Ran 2026-10-26: Balanced Pick — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Selected by the **Runs:** rule (Google AI Pro pool reads headroom).
 
 **Model rationale:** Step 1 is coding with an agentic secondary category: an
 ASGI server embedded in an asyncio loop that already runs the scheduler,
@@ -1571,8 +1573,11 @@ phase-boundary hygiene.
 
     <requirement>
       The app. `src/weatherbot/web/app.py`: `WebState` (a frozen
-      dataclass: the engine, the paths, the settings, the clock, the
-      start instant, and the built interface's directory, `None`
+      dataclass: the database handle `Database | None` from
+      `weatherbot.services.persistence.database` — as shipped in PR
+      #61 so `weatherbot.web` never imports `sqlalchemy` under the
+      database layer contract — the paths, the settings, the clock,
+      the start instant, and the built interface's directory, `None`
       when absent; Steps 2 and 3 add the corpus, the event hub, the
       channels, and the fetcher factory) and `create_app(state) ->
       FastAPI` with `title="Weatherbot"`, `version=__version__`,
@@ -2292,13 +2297,17 @@ Runner-up or Backup. The conversation is new per phase-boundary hygiene.
 
     - Step 1's `create_app(state: WebState)` mounts the guards,
       `GET /api/health`, and the built-interface routes;
-      `WebState` holds the engine, the paths, the settings, the
+      `WebState` holds `database: Database | None` (from
+      `weatherbot.services.persistence.database`, passing
+      `state.database.engine` to repository and service
+      constructors so `weatherbot.web` never imports `sqlalchemy`,
+      PR #61), the paths, the settings, `setting_origins`, the
       clock, the start instant, and the interface directory; every
       route that reads the database is a plain function (thread
       pool), never `async def`. `scripts/export_openapi.py` writes
       `docs/api/openapi.json`, and `tests/web/test_openapi_export.py`
-      fails while it is stale. Read Step 1's PR body for anything
-      it changed from this roadmap.
+      fails while it is stale. Read Step 1's PR body (#61) for
+      anything it changed from this roadmap.
     - The read paths exist (Current State, "Services surface"):
       `LocationRepository.list/get`, `SnapshotRepository.latest()/
       load(id)/drift_warnings(id)`, `AssessmentRepository.latest/
@@ -6490,7 +6499,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
-| 1    | Web server inside serve        | Gemini 4 Argon | Not started        |
+| 1    | Web server inside serve        | Gemini 4 Argon | Complete — PR #61  |
 | 2    | Read API + map geometry        | Gemini 4 Argon | Not started        |
 | 3    | Events + browser + actions     | Gemini 4 Argon | Not started        |
 | 4    | Frontend chassis + wheel       | Gemini 4 Argon | Not started        |
