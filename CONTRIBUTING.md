@@ -778,6 +778,56 @@ bearing:
   - `POST /api/notifications/test`: sends a `test` notification through `serve`'s
     channels (`200`, or `429` with `Retry-After` during the 10-second cooldown).
 
+#### The frontend
+
+`frontend/` holds the Vite 8 + React 19 + strict TypeScript 5.9.3 web interface
+on Node 24 (`frontend/.nvmrc`, `"engines": { "node": ">=24.15" }`) with
+Tailwind CSS 4, TanStack Query 5, React Router 8 (data mode), the unified
+`radix-ui` package, and `lucide-react` icons. Every dependency in
+`frontend/package.json` is pinned to an exact version (`save-exact=true`) and
+locked in `frontend/package-lock.json`.
+
+Install the locked dependencies and run the checks from the repository root:
+
+```sh
+npm --prefix frontend ci                  # install from frontend/package-lock.json
+npm --prefix frontend run api:generate    # write frontend/src/api/schema.d.ts from docs/api/openapi.json
+npm --prefix frontend run api:check       # verify schema.d.ts matches docs/api/openapi.json
+npm --prefix frontend run typecheck       # tsc --noEmit (strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes)
+npm --prefix frontend run lint            # eslint --max-warnings 0 (typescript-eslint, react-hooks, security)
+npm --prefix frontend run test            # vitest run (jsdom + Testing Library)
+npm --prefix frontend run build           # build into ../src/weatherbot/web/static/ (with licenses.json)
+npm --prefix frontend run licenses:check  # verify every bundled dependency in licenses.json is on the SPDX allowlist
+npm --prefix frontend run audit           # npm audit --audit-level=high
+```
+
+For interactive frontend development, run the backend and the Vite dev server
+side by side on loopback (`127.0.0.1`):
+
+```sh
+uv run weatherbot serve --no-open         # serves /api/* and /api/events on http://127.0.0.1:8765
+npm --prefix frontend run dev             # serves the UI on http://127.0.0.1:5173 and proxies /api to 127.0.0.1:8765
+```
+
+After changing any FastAPI route or Pydantic response model, regenerate both the
+committed OpenAPI schema and the TypeScript definitions:
+
+```sh
+uv run python scripts/export_openapi.py
+npm --prefix frontend run api:generate
+```
+
+`npm --prefix frontend run build` writes the production bundle and Vite's
+machine-readable `licenses.json` into `src/weatherbot/web/static/`. That
+directory is git-ignored so generated bundles never bloat commits; CI's
+`package` job runs `npm --prefix frontend ci`, `npm --prefix frontend run
+build`, and `npm --prefix frontend run licenses:check` before `uv build`,
+verifies that the built wheel carries `weatherbot/web/static/index.html`,
+`licenses.json`, and `assets/*`, and runs `scripts/smoke_installed_web.py`
+against the installed wheel. `frontend/scripts/check-licenses.mjs` fails if any
+bundled package in `src/weatherbot/web/static/licenses.json` uses a licence
+outside `{MIT, ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0, 0BSD}`.
+
 To start over, delete the data directory. Weatherbot creates a new database
 the next time it opens one. `uv run weatherbot doctor --offline` shows both
 directories, the database file, and its revision against the head.
@@ -794,8 +844,8 @@ finding on `main`. Any finding blocks the commit.
 | --- | --- | --- | --- |
 | Secret scan | Credentials, keys, tokens | gitleaks on the staged changes | gitleaks over the pull request's or the push's commits, redacted |
 | Personal-data check | Your own values from the denylist, any coordinate that is not a public landmark, a tracked `.env` file | `scripts/check_personal_data.py` on the staged files, with your denylist | `check_personal_data.py --all --ci` and `--self-test --ci` (CI has no denylist) |
-| SAST | Injection, unsafe deserialization, weak crypto, path traversal | bandit over `src` and `scripts` | The same |
-| Dependency audit | Known-vulnerable or yanked packages | `scripts/audit_deps.py` (pip-audit `--strict` over `uv.lock`) when `uv.lock` or `pyproject.toml` changes | On every run |
+| SAST | Injection, unsafe deserialization, weak crypto, path traversal, unsafe DOM patterns | bandit over `src` and `scripts`; ESLint (`eslint-plugin-security`, `--max-warnings 0`) when `frontend/` changes | Both on every run |
+| Dependency audit | Known-vulnerable or yanked packages | `scripts/audit_deps.py` (pip-audit `--strict` over `uv.lock`) and `npm --prefix frontend audit --audit-level=high` when lockfiles or manifests change | Both on every run |
 
 The hook also runs ruff, ruff format, pyright, the import contracts, and
 hygiene checks: trailing whitespace, final newlines, LF line endings, YAML and TOML syntax,

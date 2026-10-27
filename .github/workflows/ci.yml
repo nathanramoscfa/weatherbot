@@ -84,6 +84,45 @@ jobs:
       - name: Pyright (strict)
         run: uv run pyright
 
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: frontend/.nvmrc
+
+      - name: Install frontend dependencies (locked)
+        run: npm --prefix frontend ci
+
+      - name: Verify registry signatures
+        run: npm --prefix frontend audit signatures
+
+      - name: OpenAPI TypeScript schema drift check
+        run: npm --prefix frontend run api:check
+
+      - name: ESLint (--max-warnings 0)
+        run: npm --prefix frontend run lint
+
+      - name: TypeScript typecheck
+        run: npm --prefix frontend run typecheck
+
+      - name: Vitest unit tests
+        run: npm --prefix frontend run test
+
+      - name: Build frontend bundle
+        run: npm --prefix frontend run build
+
+      - name: Verify bundled package licences
+        run: npm --prefix frontend run licenses:check
+
   test:
     name: test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -153,6 +192,17 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: frontend/.nvmrc
+
+      - name: Install frontend dependencies (locked)
+        run: npm --prefix frontend ci
+
+      - name: Build frontend into src/weatherbot/web/static
+        run: npm --prefix frontend run build
+
       - name: Build the sdist and the wheel
         run: uv build
 
@@ -177,6 +227,24 @@ jobs:
           echo "project version: $expected"
           echo "installed weatherbot --version: $actual"
           test "$expected" = "$actual"
+
+      - name: The wheel carries the built frontend and licences
+        run: |
+          shopt -s nullglob
+          wheels=(dist/*.whl)
+          test "${#wheels[@]}" -eq 1
+          smoke="$RUNNER_TEMP/smoke"
+          if [ "$RUNNER_OS" = "Windows" ]; then python="$smoke/Scripts/python"; else python="$smoke/bin/python"; fi
+          WHEEL_PATH="${wheels[0]}" "$python" - <<'EOF'
+          import os
+          import zipfile
+
+          with zipfile.ZipFile(os.environ["WHEEL_PATH"]) as zf:
+              names = set(zf.namelist())
+          assert "weatherbot/web/static/index.html" in names, "index.html missing from wheel"
+          assert "weatherbot/web/static/licenses.json" in names, "licenses.json missing from wheel"
+          print("wheel contains weatherbot/web/static/index.html and licenses.json")
+          EOF
 
       # The migrations ship inside the wheel: the installed package, run outside the
       # checkout with its data directory in a temporary directory, creates a new
@@ -212,8 +280,15 @@ jobs:
               assert database.backup_path is None
           EOF
 
+      - name: The installed wheel serves the built interface and health endpoint
+        working-directory: ${{ runner.temp }}
+        run: |
+          smoke="$RUNNER_TEMP/smoke"
+          if [ "$RUNNER_OS" = "Windows" ]; then python="$smoke/Scripts/python"; else python="$smoke/bin/python"; fi
+          "$python" "$GITHUB_WORKSPACE/scripts/smoke_installed_web.py"
+
   # The CI half of the security gate (docs/roadmap/ROADMAP.md, "Per-step
-  # security gate"): the same four checks the pre-commit hook runs, so a
+  # security gate"): the same checks the pre-commit hook runs, so a
   # skipped hook cannot land an issue on `main`. gitleaks runs first; every
   # later step carries `if: '!cancelled()'`, so one run reports every finding
   # instead of stopping at the first. No secret is used.
@@ -285,6 +360,24 @@ jobs:
         if: '!cancelled()'
         run: uv run python scripts/audit_deps.py
 
+      - name: Set up Node
+        if: '!cancelled()'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: frontend/.nvmrc
+
+      - name: Install frontend dependencies (locked)
+        if: '!cancelled()'
+        run: npm --prefix frontend ci
+
+      - name: Frontend dependency audit (npm audit --audit-level=high)
+        if: '!cancelled()'
+        run: npm --prefix frontend audit --audit-level=high
+
+      - name: Frontend SAST (ESLint --max-warnings 0 with eslint-plugin-security)
+        if: '!cancelled()'
+        run: npm --prefix frontend run lint
+
       - name: Personal-data check (every tracked file)
         if: '!cancelled()'
         run: uv run python scripts/check_personal_data.py --all --ci
@@ -299,7 +392,7 @@ jobs:
   gate:
     name: gate
     if: ${{ always() }}
-    needs: [lint, typecheck, test, package, security]
+    needs: [lint, typecheck, frontend, test, package, security]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

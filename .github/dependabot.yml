@@ -1,9 +1,8 @@
 # .github/dependabot.yml
-# Weekly dependency update pull requests: Python (uv.lock), the SHA-pinned
-# GitHub Actions, and the SHA-pinned pre-commit hook repositories. Minor and
-# patch updates are grouped into one pull request per ecosystem; major
-# updates arrive one by one. npm joins when frontend/ exists (Phase 5): an
-# entry with no manifest fails every run.
+# Weekly dependency update pull requests: Python (uv.lock), the frontend
+# (frontend/package-lock.json), the SHA-pinned GitHub Actions, and the
+# SHA-pinned pre-commit hook repositories. Minor and patch updates are grouped
+# into one pull request per ecosystem; major updates arrive one by one.
 version: 2
 updates:
   - package-ecosystem: uv
@@ -15,6 +14,19 @@ updates:
     groups:
       python-minor-and-patch:
         update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: typescript
+        versions: [">= 6.0.0"]
 
   - package-ecosystem: github-actions
     directory: /

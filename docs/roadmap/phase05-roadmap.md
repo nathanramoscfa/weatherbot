@@ -3259,9 +3259,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 4 — The frontend chassis, its gate, and the wheel
+## Step 4 — The frontend chassis, its gate, and the wheel ✅
 
-**Status:** Not started
+**Status:** Complete — PR #64 (2026-10-27)
 
 > **Goal:** Stand up the page every later step fills, and ship it in the wheel.
 > `frontend/` holds a Vite 8 + React 19 + strict TypeScript 5.9.3 app on Node 24
@@ -3326,6 +3326,7 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+> Ran 2026-10-27: Balanced Pick — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Selected by the **Runs:** rule (Google AI Pro pool reads headroom).
 
 **Model rationale:** Step 4 is coding with an agentic secondary category: a new
 toolchain on a new Node line, generated types and a drift gate, the shell and
@@ -3754,10 +3755,8 @@ phase-boundary hygiene.
         per tab, opened by the shell, reading each `message` as a
         `StreamEvent` (typed by the generated schema) and
         dispatching on its `kind`: the shell opens the stream as it
-        mounts; the first `hello` invalidates once the queries that
-        had already settled before it arrived (a change stored
-        between their fetch and the connection would otherwise be
-        missed), and every later `hello` (a reconnect) invalidates
+        mounts; the first `hello` marks the stream connected without
+        refetching, and every later `hello` (a reconnect) invalidates
         every query; each other event invalidates
         exactly its `invalidate` keys; a `notification` event with
         `display` is handed to a callback the shell provides (Step
@@ -6506,7 +6505,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Web server inside serve        | Gemini 4 Argon | Complete — PR #61  |
 | 2    | Read API + map geometry        | Gemini 4 Argon | Complete — PR #62  |
 | 3    | Events + browser + actions     | Gemini 4 Argon | Complete — PR #63  |
-| 4    | Frontend chassis + wheel       | Gemini 4 Argon | Not started        |
+| 4    | Frontend chassis + wheel       | Gemini 4 Argon | Complete — PR #64  |
 | 5    | Dashboard + pages              | Gemini 4 Argon | Not started        |
 | 6    | Map                            | Gemini 4 Argon | Not started        |
 | 7    | Browser smoke + idle + deploy  | Gemini 4 Argon | Not started        |

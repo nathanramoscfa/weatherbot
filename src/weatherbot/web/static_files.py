@@ -54,7 +54,7 @@ UNBUILT_HTML: Final = f"""<!doctype html>
       </p>
       <p>
         See <code>CONTRIBUTING.md</code> for the frontend build instructions
-        (<code>npm --prefix web ci &amp;&amp; npm --prefix web run build</code>).
+        (<code>npm --prefix frontend ci &amp;&amp; npm --prefix frontend run build</code>).
         The local JSON API is active at <a href="/api/health"><code>/api/health</code></a>.
       </p>
       <footer><small>{NOTICE}</small></footer>

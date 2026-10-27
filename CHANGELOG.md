@@ -8,6 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 5 — Web app (MVP)
+- Add the `frontend/` web chassis on Node 24 (`frontend/.nvmrc`, Vite 8.3.5,
+  React 19.3.1, strict TypeScript 5.9.3, Tailwind CSS 4.3.3, TanStack Query
+  5.104.5, React Router 8.5.0 in data mode, `radix-ui` 1.8.1, `lucide-react`
+  1.61.0, `openapi-typescript` 7.13.0, and `openapi-fetch` 0.17.0):
+  - Generate and check `frontend/src/api/schema.d.ts` from
+    `docs/api/openapi.json` (`api:generate` and `api:check`), add the same-origin
+    typed API client (`frontend/src/api/client.ts`), and define the nine
+    server-invalidatable `queryKeys` (`frontend/src/api/keys.ts`) separately
+    from static page keys (`replay`, `disclaimer`, `licenses`).
+  - Add `useEventStream` (`frontend/src/events/useEventStream.ts`): opens one
+    `EventSource('/api/events')` per tab, marks the stream connected on the
+    first `hello` without refetching, invalidates all nine query keys on a
+    reconnect's `hello`, invalidates the exact `invalidate` list on every other
+    event, and forwards `notification` events with `display: true` to a callback.
+  - Add the application shell (`AppShell`, `routes`, `ThemeMenu`,
+    `ThreatLevelBadge`, `nonce`, `theme`, and `public/theme-init.js`): serves
+    the six routes (`/`, `/map`, `/storms`, `/alerts`, `/timeline`, `/settings`)
+    plus a not-found route, keyboard and mobile navigation, system/light/dark
+    theme selection applied before first paint, a staleness banner driven by
+    `/api/health`, per-response CSP nonce forwarding, and the disclaimer footer
+    linking to `/settings#disclaimer` on every page.
+- Add `frontend/scripts/check-licenses.mjs` (`licenses:check` over Vite's
+  `src/weatherbot/web/static/licenses.json` against `{MIT, ISC, BSD-2-Clause,
+  BSD-3-Clause, Apache-2.0, 0BSD}`), `scripts/smoke_installed_web.py`
+  (verifying an installed wheel serves `/` with its per-response CSP nonce and
+  reports `ui.present == true` on `/api/health`), `frontend-lint` and
+  `npm-audit` hooks in `.pre-commit-config.yaml`, the `frontend` job and
+  updated `package` and `security` jobs in `.github/workflows/ci.yml`, and the
+  `/frontend` `npm` ecosystem in `.github/dependabot.yml`.
 - Add the live Server-Sent Events stream (`GET /api/events`,
   `weatherbot.web.routes.events`, `EventHub`, `CycleWatcher`, and
   `StalenessTimer` in `weatherbot.services.events`): streams typed `StreamEvent`

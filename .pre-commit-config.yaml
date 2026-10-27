@@ -103,3 +103,19 @@ repos:
         types_or: [python, toml]
         pass_filenames: false
         require_serial: true
+
+      - id: frontend-lint
+        name: frontend ESLint (--max-warnings 0, with eslint-plugin-security)
+        entry: npm --prefix frontend run lint
+        language: system
+        files: ^frontend/
+        pass_filenames: false
+        require_serial: true
+
+      - id: npm-audit
+        name: npm audit --audit-level=high over frontend/package-lock.json
+        entry: npm --prefix frontend audit --audit-level=high
+        language: system
+        files: ^frontend/package(-lock)?\.json$
+        pass_filenames: false
+        require_serial: true

@@ -45,5 +45,12 @@ planning/user-context.md
 .DS_Store
 Thumbs.db
 
-# Built web frontend bundle (populated by npm --prefix web run build; shipped in Step 7)
+# Built web frontend bundle (populated by npm --prefix frontend run build; shipped in Step 7)
 /src/weatherbot/web/static/
+
+# Frontend dependencies, test/coverage outputs, and TypeScript incremental build state
+/frontend/node_modules/
+/frontend/coverage/
+/frontend/test-results/
+/frontend/playwright-report/
+*.tsbuildinfo
