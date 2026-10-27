@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 5 — Web app (MVP)
+- Add the live Server-Sent Events stream (`GET /api/events`,
+  `weatherbot.web.routes.events`, `EventHub`, `CycleWatcher`, and
+  `StalenessTimer` in `weatherbot.services.events`): streams typed `StreamEvent`
+  frames (`hello`, `cycle`, `snapshot`, `assessment`, `alert`, `notification`,
+  `location`, `health`) naming the `QueryKey` caches to invalidate, bounded at
+  16 subscribers (`503` on the 17th) and 100 queued events per subscriber, with
+  cross-process SQLite polling (`CycleWatcher`), exact heartbeat-staleness
+  wakeups (`StalenessTimer`), and clean stream shutdown on `WebServer` stop.
+- Add `BrowserChannel` (`[notifications] browser = true`,
+  `WEATHERBOT_NOTIFICATIONS_BROWSER`, `Channel.interrupts`) in `weatherbot
+  serve` (`serve_channels`): records `delivered` when a dashboard subscriber is
+  open, `unavailable` (`no open dashboard`) when none is connected, and
+  `disabled` (`browser notifications off`) when disabled, while keeping CLI
+  commands on `Context.channels` (`log` and `toast` only) and suppressing
+  interrupting channels (`toast` and `browser`) on quiet-hours alarms.
+- Add the four write API routes (`weatherbot.web.routes.actions`):
+  `POST /api/locations` (`201`, `409` via `LocationNameTakenError`, `422`,
+  `502`), `PUT /api/locations/evacuation` (`200`, `404`), `POST /api/cycles`
+  (`202` running a `manual` cycle through `serve`'s `MonitorSchedule` under
+  runner `serve`, `409` single-flight, `429` with `Retry-After` on a 60-second
+  cooldown), and `POST /api/notifications/test` (`200`, `429` with `Retry-After`
+  on a 10-second cooldown), and regenerate `docs/api/openapi.json` with
+  `StreamEvent`, `EventKind`, and `QueryKey` in `components.schemas`.
 - Add the ten read API routes (`GET /api/locations`, `/api/assessments`,
   `/api/storms`, `/api/alerts`, `/api/timeline`, `/api/notifications`,
   `/api/settings`, `/api/disclaimer`, `/api/map`, and `/api/replay` plus

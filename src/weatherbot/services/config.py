@@ -84,6 +84,7 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("notifications", "quiet_hours_end"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_END",
     ("notifications", "quiet_hours_time_zone"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_TIME_ZONE",
     ("notifications", "toast"): "WEATHERBOT_NOTIFICATIONS_TOAST",
+    ("notifications", "browser"): "WEATHERBOT_NOTIFICATIONS_BROWSER",
     ("web", "host"): "WEATHERBOT_WEB_HOST",
     ("web", "port"): "WEATHERBOT_WEB_PORT",
     ("web", "corpus"): "WEATHERBOT_WEB_CORPUS",
@@ -291,13 +292,14 @@ class MonitorSettings(_Section):
 
 
 class NotificationSettings(_Section):
-    """``[notifications]``: the cooldown and quiet hours, and whether the toast is on."""
+    """``[notifications]``: cooldown, quiet hours, and whether toast and browser are on."""
 
     cooldown_hours: int = Field(default=6, ge=0, le=48)
     quiet_hours_start: str = ""
     quiet_hours_end: str = Field(default="", validate_default=True)
     quiet_hours_time_zone: str = "local"
     toast: bool = True
+    browser: bool = True
 
     @field_validator("quiet_hours_start")
     @classmethod

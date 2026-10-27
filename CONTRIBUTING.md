@@ -714,6 +714,70 @@ uv run python scripts/export_openapi.py           # writes docs/api/openapi.json
 uv run python scripts/export_openapi.py --check   # exits 1 if docs/api/openapi.json is stale
 ```
 
+#### The event stream
+
+`GET /api/events` (`weatherbot.web.routes.events`, `EventSourceResponse`
+annotated `AsyncIterable[StreamEvent]`) streams Server-Sent Events from
+`EventHub` (`weatherbot.services.events`) with `Cache-Control: no-store` and
+`X-Accel-Buffering: no`. At most `MAX_SUBSCRIBERS = 16` clients may subscribe at
+once (a seventeenth receives `503`), and each subscriber has a bounded queue of
+`MAX_QUEUE_SIZE = 100` events; if a slow subscriber fills its queue, the hub
+closes that subscriber (`None` sentinel) so the browser reconnects without
+stalling other subscribers or the monitor. `WebServer` runs `hub.close` in
+`before_stop` so open streams exit cleanly before Uvicorn waits on connections.
+
+Every event is a `StreamEvent` carrying an `EventKind` (`hello`, `cycle`,
+`snapshot`, `assessment`, `alert`, `notification`, `location`, or `health`) and
+an `invalidate` list drawn from the nine `QueryKey` values (`health`,
+`locations`, `assessments`, `storms`, `alerts`, `timeline`, `notifications`,
+`settings`, `map`); no event field carries coordinates, geometry, distance, or
+bearing:
+
+- `hello` is yielded immediately on every new or reconnected stream with
+  `started_at`, the latest completed `cycle_id`, and all nine `QueryKey` values
+  in `invalidate`, so a reconnecting page refetches every query after a drop or
+  a `serve` restart.
+- `hub.cycle_listener` publishes `cycle` (`invalidate`: `health`), `snapshot`
+  when a snapshot is present (`storms`, `map`, `alerts`), one `assessment` per
+  newly created stored assessment (`assessments`, `timeline`), one `alert`
+  whenever that assessment's changes include an `official_*` kind (`alerts`),
+  and one `notification` without `display` for each stored notification that
+  `BrowserChannel` did not already publish (`notifications`, `timeline`).
+- `CycleWatcher` polls SQLite every 10 seconds on the worker threadpool so
+  cycles, notifications, assessments, and location mutations committed by
+  another process (`weatherbot check --once`, `locations add`/`remove`/
+  `evacuation`, `notify test`) reach the hub within one interval without
+  re-publishing events that `serve`'s own listener, `BrowserChannel`, or write
+  routes already emitted.
+- `StalenessTimer` sleeps until the earliest
+  `last_success_at + 2 * expected_every_s` boundary across heartbeat rows with
+  an expected cadence, publishing one `health` event (`invalidate`: `health`) at
+  that instant and rescheduling after each cycle or firing.
+- `BrowserChannel` (`[notifications] browser = true`, overridden by
+  `WEATHERBOT_NOTIFICATIONS_BROWSER`) is added only in `weatherbot serve`
+  (`serve_channels`), never in CLI commands (`Context.channels`). Its
+  `interrupts` property is `True`, so quiet-hours alarms (`include_toast=False`)
+  deliver only to non-interrupting channels (`LogChannel`). When invoked, it
+  records `disabled` (`browser notifications off`) when turned off in settings,
+  `unavailable` (`no open dashboard`) when `hub.subscriber_count == 0`, and
+  `delivered` when at least one subscriber is connected (publishing
+  `notification` with `display=True` and `invalidate`: `notifications`,
+  `timeline`).
+- `weatherbot.web.routes.actions` exposes the four JSON write endpoints:
+  - `POST /api/locations`: resolves NWS coverage and geometry and adds the
+    location (`201`, `409` on `LocationNameTakenError`, `422` when outside NWS
+    coverage, `502` on lookup failure), publishing `location` (`locations`,
+    `assessments`, `map`).
+  - `PUT /api/locations/evacuation`: updates `evacuation_ordered` or
+    `evacuation_zone` (`200`, `404` when unknown), publishing `location`.
+  - `POST /api/cycles`: triggers a `manual` cycle through `serve`'s running
+    `MonitorSchedule` under runner `serve` so a held drop still schedules its
+    confirmation cycle (`202` with `status="accepted"`, `409` while a manual
+    cycle is already in flight, and `429` with `Retry-After` during the
+    60-second cooldown after a manual cycle completes).
+  - `POST /api/notifications/test`: sends a `test` notification through `serve`'s
+    channels (`200`, or `429` with `Retry-After` during the 10-second cooldown).
+
 To start over, delete the data directory. Weatherbot creates a new database
 the next time it opens one. `uv run weatherbot doctor --offline` shows both
 directories, the database file, and its revision against the head.

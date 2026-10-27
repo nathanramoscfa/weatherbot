@@ -388,6 +388,11 @@ class ToastChannel:
         """The channel's identifier."""
         return "toast"
 
+    @property
+    def interrupts(self) -> bool:
+        """A desktop toast interrupts the operator."""
+        return True
+
     async def deliver(self, notification: StoredNotification) -> Delivery:
         """Show the toast and report Windows' answer; never raise.
 
@@ -451,6 +456,11 @@ class NullChannel:
     def name(self) -> str:
         """The channel's identifier."""
         return "toast"
+
+    @property
+    def interrupts(self) -> bool:
+        """A desktop toast interrupts the operator."""
+        return True
 
     async def deliver(self, notification: StoredNotification) -> Delivery:
         """Answer ``unavailable``.

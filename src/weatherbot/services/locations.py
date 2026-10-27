@@ -41,6 +41,10 @@ class LocationError(Exception):
     """A location cannot be added or removed as asked. The message repeats no coordinate."""
 
 
+class LocationNameTakenError(LocationError):
+    """A location with that name already exists."""
+
+
 def _now() -> datetime:
     return datetime.now(UTC)
 
@@ -129,7 +133,7 @@ class LocationService:
         point = check_point(lat, lon)
         if self._repository.get(name) is not None:
             message = f"a location named {name!r} already exists"
-            raise LocationError(message)
+            raise LocationNameTakenError(message)
         cache = RawResponseCache(self._engine)
         answers: list[FetchResult] = []
         async with self._network.fetcher(cache) as fetcher:
@@ -163,7 +167,7 @@ class LocationService:
             self._repository.add(location)
         except LocationExistsError:
             message = f"a location named {name!r} already exists"
-            raise LocationError(message) from None
+            raise LocationNameTakenError(message) from None
         for answer in answers:
             cache.save_fetch(answer, answer.source_id, _key(answer, name))
         LOGGER.info(

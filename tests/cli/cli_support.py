@@ -161,6 +161,11 @@ class FakeToast:
         """The toast channel's name."""
         return "toast"
 
+    @property
+    def interrupts(self) -> bool:
+        """A fake toast stands in for an interrupting channel."""
+        return True
+
     async def deliver(self, notification: StoredNotification) -> Delivery:
         """Keep the notification and answer."""
         self.handed.append(notification)
@@ -350,6 +355,7 @@ def recorded_services(
             200, content=roster, headers={"content-type": "application/json"}
         )
     with respx.mock(assert_all_called=False) as router:
+        router.route(host__in=("127.0.0.1", "localhost", "::1")).pass_through()
         for source in SERVED:
             serve(router, directory(source))
         _stand_in_kmz(router)

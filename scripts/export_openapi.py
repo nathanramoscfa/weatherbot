@@ -2,9 +2,11 @@
 """Write the FastAPI application's OpenAPI 3.1 schema to ``docs/api/openapi.json``.
 
 Builds ``weatherbot.web.app.create_app`` with an in-memory SQLite engine and placeholder
-state so no user directory or filesystem state is touched, and writes the resulting OpenAPI
-document with two-space indentation, UTF-8 encoding, and LF line endings. ``--check``
-writes nothing and exits 1 when ``docs/api/openapi.json`` is missing or stale.
+state so no user directory or filesystem state is touched, adds ``StreamEvent`` and every
+model or type alias it references to ``components.schemas`` (which FastAPI's ``itemSchema``
+leaves out of components), and writes the resulting OpenAPI document with two-space
+indentation, UTF-8 encoding, and LF line endings. ``--check`` writes nothing and exits 1
+when ``docs/api/openapi.json`` is missing or stale.
 
     uv run python scripts/export_openapi.py           # write docs/api/openapi.json
     uv run python scripts/export_openapi.py --check   # verify it is current
@@ -14,16 +16,36 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Final
+from typing import Final, cast
 
 from sqlalchemy import create_engine
 
 from weatherbot.services.config import AppPaths, Settings
 from weatherbot.services.persistence.database import Database
 from weatherbot.web.app import WebState, create_app
+from weatherbot.web.schemas import StreamEvent
 
 REPOSITORY_ROOT: Final = Path(__file__).resolve().parents[1]
 OPENAPI_PATH: Final = REPOSITORY_ROOT / "docs" / "api" / "openapi.json"
+REF_TEMPLATE: Final = "#/components/schemas/{model}"
+
+
+def _include_stream_event_schemas(schema: dict[str, object]) -> None:
+    """Add ``StreamEvent`` and its ``$defs`` to ``components.schemas``."""
+    components = cast(
+        "dict[str, object]",
+        schema.setdefault("components", {}),
+    )
+    schemas = cast(
+        "dict[str, object]",
+        components.setdefault("schemas", {}),
+    )
+    event_schema = StreamEvent.model_json_schema(ref_template=REF_TEMPLATE)
+    defs = cast("dict[str, object]", event_schema.pop("$defs", {}))
+    for name, definition in defs.items():
+        schemas.setdefault(name, definition)
+    schemas["StreamEvent"] = event_schema
+    components["schemas"] = dict(sorted(schemas.items()))
 
 
 def openapi_schema() -> dict[str, object]:
@@ -41,7 +63,9 @@ def openapi_schema() -> dict[str, object]:
             settings=Settings(),
         )
         app = create_app(state)
-        return app.openapi()
+        schema = app.openapi()
+        _include_stream_event_schemas(schema)
+        return schema
     finally:
         engine.dispose()
 

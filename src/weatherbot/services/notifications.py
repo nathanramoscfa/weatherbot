@@ -66,8 +66,8 @@ LOGGER: Final = logging.getLogger("weatherbot.services.notifications")
 NOTIFICATION_KINDS: Final = ("location", "degraded", "recovered", "stale_monitor", "test")
 type NotificationKind = Literal["location", "degraded", "recovered", "stale_monitor", "test"]
 
-CHANNEL_NAMES: Final = ("log", "toast")
-type ChannelName = Literal["log", "toast"]
+CHANNEL_NAMES: Final = ("log", "toast", "browser")
+type ChannelName = Literal["log", "toast", "browser"]
 
 DELIVERY_RESULTS: Final = ("delivered", "failed", "disabled", "unavailable")
 type DeliveryResult = Literal["delivered", "failed", "disabled", "unavailable"]
@@ -141,7 +141,12 @@ class Channel(Protocol):
 
     @property
     def name(self) -> str:
-        """The channel's identifier (``log``, ``toast``, ...)."""
+        """The channel's identifier (``log``, ``toast``, ``browser``, ...)."""
+        ...
+
+    @property
+    def interrupts(self) -> bool:
+        """Whether delivering through this channel interrupts the operator."""
         ...
 
     async def deliver(self, notification: StoredNotification) -> Delivery:
@@ -156,6 +161,11 @@ class LogChannel:
     def name(self) -> str:
         """The channel's identifier."""
         return "log"
+
+    @property
+    def interrupts(self) -> bool:
+        """The in-app log never interrupts the operator."""
+        return False
 
     async def deliver(self, notification: StoredNotification) -> Delivery:
         """Record that the notification is in the local log."""
@@ -376,10 +386,16 @@ class NotificationService:
         *,
         include_toast: bool = True,
     ) -> StoredNotification:
+        """Deliver one stored notification through channels and persist delivery rows.
+
+        When ``include_toast`` is ``False``, only channels that do not interrupt
+        (``not channel.interrupts``) are called, holding back both the desktop toast
+        and browser notifications during quiet hours.
+        """
         active_channels = (
             self._channels
             if include_toast
-            else tuple(c for c in self._channels if c.name != "toast")
+            else tuple(c for c in self._channels if not c.interrupts)
         )
         channel_outcomes: list[tuple[str, datetime, Delivery]] = []
         for channel in active_channels:
@@ -493,8 +509,9 @@ class NotificationService:
             title: Its title.
             body: Its lines, which name and never locate.
             cycle_id: Optional monitor cycle id that triggered it.
-            include_toast: When ``False``, delivers to ``LogChannel`` only (holding the
-                toast back during quiet hours or when a recovery had no degraded toast).
+            include_toast: When ``False``, delivers only to channels that do not interrupt
+                (``LogChannel``), holding interrupting channels (toast and browser) back
+                during quiet hours or when a recovery had no degraded toast.
 
         Returns:
             The stored notification with one delivery per active channel.
