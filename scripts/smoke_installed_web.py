@@ -33,8 +33,13 @@ NONCE_DIRECTIVE_RE: Final = re.compile(r"'nonce-[A-Za-z0-9_-]{16,}'")
 
 def _resolve_weatherbot_executable() -> str:
     """Resolve the ``weatherbot`` executable installed alongside ``sys.executable`` or on PATH."""
-    interpreter_dir = str(Path(sys.executable).resolve().parent)
-    candidate = shutil.which("weatherbot", path=interpreter_dir) or shutil.which("weatherbot")
+    venv_bin_dir = str(Path(sys.executable).parent)
+    resolved_bin_dir = str(Path(sys.executable).resolve().parent)
+    candidate = (
+        shutil.which("weatherbot", path=venv_bin_dir)
+        or shutil.which("weatherbot", path=resolved_bin_dir)
+        or shutil.which("weatherbot")
+    )
     if candidate is None:
         message = "smoke_installed_web: `weatherbot` executable not found"
         raise RuntimeError(message)
