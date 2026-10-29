@@ -32,8 +32,8 @@ out would add cost for no benefit.
 the step (step 1 below), then paste the ladder and **Runs:** line
 `roadmodel ladder --category <c> --complexity <x> [--novel]` prints: the
 Cost / Balanced / Quality picks /recommend shows, each ranked three deep (the
-Pick, the Runner-up, and a Backup from another maker), each option on one
-list line with its effort and AA Index. It is local code — no API
+Pick, the Runner-up, and a Backup from another maker), each option with its
+level, AA Index and price. It is local code — no API
 call, no engine — and it
 reads every usage pool at headroom, so the ladder outlives a pool's state: when
 a pool reads `tight` or `exhausted`, `/roadmap-step` runs another column
