@@ -12,6 +12,7 @@ import alertsFixture from "../test/fixtures/alerts.json";
 import assessmentsFixture from "../test/fixtures/assessments.json";
 import disclaimerFixture from "../test/fixtures/disclaimer.json";
 import locationsFixture from "../test/fixtures/locations.json";
+import mapFixture from "../test/fixtures/map.json";
 import notificationsFixture from "../test/fixtures/notifications.json";
 import settingsFixture from "../test/fixtures/settings.json";
 import stormsFixture from "../test/fixtures/storms.json";
@@ -20,6 +21,12 @@ import type { HealthResponse } from "./AppShell.tsx";
 import { createAppMemoryRouter } from "./routes.tsx";
 
 function seedFixtureCache(queryClient: QueryClient): void {
+  queryClient.setQueryData(
+    queryKeys.map(),
+    asSchema<components["schemas"]["MapResponse"]>(
+      mapFixture satisfies JsonFixture<components["schemas"]["MapResponse"]>,
+    ),
+  );
   queryClient.setQueryData(
     queryKeys.assessments(),
     asSchema<components["schemas"]["AssessmentsResponse"]>(

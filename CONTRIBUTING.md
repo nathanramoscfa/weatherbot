@@ -833,7 +833,8 @@ fails Pydantic `model_validate_json` against its response model.
 
 The five data pages live in `frontend/src/pages/` (`Dashboard.tsx`,
 `Storms.tsx`, `Alerts.tsx`, `Timeline.tsx`, and `Settings.tsx`, sharing pure
-formatters in `frontend/src/pages/format.ts`; `/map` is wired in Step 6):
+formatters in `frontend/src/pages/format.ts`), and the map page lives in
+`frontend/src/map/` (`MapView.tsx`, `useLeafletMap.ts`, and `layers.ts`):
 
 - `/` (`Dashboard`): one level card per watched location (`GET /api/assessments`
   and `GET /api/locations`), showing its threat level badge (`At least Level N`
@@ -868,6 +869,44 @@ formatters in `frontend/src/pages/format.ts`; `/map` is wired in Step 6):
   `file_modified_since_start` is true, the 11-rule alert ladder in fixed
   evaluation order, the full `DISCLAIMER.md` text (`#disclaimer`), and bundled
   frontend dependency licences from `/licenses.json`.
+
+### The map
+
+`/map` (`frontend/src/map/MapView.tsx`, `useLeafletMap.ts`, and `layers.ts`)
+renders the official NHC and NWS geometries from `GET /api/map` directly on
+Leaflet (`leaflet` `1.9.4`, pinned to major 1 in `frontend/package.json` and
+ `.github/dependabot.yml`; never `react-leaflet`):
+
+- **OpenStreetMap basemap**: `https://tile.openstreetmap.org/{z}/{x}/{y}.png`
+  with `maxZoom: 19`, `referrerPolicy: "strict-origin-when-cross-origin"`,
+  `crossOrigin` unset, no `keepBuffer` above Leaflet's default, and visible
+  attribution `"© OpenStreetMap contributors"` linking to
+  `https://www.openstreetmap.org/copyright`.
+- **Six toggleable layers and legend** (all on by default): storm cones (`cone`),
+  forecast tracks (`track`), forecast points (`points`, vector circle markers
+  coloured by classification with UTC + local time-zone tooltips and intensity),
+  coastal watch and warning segments (`watches_warnings`, NHC colours: `HWR`
+  red, `HWA` pink, `TWR` blue, `TWA` yellow, with breakpoint names), Tropical
+  Weather Outlook areas (`outlook`, coloured by formation chance: low yellow,
+  medium orange, high red), and watched locations (`locations`, circle markers
+  and stored NWS zone polygons).
+- **Exact coordinates and CRS provenance**: `layers.ts` converts GeoJSON
+  `[lon, lat]` coordinates directly to Leaflet `[lat, lon]` tuples without
+  transforming, wrapping, or rounding them (keeping antimeridian-crossing
+  Central Pacific geometries continuous), shows each feature's `crs` (`EPSG:4326`
+  or `native (D_Sphere)`) in its popup, and builds all popup and tooltip DOM
+  nodes with `document.createElement` and `textContent` (never `innerHTML` or
+  `L.divIcon`).
+- **Fit and historical replay**: fits the view to the storms and locations on
+  initial load and when `Fit` is clicked (falling back to whole-number Atlantic
+  basin coordinates `[25, -65]` at zoom `4` when empty), never re-fitting on
+  background `snapshot` SSE updates after the user has moved the map. When
+  `/api/health` reports `corpus: true` (`weatherbot serve --corpus
+  tests/fixtures/replay`), `/map` renders a replay panel with storm and advisory
+  `<select>` controls (`GET /api/replay` and
+  `GET /api/replay/{atcf_id}/{advisory}`), shows the `"Replay: <storm> advisory
+  <n>, issued <instant> — not live"` banner, fits to the replayed advisory, and
+  provides a `Back to live` button.
 
 `frontend/src/notifications/notify.ts` is the only frontend module that calls
 the Web Notifications API (`new Notification(...)` and

@@ -60,7 +60,7 @@ weatherbot check --once --if-stale   # hourly fallback: skip if serve is running
 weatherbot check                     # run the scheduled monitor in the terminal until Ctrl+C
 weatherbot serve                     # run the scheduled monitor and local web server (http://127.0.0.1:8765)
 weatherbot serve --open              # also open the dashboard in your browser once ready
-weatherbot serve --corpus tests/fixtures/replay   # also serve historical replay advisories on /api/replay
+weatherbot serve --corpus tests/fixtures/replay   # also show the replay corpus on the /map page (/api/replay)
 weatherbot install-task              # register \Weatherbot\serve (logon) and \Weatherbot\check (hourly) on Windows
 weatherbot uninstall-task            # stop \Weatherbot\serve and remove both scheduled tasks
 weatherbot notify log                # the newest stored notifications first, with their deliveries
