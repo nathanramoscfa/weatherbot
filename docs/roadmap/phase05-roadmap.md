@@ -5006,9 +5006,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 7 — The browser smoke, idle cost, and the operator's dashboard
+## Step 7 — The browser smoke, idle cost, and the operator's dashboard ✅
 
-**Status:** Not started
+**Status:** Complete — PR #70 (2026-10-29)
 
 > **Goal:** Prove the whole chain in a real browser, measure what it costs to
 > leave open, and put it on the operator's machine. `scripts/serve_demo.py` runs
@@ -5069,6 +5069,8 @@ column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
 and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
 Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Ran 2026-10-29: Balanced Pick — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Selected by the **Runs:** rule (Google AI Pro pool reads headroom).
 
 > Settings updated 2026-10-29 (rerank): was Gemini 4 Argon · High. Every Pick is unchanged; roadmodel 0.2.100 changes two Backups: Balanced's GPT-6.1 Sol now runs at High (was XHigh), and Quality's is GPT-6.1 Sol · XHigh (was GPT-6 Astra · XHigh), at a quarter of its price.
 
@@ -6517,7 +6519,7 @@ workflow above maps directly to the corresponding row below.
 | 4    | Frontend chassis + wheel       | Gemini 4 Argon | Complete — PR #64  |
 | 5    | Dashboard + pages              | Gemini 4 Argon | Complete — PR #65  |
 | 6    | Map                            | Gemini 4 Argon | Complete — PR #66  |
-| 7    | Browser smoke + idle + deploy  | Gemini 4 Argon | Not started        |
+| 7    | Browser smoke + idle + deploy  | Gemini 4 Argon | Complete — PR #70  |
 | 8    | QA + verify_phase05.py         | GPT-6.1 Sol    | Not started        |
 | V1   | Web server inside serve        | CI             | --                 |
 | V2   | Read API + map geometry        | CI             | --                 |
