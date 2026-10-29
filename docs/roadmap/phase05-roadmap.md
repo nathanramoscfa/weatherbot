@@ -1,6 +1,6 @@
-# Phase 5 Roadmap — Web app MVP
+# Phase 5 Roadmap — Web app MVP ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-10-29
 
 ## Overview
 
@@ -5561,9 +5561,9 @@ conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 8 — QA & Verification Script
+## Step 8 — QA & Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #72 (2026-10-29)
 
 > **Goal:** Package the verification matrix into `scripts/verify_phase05.py`
 > (with `--fast`, `--py`, `--node`, `--ui`, `--live`, `--security`, `--all`, and
@@ -5617,6 +5617,8 @@ column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
 and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
 Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Ran 2026-10-29: Quality Pick — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Session hosted on Antigravity; Quality column Pick selected (`Google AI Ultra` pool `abundant`).
 
 > Settings updated 2026-10-29 (rerank): was Gemini 4 Argon · High. roadmodel 0.2.100 re-ranks coding at medium complexity: Balanced is now GPT-6.1 Sol · High on Codex (Runner-up Sonnet 5.5 · High, Backup Gemini 3.8 Flash · High; were Opus 5.5 · Medium and GPT-6.1 Sol · High), and Quality is now Gemini 4 Argon · High (Runner-up Opus 5.5 · High, Backup GPT-6.1 Sol · High; was Opus 5.5 · High, Gemini 4 Argon · High, GPT-6 Astra · High). Cost is unchanged.
 
@@ -6520,7 +6522,7 @@ workflow above maps directly to the corresponding row below.
 | 5    | Dashboard + pages              | Gemini 4 Argon | Complete — PR #65  |
 | 6    | Map                            | Gemini 4 Argon | Complete — PR #66  |
 | 7    | Browser smoke + idle + deploy  | Gemini 4 Argon | Complete — PR #70  |
-| 8    | QA + verify_phase05.py         | GPT-6.1 Sol    | Not started        |
+| 8    | QA + verify_phase05.py         | GPT-6.1 Sol    | Complete — PR #72  |
 | V1   | Web server inside serve        | CI             | --                 |
 | V2   | Read API + map geometry        | CI             | --                 |
 | V3   | Events + browser + actions     | CI             | --                 |
