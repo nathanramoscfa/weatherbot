@@ -5,32 +5,13 @@ import {
   Link,
   type RouteObject,
 } from "react-router";
+import { MapView } from "../map/MapView.tsx";
 import { Alerts } from "../pages/Alerts.tsx";
 import { Dashboard } from "../pages/Dashboard.tsx";
 import { Settings } from "../pages/Settings.tsx";
 import { Storms } from "../pages/Storms.tsx";
 import { Timeline } from "../pages/Timeline.tsx";
 import { AppShell, type AppShellProps } from "./AppShell.tsx";
-
-interface PlaceholderPageProps {
-  readonly title: string;
-  readonly summary: string;
-}
-
-function PlaceholderPage({ title, summary }: PlaceholderPageProps) {
-  return (
-    <section className="space-y-4">
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          {title}
-        </h1>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          {summary}
-        </p>
-      </div>
-    </section>
-  );
-}
 
 function NotFoundPage() {
   return (
@@ -65,12 +46,7 @@ export function createAppRoutes(shellProps?: AppShellProps): RouteObject[] {
         },
         {
           path: "map",
-          element: (
-            <PlaceholderPage
-              title="Map"
-              summary="Official NHC forecast cones, tracks, watch/warning segments, outlook areas, and watched locations."
-            />
-          ),
+          element: <MapView />,
         },
         {
           path: "storms",

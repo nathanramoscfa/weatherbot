@@ -27,6 +27,8 @@ updates:
     ignore:
       - dependency-name: typescript
         versions: [">= 6.0.0"]
+      - dependency-name: leaflet
+        versions: [">= 2.0.0"]
 
   - package-ecosystem: github-actions
     directory: /

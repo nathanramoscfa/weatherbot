@@ -26,8 +26,10 @@ the cone layer's attribute query (`ATTRIBUTE_PARAMETERS`), and the monitor's
 polling cadence under [NHC current storms](#nhc-current-storms),
 [`tropical/NHC_tropical_weather_summary`](#tropicalnhc_tropical_weather_summary),
 and [User-Agent and polite use](#user-agent-and-polite-use) (including the NWS
-API documentation's 30-second recommendation). Every other statement
-keeps 2026-10-12, or the date its own amendment names.
+API documentation's 30-second recommendation). Amended again 2026-10-27, for
+Phase 5 Step 6: the `basemap-osm-tiles` row and its bullet under
+[OpenStreetMap: basemap and geocoding](#openstreetmap-basemap-and-geocoding).
+Every other statement keeps 2026-10-12, or the date its own amendment names.
 
 ## Purpose
 
@@ -142,7 +144,7 @@ response headers on an allowlist (never `set-cookie`).
 | `nws-alerts-point` | NWS API | `https://api.weather.gov/alerts/active?point={lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
 | `nws-alerts-zone` | NWS API | `https://api.weather.gov/alerts/active/zone/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
 | `nws-zones` | NWS API | `https://api.weather.gov/zones/{type}/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Static (zones effective 2026-04-16); `max-age` of weeks, `Last-Modified` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
-| `basemap-osm-tiles` | OpenStreetMap tiles | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | PNG tiles | `none — display-only: the browser loads tiles directly and the code never parses one; the OSMF tile policy forbids bulk download` | Cached per the tile's own headers (`max-age` of days) | [OSMF Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/); visible attribution required | 2026-10-12 |
+| `basemap-osm-tiles` | OpenStreetMap tiles | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | PNG tiles | `none — display-only: the browser loads tiles directly and the code never parses one; the OSMF tile policy forbids bulk download` | Cached per the tile's own headers (`max-age` of days) | [OSMF Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/); visible attribution required | 2026-10-27 |
 | `overlay-radar` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/weather_radar/ows` | WMS 1.3.0 capabilities XML; PNG tiles | `required` | Mosaic about every 4 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE` | 2026-10-12 |
 | `overlay-satellite` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/satellite/ows` | WMS 1.3.0 capabilities XML; PNG tiles | `required` | GOES composites every 5 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE` | 2026-10-12 |
 | `geocode-nominatim` | Nominatim reverse geocoding | `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lon}` | JSON | `required` | Once per location at setup, cached for good; at most 1 request per second | [OSMF Nominatim Usage Policy](https://operations.osmfoundation.org/policies/nominatim/); © OpenStreetMap contributors, ODbL 1.0 | 2026-10-12 |
@@ -1074,7 +1076,7 @@ its materials in the public domain and appreciates attribution.
 
 ## OpenStreetMap: basemap and geocoding
 
-- **Tiles** (`basemap-osm-tiles`):
+- **Tiles** (`basemap-osm-tiles`, amended 2026-10-27):
   `https://tile.openstreetmap.org/{z}/{x}/{y}.png`. One tile (`0/0/0`)
   returned 200 with `max-age=528077, stale-while-revalidate=604800` and an
   `ETag`. The
@@ -1083,7 +1085,18 @@ its materials in the public domain and appreciates attribution.
   "clearly identifies your application", a Referer from web pages, and
   caching per the HTTP headers. It forbids bulk download, prefetching,
   and no-cache headers. The browser loads tiles directly, so nothing is
-  recorded.
+  recorded. On `/map` (`frontend/src/map/layers.ts` and
+  `frontend/src/map/useLeafletMap.ts`), the Leaflet tile layer sets
+  `referrerPolicy: "strict-origin-when-cross-origin"` (`maxZoom: 19`,
+  `crossOrigin` unset) together with the server's matching
+  `Referrer-Policy: strict-origin-when-cross-origin` response header, shows
+  visible attribution `"© OpenStreetMap contributors"` linking to
+  `https://www.openstreetmap.org/copyright` (never behind a toggle or covered
+  at phone width), never prefetches tiles or sets `keepBuffer` above Leaflet's
+  default, and relies on browser caching. Loopback `Referer` acceptance on
+  `tile.openstreetmap.org` is unproven outside the operator's browser; Phase 7's
+  server-side caching tile proxy is the fallback if tiles ever return `403` or
+  `418`.
 - **Reverse geocoding** (`geocode-nominatim`):
   `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lon}`.
   - Miami-Dade landmark: `Miami-Dade County Office, 111, Northwest 1st

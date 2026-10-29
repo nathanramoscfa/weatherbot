@@ -8,6 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 5 — Web app (MVP)
+- Add the `/map` page (`frontend/src/map/{MapView.tsx,useLeafletMap.ts,layers.ts}`,
+  `layers.test.ts`, and `MapView.test.tsx`) on Leaflet `1.9.4` directly (pinned
+  in `frontend/package.json` with `>= 2.0.0` ignored in
+  `.github/dependabot.yml`):
+  - Render the OpenStreetMap tile layer
+    (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`, `maxZoom: 19`,
+    `referrerPolicy: "strict-origin-when-cross-origin"`, `crossOrigin` unset,
+    and visible `"© OpenStreetMap contributors"` attribution linking to
+    `https://www.openstreetmap.org/copyright`) and amend `docs/DATA_SOURCES.md`
+    (`basemap-osm-tiles`).
+  - Render toggleable layers and a legend for storm cones, forecast tracks,
+    forecast points (vector circle markers coloured by classification with UTC +
+    local time-zone tooltips and intensity), NHC watch-warning segments (`HWR`
+    red, `HWA` pink, `TWR` blue, `TWA` yellow, with breakpoint names), Tropical
+    Weather Outlook areas (low yellow, medium orange, high red), and watched
+    locations (points and stored NWS zone polygons), preserving exact API
+    coordinates (including continuous Central Pacific antimeridian crossings),
+    showing each layer's `crs` (`EPSG:4326` or `native (D_Sphere)`) in its
+    popup, and building all popups and tooltips with `textContent` only.
+  - Fit the map to storms and locations on initial load and when `Fit` is
+    clicked (or whole-number Atlantic basin `[25, -65]` zoom `4` when empty)
+    without resetting the view on background `snapshot` SSE updates after user
+    movement, and provide the historical replay corpus picker (`GET /api/replay`
+    and `GET /api/replay/{atcf_id}/{advisory}`) with the `"Replay: <storm>
+    advisory <n>, issued <instant> — not live"` banner and `Back to live` button
+    when `/api/health` reports `corpus: true`.
 - Add the five dashboard and data pages (`frontend/src/pages/{Dashboard,Storms,Alerts,Timeline,Settings}.tsx`
   and `frontend/src/pages/format.ts`), browser notification delivery
   (`frontend/src/notifications/notify.ts` and in-page Radix `Toast` in

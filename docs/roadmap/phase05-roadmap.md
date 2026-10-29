@@ -4477,9 +4477,9 @@ hygiene.
 
 ---
 
-## Step 6 — The map
+## Step 6 — The map ✅
 
-**Status:** Not started
+**Status:** Complete — PR #66 (2026-10-28)
 
 > **Goal:** Draw what NHC published around the operator's locations. The map
 > page (`/map`) wraps Leaflet 1.9.4 directly — `frontend/src/map/` holds
@@ -4536,6 +4536,7 @@ Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
+> Ran 2026-10-28: Balanced Pick — Gemini 4 Argon · Effort High · Thinking On on Antigravity. Selected by the **Runs:** rule (Google AI Pro pool reads headroom).
 
 **Model rationale:** Step 6 is coding with a knowledge secondary category:
 Leaflet layers for NHC's products, drawn faithfully to their CRS and continuous
@@ -6509,7 +6510,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Events + browser + actions     | Gemini 4 Argon | Complete — PR #63  |
 | 4    | Frontend chassis + wheel       | Gemini 4 Argon | Complete — PR #64  |
 | 5    | Dashboard + pages              | Gemini 4 Argon | Complete — PR #65  |
-| 6    | Map                            | Gemini 4 Argon | Not started        |
+| 6    | Map                            | Gemini 4 Argon | Complete — PR #66  |
 | 7    | Browser smoke + idle + deploy  | Gemini 4 Argon | Not started        |
 | 8    | QA + verify_phase05.py         | Gemini 4 Argon | Not started        |
 | V1   | Web server inside serve        | CI             | --                 |
