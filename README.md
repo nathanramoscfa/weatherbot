@@ -11,13 +11,13 @@ specifies both in [the project brief](docs/brief/weatherbot-v2-brief.md).
 
 Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
 discovery), Phase 2 (sources and persistence), Phase 3 (the threat engine),
-and Phase 4 (monitoring and notifications) are complete; Phase 5 (the web app
-MVP) is in progress. No version 2 package is released. The commands below read
-the official products, and `status` decides each location's level from them
-alone, with the evidence behind it, and notifies you of a change through the
-in-app log and a Windows toast; `serve` and `check` run the monitor on NHC's
-UTC schedule, and `serve` also hosts the local loopback web server. The plan
-lives in [the roadmap](docs/roadmap/ROADMAP.md).
+Phase 4 (monitoring and notifications), and Phase 5 (the web app MVP) are
+complete; Phase 6 (the Claude layer) is next. No version 2 package is released.
+The commands below read the official products, and `status` decides each
+location's level from them alone, with the evidence behind it, and notifies you
+of a change through the in-app log, a Windows toast, and the browser; `serve`
+and `check` run the monitor on NHC's UTC schedule, and `serve` also hosts the
+local loopback web app. The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
 
 ## Commands
 

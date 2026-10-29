@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 4 Complete — 2026-10-24; PR #52, #53; v2.0.0-phase-4. Phase 5 (Web app MVP) is in progress.
+> **Status:** Phase 5 Complete — 2026-10-29; PR #72; v2.0.0-phase-5. Phase 6 (Claude layer) is next.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -736,9 +736,9 @@ that deliberately adds a change kind converts check 32 in the same PR to read
 
 ---
 
-### Phase 5 — Web app MVP
+### Phase 5 — Web app MVP ✅
 
-**Status:** In progress — phase05-roadmap.md
+**Status:** Complete — 2026-10-29; PR #72; v2.0.0-phase-5; phase05-roadmap.md
 
 **Goal:** A local web app that looks and feels like a modern website:
 a FastAPI API with a server-sent events stream and a React single-page
@@ -915,6 +915,27 @@ on Antigravity, then GPT-6.1 Sol on Codex, each at `Max`, if its pool is
 short. The conversation is new: the roadmap is written once, from this
 roadmap and `main` as Phase 5 leaves it.
 
+Phase 6 keeps Phase 5's verification green as it grows (Phase 5 Step 8,
+`docs/phase05-qa-findings.md`). `verify_phase05.py` was written so that new
+route modules, OpenAPI paths, `CHANNEL_NAMES`, `QueryKey` values, frontend
+scripts and dependencies, pages, and `phase-verify.yml` matrix entries need no
+historical conversion. Seven checks are exact and stay live until a step
+deliberately changes what they read: check 2 reads the `"Layers import downward
+only"` contract in `pyproject.toml`; check 4 reads `TrustedHostMiddleware`
+(`127.0.0.1`, `localhost`, `[::1]`) in `web/guards.py` and forbids
+`CORSMiddleware` and `BaseHTTPMiddleware` across `src/weatherbot/`; check 14
+reads `MAX_SNAPSHOT_CACHE_SIZE = 8` in `web/map_layers.py`; check 17 requires that
+no `web/` module defines an `async def` route that reads a repository or
+`state.database` directly; check 19 reads the eight `EventKind` literals in
+`services/events.py` (if Phase 6 adds a new `EventKind` literal, convert check
+19 in the same PR to read `v2.0.0-phase-5:src/weatherbot/services/events.py`);
+check 25 forbids coordinate and distance field names on `StreamEvent` and any
+schema model it references in `web/schemas.py`; and check 47 reads
+`README.md`'s `## Status` naming Phase 5 complete and Phase 6 next (when Phase 6
+updates `README.md`'s `## Status`, convert check 47's `## Status` check in the
+same PR to read `v2.0.0-phase-5:README.md`). Keep the `"01"`, `"02"`, `"03"`,
+`"04"`, and `"05"` matrix entries.
+
 #### 6.1 Client and guardrails
 - The official `anthropic` SDK with `claude-sonnet-5-5` as the default
   model (configurable; Haiku 5.5 selectable for micro-summaries),
@@ -1023,7 +1044,9 @@ written once, from this roadmap and `main` as Phase 6 leaves it.
   arrival-time display, a level-history sparkline; map layers for
   probabilistic winds, wind radii, past track, peak surge, and radar
   and satellite overlays from the NOAA or Iowa Environmental Mesonet
-  services confirmed in Phase 1; a time slider over advisories.
+  services confirmed in Phase 1; a time slider over advisories; and the
+  local tile-proxy fallback (with disk caching and a custom `User-Agent`)
+  if OpenStreetMap ever starts refusing loopback `Referer` headers.
 
 #### 7.2 Replay in the UI
 - Pick a storm from the corpus, scrub through advisories, and watch the
@@ -1031,10 +1054,12 @@ written once, from this roadmap and `main` as Phase 6 leaves it.
   components as live mode.
 
 #### 7.3 Locations and channels
-- Multi-location management in Settings, per-location notification
-  preferences, and the Nassau profile exercising the breakpoint path;
-  an ntfy channel (topic token in configuration), quiet hours, and
-  retention settings for history.
+- Multi-location management in Settings (including `City, State / Country`
+  forward place search via Nominatim `/search` with candidate disambiguation
+  and `weatherbot locations add --place`, issue #71), per-location
+  notification preferences, and the Nassau profile exercising the
+  breakpoint path; an ntfy channel (topic token in configuration), quiet
+  hours, and retention settings for history.
 
 #### 7.4 Export
 - An on-demand static report (HTML, optionally PDF) of the current
@@ -1756,7 +1781,7 @@ The following are deliberately deferred to a future version:
 | 2     | Sources and persistence                       | Medium     | Complete |
 | 3     | Threat engine                                 | High       | Complete |
 | 4     | Monitoring and notifications                  | Medium     | Complete |
-| 5     | Web app MVP                                   | High       | In progress |
+| 5     | Web app MVP                                   | High       | Complete |
 | 6     | Claude layer                                  | High       | Not started |
 | 7     | Depth                                         | Medium     | Not started |
 | 8     | Release 2.0                                   | Medium     | Not started |

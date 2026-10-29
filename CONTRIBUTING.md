@@ -130,10 +130,38 @@ Phase 4's is `uv run python scripts/verify_phase04.py`, with Phase 2's flags:
   Task Scheduler readbacks for `\Weatherbot\serve` and `\Weatherbot\check`.
   Findings are in [the Phase 4 QA ledger](docs/phase04-qa-findings.md).
 
+Phase 5's is `uv run python scripts/verify_phase05.py`, adding `--node` and
+`--ui`:
+
+- `--fast`: 53 numbered, independent checks, offline and standard-library only.
+- `--py`: static checks, lint, formatting, types (Windows and `--pythonplatform
+  Linux`), import contracts, the offline tests with the engine and notification
+  policy branch-coverage floor (the coverage data file goes to a temporary
+  directory), `export_openapi.py --check`, `export_api_fixtures.py --check`,
+  and the installed-wheel smoke with the built web UI
+  (`scripts/smoke_installed_web.py`).
+- `--node`: static checks and, in `frontend/`, `npm ci`, `npm audit signatures`,
+  `api:check`, `lint`, `typecheck`, Vitest with a JUnit reporter, `build`, and
+  `licenses:check`.
+- `--ui`: static checks and the Playwright Chromium smoke (`dashboard.spec.ts`,
+  `map.spec.ts`, and `screens.spec.ts`) with a JUnit reporter.
+- `--live`: static checks and `pytest -m live` (landmarks only).
+- `--security`: static checks and the security gate over both stacks (gitleaks,
+  bandit, `scripts/audit_deps.py`, `scripts/check_personal_data.py`,
+  `npm audit --audit-level=high`, and ESLint at `--max-warnings 0`).
+- `--all`: the Python, Node, UI, live, and security suites together.
+- `--post`: the canonical 85-check pre-tag sweep: the 32-row V1-V8 matrix from
+  one offline pytest run, one frontend/Vitest run, one Playwright run, and one
+  live run, GitHub readbacks, Phase 4's own `--post` (80 checks), the 600-second
+  idle CPU measurement (`scripts/measure_idle.py`), and `doctor --offline --json`
+  plus `GET /api/health` against your running service. Findings are in
+  [the Phase 5 QA ledger](docs/phase05-qa-findings.md).
+
 Both `gate` and `phase-verify` are required on protected `main`. The latter
 aggregates the `phase-verify (01)`, `phase-verify (02)`, `phase-verify (03)`,
-and `phase-verify (04)` matrix jobs; later phases append their entries and
-retain the aggregate name. Both workflows run on every pull request.
+`phase-verify (04)`, and `phase-verify (05)` matrix jobs; later phases append
+their entries and retain the aggregate name. Both workflows run on every pull
+request.
 
 The test suite blocks all network access except loopback, and every test
 runs in a temporary working directory, so a test can never read or write the
