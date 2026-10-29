@@ -4689,22 +4689,22 @@ any workflow above maps directly to the corresponding row below.
 
 ## Summary Table
 
-| Step | Scope                    | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
-| ---- | ------------------------ | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Freeze v1, `main`        | GPT-6.1 Sol              | Codex        | Intelligence Med    | --       | New  | Complete — PR #3 |
-| 2    | uv scaffold              | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #4 |
-| 3    | Security gate            | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #7 |
-| 4    | Data-source register     | Opus 5.5                 | Claude Code  | Effort XHigh        | On       | New  | Complete — PR #13 |
-| 5    | Fixture recorder         | Sonnet 5.5               | Claude Code  | Effort High         | On       | New  | Complete — PR #14 |
-| 6    | Replay corpus            | GPT-6.1 Sol              | Codex        | Intelligence Med    | --       | New  | Complete — PR #15 |
-| 7    | QA + verify_phase01.py   | GPT-6.1 Sol                | Codex        | Intelligence Med    | --       | New  | Complete — PR #17 |
-| V1   | Freeze v1, `main`        | CI: phase-verify.yml     | --           | --                  | --       | --   | --          |
-| V2   | uv scaffold              | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V3   | Security gate            | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V4   | Data-source register     | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V5   | Fixture recorder         | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V6   | Replay corpus            | CI: replay-corpus.yml    | --           | --                  | --       | --   | --          |
-| V7   | CI integration           | CI: phase-verify.yml     | --           | --                  | --       | --   | --          |
+| Step | Scope                  | Model       | Status            |
+| ---- | ---------------------- | ----------- | ----------------- |
+| 1    | Freeze v1, `main`      | GPT-6.1 Sol | Complete — PR #3  |
+| 2    | uv scaffold            | Sonnet 5.5  | Complete — PR #4  |
+| 3    | Security gate          | Opus 5.5    | Complete — PR #7  |
+| 4    | Data-source register   | Opus 5.5    | Complete — PR #13 |
+| 5    | Fixture recorder       | Sonnet 5.5  | Complete — PR #14 |
+| 6    | Replay corpus          | GPT-6.1 Sol | Complete — PR #15 |
+| 7    | QA + verify_phase01.py | GPT-6.1 Sol | Complete — PR #17 |
+| V1   | Freeze v1, `main`      | CI          | --                |
+| V2   | uv scaffold            | CI          | --                |
+| V3   | Security gate          | CI          | --                |
+| V4   | Data-source register   | CI          | --                |
+| V5   | Fixture recorder       | CI          | --                |
+| V6   | Replay corpus          | CI          | --                |
+| V7   | CI integration         | CI          | --                |
 
 ---
 

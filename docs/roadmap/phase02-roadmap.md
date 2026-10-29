@@ -5283,22 +5283,22 @@ workflow above maps directly to the corresponding row below.
 
 ## Summary Table
 
-| Step | Scope                    | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
-| ---- | ------------------------ | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Domain models            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #20 |
-| 2    | HTTP + NHC map clients   | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #21 |
-| 3    | NHC products             | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #22 |
-| 4    | NWS + geocoding clients  | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Complete — PR #23 |
-| 5    | Persistence + config     | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #24 |
-| 6    | Services + CLI commands  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #25 |
-| 7    | QA + verify_phase02.py   | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Complete — PR #26 |
-| V1   | Domain models            | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V2   | HTTP + NHC map clients   | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V3   | NHC products             | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V4   | NWS + geocoding clients  | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V5   | Persistence + config     | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V6   | Services + CLI commands  | CI: live-smoke.yml       | --           | --                  | --       | --   | --          |
-| V7   | CI integration           | CI: phase-verify.yml     | --           | --                  | --       | --   | --          |
+| Step | Scope                   | Model    | Status            |
+| ---- | ----------------------- | -------- | ----------------- |
+| 1    | Domain models           | Opus 5.5 | Complete — PR #20 |
+| 2    | HTTP + NHC map clients  | Opus 5.5 | Complete — PR #21 |
+| 3    | NHC products            | Opus 5.5 | Complete — PR #22 |
+| 4    | NWS + geocoding clients | Opus 5.5 | Complete — PR #23 |
+| 5    | Persistence + config    | Opus 5.5 | Complete — PR #24 |
+| 6    | Services + CLI commands | Opus 5.5 | Complete — PR #25 |
+| 7    | QA + verify_phase02.py  | Opus 5.5 | Complete — PR #26 |
+| V1   | Domain models           | CI       | --                |
+| V2   | HTTP + NHC map clients  | CI       | --                |
+| V3   | NHC products            | CI       | --                |
+| V4   | NWS + geocoding clients | CI       | --                |
+| V5   | Persistence + config    | CI       | --                |
+| V6   | Services + CLI commands | CI       | --                |
+| V7   | CI integration          | CI       | --                |
 
 Each step's row restates the Balanced column its **Runs:** line names; the Cost
 and Quality columns, and the rule for a pool that reads `tight` or `exhausted`,
