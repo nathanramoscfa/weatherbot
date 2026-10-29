@@ -71,7 +71,7 @@ the ladder `roadmodel ladder --category planning --complexity high
 --phase` prints (MCP tool: `roadmap_settings` with `phase`), pasted as
 printed with its **Runs:** line: Cost, Balanced and Quality, each
 ranked three deep (the Pick, the Runner-up, and a Backup from another
-maker), each option on one list line with its AA Index, so a pool that tightens on the day moves
+maker), each option with its level, AA Index and price, so a pool that tightens on the day moves
 the session to another column instead of the table being refreshed. It
 ranks on measured benchmarks, so a stale catalog letter cannot steer
 it, and a model the user-context names for these sessions still wins.

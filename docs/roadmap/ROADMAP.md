@@ -872,21 +872,48 @@ all labeled, metered, and capped, and none of it able to touch a level.
 Anthropic API key; location names in prompts
 
 **Phase roadmap settings** — the session that writes
-`phase06-roadmap.md` (`/roadmap-phase 6`):
+`phase06-roadmap.md` (`/roadmap-phase 6`), ladder
+(`roadmodel ladder --category planning --complexity high --phase`):
 
-| Setting      | Value                                  |
-|--------------|----------------------------------------|
-| Model        | Opus 5.5                               |
-| Backup       | GPT-6 Astra — Codex · Intelligence Max |
-| Platform     | Claude Code                            |
-| Effort       | Max                                    |
-| Thinking     | On                                     |
-| Conversation | **New**                                |
+|               |          | Cost               | Balanced           | Quality            |
+| ------------- | -------- | ------------------ | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **Opus 5.5**       | **Opus 5.5**       |
+|               | Platform | Codex              | Claude Code        | Claude Code        |
+|               | Level    | Medium             | High               | Max                |
+|               | AA       | 47.8               | 53.6               | 57.6               |
+|               | Price    | $1.61/1M           | $6.02/1M           | $67.58/1M          |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Codex              | Antigravity        |
+|               | Level    | High               | High               | Max                |
+|               | AA       | 46.8               | 50.2               | not measured       |
+|               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
+|               | Platform | Antigravity        | Antigravity        | Codex              |
+|               | Level    | Low                | Medium             | Max                |
+|               | AA       | not measured       | not measured       | 51.8               |
+|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
+
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
+
+**Conversation:** New
+
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If
+that column's usage pool reads `tight` or `exhausted`, run the first of its
+Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
+↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
+Cost column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-29 (refresh): was Opus 5.5 · Max. The single-column table becomes the ranked ladder; the Quality Pick it runs is unchanged, and its Backup GPT-6 Astra — Codex · Intelligence Max gives way to Runner-up Gemini 4 Argon — Antigravity · Max and Backup GPT-6.1 Sol — Codex · Max.
 
 This roadmap must design prompts, tools, and guardrails so the model
 can never become a source of fact, and must size the cost cap from
 measured tokens. Opus 5.5 at `Max` on Claude Code (Max subscription),
-GPT-6 Astra on Codex as the funded backup, per `roadmodel score`.
+the Quality Pick and the PRIMARY `roadmodel score` names; Gemini 4 Argon
+on Antigravity, then GPT-6.1 Sol on Codex, each at `Max`, if its pool is
+short. The conversation is new: the roadmap is written once, from this
+roadmap and `main` as Phase 5 leaves it.
 
 #### 6.1 Client and guardrails
 - The official `anthropic` SDK with `claude-sonnet-5-5` as the default
@@ -949,21 +976,47 @@ tier or self-hosted) · **Handles sensitive data:** Yes — the ntfy topic
 token is a secret
 
 **Phase roadmap settings** — the session that writes
-`phase07-roadmap.md` (`/roadmap-phase 7`):
+`phase07-roadmap.md` (`/roadmap-phase 7`), ladder
+(`roadmodel ladder --category planning --complexity high --phase`):
 
-| Setting      | Value                                  |
-|--------------|----------------------------------------|
-| Model        | Opus 5.5                               |
-| Backup       | GPT-6 Astra — Codex · Intelligence Max |
-| Platform     | Claude Code                            |
-| Effort       | Max                                    |
-| Thinking     | On                                     |
-| Conversation | **New**                                |
+|               |          | Cost               | Balanced           | Quality            |
+| ------------- | -------- | ------------------ | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **Opus 5.5**       | **Opus 5.5**       |
+|               | Platform | Codex              | Claude Code        | Claude Code        |
+|               | Level    | Medium             | High               | Max                |
+|               | AA       | 47.8               | 53.6               | 57.6               |
+|               | Price    | $1.61/1M           | $6.02/1M           | $67.58/1M          |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Codex              | Antigravity        |
+|               | Level    | High               | High               | Max                |
+|               | AA       | 46.8               | 50.2               | not measured       |
+|               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
+|               | Platform | Antigravity        | Antigravity        | Codex              |
+|               | Level    | Low                | Medium             | Max                |
+|               | AA       | not measured       | not measured       | 51.8               |
+|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
+
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
+
+**Conversation:** New
+
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If
+that column's usage pool reads `tight` or `exhausted`, run the first of its
+Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
+↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
+Cost column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-29 (refresh): was Opus 5.5 · Max. The single-column table becomes the ranked ladder; the Quality Pick it runs is unchanged, and its Backup GPT-6 Astra — Codex · Intelligence Max gives way to Runner-up Gemini 4 Argon — Antigravity · Max and Backup GPT-6.1 Sol — Codex · Max.
 
 A broad phase with many independent features; its roadmap must cut
 them into steps that each ship alone. Opus 5.5 at `Max` on Claude Code
-(Max subscription), GPT-6 Astra on Codex as the funded backup, per
-`roadmodel score`.
+(Max subscription), the Quality Pick and the PRIMARY `roadmodel score`
+names; Gemini 4 Argon on Antigravity, then GPT-6.1 Sol on Codex, each at
+`Max`, if its pool is short. The conversation is new: the roadmap is
+written once, from this roadmap and `main` as Phase 6 leaves it.
 
 #### 7.1 Charts and layers
 - Wind-probability charts per location over the forecast period,
@@ -1015,21 +1068,48 @@ setup guide, and an optional, gated LAN mode.
 publishing; the LAN mode token
 
 **Phase roadmap settings** — the session that writes
-`phase08-roadmap.md` (`/roadmap-phase 8`):
+`phase08-roadmap.md` (`/roadmap-phase 8`), ladder
+(`roadmodel ladder --category planning --complexity high --phase`):
 
-| Setting      | Value                                  |
-|--------------|----------------------------------------|
-| Model        | Opus 5.5                               |
-| Backup       | GPT-6 Astra — Codex · Intelligence Max |
-| Platform     | Claude Code                            |
-| Effort       | Max                                    |
-| Thinking     | On                                     |
-| Conversation | **New**                                |
+|               |          | Cost               | Balanced           | Quality            |
+| ------------- | -------- | ------------------ | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **Opus 5.5**       | **Opus 5.5**       |
+|               | Platform | Codex              | Claude Code        | Claude Code        |
+|               | Level    | Medium             | High               | Max                |
+|               | AA       | 47.8               | 53.6               | 57.6               |
+|               | Price    | $1.61/1M           | $6.02/1M           | $67.58/1M          |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Codex              | Antigravity        |
+|               | Level    | High               | High               | Max                |
+|               | AA       | 46.8               | 50.2               | not measured       |
+|               | Price    | $3.03/1M           | $2.18/1M           | $10.00/1M*         |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
+|               | Platform | Antigravity        | Antigravity        | Codex              |
+|               | Level    | Low                | Medium             | Max                |
+|               | AA       | not measured       | not measured       | 51.8               |
+|               | Price    | $2.40/1M*          | $3.20/1M*          | $5.18/1M           |
+
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
+
+**Conversation:** New
+
+**Runs:** Quality — a phase-roadmap session runs Quality (quality first). If
+that column's usage pool reads `tight` or `exhausted`, run the first of its
+Runner-up and Backup whose pool has headroom; on a `tight` pool an option marked
+↓ (the Pick one level lower) also runs. With none, a `tight` column runs the
+Cost column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-29 (refresh): was Opus 5.5 · Max. The single-column table becomes the ranked ladder; the Quality Pick it runs is unchanged, and its Backup GPT-6 Astra — Codex · Intelligence Max gives way to Runner-up Gemini 4 Argon — Antigravity · Max and Backup GPT-6.1 Sol — Codex · Max.
 
 The release phase owns the irreversible cutovers (a public 2.0.0 and
 the first non-loopback bind) and their readiness gates. Opus 5.5 at
-`Max` on Claude Code (Max subscription), GPT-6 Astra on Codex as the
-funded backup, per `roadmodel score`.
+`Max` on Claude Code (Max subscription), the Quality Pick and the
+PRIMARY `roadmodel score` names; Gemini 4 Argon on Antigravity, then
+GPT-6.1 Sol on Codex, each at `Max`, if its pool is short. The
+conversation is new: the roadmap is written once, from this roadmap and
+`main` as Phase 7 leaves it.
 
 #### 8.1 Documentation
 - User guide, configuration reference, `docs/DATA_SOURCES.md` and

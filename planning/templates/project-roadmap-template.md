@@ -45,12 +45,13 @@ STYLE RULES (the AI MUST follow)
     in Claude Code, which `/roadmap-phase` sets by itself),
     with thinking on where the model has a Thinking toggle
     (Opus 5.5 and the other models that always think have
-    none: their cell carries no Thinking line). Where `roadmodel` is installed, the table
+    none, and the ladder carries no Thinking row: it is always On where a
+    toggle exists). Where `roadmodel` is installed, the table
     is the ladder `roadmodel ladder --category planning
     --complexity high --phase` prints, pasted as printed with
     its **Runs:** line: Cost, Balanced and Quality, each ranked
     three deep (Pick, Runner-up, and a Backup from another
-    maker), each option with its AA Index, so a pool that reads `tight` or
+    maker), each option with its level, AA Index and price, so a pool that reads `tight` or
     `exhausted` on the day moves the session to another column
     instead of the table being refreshed. It ranks on measured
     benchmarks, so a stale catalog letter cannot steer it, and
@@ -249,23 +250,26 @@ dependency graph in §5 is honoured.
 **Phase roadmap settings** — the session that writes
 `phase01-roadmap.md` (`/roadmap-phase 1`):
 
-**Cost**
+|               |          | Cost                | Balanced            | Quality             |
+| ------------- | -------- | ------------------- | ------------------- | ------------------- |
+| **Pick**      | Model    | **<Model>**         | **<Model>**         | **<Model>**         |
+|               | Platform | <Platform>          | <Platform>          | <Platform>          |
+|               | Level    | <Level>             | <Level>             | <Level>             |
+|               | AA       | <AA Index>          | <AA Index>          | <AA Index>          |
+|               | Price    | <$ per 1M>          | <$ per 1M>          | <$ per 1M>          |
+| **Runner‑up** | Model    | **<Model>**         | **<Model>**         | **<Model>**         |
+|               | Platform | <Platform>          | <Platform>          | <Platform>          |
+|               | Level    | <Level>             | <Level>             | <Level>             |
+|               | AA       | <AA Index>          | <AA Index>          | <AA Index>          |
+|               | Price    | <$ per 1M>          | <$ per 1M>          | <$ per 1M>          |
+| **Backup**    | Model    | **<Model or none>** | **<Model or none>** | **<Model or none>** |
+|               | Platform | <Platform>          | <Platform>          | <Platform>          |
+|               | Level    | <Level>             | <Level>             | <Level>             |
+|               | AA       | <AA Index>          | <AA Index>          | <AA Index>          |
+|               | Price    | <$ per 1M>          | <$ per 1M>          | <$ per 1M>          |
 
-- Pick: **<Model>** · <Platform> · <Dial and level> · AA <AA Index>
-- Runner-up: **<Model>** · <Platform> · <Dial and level> · AA <AA Index>
-- Backup: **<Model>** · <Platform> · <Dial and level> · AA <AA Index>
-
-**Balanced**
-
-- Pick: **<Model>** · <Platform> · <Dial and level> · AA <AA Index>
-- Runner-up: **<Model>** · <Platform> · <Dial and level> · AA <AA Index>
-- Backup: **<Model>** · <Platform> · <Dial and level> · AA <AA Index>
-
-**Quality** — runs by default
-
-- Pick: **<Model>** · <Platform> · <Dial and level> · AA <AA Index>
-- Runner-up: **<Model>** · <Platform> · <Dial and level> · AA <AA Index>
-- Backup: **<Model>** · <Platform> · <Dial and level> · AA <AA Index>
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
 
 **Conversation:** New
 
@@ -323,23 +327,26 @@ key pays for the platform.>
 **Phase roadmap settings** — the session that writes
 `phase02-roadmap.md` (`/roadmap-phase 2`):
 
-**Cost**
+|               |          | Cost  | Balanced | Quality |
+| ------------- | -------- | ----- | -------- | ------- |
+| **Pick**      | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+| **Runner‑up** | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+| **Backup**    | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
 
-- Pick: **…** · … · … · AA …
-- Runner-up: **…** · … · … · AA …
-- Backup: **…** · … · … · AA …
-
-**Balanced**
-
-- Pick: **…** · … · … · AA …
-- Runner-up: **…** · … · … · AA …
-- Backup: **…** · … · … · AA …
-
-**Quality** — runs by default
-
-- Pick: **…** · … · … · AA …
-- Runner-up: **…** · … · … · AA …
-- Backup: **…** · … · … · AA …
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
 
 **Conversation:** New
 
@@ -371,23 +378,26 @@ key pays for the platform.>
 **Phase roadmap settings** — the session that writes
 `phaseNN-roadmap.md` (`/roadmap-phase N`):
 
-**Cost**
+|               |          | Cost  | Balanced | Quality |
+| ------------- | -------- | ----- | -------- | ------- |
+| **Pick**      | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+| **Runner‑up** | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
+| **Backup**    | Model    | **…** | **…**    | **…**   |
+|               | Platform | …     | …        | …       |
+|               | Level    | …     | …        | …       |
+|               | AA       | …     | …        | …       |
+|               | Price    | …     | …        | …       |
 
-- Pick: **…** · … · … · AA …
-- Runner-up: **…** · … · … · AA …
-- Backup: **…** · … · … · AA …
-
-**Balanced**
-
-- Pick: **…** · … · … · AA …
-- Runner-up: **…** · … · … · AA …
-- Backup: **…** · … · … · AA …
-
-**Quality** — runs by default
-
-- Pick: **…** · … · … · AA …
-- Runner-up: **…** · … · … · AA …
-- Backup: **…** · … · … · AA …
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
 
 **Conversation:** New
 

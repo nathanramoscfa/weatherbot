@@ -5321,22 +5321,22 @@ workflow above maps directly to the corresponding row below.
 
 ## Summary Table
 
-| Step | Scope                         | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
-| ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Geodesy + geometry            | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #29 |
-| 2    | Replay snapshots              | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #32 |
-| 3    | Ladder rules + evidence       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #34 |
-| 4    | Storm threats + changes       | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #35 |
-| 5    | Calibration + golden replays  | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #36 |
-| 6    | Assessments + commands        | Opus 5.5                 | Claude Code  | Effort High         | On       | New  | Complete — PR #37 |
-| 7    | QA + verify_phase03.py        | Opus 5.5                 | Claude Code  | Effort Medium       | On       | New  | Complete — PR #38 |
-| V1   | Geodesy + geometry            | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V2   | Replay snapshots              | CI: replay-corpus.yml    | --           | --                  | --       | --   | --          |
-| V3   | Ladder rules + evidence       | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V4   | Storm threats + changes       | CI: replay-corpus.yml    | --           | --                  | --       | --   | --          |
-| V5   | Calibration + golden replays  | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V6   | Assessments + commands        | CI: live-smoke.yml       | --           | --                  | --       | --   | --          |
-| V7   | CI integration                | CI: phase-verify.yml     | --           | --                  | --       | --   | --          |
+| Step | Scope                        | Model    | Status            |
+| ---- | ---------------------------- | -------- | ----------------- |
+| 1    | Geodesy + geometry           | Opus 5.5 | Complete — PR #29 |
+| 2    | Replay snapshots             | Opus 5.5 | Complete — PR #32 |
+| 3    | Ladder rules + evidence      | Opus 5.5 | Complete — PR #34 |
+| 4    | Storm threats + changes      | Opus 5.5 | Complete — PR #35 |
+| 5    | Calibration + golden replays | Opus 5.5 | Complete — PR #36 |
+| 6    | Assessments + commands       | Opus 5.5 | Complete — PR #37 |
+| 7    | QA + verify_phase03.py       | Opus 5.5 | Complete — PR #38 |
+| V1   | Geodesy + geometry           | CI       | --                |
+| V2   | Replay snapshots             | CI       | --                |
+| V3   | Ladder rules + evidence      | CI       | --                |
+| V4   | Storm threats + changes      | CI       | --                |
+| V5   | Calibration + golden replays | CI       | --                |
+| V6   | Assessments + commands       | CI       | --                |
+| V7   | CI integration               | CI       | --                |
 
 Each step's row restates the Balanced column its **Runs:** line names; the Cost
 and Quality columns, and the rule for a pool that reads `tight` or `exhausted`,

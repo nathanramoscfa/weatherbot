@@ -5851,22 +5851,22 @@ workflow above maps directly to the corresponding row below.
 
 ## Summary Table
 
-| Step | Scope                         | Model                    | Platform     | Reasoning dial      | Thinking | Conv | Status      |
-| ---- | ----------------------------- | ------------------------ | ------------ | ------------------- | -------- | ---- | ----------- |
-| 1    | Snapshot storage              | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #41 |
-| 2    | Cycle + heartbeat + staleness | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #42 |
-| 3    | Policy + notification log     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #43 |
-| 4    | Windows toast channel         | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #46 |
-| 5    | Scheduler + serve + check     | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #49 |
-| 6    | Task Scheduler + health       | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #50, #51 |
-| 7    | QA + verify_phase04.py        | Gemini 4 Argon           | Antigravity  | Effort High         | On       | New  | Complete — PR #52, #53 |
-| V1   | Snapshot storage              | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V2   | Cycle + heartbeat + staleness | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V3   | Policy + notification log     | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V4   | Windows toast channel         | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V5   | Scheduler + serve + check     | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V6   | Task Scheduler + health       | CI: ci.yml               | --           | --                  | --       | --   | --          |
-| V7   | CI integration                | CI: phase-verify.yml     | --           | --                  | --       | --   | --          |
+| Step | Scope                         | Model          | Status                 |
+| ---- | ----------------------------- | -------------- | ---------------------- |
+| 1    | Snapshot storage              | Gemini 4 Argon | Complete — PR #41      |
+| 2    | Cycle + heartbeat + staleness | Gemini 4 Argon | Complete — PR #42      |
+| 3    | Policy + notification log     | Gemini 4 Argon | Complete — PR #43      |
+| 4    | Windows toast channel         | Gemini 4 Argon | Complete — PR #46      |
+| 5    | Scheduler + serve + check     | Gemini 4 Argon | Complete — PR #49      |
+| 6    | Task Scheduler + health       | Gemini 4 Argon | Complete — PR #50, #51 |
+| 7    | QA + verify_phase04.py        | Gemini 4 Argon | Complete — PR #52, #53 |
+| V1   | Snapshot storage              | CI             | --                     |
+| V2   | Cycle + heartbeat + staleness | CI             | --                     |
+| V3   | Policy + notification log     | CI             | --                     |
+| V4   | Windows toast channel         | CI             | --                     |
+| V5   | Scheduler + serve + check     | CI             | --                     |
+| V6   | Task Scheduler + health       | CI             | --                     |
+| V7   | CI integration                | CI             | --                     |
 
 Each step's row restates the Balanced column its **Runs:** line names; the Cost
 and Quality columns, the backups, and the rule for a pool that reads `tight` or

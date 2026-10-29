@@ -757,25 +757,35 @@ that owns it.}}
      **Runs:** line exactly as `roadmodel ladder --category
      <c> --complexity <x> [--novel]` prints them for the
      step's classification (MCP tool: `roadmap_settings`).
-     Layout (roadmodel 0.2.94 on): a bold heading per column
-     (**Cost**, **Balanced**, **Quality**; the column the
-     **Runs:** line names reads `— runs by default`), then
-     one list line per rank — `- Pick:`, `- Runner-up:`,
-     `- Backup:` — giving the option's **model**; its
-     platform; its own dial and level (`Intelligence Medium`
-     on Codex, `Effort High` on Claude Code, no field where
-     the surface has none); `Thinking On` where the surface
-     has that toggle, no field where it has none; and `AA`,
-     the model's Artificial Analysis Intelligence Index at
-     that effort (`AA not measured` where AA has no row for
-     it there). A `**Conversation:**` line closes the ladder.
-     One option a line reads in a narrow Markdown preview,
-     where a table wrapped every cell; a line past 80 columns
-     wraps before a field. The ranks follow the column's own
-     rule, not the AA Index: Cost ranks the cheapest first,
-     so its AA Index may rise down the column. The Backup
-     line reads `none` when the Runner-up already holds the
-     only other maker's models. Every model is the latest
+     Layout (roadmodel 0.2.95 on): one table whose columns
+     are Cost, Balanced and Quality. Each rank — **Pick**, **Runner‑up**,
+     **Backup** — names the first of its rows from a column of
+     its own (blank below it, no `&nbsp;`), beside
+     field rows: Model (bold); Platform; Level, the bare
+     level the platform's own dial sets (`High` is
+     Intelligence High on Codex and Effort High on Claude
+     Code and Antigravity; `—` where the surface has no
+     dial); AA, the model's Artificial Analysis Intelligence
+     Index at that level (`not measured` where AA has no row
+     for it there); and Price, its blended list price per 1M
+     tokens (3 in : 1 out) times the tokens it uses at that
+     level (`*` where that use is not yet measured). There is
+     no Thinking row: Thinking is always On wherever the
+     platform has the toggle, and every AA Index and Price
+     already assumes it. A note line under the table explains
+     Price, and a `**Conversation:**` line closes the
+     ladder. Each rank comes from its own maker (roadmodel
+     0.2.97 on), because a tight usage pool is a maker's: the
+     Runner-up is the column's recommendation with the Pick's
+     maker left out, and the Backup leaves out both makers
+     above it. Where the user-context funds too few makers, a
+     missing rank is the Pick's own model one level lower,
+     its Level marked ↓ (it uses less of a tight pool), and
+     `none` below the dial's lowest level. The note line
+     names the classification the ladder was ranked for. The
+     ranks follow the column's own rule, not the AA Index:
+     Cost ranks each maker's cheapest adequate option, so its
+     AA Index may rise down the column. Every model is the latest
      version of its series, never an older one (GPT-6 Sol
      where GPT-6.1 Sol runs, Opus 5 where Opus 5.5 does).
      Set the Conversation line to **Continue** only when the
@@ -875,29 +885,32 @@ that owns it.}}
      -->
 
 Settings — ladder ({{the default wherever roadmodel is
-installed: the lists and **Runs:** line `roadmodel ladder
+installed: the table and **Runs:** line `roadmodel ladder
 --category <c> --complexity <x> [--novel]` prints for the
 step's classification, pasted as printed. The three table
 shapes after it are the fallback where roadmodel cannot be
 reached}}):
 
-**Cost**
+|               |          | Cost                  | Balanced              | Quality               |
+| ------------- | -------- | --------------------- | --------------------- | --------------------- |
+| **Pick**      | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Runner‑up** | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Backup**    | Model    | **{{Model or none}}** | **{{Model or none}}** | **{{Model or none}}** |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
 
-- Pick: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Runner-up: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Backup: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-
-**Balanced** — runs by default
-
-- Pick: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Runner-up: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Backup: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-
-**Quality**
-
-- Pick: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Runner-up: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Backup: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
 
 **Conversation:** New
 
@@ -1317,23 +1330,26 @@ printed with its **Runs:** line. Where roadmodel cannot be
 reached, the single-column variant that matches PLATFORM,
 carrying ONLY the rows that platform's panel exposes.}}
 
-**Cost**
+|               |          | Cost                  | Balanced              | Quality               |
+| ------------- | -------- | --------------------- | --------------------- | --------------------- |
+| **Pick**      | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Runner‑up** | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Backup**    | Model    | **{{Model or none}}** | **{{Model or none}}** | **{{Model or none}}** |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
 
-- Pick: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Runner-up: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Backup: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-
-**Balanced** — runs by default
-
-- Pick: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Runner-up: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Backup: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-
-**Quality**
-
-- Pick: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Runner-up: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Backup: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
 
 **Conversation:** New
 
@@ -1464,23 +1480,26 @@ this step's classification, pasted as printed with its
 **Runs:** line; where roadmodel cannot be reached, the
 single-column variant that matches PLATFORM.}}
 
-**Cost**
+|               |          | Cost                  | Balanced              | Quality               |
+| ------------- | -------- | --------------------- | --------------------- | --------------------- |
+| **Pick**      | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Runner‑up** | Model    | **{{Model}}**         | **{{Model}}**         | **{{Model}}**         |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
+| **Backup**    | Model    | **{{Model or none}}** | **{{Model or none}}** | **{{Model or none}}** |
+|               | Platform | {{Platform}}          | {{Platform}}          | {{Platform}}          |
+|               | Level    | {{Level}}             | {{Level}}             | {{Level}}             |
+|               | AA       | {{AA Index}}          | {{AA Index}}          | {{AA Index}}          |
+|               | Price    | {{$ per 1M}}          | {{$ per 1M}}          | {{$ per 1M}}          |
 
-- Pick: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Runner-up: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Backup: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-
-**Balanced** — runs by default
-
-- Pick: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Runner-up: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Backup: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-
-**Quality**
-
-- Pick: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Runner-up: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
-- Backup: **{{Model}}** · {{Platform}} · {{Dial and level}} · AA {{AA Index}}
+Price: list $ per 1M tokens (3 in : 1 out) × the tokens the model uses at that
+level.
 
 **Conversation:** New
 

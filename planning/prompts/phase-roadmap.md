@@ -28,8 +28,8 @@ Step 1 has `**Status:** Not started` directly under the `## Step 1`
 heading. If Stage 3 is a bare "OPEN THE PR", Stage 6 tells you to put
 findings in a "Follow-ups (non-blocking)" note after the completion
 line, a step's Status line sits after its `**Deploys:**` line, its
-Settings tables have no `Backup` row, or its ladders have no
-`- Runner-up:` line, STOP
+Settings tables have no `Backup` row, or its ladder tables have no
+`Price` row, STOP
 and tell me the kit is stale — do not write the roadmap from it.
 
 Step 0b — roadmaps live in `docs/roadmap/`: `ROADMAP.md` and every
@@ -70,11 +70,11 @@ own model> on <this surface>.`
   the model, print `unverified`, ask me which I picked, and go on with my
   answer.
 - A ladder (Cost / Balanced / Quality columns): each column ranks a
-  Pick, a Runner-up and a Backup, one `- Pick:` / `- Runner-up:` /
-  `- Backup:` line each under the column's bold heading (roadmodel
-  0.2.94 on; a 0.2.93 table has `1 · Pick`, `2 · Runner-up` and
-  `3 · Backup` rows, and an older one Model / Backup rows and no
-  Runner-up), and its **Runs:** line names the
+  Pick, a Runner-up and a Backup — from roadmodel 0.2.95 a bold group
+  label each, beside its Model / Platform / Level / AA / Price rows
+  (0.2.94 wrote them as `- Pick:` lists, 0.2.93 as `1 · Pick` rows,
+  and older ladders Model / Backup rows with no Runner-up) — and its
+  **Runs:** line names the
   column this session runs (Quality, for a phase roadmap). Apply that
   line's rule to the Usage-pool status table in
   `planning/user-context.md`: a pool that reads `tight` or `exhausted`
@@ -123,7 +123,7 @@ that classification (MCP tool: `roadmap_settings`), pasted as printed
 with its **Runs:** line. It carries the full recommendation /recommend
 shows: Cost, Balanced and Quality, each ranked three deep (the Pick,
 the Runner-up, and a Backup from another maker), each option on one
-list line with its own effort and AA Index. The step's runner picks the column from the
+its own level, AA Index and price. The step's runner picks the column from the
 usage pools on the day, so the roadmap needs no refresh when a pool
 tightens. Its models are always the latest version of their series.
 The Model rationale explains the classification and what sets the

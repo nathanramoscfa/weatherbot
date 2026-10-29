@@ -1078,7 +1078,7 @@ must be green.
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex              | Antigravity        | Claude Code        |
@@ -1096,9 +1096,9 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 |               | AA       | not measured       | 51                 | 52.4               |
 |               | Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out) ×
+the tokens the model uses at that level; * token use not yet measured, a typical
+model's at that level assumed.
 
 **Conversation:** New
 
@@ -2002,7 +2002,7 @@ until Step 7 redeploys it. GitHub Actions → the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex              | Antigravity        | Claude Code        |
@@ -2020,9 +2020,9 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 |               | AA       | not measured       | 51                 | 52.4               |
 |               | Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out) ×
+the tokens the model uses at that level; * token use not yet measured, a typical
+model's at that level assumed.
 
 **Conversation:** New
 
@@ -2623,7 +2623,7 @@ until Step 7 redeploys it. GitHub Actions → the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex              | Antigravity        | Claude Code        |
@@ -2641,9 +2641,9 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 |               | AA       | not measured       | 51                 | 52.4               |
 |               | Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out) ×
+the tokens the model uses at that level; * token use not yet measured, a typical
+model's at that level assumed.
 
 **Conversation:** New
 
@@ -3295,7 +3295,7 @@ the `package` job builds the interface; the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex              | Antigravity        | Claude Code        |
@@ -3313,9 +3313,9 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 |               | AA       | not measured       | 51                 | 52.4               |
 |               | Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out) ×
+the tokens the model uses at that level; * token use not yet measured, a typical
+model's at that level assumed.
 
 **Conversation:** New
 
@@ -3943,7 +3943,7 @@ until Step 7 redeploys it. GitHub Actions → the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex              | Antigravity        | Claude Code        |
@@ -3961,9 +3961,9 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 |               | AA       | not measured       | 51                 | 52.4               |
 |               | Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out) ×
+the tokens the model uses at that level; * token use not yet measured, a typical
+model's at that level assumed.
 
 **Conversation:** New
 
@@ -4505,7 +4505,7 @@ until Step 7 redeploys it. GitHub Actions → the first `ci.yml` and
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex              | Antigravity        | Claude Code        |
@@ -4523,9 +4523,9 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 |               | AA       | not measured       | 51                 | 52.4               |
 |               | Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
 
-Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out) ×
+the tokens the model uses at that level; * token use not yet measured, a typical
+model's at that level assumed.
 
 **Conversation:** New
 
@@ -5040,7 +5040,7 @@ this build's `index_sha256`, `doctor` must pass `web`, and the operator opens
 
 Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 
-|               |          | Cost               | Balanced ✓         | Quality            |
+|               |          | Cost               | Balanced           | Quality            |
 | ------------- | -------- | ------------------ | ------------------ | ------------------ |
 | **Pick**      | Model    | **GPT-6.1 Sol**    | **Gemini 4 Argon** | **Opus 5.5**       |
 |               | Platform | Codex              | Antigravity        | Claude Code        |
@@ -5052,15 +5052,15 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 |               | Level    | XHigh              | High               | High               |
 |               | AA       | 51.9               | 53.6               | 52.6               |
 |               | Price    | $3.56/1M           | $6.02/1M           | $4.00/1M*          |
-| **Backup**    | Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
+| **Backup**    | Model    | **Gemini 4 Argon** | **GPT-6.1 Sol**    | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Codex              | Codex              |
-|               | Level    | Low                | XHigh              | XHigh              |
-|               | AA       | not measured       | 51                 | 52.4               |
-|               | Price    | $2.40/1M*          | $4.00/1M           | $16.36/1M          |
+|               | Level    | Low                | High               | XHigh              |
+|               | AA       | not measured       | 50.2               | 51                 |
+|               | Price    | $2.40/1M*          | $2.18/1M           | $4.00/1M           |
 
-Ranked for coding, high complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out) ×
+the tokens the model uses at that level; * token use not yet measured, a typical
+model's at that level assumed.
 
 **Conversation:** New
 
@@ -5069,6 +5069,8 @@ column's usage pool reads `tight` or `exhausted`, run the first of its Runner-up
 and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
 Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
+
+> Settings updated 2026-10-29 (rerank): was Gemini 4 Argon · High. Every Pick is unchanged; roadmodel 0.2.100 changes two Backups: Balanced's GPT-6.1 Sol now runs at High (was XHigh), and Quality's is GPT-6.1 Sol · XHigh (was GPT-6 Astra · XHigh), at a quarter of its price.
 
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
@@ -5084,11 +5086,12 @@ columns differ in depth and maker: Balanced runs Gemini 4 Argon on Antigravity
 at Effort High with thinking on; Quality runs Opus 5.5 on Claude Code at Effort
 XHigh (always thinking, so no Thinking field) for the closest audit of the
 smoke's assertions; Cost moves it to GPT-6.1 Sol on Codex at Intelligence High.
-Google AI Pro, the claude.ai Max subscription, and ChatGPT Pro 5x fund the three
-platforms, so each column costs nothing at the margin while its pool has
-headroom; when a column's pool reads `tight` or `exhausted`, the **Runs:** rule
-moves the step to that column's Runner-up or Backup. The conversation is new per
-phase-boundary hygiene.
+GPT-6.1 Sol on Codex backs up both Balanced (at Intelligence High) and Quality
+(at XHigh). Google AI Ultra, the claude.ai Max subscription, and ChatGPT Pro
+fund the three platforms, so each column costs nothing at the margin while its
+pool has headroom; when a column's pool reads `tight` or `exhausted`, the
+**Runs:** rule moves the step to that column's Runner-up or Backup. The
+conversation is new per phase-boundary hygiene.
 
 ```xml
 <task>
@@ -5583,27 +5586,27 @@ peel to the merge commit.
 
 Settings — ladder (`roadmodel ladder --category coding --complexity medium`):
 
-|               |          | Cost                 | Balanced ✓         | Quality            |
-| ------------- | -------- | -------------------- | ------------------ | ------------------ |
-| **Pick**      | Model    | **GPT-6.1 Sol**      | **Gemini 4 Argon** | **Opus 5.5**       |
-|               | Platform | Codex                | Antigravity        | Claude Code        |
-|               | Level    | Low                  | High               | High               |
-|               | AA       | 42.1                 | 52.6               | 53.6               |
-|               | Price    | $1.36/1M             | $4.00/1M*          | $6.02/1M           |
-| **Runner‑up** | Model    | **Gemini 3.8 Flash** | **Opus 5.5**       | **Gemini 4 Argon** |
-|               | Platform | Antigravity          | Claude Code        | Antigravity        |
-|               | Level    | Medium               | Medium             | High               |
-|               | AA       | 39.8                 | 51.2               | 52.6               |
-|               | Price    | $2.19/1M             | $5.42/1M           | $4.00/1M*          |
-| **Backup**    | Model    | **Sonnet 5.5**       | **GPT-6.1 Sol**    | **GPT-6 Astra**    |
-|               | Platform | Claude Code          | Codex              | Codex              |
-|               | Level    | Medium               | High               | High               |
-|               | AA       | 40.8                 | 50.2               | 50.9               |
-|               | Price    | $2.69/1M             | $2.18/1M           | $8.82/1M           |
+|               |          | Cost                 | Balanced             | Quality            |
+| ------------- | -------- | -------------------- | -------------------- | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**      | **GPT-6.1 Sol**      | **Gemini 4 Argon** |
+|               | Platform | Codex                | Codex                | Antigravity        |
+|               | Level    | Low                  | High                 | High               |
+|               | AA       | 42.1                 | 50.2                 | 52.6               |
+|               | Price    | $1.36/1M             | $2.18/1M             | $4.00/1M*          |
+| **Runner‑up** | Model    | **Gemini 3.8 Flash** | **Sonnet 5.5**       | **Opus 5.5**       |
+|               | Platform | Antigravity          | Claude Code          | Claude Code        |
+|               | Level    | Medium               | High                 | High               |
+|               | AA       | 39.8                 | 46.8                 | 53.6               |
+|               | Price    | $2.19/1M             | $3.03/1M             | $6.02/1M           |
+| **Backup**    | Model    | **Sonnet 5.5**       | **Gemini 3.8 Flash** | **GPT-6.1 Sol**    |
+|               | Platform | Claude Code          | Antigravity          | Codex              |
+|               | Level    | Medium               | High                 | High               |
+|               | AA       | 40.8                 | 40.9                 | 50.2               |
+|               | Price    | $2.69/1M             | $4.29/1M             | $2.18/1M           |
 
-Ranked for coding, medium complexity. ✓ runs by default. Price: list $ per 1M
-tokens (3 in : 1 out) × the tokens the model uses at that level; * token use not
-yet measured, a typical model's at that level assumed.
+Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1 out)
+× the tokens the model uses at that level; * token use not yet measured, a
+typical model's at that level assumed.
 
 **Conversation:** New
 
@@ -5613,6 +5616,8 @@ and Backup whose pool has headroom; on a `tight` pool an option marked ↓ (the
 Pick one level lower) also runs. With none, a `tight` column runs the Cost
 column and an `exhausted` one its Backup.
 
+> Settings updated 2026-10-29 (rerank): was Gemini 4 Argon · High. roadmodel 0.2.100 re-ranks coding at medium complexity: Balanced is now GPT-6.1 Sol · High on Codex (Runner-up Sonnet 5.5 · High, Backup Gemini 3.8 Flash · High; were Opus 5.5 · Medium and GPT-6.1 Sol · High), and Quality is now Gemini 4 Argon · High (Runner-up Opus 5.5 · High, Backup GPT-6.1 Sol · High; was Opus 5.5 · High, Gemini 4 Argon · High, GPT-6 Astra · High). Cost is unchanged.
+
 > Settings updated 2026-10-25 (rerank): each column's Runner-up and Backup now come from makers other than its Pick; every Pick is unchanged.
 
 **Model rationale:** Step 8 is coding with an agentic secondary category —
@@ -5620,12 +5625,13 @@ GitHub readbacks, on-machine sweeps, and the closure — at Medium complexity: i
 translates this roadmap's acceptance criteria into numbered checks, a V-matrix,
 a matrix entry, and a findings rollup, with `scripts/verify_phase04.py` as the
 structural template, and it is not novel. The columns differ in depth and maker:
-Balanced runs Gemini 4 Argon on Antigravity at Effort High with thinking on;
-Quality runs Opus 5.5 on Claude Code at Effort High (always thinking, so no
-Thinking field) for a deeper audit of each check against its deliverable; Cost
-moves the step to GPT-6.1 Sol on Codex at Intelligence Low, enough for
-enumerated checks whose content this roadmap writes down. Google AI Pro, the
-claude.ai Max subscription, and ChatGPT Pro 5x fund the three platforms, so each
+Balanced runs GPT-6.1 Sol on Codex at Intelligence High, enough for enumerated
+checks whose content this roadmap writes down, with Sonnet 5.5 on Claude Code at
+Effort High as its Runner-up; Quality runs Gemini 4 Argon on Antigravity at
+Effort High with thinking on, with Opus 5.5 on Claude Code at Effort High as its
+Runner-up, for a deeper audit of each check against its deliverable; Cost keeps
+GPT-6.1 Sol on Codex at Intelligence Low. Google AI Ultra, the
+claude.ai Max subscription, and ChatGPT Pro fund the three platforms, so each
 column costs nothing at the margin while its pool has headroom; when a column's
 pool reads `tight` or `exhausted`, the **Runs:** rule moves the step to that
 column's Runner-up or Backup. The conversation is new per phase-boundary
@@ -6512,7 +6518,7 @@ workflow above maps directly to the corresponding row below.
 | 5    | Dashboard + pages              | Gemini 4 Argon | Complete — PR #65  |
 | 6    | Map                            | Gemini 4 Argon | Complete — PR #66  |
 | 7    | Browser smoke + idle + deploy  | Gemini 4 Argon | Not started        |
-| 8    | QA + verify_phase05.py         | Gemini 4 Argon | Not started        |
+| 8    | QA + verify_phase05.py         | GPT-6.1 Sol    | Not started        |
 | V1   | Web server inside serve        | CI             | --                 |
 | V2   | Read API + map geometry        | CI             | --                 |
 | V3   | Events + browser + actions     | CI             | --                 |
@@ -6641,19 +6647,19 @@ agentic work (AA 52.6), the ladder's Balanced pick; Runner-up
 Opus 5.5 at High. EFFORT: High fits end-to-end proof work.
 
 PROMPT: Step 8 — QA + verify_phase05.py
-MODEL: Gemini 4 Argon
-BACKUP: GPT-6.1 Sol
-PLATFORM: Antigravity
+MODEL: GPT-6.1 Sol
+BACKUP: Gemini 3.8 Flash
+PLATFORM: Codex
 EFFORT: High
 THINKING: On
 CONVERSATION: New
 RATIONALE: TASK: mechanical translation of this roadmap's
 acceptance criteria into a verification script, a matrix entry,
 and a findings rollup. PICK: known pattern, no novel reasoning —
-Gemini 4 Argon, S-tier in coding (AA 52.6), the ladder's
-Balanced pick; Runner-up Opus 5.5 at Medium. EFFORT: High is
-the level the ladder prints for this column; enumerated checks
-whose content this roadmap writes down need no more.
+GPT-6.1 Sol on Codex (AA 50.2 at High), the ladder's Balanced
+pick; Runner-up Sonnet 5.5 at High. EFFORT: High is the level
+the ladder prints for this column; enumerated checks whose
+content this roadmap writes down need no more.
 ```
 
 ---
