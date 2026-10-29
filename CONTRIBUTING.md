@@ -930,6 +930,56 @@ against the installed wheel. `frontend/scripts/check-licenses.mjs` fails if any
 bundled package in `src/weatherbot/web/static/licenses.json` uses a licence
 outside `{MIT, ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0, 0BSD}`.
 
+### The browser smoke
+
+`scripts/serve_demo.py` runs `weatherbot serve`'s monitor and web server
+(through `cli/serve.py`'s `_loop`) in a temporary data directory with both
+public landmarks stored (`"simulated Miami-Dade"` and `"Parliament Square"`),
+answering every outbound request from recorded fixtures through `respx` and
+refusing any other:
+
+```sh
+uv run python scripts/serve_demo.py --port 8799 --roster-interval-minutes 1 --switch-file frontend/test-results/smoke-switch.flag
+npm --prefix frontend run e2e        # Playwright browser smoke (dashboard, map, screens)
+uv run python scripts/measure_idle.py # 600 s idle CPU measurement (< 0.5% per process)
+```
+
+`frontend/playwright.config.ts` and `frontend/e2e/` (`guard.ts`,
+`dashboard.spec.ts`, `map.spec.ts`, `screens.spec.ts`, and `idle.spec.ts`) run
+against `serve_demo.py` in headless Chromium:
+
+- `guard.ts` routes `https://tile.openstreetmap.org/**` to the local 256×256
+  `frontend/e2e/blank-tile.png`, aborts and fails on any request to an origin
+  other than the server's, collects console messages, `pageerror` events, and
+  `securitypolicyviolation` events (registered by an init script), and fails on
+  any CSP violation, uncaught page error, or console message containing a
+  landmark coordinate rendering.
+- `dashboard.spec.ts` checks both landmarks' cards and the footer disclaimer
+  notice, exercises the Radix `DropdownMenu` theme menu (`Dark` then `System`,
+  whose injected `<style>` passes the Content Security Policy only with the
+  per-response nonce), sets a `window` property mark, creates the `--switch-file`
+  (so `serve_demo.py` serves advisory `023` and the synthetic `Hurricane
+  Warning`, reusing `scripts/simulate_advisory.py`) and clicks `Check now`, and
+  verifies that `"simulated Miami-Dade"` updates to Level 5 (`Hurricane Warning`)
+  with the in-page notification toast shown and the `window` mark intact (no page
+  reload).
+- `map.spec.ts` opens `/map`, selects Irma (`AL112017`) at mid-storm advisory
+  `031` in the replay panel, and verifies that the cone and track SVG paths, the
+  forecast points, and both location markers render under the `"not live"`
+  banner.
+- `screens.spec.ts` captures full-page screenshots of `/` and `/map` at
+  `1280×800` and `360×740` in `light` and `dark` themes into
+  `frontend/test-results/screenshots/`. CI's `browser` job uploads the
+  screenshots on every run and Playwright traces on failure.
+- `idle.spec.ts` (tagged `@idle`, excluded from `npm --prefix frontend run e2e`,
+  and run via `npm --prefix frontend run e2e:idle` inside
+  `scripts/measure_idle.py`) lets `/` settle for 30 s, samples `TaskDuration`
+  from a Chrome DevTools Protocol (`Performance.getMetrics`) session before and
+  after a 600 s window while `scripts/measure_idle.py` samples the
+  `serve_demo.py` process's `user + system` CPU time via `psutil` at production
+  intervals over the same 600 s window, and verifies that both CPU shares remain
+  strictly under `0.5%` of one core.
+
 To start over, delete the data directory. Weatherbot creates a new database
 the next time it opens one. `uv run weatherbot doctor --offline` shows both
 directories, the database file, and its revision against the head.

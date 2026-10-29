@@ -169,6 +169,53 @@ migrates `weatherbot.sqlite3` past the installed tool copy's Alembic head, the
 installed monitor stops with a toast until you run
 `uv tool install --reinstall --from <checkout> weatherbot`.
 
+### The dashboard
+
+`weatherbot serve` hosts the local-only web dashboard on loopback at
+`http://127.0.0.1:8765` (`[web] host` and `[web] port` in `weatherbot.toml`, or
+`WEATHERBOT_WEB_HOST` and `WEATHERBOT_WEB_PORT`). In an interactive terminal,
+`serve` opens the dashboard in your default browser once listening; pass
+`weatherbot serve --no-open` (or run headless under Task Scheduler) to keep the
+browser from opening automatically, or `weatherbot serve --open` to force it.
+Pass `weatherbot serve --corpus DIR` (or set `[web] corpus` in `weatherbot.toml`)
+to expose a historical replay corpus on `/map`.
+
+The dashboard refreshes live over Server-Sent Events (`GET /api/events`) without
+reloading the page and provides six pages:
+
+- **Dashboard (`/`)**: each watched location's current threat level (`1` to `5`,
+  or `At least Level N` when an input was unavailable), deciding rule and
+  evidence, recommended actions, covering official products and county-zone
+  context alerts, per-storm threats (category, cone status, distance, bearing,
+  closest approach, and 34-kt wind arrival times), 5 km wind-speed probabilities,
+  changes since the previous assessment, the evacuation-order toggle, and a
+  `Check now` button (`POST /api/cycles`) to run an on-demand manual cycle.
+- **Map (`/map`)**: an interactive Leaflet map over OpenStreetMap tiles showing
+  toggleable storm cones, forecast tracks, forecast points, coastal watch and
+  warning segments, Tropical Weather Outlook areas, and watched locations (with
+  each geometry's CRS in its popup), plus the historical storm and advisory
+  replay picker (`not live` banner) when `serve --corpus DIR` is configured.
+- **Storms (`/storms`)**: active cyclones and their advisories, graphical
+  Tropical Weather Outlook areas, and 5 km wind-speed probability summaries.
+- **Alerts (`/alerts`)**: per-location covering NWS alerts, county-zone context
+  alerts, and NHC coastal watch and warning segments.
+- **Timeline (`/timeline`)**: chronological assessment and notification history
+  with a location filter, change events, and per-channel delivery outcomes
+  (`log`, `toast`, `browser`).
+- **Settings (`/settings`)**: add a watched location (`POST /api/locations`),
+  enable or test browser notifications (`POST /api/notifications/test`), inspect
+  effective settings and their origins (`default`, `file`, `environment`), read
+  the 11-rule alert ladder, read the full disclaimer (`#disclaimer`), and view
+  bundled frontend package licences (`/licenses.json`).
+
+When `BrowserChannel` (`[notifications] browser = true`) delivers a notification
+over `/api/events`, the dashboard always shows an in-page banner toast, and —
+when you have turned on browser notifications on `/settings`, granted browser
+permission, and the dashboard tab is in the background
+(`document.visibilityState === "hidden"`) — fires a system Web Notification. Like
+the CLI, the dashboard is informational only and never a substitute for official
+NHC, NWS, or local emergency-management guidance.
+
 Version 1 is retired. It remains installable with
 `pip install weatherbot==1.0.0`, and its source is the
 [`v1.0.0` tag](https://github.com/nathanramoscfa/weatherbot/tree/v1.0.0).

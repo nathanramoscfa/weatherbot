@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 5 — Web app (MVP)
+- Add the Playwright browser smoke suite (`frontend/playwright.config.ts`,
+  `frontend/e2e/{guard.ts,dashboard.spec.ts,map.spec.ts,screens.spec.ts,idle.spec.ts,blank-tile.png}`),
+  the offline demonstration server (`scripts/serve_demo.py`,
+  `tests/scripts/test_serve_demo.py`), the 600-second idle CPU measurement
+  (`scripts/measure_idle.py`, `tests/scripts/test_measure_idle.py`, with `psutil`
+  and `types-psutil` in the `dev` dependency group), and the `browser` CI job in
+  `.github/workflows/ci.yml`:
+  - `scripts/serve_demo.py`: runs `serve`'s monitor and web server through
+    `cli/serve.py`'s `_loop` in a temporary data directory with both public
+    landmarks (`"simulated Miami-Dade"` and `"Parliament Square"`), answers all
+    outbound requests from recorded fixtures via `respx`, supports `--port`
+    (default `8799`), `--corpus DIR`, `--roster-interval-minutes`, and
+    `--switch-file PATH` (switching to advisory `023` and the synthetic
+    `Hurricane Warning` from `scripts/simulate_advisory.py`), prints its `pid`
+    and `address` plus each `roster_poll` and `cycle`, and cleans up on exit.
+  - `frontend/e2e/`: verifies landmark cards, the footer disclaimer notice, the
+    Radix `DropdownMenu` theme menu under the per-response CSP nonce, live Level
+    5 escalation over `/api/events` without a page reload, in-page notification
+    toast delivery, `/map` historical replay of Irma (`AL112017`) advisory `031`
+    with cone/track/point/location SVG layers under the `"not live"` banner, and
+    `1280×800` / `360×740` light/dark screenshots, guarded against unexpected
+    origins, CSP violations, page errors, and coordinate leaks in console output.
+  - `scripts/measure_idle.py` and `frontend/e2e/idle.spec.ts` (`@idle`): verify
+    that over a 600 s window after a 30 s settle at production intervals, both
+    `serve_demo.py` (`psutil` `user + system`) and the Chromium dashboard tab
+    (CDP `Performance.getMetrics` `TaskDuration`) consume `< 0.5%` of one CPU
+    core.
 - Add the `/map` page (`frontend/src/map/{MapView.tsx,useLeafletMap.ts,layers.ts}`,
   `layers.test.ts`, and `MapView.test.tsx`) on Leaflet `1.9.4` directly (pinned
   in `frontend/package.json` with `>= 2.0.0` ignored in

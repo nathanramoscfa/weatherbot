@@ -118,6 +118,10 @@ def _hurricane_warning_response(now: datetime) -> httpx.Response:
     )
 
 
+next_advisory_roster = _next_advisory_roster
+hurricane_warning_response = _hurricane_warning_response
+
+
 def _store_simulated_landmarks(engine: Engine, now: datetime) -> None:
     landmarks = public_landmarks()
     repo = LocationRepository(engine, now=lambda: now)
