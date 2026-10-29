@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 5 — Web app (MVP)
+- Add Phase 5's repeatable verification script (`scripts/verify_phase05.py`),
+  its test suite (`tests/test_phase05_verification.py`), the `phase-verify (05)`
+  CI matrix entry with conditional Node 24 setup before `--security`
+  (`.github/workflows/phase-verify.yml`), and the Phase 5 QA findings ledger
+  (`docs/phase05-qa-findings.md`), closing Phase 5 (`v2.0.0-phase-5`):
+  - `scripts/verify_phase05.py`: 53 standard-library static checks covering
+    Steps 1–7 and Step 8 self-checks plus the 32-row V1–V8 post-implementation
+    verification matrix (85 total checks in `--post`), supporting `--fast`,
+    `--py`, `--node`, `--ui`, `--live`, `--security`, `--all`, and `--post`.
+  - `tests/test_phase05_verification.py`: offline regression tests covering
+    `--fast` (< 30 s), the 32-row V-matrix, `phase-verify.yml` `"05"` matrix
+    membership, non-echoing failure continuation, fail-closed skipped JUnit
+    evidence, mutually exclusive mode flags, and single-deliverable red-check
+    isolation across Steps 1–7.
+  - `docs/phase05-qa-findings.md`: rollup of PR #56 and Steps 1–8 (PRs #61,
+    #62, #63, #64, #65, #66, #70, and #72), the 600 s idle CPU measurement
+    receipts (`server_cpu=0.4843%`, `tab_cpu=0.0020%`), the forward-geocoding
+    UX finding (tracked in Issue #71 and Phase 7 §7.3), the seven exact Phase 5
+    checks for Phase 6 (`2`, `4`, `14`, `17`, `19`, `25`, `47`), source-drift
+    observations, live smoke runs, and pre-ship items.
 - Add the Playwright browser smoke suite (`frontend/playwright.config.ts`,
   `frontend/e2e/{guard.ts,dashboard.spec.ts,map.spec.ts,screens.spec.ts,idle.spec.ts,blank-tile.png}`),
   the offline demonstration server (`scripts/serve_demo.py`,
