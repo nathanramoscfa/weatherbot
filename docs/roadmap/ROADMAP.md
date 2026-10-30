@@ -214,12 +214,32 @@ These gaps drive the phase ordering below.
   import contract puts `weatherbot.cli` above `weatherbot.web`: the CLI
   may import the web layer to host it, and the web layer never imports
   the CLI (`phase05-roadmap.md`, "Design rationale").
+- **The per-storm explanation is part of the briefing and the chat.**
+  The brief's §8 lists a per-storm explanation beside the briefing. v2
+  writes it as the briefing's situation, a paragraph for each storm
+  that threatens the location, and as the chat's `get_storm` tool, so
+  each storm is explained by a product the validators check rather
+  than by a second, unchecked one (`phase06-roadmap.md`, "Design
+  rationale").
+- **The daily budget is in dollars.** The brief's §8 names a daily
+  token budget. v2 caps each day's spend in dollars at list price
+  (`[ai] daily_cap_usd`, $1.00 by default), with the tokens shown
+  beside it, because input, output, cache writes, and cache reads are
+  priced differently and the operator's money is what the cap protects
+  (`phase06-roadmap.md`, "Design rationale").
+- **The briefing and the chat sit where the operator looks.** The
+  brief's §10 lists a "Briefing and Chat" page. v2 puts each location's
+  briefing in its dashboard card, beneath the engine's level and
+  evidence, and the chat on its own Ask page beneath the engine's level
+  badges, so an AI text is never read apart from the official level it
+  explains (`phase06-roadmap.md`, "Design rationale").
 
 Everything else in the brief applies unchanged: the decisions D1–D10,
 the data sources (with the graphic names, the text-product path, the
 arrival-time KMZ, and the UTC schedule above), the ladder semantics,
-the AI role and model, the notification policy (with the held drop
-above), and the success criteria.
+the AI role and model (with the explanation and the budget above), the
+notification policy (with the held drop above), and the success
+criteria.
 
 ---
 
@@ -255,9 +275,11 @@ Everything runs on the operator's machine. The web app binds to
 server-sent events stream; the CLI uses the same services and the same
 SQLite database, so both front doors show the same assessment. Outbound
 traffic is HTTPS to public NOAA services with a project User-Agent, to
-the Anthropic API with a key read from the environment, and, from Phase
-7, to an ntfy server with a topic token; from Phase 5 the browser itself
-also fetches the map's raster tiles from OpenStreetMap. There is no
+the Anthropic API with a credential the SDK reads from the environment
+or an `ant auth login` profile (a request carries location names and
+the engine's coarsened outputs, never a coordinate; Phase 6), and, from
+Phase 7, to an ntfy server with a topic token; from Phase 5 the browser
+itself also fetches the map's raster tiles from OpenStreetMap. There is no
 public ingress; an optional LAN mode in Phase 8 is the only widening,
 and it is gated. Loopback is not a trust boundary against the browser:
 any other site's page open in it can send requests to 127.0.0.1, so the
@@ -913,50 +935,78 @@ Phase 6 keeps Phase 5's verification green as it grows (Phase 5 Step 8,
 `docs/phase05-qa-findings.md`). `verify_phase05.py` was written so that new
 route modules, OpenAPI paths, `CHANNEL_NAMES`, `QueryKey` values, frontend
 scripts and dependencies, pages, and `phase-verify.yml` matrix entries need no
-historical conversion. Seven checks are exact and stay live until a step
-deliberately changes what they read: check 2 reads the `"Layers import downward
-only"` contract in `pyproject.toml`; check 4 reads `TrustedHostMiddleware`
-(`127.0.0.1`, `localhost`, `[::1]`) in `web/guards.py` and forbids
-`CORSMiddleware` and `BaseHTTPMiddleware` across `src/weatherbot/`; check 14
-reads `MAX_SNAPSHOT_CACHE_SIZE = 8` in `web/map_layers.py`; check 17 requires that
-no `web/` module defines an `async def` route that reads a repository or
-`state.database` directly; check 19 reads the eight `EventKind` literals in
-`services/events.py` (if Phase 6 adds a new `EventKind` literal, convert check
-19 in the same PR to read `v2.0.0-phase-5:src/weatherbot/services/events.py`);
-check 25 forbids coordinate and distance field names on `StreamEvent` and any
-schema model it references in `web/schemas.py`; and check 47 reads
-`README.md`'s `## Status` naming Phase 5 complete and Phase 6 next (when Phase 6
-updates `README.md`'s `## Status`, convert check 47's `## Status` check in the
-same PR to read `v2.0.0-phase-5:README.md`). Keep the `"01"`, `"02"`, `"03"`,
-`"04"`, and `"05"` matrix entries.
+historical conversion. Read against the script itself while
+`phase06-roadmap.md` was written, eleven checks are exact or absolute and stay
+live until a step deliberately changes what they read: check 2 reads the
+`"Layers import downward only"` contract in `pyproject.toml` exactly; check 4
+reads `TrustedHostMiddleware` (`127.0.0.1`, `localhost`, `[::1]`) in
+`web/guards.py` and forbids `CORSMiddleware` and `BaseHTTPMiddleware` across
+`src/weatherbot/`; check 14 reads `MAX_SNAPSHOT_CACHE_SIZE = 8` in
+`web/map_layers.py`; check 17 forbids an `async def` in the read route modules
+and any module-level `async def` under `web/routes/` that names a repository;
+check 19 reads the eight `EventKind` literals in `services/events.py` (Phase 6
+Step 4 adds `ai` and converts it in the same PR to read
+`v2.0.0-phase-5:src/weatherbot/services/events.py`); check 25 forbids coordinate
+and distance field names on `StreamEvent`; checks 26 and 40 read the frontend's
+exact pins (TypeScript at major 5, Leaflet at major 1, no `react-leaflet`);
+check 47 reads `README.md`'s `## Status` naming Phase 5 complete and Phase 6
+next (Phase 6 Step 1, the first to edit that section, converts its `## Status`
+read in the same PR to `v2.0.0-phase-5:README.md`); check 48 reads
+`verify_phase05.py`'s own 53 checks and 32 rows; and check 52 requires the
+setup-node and `npm ci` steps under the literal condition `matrix.phase ==
+'05'` (Phase 6 Step 7 adds separate steps for `"06"`). Three absolute bans stay
+unbroken: check 30 (no `import.meta.env.VITE_` under `frontend/src`), check 37
+(no `dangerouslySetInnerHTML`), and check 39 (`new Notification(` only in
+`notifications/notify.ts`). Keep the `"01"`, `"02"`, `"03"`, `"04"`, and `"05"`
+matrix entries.
 
 #### 6.1 Client and guardrails
-- The official `anthropic` SDK with `claude-sonnet-5-5` as the default
-  model (configurable; Haiku 5.5 selectable for micro-summaries),
-  adaptive thinking, structured outputs through `client.messages.parse`,
-  prompt caching on the frozen system prompt and ladder text, streaming
-  to the UI, typed error handling, and the `refusal` stop reason
-  handled as "AI unavailable".
-- A per-call ledger (model, tokens, cache hits, cost at list price) and
-  a daily cap with a kill switch; the key read from `ANTHROPIC_API_KEY`
-  or an `ant auth login` profile, never logged, never sent to the
+- The official `anthropic` SDK (2.3 or later, which sends API version
+  2026-10-21) with `claude-sonnet-5-5` as the default model
+  (configurable; Haiku 5.5 selectable for micro-summaries), adaptive
+  thinking with a stated effort, structured outputs through
+  `client.messages.parse` and streamed structured output, prompt caching
+  on the frozen system prompt and ladder text, streaming to the UI,
+  typed error handling, and the `refusal` stop reason handled as "AI
+  unavailable", with no server-side fallback to another model.
+- A per-call ledger (model, tokens, cache writes and reads, cost at list
+  price) in which every request reserves its ceiling under `BEGIN
+  IMMEDIATE` before it is sent and settles from the SDK's usage, so no
+  two processes pass the daily cap ($1.00 by default); a pause control
+  and a bounded "allow more today" beside the cap's own kill switch; the
+  credential resolved by the SDK from `ANTHROPIC_API_KEY` or an `ant
+  auth login` profile, never copied, logged, stored, or sent to the
   browser.
-- Fetched NOAA text is passed as data inside delimited blocks, tools are
-  read-only over local tables, and no tool fetches a URL.
+- The AI package is the only importer of the SDK and opens the database
+  through a SQLite authorizer that lets it write only its own tables;
+  fetched NOAA text is passed as data inside escaped, delimited blocks
+  with its links removed; a request carries no location's coordinates,
+  no geometry, URL, path, or engine-written sentence, and a storm's
+  distance only as a band; tools are read-only over local tables, and
+  no tool fetches a URL (`phase06-roadmap.md`, "Design rationale").
 
 #### 6.2 Briefing and change summary
-- A briefing per location from the assessment, evidence, storms, and
-  advisory text, in a fixed schema (situation, what it means here,
-  timeline, actions by level, sources); a change summary from the
-  diff events.
-- A small eval set of stored snapshots with checks: the briefing never
-  states a level other than the engine's, names its sources, and keeps
-  the required sections.
+- A briefing per location, on demand, from the assessment, evidence,
+  storms, and advisory text, in a fixed schema (situation, what it means
+  here, timeline, actions by level, sources) with no level field,
+  streamed section by section and stored, labeled, for its assessment;
+  a change summary from the diff events, written automatically by
+  `serve` for each new assessment that changed.
+- Validators that withhold any product stating a level other than the
+  engine's, citing a source its context did not hold, or carrying a URL
+  or a coordinate, run on every product before it is shown.
+- A small eval set of stored and replayed snapshots with checks: the
+  briefing never states a level other than the engine's, names its
+  sources, and keeps the required sections; a contradicting copy of
+  every recorded output fails; injection cases (hostile text inside a
+  fetched advisory) leave the level and the tools unchanged.
 
 #### 6.3 Grounded chat and optional narration
-- A chat panel whose tools read storms, assessments, evidence, alerts,
-  and the ladder; streaming replies labeled as AI; a setting to attach
-  the current outlook graphic for narration.
+- A chat panel whose nine read-only tools read storms, assessments,
+  evidence, alerts, history, the outlook, and the ladder; streaming
+  replies labeled as AI, released sentence by sentence; a setting to
+  attach the current outlook graphic for narration, shown on the storms
+  page beside the official graphic it interprets.
 - CLI `brief` and `ask`, sharing the same code path.
 
 **Acceptance criteria**
@@ -1169,7 +1219,7 @@ usage.
 | NOAA services (NHC, NWS), OpenStreetMap tiles, GIS archive   | $0 (public, keyless, within usage policies) |
 | GitHub Actions, Dependabot, PyPI, TestPyPI                   | $0 (public repository) |
 | ntfy (public server free tier or self-hosted)                | $0                  |
-| Claude Sonnet 5.5 at list price ($2 input, $10 output, $0.20 cache read per million tokens): assume a briefing of 8k input (3k cached) and 1.5k output, so about $0.03; an active-storm day of 4 briefings, 4 change summaries, and 10 chat turns about $0.50; a quiet month near $0 | $0–15 (peak month) |
+| Claude Sonnet 5.5 at list price ($2 input, $10 output, $2.50 five-minute cache write, $0.10 cache read per million tokens; read 2026-10-30): from the sizes measured for `phase06-roadmap.md`, a briefing is about 6,200 input and 1,500 output tokens, so about $0.03 ($0.05 at worst); a change summary about $0.01; a chat turn $0.02–0.035; an active-storm day of 4 briefings, 12 change summaries, and 10 chat turns $0.45–0.70; a quiet month near $0; the daily cap ($1.00 by default) bounds any month at $31 unless the operator allows more (each allowance raises only its own day) | $0–15 (peak month) |
 | **Total**                                                    | **$0–15**           |
 
 The Claude ledger (§5 "Operations & observability strategy") records
@@ -1654,7 +1704,7 @@ every row.
 |----------------------------------|------------------------------------------------------------------------|---------------------------------------------------|-----------------------------------------------------|
 | `weatherbot serve`               | `/api/health`: version, scheduler state, last successful fetch per source, Alembic head | `doctor`; the dashboard's staleness banner; the post-upgrade check | Toast and log entry after N consecutive fetch failures (N configurable, default 3, set in Phase 4) |
 | Scheduled `check --once` task    | Last successful run time in the heartbeat table                        | `status`, `doctor`, Task Scheduler history        | Dashboard banner and toast when older than twice the cadence |
-| Claude usage (metered)           | Per-call ledger versus the daily cap                                   | Settings page; `brief --cost`                     | The kill switch disables AI calls at the cap and the UI says so |
+| Claude usage (metered)           | Per-call ledger versus the daily cap; `/api/health`'s `ai` state       | Settings page; `brief --cost`; `doctor`'s `ai` check | The kill switch disables AI calls at the cap and the UI says so; three authentication failures mark AI unavailable |
 | Notification delivery            | Delivery result per notification row                                   | Notification log page; `notify test`              | A failed channel is shown in the log and in `doctor` |
 | CI and release workflows         | Workflow status on `main` and on tags                                  | GitHub Actions; the fresh-install smoke job       | GitHub's failure email to the operator              |
 
@@ -1686,7 +1736,7 @@ every row.
 | API or push token leaked                  | Rotate at the provider, set the new value, prove it with an authenticated round-trip (`brief`, `notify test`); search logs and the database for the old value |
 | Release regressed                         | Yank on PyPI, pin the previous version locally, publish a patch; record in `CHANGELOG.md`           |
 | Migration failed at start-up              | Restore the pre-migration database copy, downgrade the package, open a `fix/`                        |
-| Claude cap reached during a storm         | The UI says AI is paused; levels and notifications are unaffected; raise the cap deliberately in Settings if wanted |
+| Claude cap reached during a storm         | The UI says AI is paused; levels and notifications are unaffected; allow more for today in Settings, or raise `[ai] daily_cap_usd` deliberately |
 
 **Acceptance.** A phase that adds a runtime surface is not done until
 the surface's health signal and its alarm exist and have been seen to
