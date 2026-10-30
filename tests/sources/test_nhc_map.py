@@ -197,6 +197,24 @@ def test_the_advisory_wind_field_parses_without_idp_source() -> None:
     assert len(records) == FIELD_RADII
 
 
+def test_null_geometry_wind_radii_feature_is_skipped() -> None:
+    collection, provenance = _collection(TROPICAL_SUMMARY, "Forecast Wind Radii")
+    features = as_list(collection["features"])
+    full_count = len(features)
+    degenerate = as_object(features[0])
+    degenerate["geometry"] = None
+    props = as_object(degenerate["properties"])
+    for quad in ("ne", "se", "sw", "nw"):
+        props[quad] = 0
+    records = nhc_map.parse_wind_radii(
+        "Forecast Wind Radii",
+        collection,
+        provenance,
+        recorded_storms(),
+    )
+    assert len(records) == full_count - 1
+
+
 def test_arrival_lines_are_label_only_and_dated_by_the_roster() -> None:
     (earliest,) = _typed(ArrivalTimeProduct, TROPICAL_SUMMARY, EARLIEST)
     assert earliest.origin == "map_layer"

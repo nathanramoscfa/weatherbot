@@ -529,24 +529,24 @@ def parse_wind_radii(
             message = f"{fields.where}: 'radii' is not 34, 50, or 64"
             raise SourceSchemaError(source, message)
         with model_errors(source, fields.where):
+            payload = {
+                "atcf_id": storm.atcf_id,
+                "advisory": AdvisoryNumber.parse(fields.code("advnum")),
+                "provenance": provenance,
+                "threshold_kt": threshold,
+                "tau_h": 0 if is_field else fields.integer("tau"),
+                "valid_at": parse_synoptic_time(fields.code("validtime")),
+                "synoptic_at": parse_synoptic_time(fields.code("synoptime")),
+                "ne_extent_nmi": fields.integer("ne"),
+                "se_extent_nmi": fields.integer("se"),
+                "sw_extent_nmi": fields.integer("sw"),
+                "nw_extent_nmi": fields.integer("nw"),
+                "is_advisory_field": is_field,
+            }
+            if feature.get("geometry") is None:
+                continue
             radii.append(
-                WindRadii.model_validate(
-                    {
-                        "atcf_id": storm.atcf_id,
-                        "advisory": AdvisoryNumber.parse(fields.code("advnum")),
-                        "provenance": provenance,
-                        "threshold_kt": threshold,
-                        "tau_h": 0 if is_field else fields.integer("tau"),
-                        "valid_at": parse_synoptic_time(fields.code("validtime")),
-                        "synoptic_at": parse_synoptic_time(fields.code("synoptime")),
-                        "ne_extent_nmi": fields.integer("ne"),
-                        "se_extent_nmi": fields.integer("se"),
-                        "sw_extent_nmi": fields.integer("sw"),
-                        "nw_extent_nmi": fields.integer("nw"),
-                        "is_advisory_field": is_field,
-                        "geometry": _geometry(feature, fields),
-                    }
-                )
+                WindRadii.model_validate({**payload, "geometry": _geometry(feature, fields)})
             )
     return tuple(radii)
 

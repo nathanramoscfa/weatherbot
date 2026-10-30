@@ -5563,7 +5563,7 @@ conversation is new per phase-boundary hygiene.
 
 ## Step 8 — QA & Verification Script ✅
 
-**Status:** Complete — PR #72 (2026-10-29)
+**Status:** Complete — PR #72, #73 (2026-10-29)
 
 > **Goal:** Package the verification matrix into `scripts/verify_phase05.py`
 > (with `--fast`, `--py`, `--node`, `--ui`, `--live`, `--security`, `--all`, and
@@ -6522,7 +6522,7 @@ workflow above maps directly to the corresponding row below.
 | 5    | Dashboard + pages              | Gemini 4 Argon | Complete — PR #65  |
 | 6    | Map                            | Gemini 4 Argon | Complete — PR #66  |
 | 7    | Browser smoke + idle + deploy  | Gemini 4 Argon | Complete — PR #70  |
-| 8    | QA + verify_phase05.py         | GPT-6.1 Sol    | Complete — PR #72  |
+| 8    | QA + verify_phase05.py         | GPT-6.1 Sol    | Complete — PR #72, #73 |
 | V1   | Web server inside serve        | CI             | --                 |
 | V2   | Read API + map geometry        | CI             | --                 |
 | V3   | Events + browser + actions     | CI             | --                 |

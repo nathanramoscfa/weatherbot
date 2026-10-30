@@ -432,7 +432,10 @@ replay cache's `al052019_5day_036.zip` and `al052019_fcst_036.zip`):
   and `NE`, `SE`, `SW`, `NW` "the largest distance of wind speed in
   Nautical Miles" per quadrant, so `threshold_kt` and `ne_extent_nmi` …
   `nw_extent_nmi`. `SYNOPTIME` is the forecast cycle's 0000, 0600, 1200,
-  or 1800 UTC.
+  or 1800 UTC. When a storm weakens below a threshold and all four
+  quadrant extents are `0`, the feature carries `geometry: null` and
+  `parse_wind_radii` skips it after validating its fields (observed on
+  `EP222026` advisory 34, 2026-10-30).
 
 ### `tropical/NHC_tropical_weather_summary`
 

@@ -311,18 +311,16 @@ class MonitorSchedule:
 
     def _latest_levels_and_locations(self) -> tuple[int, list[Location]]:
         """Return the highest latest stored alert level and the US locations above level 1."""
-        max_level = 1
-        relevant_us: list[Location] = []
+        levels = AssessmentRepository(self._engine, now=self._clock).latest_levels()
+        max_level = max(levels.values(), default=1)
+        if max_level <= int(AlertLevel.ALL_CLEAR):
+            return max_level, []
         locations = LocationRepository(self._engine, now=self._clock).list()
-        assessments = AssessmentRepository(self._engine, now=self._clock)
-        for location in locations:
-            latest = assessments.latest(location.name)
-            if latest is None:
-                continue
-            level = int(latest.assessment.level)
-            max_level = max(max_level, level)
-            if level > int(AlertLevel.ALL_CLEAR) and location.nws is not None:
-                relevant_us.append(location)
+        relevant_us = [
+            location
+            for location in locations
+            if levels.get(location.name, 1) > int(AlertLevel.ALL_CLEAR) and location.nws is not None
+        ]
         return max_level, relevant_us
 
     def _clear_idle_alerts_cadence(self, now: datetime) -> None:
@@ -750,15 +748,8 @@ async def _sleep_or_stop(
 
 
 def _highest_stored_level(engine: Engine, clock: Callable[[], datetime]) -> int:
-    max_level = 1
-    locations = LocationRepository(engine, now=clock).list()
-    assessments = AssessmentRepository(engine, now=clock)
-    for location in locations:
-        latest = assessments.latest(location.name)
-        if latest is None:
-            continue
-        max_level = max(max_level, int(latest.assessment.level))
-    return max_level
+    levels = AssessmentRepository(engine, now=clock).latest_levels()
+    return max(levels.values(), default=1)
 
 
 def _quiet_holds_toast(

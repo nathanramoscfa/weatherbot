@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 5 Complete — 2026-10-29; PR #72; v2.0.0-phase-5. Phase 6 (Claude layer) is next.
+> **Status:** Phase 5 Complete — 2026-10-29; PR #72, #73; v2.0.0-phase-5. Phase 6 (Claude layer) is next.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is

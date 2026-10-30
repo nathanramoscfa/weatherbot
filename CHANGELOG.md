@@ -23,11 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     evidence, mutually exclusive mode flags, and single-deliverable red-check
     isolation across Steps 1–7.
   - `docs/phase05-qa-findings.md`: rollup of PR #56 and Steps 1–8 (PRs #61,
-    #62, #63, #64, #65, #66, #70, and #72), the 600 s idle CPU measurement
+    #62, #63, #64, #65, #66, #70, #72, and #73), the 600 s idle CPU measurement
     receipts (`server_cpu=0.4843%`, `tab_cpu=0.0020%`), the forward-geocoding
     UX finding (tracked in Issue #71 and Phase 7 §7.3), the seven exact Phase 5
     checks for Phase 6 (`2`, `4`, `14`, `17`, `19`, `25`, `47`), source-drift
-    observations, live smoke runs, and pre-ship items.
+    observations (including null-geometry `Forecast Wind Radii` / `Advisory Wind Field`
+    rows on weakening storms, fixed in `parse_wind_radii`), high-water mark query
+    optimizations in `CycleWatcher` and `MonitorSchedule`, live smoke runs, and
+    pre-ship items.
 - Add the Playwright browser smoke suite (`frontend/playwright.config.ts`,
   `frontend/e2e/{guard.ts,dashboard.spec.ts,map.spec.ts,screens.spec.ts,idle.spec.ts,blank-tile.png}`),
   the offline demonstration server (`scripts/serve_demo.py`,

@@ -28,6 +28,9 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Final, Literal, Self
 from uuid import UUID
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from weatherbot.services.health import STALE_AFTER_CADENCES
 from weatherbot.services.notifications import (
     Delivery,
@@ -40,9 +43,14 @@ from weatherbot.services.persistence.repositories import (
     CycleRepository,
     Heartbeat,
     HeartbeatRepository,
-    LocationRepository,
     MonitorCycle,
     StoredAssessment,
+)
+from weatherbot.services.persistence.tables import (
+    AssessmentRow,
+    LocationRow,
+    MonitorCycleRow,
+    NotificationRow,
 )
 
 if TYPE_CHECKING:
@@ -638,6 +646,9 @@ class _WatchedState:
     notifications: tuple[StoredNotification, ...]
     assessments: dict[str, StoredAssessment]
     locations: dict[str, tuple[bool, datetime | None]]
+    max_cycle_id: int = 0
+    max_notification_id: int = 0
+    latest_assessment_ids: dict[str, int] | None = None
 
 
 class CycleWatcher:
@@ -663,29 +674,88 @@ class CycleWatcher:
         self._locations: dict[str, tuple[bool, datetime | None]] = {}
 
     def _read_state(self) -> _WatchedState:
-        cycles = tuple(
-            cycle
-            for cycle in CycleRepository(self._engine).recent(25)
-            if cycle.completed_at is not None
-        )
-        notifications = NotificationService(self._engine).recent(25)
-        location_rows = LocationRepository(self._engine).list()
-        assessments_repo = AssessmentRepository(self._engine)
-        assessments: dict[str, StoredAssessment] = {}
-        locations: dict[str, tuple[bool, datetime | None]] = {}
-        for loc in location_rows:
-            locations[loc.name] = (
-                loc.evacuation_order_in_effect,
-                loc.evacuation_order_set_at,
+        with Session(self._engine) as session:
+            max_cycle_id = (
+                session.scalar(
+                    select(MonitorCycleRow.id)
+                    .where(MonitorCycleRow.completed_at.is_not(None))
+                    .order_by(MonitorCycleRow.id.desc())
+                    .limit(1)
+                )
+                or 0
             )
-            latest = assessments_repo.latest(loc.name)
-            if latest is not None:
-                assessments[loc.name] = latest
+            max_notif_id = (
+                session.scalar(
+                    select(NotificationRow.id).order_by(NotificationRow.id.desc()).limit(1)
+                )
+                or 0
+            )
+            loc_rows = session.execute(
+                select(
+                    LocationRow.id,
+                    LocationRow.name,
+                    LocationRow.evacuation_order_in_effect,
+                    LocationRow.evacuation_order_set_at,
+                ).order_by(LocationRow.name)
+            ).all()
+            latest_assessment_ids: dict[str, int] = {}
+            locations: dict[str, tuple[bool, datetime | None]] = {}
+            for loc_id, loc_name, evac_on, evac_at in loc_rows:
+                locations[loc_name] = (evac_on, evac_at)
+                latest_id = session.scalar(
+                    select(AssessmentRow.id)
+                    .where(AssessmentRow.location_id == loc_id)
+                    .order_by(AssessmentRow.as_of.desc(), AssessmentRow.id.desc())
+                    .limit(1)
+                )
+                if latest_id is not None:
+                    latest_assessment_ids[loc_name] = int(latest_id)
+
+        if not self._primed:
+            return _WatchedState(
+                cycles=(),
+                notifications=(),
+                assessments={},
+                locations=locations,
+                max_cycle_id=int(max_cycle_id),
+                max_notification_id=int(max_notif_id),
+                latest_assessment_ids=latest_assessment_ids,
+            )
+
+        cycles = (
+            tuple(
+                cycle
+                for cycle in CycleRepository(self._engine).recent(25)
+                if cycle.completed_at is not None
+            )
+            if max_cycle_id > self._cycle_id
+            else ()
+        )
+        notifications = (
+            NotificationService(self._engine).recent(25)
+            if max_notif_id > self._notification_id
+            else ()
+        )
+        assessments: dict[str, StoredAssessment] = {}
+        changed_locations = [
+            name
+            for name, latest_id in latest_assessment_ids.items()
+            if latest_id > self._assessment_ids.get(name, 0)
+        ]
+        if changed_locations:
+            assessments_repo = AssessmentRepository(self._engine)
+            for name in changed_locations:
+                latest = assessments_repo.latest(name)
+                if latest is not None:
+                    assessments[name] = latest
         return _WatchedState(
             cycles=cycles,
             notifications=notifications,
             assessments=assessments,
             locations=locations,
+            max_cycle_id=int(max_cycle_id),
+            max_notification_id=int(max_notif_id),
+            latest_assessment_ids=latest_assessment_ids,
         )
 
     async def poll(self) -> None:
@@ -707,11 +777,17 @@ class CycleWatcher:
 
     def _prime_state(self, state: _WatchedState) -> None:
         self._primed = True
-        self._cycle_id = max((c.id for c in state.cycles), default=0)
+        self._cycle_id = state.max_cycle_id or max((c.id for c in state.cycles), default=0)
         if self._cycle_id > 0:
             self._hub.seed_cycle_id(self._cycle_id)
-        self._notification_id = max((n.id for n in state.notifications), default=0)
-        self._assessment_ids = {name: item.id for name, item in state.assessments.items()}
+        self._notification_id = state.max_notification_id or max(
+            (n.id for n in state.notifications), default=0
+        )
+        self._assessment_ids = (
+            dict(state.latest_assessment_ids)
+            if state.latest_assessment_ids is not None
+            else {name: item.id for name, item in state.assessments.items()}
+        )
         self._locations = dict(state.locations)
         for name, loc_state in state.locations.items():
             self._hub.prime_location(name, loc_state)
