@@ -1217,6 +1217,24 @@ class AssessmentRepository:
             row = active.scalar(statement.limit(1))
             return _stored(active, row) if row is not None else None
 
+    def latest_levels(self) -> dict[str, int]:
+        """Return each stored location's latest stored alert level without decoding JSON."""
+        with Session(self._engine) as session:
+            loc_rows = session.execute(
+                select(LocationRow.id, LocationRow.name).order_by(LocationRow.name)
+            ).all()
+            levels: dict[str, int] = {}
+            for loc_id, loc_name in loc_rows:
+                level = session.scalar(
+                    select(AssessmentRow.level)
+                    .where(AssessmentRow.location_id == loc_id)
+                    .order_by(AssessmentRow.as_of.desc(), AssessmentRow.id.desc())
+                    .limit(1)
+                )
+                if level is not None:
+                    levels[loc_name] = int(level)
+            return levels
+
     def history(self, location_name: str, limit: int) -> tuple[StoredAssessment, ...]:
         """Return a location's stored assessments, newest first.
 
