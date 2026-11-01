@@ -1,5 +1,11 @@
 # src/weatherbot/web/routes/health.py
-"""``GET /api/health``: process, database, scheduler, heartbeat, and UI status."""
+"""``GET /api/health``: process, database, scheduler, heartbeat, UI, and AI status.
+
+The ``ai`` block comes from ``AiService.state()``, computed without a request: the state,
+the reason, and today's spend against the cap, never the credential. With no AI service
+(the demonstration server, the OpenAPI export), it reads ``off`` with the reason
+``disabled``.
+"""
 
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, cast
@@ -13,6 +19,7 @@ from weatherbot.services.persistence.database import current_revision, head_revi
 from weatherbot.services.persistence.repositories import HeartbeatRepository
 from weatherbot.services.schedule import PRODUCT_HOURS
 from weatherbot.web.schemas import (
+    AiHealth,
     DatabaseHealth,
     HealthResponse,
     HeartbeatHealth,
@@ -36,6 +43,20 @@ def next_product_hour(now: datetime) -> datetime:
         if candidate > utc_now:
             return candidate
     return base_day + timedelta(days=1)
+
+
+def ai_health(state: "WebState") -> AiHealth:
+    """Read the AI's state for the health document, without a request."""
+    if state.ai is None:
+        return AiHealth(state="off", reason="disabled", spent_micro_usd=0, cap_micro_usd=0)
+    current = state.ai.state()
+    today = current.today
+    return AiHealth(
+        state=current.state,
+        reason=current.reason,
+        spent_micro_usd=today.spent_micro_usd + today.reserved_micro_usd,
+        cap_micro_usd=today.limit_micro_usd,
+    )
 
 
 @router.get("/api/health")
@@ -97,5 +118,6 @@ def get_health(request: Request) -> HealthResponse:
         next_product_at=next_product_hour(now),
         ui=UiHealth(present=bundle.present, index_sha256=bundle.index_sha256),
         corpus=state.corpus is not None,
+        ai=ai_health(state),
         notice=NOTICE,
     )

@@ -29,6 +29,7 @@ classifiers = [
 keywords = ["hurricane", "NHC", "NWS", "NOAA", "weather", "tropical-cyclone"]
 dependencies = [
     "alembic>=1.20.0",
+    "anthropic>=2.3.0",
     "defusedxml>=0.7.1",
     "fastapi>=0.162.0",
     "httpx>=0.28.1",
@@ -66,6 +67,7 @@ source-include = ["DISCLAIMER.md"]
 [dependency-groups]
 dev = [
     "bandit>=1.9.4",
+    "httpx2>=2.16.0",
     "hypothesis>=6.170.2",
     "import-linter>=2.15",
     "jsonschema>=4.26.0",
@@ -131,9 +133,10 @@ include = ["src", "tests", "scripts"]
 # tests/scripts/ import the development scripts as top-level modules, tests/live/
 # reads the register through tests/contract/fixture_support.py, tests/services/
 # serves recorded answers through tests/sources/source_support.py, the service and
-# live tests run commands through tests/cli/cli_support.py, and tests/engine/ builds
-# the recorded snapshot through tests/services/snapshot_support.py.
-extraPaths = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services", "tests/engine"]
+# live tests run commands through tests/cli/cli_support.py, tests/engine/ builds
+# the recorded snapshot through tests/services/snapshot_support.py, and the AI tests
+# replay recorded Anthropic answers through tests/ai/ai_support.py.
+extraPaths = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services", "tests/engine", "tests/ai"]
 venvPath = "."
 venv = ".venv"
 
@@ -149,9 +152,10 @@ testpaths = ["tests"]
 # tests/scripts/ import the development scripts as top-level modules, tests/live/
 # reads the register through tests/contract/fixture_support.py, tests/services/
 # serves recorded answers through tests/sources/source_support.py, the service and
-# live tests run commands through tests/cli/cli_support.py, and tests/engine/ builds
-# the recorded snapshot through tests/services/snapshot_support.py.
-pythonpath = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services", "tests/engine"]
+# live tests run commands through tests/cli/cli_support.py, tests/engine/ builds
+# the recorded snapshot through tests/services/snapshot_support.py, and the AI tests
+# replay recorded Anthropic answers through tests/ai/ai_support.py.
+pythonpath = ["scripts", "tests/contract", "tests/sources", "tests/cli", "tests/services", "tests/engine", "tests/ai"]
 # `--allow-hosts`, not `--disable-socket`: asyncio on Windows opens a loopback
 # socket pair that `--disable-socket` would block. Selecting `-m live` does
 # not lift the guard, so every `live` test also carries pytest-socket's
@@ -205,4 +209,38 @@ source_modules = [
 forbidden_modules = ["sqlalchemy", "alembic"]
 # The CLI and the web app reach the database through weatherbot.services, an indirect
 # import this contract allows; a direct import from any of these layers breaks it.
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Only the AI service talks to Anthropic"
+type = "forbidden"
+source_modules = [
+    "weatherbot.models",
+    "weatherbot.sources",
+    "weatherbot.engine",
+    "weatherbot.web",
+    "weatherbot.cli",
+]
+forbidden_modules = ["anthropic", "httpx2"]
+# The web app and the CLI reach Claude through weatherbot.services.ai, an indirect import
+# this contract allows; tests/test_architecture.py also fails on any other services module
+# that imports either library.
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "The AI service never fetches or writes the official records"
+type = "forbidden"
+source_modules = ["weatherbot.services.ai"]
+forbidden_modules = [
+    "weatherbot.sources",
+    "httpx",
+    "weatherbot.services.monitor",
+    "weatherbot.services.schedule",
+    "weatherbot.services.scheduler",
+    "weatherbot.services.snapshots",
+    "weatherbot.services.assessments",
+    "weatherbot.services.locations",
+    "weatherbot.services.notifications",
+    "weatherbot.services.network",
+]
 allow_indirect_imports = true

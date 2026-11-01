@@ -41,15 +41,21 @@ SHARED_GEOMETRY_TABLES = {"geometry_contents", "snapshot_provenances", "snapshot
 MONITOR_TABLES = {"heartbeats", "monitor_cycles"}
 # Revision 0006, Phase 4 Step 3: notifications, decisions, and channel deliveries.
 NOTIFICATION_TABLES = {"notifications", "notification_decisions", "notification_deliveries"}
-LATER_PHASES = ("briefing", "ledger")
+# Revision 0007, Phase 6 Step 1: the Claude ledger.
+LEDGER_TABLES = {"ai_calls"}
 EASTERN = timezone(timedelta(hours=-4))
 
 
-def test_the_tables_are_phase_3s_the_shared_geometry_and_the_monitor_tables() -> None:
+def test_the_tables_are_phase_3s_the_shared_geometry_the_monitor_and_the_ledger_tables() -> None:
     names = set(Base.metadata.tables)
 
-    assert names == PHASE_3_TABLES | SHARED_GEOMETRY_TABLES | MONITOR_TABLES | NOTIFICATION_TABLES
-    assert not [name for name in names for word in LATER_PHASES if word in name]
+    assert names == (
+        PHASE_3_TABLES
+        | SHARED_GEOMETRY_TABLES
+        | MONITOR_TABLES
+        | NOTIFICATION_TABLES
+        | LEDGER_TABLES
+    )
 
 
 def test_every_constraint_has_a_stable_name() -> None:

@@ -3,16 +3,21 @@
 
 ``configure_logging`` installs one standard-error handler on the root logger with the
 Step 2 ``RedactingFilter``, so a record from any logger, httpx's included, names no
-request coordinate above DEBUG. httpx and httpcore log each request's full URL at INFO,
-and Alembic its migration chatter, so they stay at WARNING unless the level is DEBUG.
-``collect_drift`` gathers the Source-drift warnings a fetch logs
-(``weatherbot.sources.drift``) for the snapshot.
+request coordinate above DEBUG, and with ``SecretFilter``, so no record at any level
+carries an Anthropic key shape, an ``Authorization`` or ``X-Api-Key`` value, or the value
+after ``ANTHROPIC_API_KEY=``; ``RedactingFormatter`` applies both to tracebacks. httpx and
+httpcore log each request's full URL at INFO, and Alembic its migration chatter, so they
+stay at WARNING unless the level is DEBUG. The Anthropic SDK logs each request's whole
+options, the prompt and the question included, at DEBUG, so ``anthropic``, ``httpx2``,
+and ``httpcore2`` stay at WARNING at every level, DEBUG included. ``collect_drift`` gathers
+the Source-drift warnings a fetch logs (``weatherbot.sources.drift``) for the snapshot.
 """
 
 import atexit
 import io
 import logging
 import os
+import re
 import sys
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -26,7 +31,7 @@ from weatherbot.services.config import ensure_directory
 from weatherbot.services.persistence.repositories import DriftWarning
 from weatherbot.sources.drift import DRIFT_ATTRIBUTE
 from weatherbot.sources.http import LOGGER as SOURCES_LOGGER
-from weatherbot.sources.http import RedactingFilter, redact_text
+from weatherbot.sources.http import REDACTED, RedactingFilter, redact_text
 
 if TYPE_CHECKING:
     from weatherbot.models import SourceId
@@ -48,8 +53,48 @@ QUIET_LIBRARIES: Final = (
     "uvicorn.access",
 )
 """Libraries that log request URLs or migration chatter at INFO: WARNING unless DEBUG."""
+SILENT_LIBRARIES: Final = ("anthropic", "httpx2", "httpcore2")
+"""The Anthropic SDK and its HTTP stack, which log whole requests at DEBUG: always WARNING."""
+# The key's prefix is assembled, so this file holds no key-shaped string for the scans.
+_KEY_SHAPE: Final = re.compile(re.escape("sk" + "-" + "ant" + "-") + r"[A-Za-z0-9_\-]+")
+_HEADER_VALUE: Final = re.compile(
+    r"(\b(?:authorization|x-api-key)\b[\"']?\s*[:=]\s*[\"']?)(?:bearer\s+)?[^\s\"',;}]+",
+    re.IGNORECASE,
+)
+_KEY_ASSIGNMENT: Final = re.compile(
+    r"(\bANTHROPIC_API_KEY\s*=\s*[\"']?)[^\s\"',;}]+", re.IGNORECASE
+)
 
 _DEVNULL_HOLDERS: list[TextIO] = []
+
+
+def redact_secrets(text: str) -> str:
+    """Redact every credential a text may carry: a key shape and an authorization value.
+
+    Args:
+        text: A log message or a formatted traceback.
+
+    Returns:
+        The text with an Anthropic key shape, the value after ``Authorization:`` or
+        ``X-Api-Key:`` (any case, with or without ``Bearer``), and the value after
+        ``ANTHROPIC_API_KEY=`` replaced by ``<redacted>``.
+    """
+    text = _KEY_SHAPE.sub(REDACTED, text)
+    text = _HEADER_VALUE.sub(rf"\g<1>{REDACTED}", text)
+    return _KEY_ASSIGNMENT.sub(rf"\g<1>{REDACTED}", text)
+
+
+class SecretFilter(logging.Filter):
+    """A handler filter that redacts credentials from every record, at every level."""
+
+    @override
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        redacted = redact_secrets(message)
+        if redacted != message:
+            record.msg = redacted
+            record.args = None
+        return True
 
 
 class RedactingFormatter(logging.Formatter):
@@ -57,15 +102,15 @@ class RedactingFormatter(logging.Formatter):
 
     @override
     def formatException(self, ei: _ExcInfo) -> str:
-        return redact_text(super().formatException(ei))
+        return redact_secrets(redact_text(super().formatException(ei)))
 
     @override
     def format(self, record: logging.LogRecord) -> str:
         if record.exc_text is not None:
-            record.exc_text = redact_text(record.exc_text)
+            record.exc_text = redact_secrets(redact_text(record.exc_text))
         formatted = super().format(record)
         if record.exc_text is not None:
-            record.exc_text = redact_text(record.exc_text)
+            record.exc_text = redact_secrets(redact_text(record.exc_text))
         return formatted
 
 
@@ -90,6 +135,7 @@ class StandardErrorHandler(logging.Handler):
         """Create the handler with the redaction filter and the format."""
         super().__init__()
         self.addFilter(RedactingFilter())
+        self.addFilter(SecretFilter())
         self.setFormatter(RedactingFormatter(FORMAT))
 
     @override
@@ -166,15 +212,22 @@ def configure_logging(level: str, *, log_file: Path | None = None) -> None:
             encoding="utf-8",
         )
         file_handler.addFilter(RedactingFilter())
+        file_handler.addFilter(SecretFilter())
         file_handler.setFormatter(UtcFormatter(FILE_FORMAT))
         file_handler.setLevel(level)
         root.addHandler(file_handler)
 
     root.setLevel(level)
+    _set_library_levels(level)
+
+
+def _set_library_levels(level: str) -> None:
     quiet = logging.DEBUG if level == "DEBUG" else logging.WARNING
-    for name in QUIET_LIBRARIES:
+    levels = [(name, quiet) for name in QUIET_LIBRARIES]
+    levels += [(name, logging.WARNING) for name in SILENT_LIBRARIES]
+    for name, library_level in levels:
         lib_logger = logging.getLogger(name)
-        lib_logger.setLevel(quiet)
+        lib_logger.setLevel(library_level)
         lib_logger.propagate = True
 
 

@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Final, cast
+from typing import TYPE_CHECKING, Final, cast
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError, ResponseValidationError
@@ -39,6 +39,9 @@ from weatherbot.web.routes.storms import router as storms_router
 from weatherbot.web.routes.timeline import router as timeline_router
 from weatherbot.web.static_files import install_static_routes, load_static_bundle
 
+if TYPE_CHECKING:
+    from weatherbot.services.ai.service import AiService
+
 LOGGER: Final = logging.getLogger("weatherbot.web.app")
 
 
@@ -69,6 +72,8 @@ class WebState:
     channels: tuple[Channel, ...] = ()
     network: Network = field(default_factory=Network)
     request_cycle: Callable[[], Awaitable[CycleResult]] | None = None
+    ai: "AiService | None" = None
+    """The AI service ``serve`` built; ``None`` reads as AI off (``disabled``)."""
     _actions: _ActionState = field(default_factory=_ActionState, repr=False, compare=False)
 
     def __post_init__(self) -> None:

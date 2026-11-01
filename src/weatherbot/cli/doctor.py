@@ -214,6 +214,9 @@ def doctor(
                 interpreter=context.runtime.interpreter,
                 which=context.runtime.which,
                 web_settings=context.settings.web,
+                ai_settings=context.settings.ai,
+                claude_factory=context.runtime.make_claude,
+                environ=env,
             )
         )
     data = _data(context, report, offline=offline)

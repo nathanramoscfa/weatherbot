@@ -333,6 +333,30 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * AiHealth
+         * @description The AI's state and today's spend: never a credential, a prompt, or an answer.
+         */
+        AiHealth: {
+            /** @description off, ready, paused, capped, or unavailable; computed without a request. */
+            state: components["schemas"]["AiStateName"];
+            /** @description Why AI is not ready (for example no_credential or capped); null when ready. */
+            reason: components["schemas"]["AiUnavailableReason"] | null;
+            /**
+             * Spent Micro Usd
+             * @description Today's settled AI cost and open reservations, in micro-dollars.
+             */
+            spent_micro_usd: number;
+            /**
+             * Cap Micro Usd
+             * @description Today's limit: the daily cap plus any allowances, in micro-dollars.
+             */
+            cap_micro_usd: number;
+        };
+        /** @enum {string} */
+        AiStateName: "off" | "ready" | "paused" | "capped" | "unavailable";
+        /** @enum {string} */
+        AiUnavailableReason: "disabled" | "no_credential" | "price_unknown" | "paused" | "capped" | "busy" | "auth_failed" | "permission" | "not_found" | "rate_limited" | "overloaded" | "server_error" | "timeout" | "network" | "bad_request" | "too_large" | "declined" | "truncated";
+        /**
          * AlertCertainty
          * @description An alert's CAP ``certainty``.
          */
@@ -1060,6 +1084,8 @@ export interface components {
              * @description Whether a replay corpus is configured and available for historical map replay.
              */
             corpus: boolean;
+            /** @description The AI's state and today's spend against its cap. */
+            ai: components["schemas"]["AiHealth"];
             /**
              * Notice
              * @description One-line informational-only disclaimer notice.

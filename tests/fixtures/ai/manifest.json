@@ -1,0 +1,18 @@
+[
+  {
+    "case": "round-trip",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "80741415795b287b5c52125ff22356cf8a5974af5723f65fdfe73dac81a790c6",
+    "bytes": 564
+  },
+  {
+    "case": "round-trip-stream",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "f2ac1b7bcf93c69978954d9ceeea223d82700b30219e9b627079c392b33f8625",
+    "bytes": 1414
+  }
+]
