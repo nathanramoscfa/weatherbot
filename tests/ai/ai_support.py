@@ -425,6 +425,21 @@ def chunked_stream(  # noqa: PLR0913 - a stream's shape, keyword-only
     return "".join(f"event: {name}\ndata: {json.dumps(data)}\n\n" for name, data in events)
 
 
+_RECORDED: list[RecordedSnapshot] = []
+"""The recorded snapshot, built once per process: its models are frozen, so tests share it."""
+
+
+async def shared_recorded_snapshot() -> RecordedSnapshot:
+    """Build the recorded snapshot once per process and share it.
+
+    Returns:
+        The recorded snapshot, its location, and its answers.
+    """
+    if not _RECORDED:
+        _RECORDED.append(await recorded_snapshot())
+    return _RECORDED[0]
+
+
 async def stored_recorded(database: Database) -> tuple[RecordedSnapshot, StoredAssessment]:
     """Store the Miami-Dade landmark, the recorded snapshot, and its first assessment.
 
@@ -434,7 +449,7 @@ async def stored_recorded(database: Database) -> tuple[RecordedSnapshot, StoredA
     Returns:
         The recorded snapshot and the stored assessment.
     """
-    recorded = await recorded_snapshot()
+    recorded = await shared_recorded_snapshot()
     LocationRepository(database.engine).add(recorded.location)
     SnapshotRepository(database.engine).save(recorded.snapshot, recorded.responses)
     assessment = assess(recorded.snapshot, recorded.location, Thresholds())
