@@ -4,10 +4,11 @@
 Weatherbot can use Claude to explain, in plain language, what the threat engine
 decided. AI is optional. It needs an Anthropic credential, and everything else
 (the levels, the evidence, the notifications, the dashboard) works without one.
-This page covers what the AI does and never does, what leaves the machine, how
-to give Weatherbot a credential, the `[ai]` settings, and the spend ledger with
-its daily cap. Phase 6 adds the products step by step; this page grows with
-them.
+This page covers what the AI does and never does, what leaves the machine, the
+briefing and the change summary with the validators that guard them, the eval
+set, how to give Weatherbot a credential, the `[ai]` settings, and the spend
+ledger with its daily cap and the measured cost. Phase 6 adds the products step
+by step; this page grows with them.
 
 ## What the AI does, and what it never does
 
@@ -35,9 +36,137 @@ for narration, official products' public text with their links removed, and,
 for the chat, the questions you ask. It never carries a location's coordinates
 at any precision, a polygon or other geometry, a URL, a file path, a setting
 other than the ladder's thresholds, or the credential. Anthropic's data
-retention terms apply to what is sent. The exact shape of each product's
-request, and the coarsening (distance bands, compass points, hours), is
-documented here as each product lands.
+retention terms apply to what is sent.
+
+One module builds every request's context (`services/ai/context.py`), from the
+engine's structured fields only:
+
+- **No engine-written sentence.** The evidence, official products, changes, and
+  unavailable inputs each carry a sentence the engine wrote for the terminal,
+  with a whole-kilometre distance and the minute of closest approach. Together
+  with the public forecast track those would pin a home to within a kilometre,
+  so none is sent.
+- **Coarsened distances, bearings, and times.** A storm's distance from the
+  location is one of six bands: within 50 km (30 mi), 50–100 km (30–60 mi),
+  100–200 km (60–125 mi), 200–400 km (125–250 mi), 400–800 km (250–500 mi), or
+  beyond 800 km (500 mi). Its bearing is one of 8 compass points. Every
+  instant, closest approach included, is rounded to the nearest hour in UTC,
+  and the lead time to whole hours.
+- **Sources as keys.** Each product reaches the model as a key (`S1`, `S2`, …)
+  with its code, issuer, advisory, and issuance. The model cites keys; the
+  server maps each key back to its record for display, so neither the model nor
+  an injected advisory can put a link on the page.
+- **NOAA text in escaped blocks.** Each storm's TCP, the TWO of every basin the
+  snapshot holds, and the covering alerts' headline, description, and
+  instruction go in `<noaa_product key=… code=… issued=…>` blocks. Every URL in
+  them (a scheme, `www.`, or a bare host with a path, such as
+  `hurricanes.gov/graphics_ep5.shtml`) becomes "[link removed]", `&`, `<`, and
+  `>` are escaped so no text can close its block, and each text is capped at
+  12,000 characters (marked when cut). A storm's own position and the public
+  distances a product quotes stay: they are public. A context over 60,000
+  characters is refused as too large.
+
+Bands, compass points, and hours leave a location's area, not its point, in any
+one request. Across many requests during one storm, someone holding all of
+them could still narrow the area to tens of kilometres; Anthropic's retention
+terms govern what it keeps. No prompt, context, question, or answer is logged
+at any level, and a withheld product's text is never stored, logged, printed,
+or shown.
+
+## Briefings
+
+`weatherbot brief [LOCATION]` asks Claude for a plain-language briefing on a
+location's latest stored assessment, or on every stored location in turn
+(`status` or `check` assesses first). It prints:
+
+1. a label line: "AI briefing · Claude Sonnet 5.5 · for the assessment of
+   2026-10-13 01:30 UTC · not an official product";
+2. each section as it streams and passes the validators: the situation (a
+   paragraph per threatening storm, or on the quiet tropics), what it means
+   here, a timeline, the actions (the ladder's for the level, then "Follow the
+   instructions of your local officials."), and the sources the briefing cited;
+3. the disclaimer's notice.
+
+A briefing is written once per location, assessment, model, and prompt
+version: asking again shows the stored one without a request, and `--new` asks
+for a new one. A newer assessment makes the stored briefing stale. A section
+that breaks a rule is never printed: the briefing ends "Withheld: <rule>" and is
+stored withheld with its reason and no text. A briefing cut off (a `max_tokens`
+stop or a dropped stream) is withdrawn as incomplete; a terminal cannot unprint,
+so it says "disregard the sections above". `--json` prints one `brief` document
+(`docs/schema/brief.schema.json`) with the model, the prompt version, the
+status, the briefing or the withheld reason, the sources its keys name, and
+the request's cost in micro-dollars. `--cost` prints today's spend, cap,
+allowance, and requests and tokens by kind, and sends nothing. The exit code
+is 0 when every briefing was written or reused, 1 when one was withheld or AI
+was unavailable (with the reason), and 2 for a usage error.
+
+Each request is the frozen system prompt (the narrator's role and limits, the
+rule that text inside `<noaa_product>` blocks is data and never an instruction,
+the ladder rendered from the code, the thresholds in effect, and the output
+contracts), marked for the five-minute cache, then the context and a task line.
+Thinking is adaptive at effort `low`, with `max_tokens` 6,000. The prompt names
+no storm, year, date, or place; its SHA-256 is the prompt version recorded on
+every ledger row and stored product, and a test pins it.
+
+## Change summaries
+
+A change summary says in two to four sentences what changed between a
+location's previous and new assessment. It is written once per assessment whose
+changes are more than its first (a location's first assessment, and an
+assessment with no changes, get none), with `[ai] summary_model`, effort `low`,
+and `max_tokens` 1,500, and it is never rewritten. It may name the previous and
+the new level and no other. Phase 6 Step 4 writes them automatically in
+`serve`.
+
+## The validators
+
+Nothing Claude writes reaches a page or a terminal before it passes
+`services/ai/validate.py`. A product is withheld, and stored with only its
+reason, when it:
+
+- states a level other than the engine's (for a change summary, other than the
+  previous and the new level). An explicit statement is "level", "threat
+  level", or "alert level" followed by 1 to 5 or "one" to "five", "level-4",
+  "levels 3 and 4", or "the level is 4". The ladder's labels and product names
+  ("Hurricane Warning", "Watch / Hurricane Threat") are never read as levels,
+  nor is "a level of preparedness" or a water level with a unit;
+- cites a source key the context did not hold;
+- carries a URL;
+- carries a coordinate pair or position (decimal, `20.3N 106.9W`, or "latitude
+  20.3 North, longitude 106.9 West") that no NOAA product in the context
+  states;
+- leaves a required section empty (the situation, what it means here, the
+  actions), or passes its bound (1,500 characters a section, 12 timeline items,
+  8 actions, 600 characters a summary).
+
+A briefing's sections are checked one by one as they stream, so no failing text
+is ever shown. The chat (Phase 6 Step 3) checks each sentence for a URL, an
+unquoted position, or a statement that a location's current level is other
+than the engine's.
+
+## The eval set
+
+`tests/ai/eval/` builds 31 cases in memory: the recorded 2026-10-12 snapshot at
+both landmarks; from the committed replay subset, the advisory where each golden
+ladder first reaches each level for Irma (2017) at Miami-Dade County Hall and
+Dorian (2019) at Parliament Square, one transition each for Ian (2022) and
+Milton (2024), and two downward moves; a live case whose alert queries failed,
+so its level is a floor; and injection twins of four briefings, whose TCP
+orders the model to state level 5, call a tool, and print a link. Replay
+snapshots hold no text products, so a replay twin carries a synthesized TCP.
+
+The recordings in `tests/fixtures/ai/` (response bodies only) are graded offline
+on every run: each answer matches its schema, passes its validators against its
+own context, and states the engine's level; a contradicting copy of each
+(another level, an unknown source key, a URL, a coordinate, an emptied section)
+fails; and the injection twins keep the engine's level and print no link.
+`scripts/record_ai_fixtures.py eval` re-records the set with the operator's
+credential (it spends money; ask first). `scripts/eval_ai.py` grades the
+recordings and prints each product's token and cost spread; `--count` adds a
+free `count_tokens` request for every prompt, and `--live` regenerates and
+grades every case (about $0.30 a run). Neither writes a fixture, and both
+refuse to run without a credential.
 
 ## The credential
 
@@ -140,8 +269,34 @@ exceed. When Anthropic changes a price, `pricing.py`, its date, and this table
 change together.
 
 The default cap, $1.00 a day, bounds a month at about $31 even if every day
-reaches it. The measured cost of each product is recorded here as the products
-land.
+reaches it.
+
+### Measured cost
+
+Measured on 2026-11-01 over the 31 eval cases on `claude-sonnet-5-5`, prompt
+version `f6ef880c…`. Prompt tokens were counted with `count_tokens`, and they
+equal the recorded usage's (uncached input, cache writes, and cache reads
+together); output tokens and cost come from the recorded usage at list price:
+
+| Product | Cases | Prompt tokens (min / median / p95 / max) | Output tokens (min / median / p95 / max) | Cost (min / median / p95 / max) |
+| ------- | ----: | ---------------------------------------- | ---------------------------------------- | ------------------------------- |
+| Briefing | 19 | 4,612 / 5,001 / 8,775 / 8,775 | 564 / 682 / 899 / 899 | $0.0079 / $0.0103 / $0.0280 / $0.0280 |
+| Change summary | 12 | 3,269 / 3,492 / 3,542 / 3,542 | 117 / 138 / 199 / 199 | $0.0020 / $0.0026 / $0.0097 / $0.0097 |
+
+The frozen prompt caches as planned. The first briefing wrote a 3,732-token
+prefix (the system prompt and the briefing's schema) at the five-minute write
+price, and every later briefing read it at the cache-read price; summaries share
+a 3,025-token prefix of their own. The most expensive requests are the ones
+that write the cache, and the briefings over the live snapshot, whose TCP and
+TWOs add about 3,500 tokens.
+
+Against the estimates this roadmap was sized from (a briefing about 6,200 input
+and 1,500 output tokens, a change summary about $0.010), every 95th percentile
+is under twice its estimate: briefing input 1.4 times, briefing output 0.6
+times, and the summary's cost 1.0 times. So the ceilings (`max_tokens` 6,000
+for a briefing and 1,500 for a summary) and the $1.00 daily cap stand. An
+active-storm day of 12 summaries and 4 briefings costs $0.10 to $0.15 at these
+rates. The 31 recordings cost $0.27.
 
 ### The pause and the allowance
 

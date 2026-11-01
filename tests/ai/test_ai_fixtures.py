@@ -6,7 +6,7 @@ import re
 
 from ai_support import FIXTURES, HEADER_NAMES
 
-from record_ai_fixtures import BUDGET_BYTES, CASES, MANIFEST
+from record_ai_fixtures import BUDGET_BYTES, MANIFEST, all_cases
 
 # Assembled at run time, so this file holds no key-shaped string for the scans.
 KEY_SHAPE = re.compile(re.escape("sk" + "-" + "ant" + "-") + r"[A-Za-z0-9_\-]{8,}")
@@ -33,6 +33,7 @@ def test_the_directory_stays_under_its_budget() -> None:
 
 def test_the_manifest_names_every_recording_with_its_size() -> None:
     files = _recordings()
+    cases = all_cases()
     manifest = json.loads(files.pop(MANIFEST))
     by_file = {
         f"{entry['case']}.{'sse' if entry['kind'] == 'stream' else 'json'}": entry
@@ -44,8 +45,8 @@ def test_the_manifest_names_every_recording_with_its_size() -> None:
         assert set(entry) == {"case", "kind", "model", "date", "request_sha256", "bytes"}
         assert entry["bytes"] == len(files[name])
         assert SHA256.fullmatch(entry["request_sha256"])
-        assert entry["case"] in CASES
-        assert entry["kind"] == CASES[entry["case"]].kind
+        assert entry["case"] in cases
+        assert entry["kind"] == cases[entry["case"]].kind
 
 
 def test_the_round_trips_were_recorded() -> None:

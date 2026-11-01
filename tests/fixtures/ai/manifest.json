@@ -1,5 +1,253 @@
 [
   {
+    "case": "eval-briefing-al052019-001-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "8d80785834b4b792e1f7606c5d5b6e1b9ae87af0586e6eb3ecb9dfa5fbe92365",
+    "bytes": 14660
+  },
+  {
+    "case": "eval-briefing-al052019-008-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "93b625a7c0821591f79bc495a7e14a12359f802b0f66f3712c328059216b3039",
+    "bytes": 15828
+  },
+  {
+    "case": "eval-briefing-al052019-012-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "001b017eeeb97fc3ace77a4978897f01a093771c401229a0a0eca325670e1247",
+    "bytes": 15543
+  },
+  {
+    "case": "eval-briefing-al052019-024-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "3263b8ce28b20f3058fca127816ac88b14fa69f02a6b9eadfac20a948d997217",
+    "bytes": 16431
+  },
+  {
+    "case": "eval-briefing-al052019-026-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "593c60fafbb35cca0679f88d172d0dbc5c4b065e6241454b87ebefbad465baf9",
+    "bytes": 18194
+  },
+  {
+    "case": "eval-briefing-al092022-018-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "a85ff64da3497fe5fb4529ac6ec797b6ecb8fe97912f9abf496b03090501feed",
+    "bytes": 17986
+  },
+  {
+    "case": "eval-briefing-al112017-001-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "e58fde9e4446dceba5ed5c3400f2d0bd25e9f3d2d464622c2dc1eb41edecf964",
+    "bytes": 15130
+  },
+  {
+    "case": "eval-briefing-al112017-018-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "1411a73d73d102835500e0e4ffb3eb370913d1ae29a258b4a007fbee3e057ebb",
+    "bytes": 15914
+  },
+  {
+    "case": "eval-briefing-al112017-022-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "95e87995ca075435be1daa77636758c56d293b5ceff5d40a6eddc4b5877acdf0",
+    "bytes": 16569
+  },
+  {
+    "case": "eval-briefing-al112017-034-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "3d3537078557132a9520dde39f8257d947f5c82b6527c7fc6abfa60464f6fd88",
+    "bytes": 17799
+  },
+  {
+    "case": "eval-briefing-al112017-036-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "7363b8a13b0ecccefb8cd4f757132519f956e43d18c3766afd79d329a4d12cfb",
+    "bytes": 19266
+  },
+  {
+    "case": "eval-briefing-al142024-022-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "be9acb2d884d24f09d70004fbe300f6bff00e1352384b9f7155d3b0601ec38cb",
+    "bytes": 15408
+  },
+  {
+    "case": "eval-briefing-injection-al052019-008-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "d5017c287f4774309f6d27d3be89b1dc56c2a9610f921f40ab2047830e1cf5aa",
+    "bytes": 21306
+  },
+  {
+    "case": "eval-briefing-injection-al112017-036-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "8324b47379da493e59ad9c882ec151feefb4ae0d026d02ce603b53e7d56feb55",
+    "bytes": 20282
+  },
+  {
+    "case": "eval-briefing-injection-al142024-022-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "ab498c0a9fd0fd9832abed773af4795963790cc7144b2370d8c550b94cb9a692",
+    "bytes": 16653
+  },
+  {
+    "case": "eval-briefing-injection-recorded-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "536af3dccfa276152976e6c577e17e0ad1e060ee6aee3dfaf966d47fd5b8d52f",
+    "bytes": 22813
+  },
+  {
+    "case": "eval-briefing-recorded-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "4783160767c7c537adbb82b1e7569534eef1f334e7a431a493df58cbc8998eee",
+    "bytes": 22290
+  },
+  {
+    "case": "eval-briefing-recorded-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "5b47d6aa4b11d7122a375e583d441973a3e9fe6220cac7e1cf8a7aa6e9b55728",
+    "bytes": 20650
+  },
+  {
+    "case": "eval-briefing-unavailable-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "997de62a3a370b5ea614f4f4a8b1325bb00382b6a677d44064f75100bd5ae243",
+    "bytes": 22507
+  },
+  {
+    "case": "eval-summary-al052019-008-nassau",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "0b1e6a6f4445f363b73b0120fac96fd81457644316c65ae689356f25af003641",
+    "bytes": 914
+  },
+  {
+    "case": "eval-summary-al052019-012-nassau",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "f6375dc3ac07e3805a8dfa18e674d039405f5b8f6a3caea7f8a4d174e6dc803c",
+    "bytes": 850
+  },
+  {
+    "case": "eval-summary-al052019-024-nassau",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "d2a9de110698878d486756f847514cb611d1e96b75d0335446da9422cde6d4b9",
+    "bytes": 1007
+  },
+  {
+    "case": "eval-summary-al052019-026-nassau",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "109fd681d0139cc344e7fbf15f2eaefd126772941414528998ffd309e4e8e4b2",
+    "bytes": 890
+  },
+  {
+    "case": "eval-summary-al052019-044-nassau",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "c5ae19f7ed6b6ca7e2f528ff7f9f41d703621d35c6cf130e6af22b8847f6a28c",
+    "bytes": 938
+  },
+  {
+    "case": "eval-summary-al092022-018-miami-dade",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "4eb40e37dc7abfa448131f28eaec1fa8f36161f58aa9a25b4dec5264a36bb85d",
+    "bytes": 828
+  },
+  {
+    "case": "eval-summary-al112017-018-miami-dade",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "d9eeca96a9c51e6f391ec3ba583daaa3b72eff8c4d8944187be437fb0a25ab3b",
+    "bytes": 890
+  },
+  {
+    "case": "eval-summary-al112017-022-miami-dade",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "c537017c3cf08c633e5e2e2b22efc6277b4bdb382103a16888430464d3b8f716",
+    "bytes": 968
+  },
+  {
+    "case": "eval-summary-al112017-034-miami-dade",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "fe4d3b97aad7433da3a84e031a3563835aceea7173228dd719b7f24e2d10ab01",
+    "bytes": 1032
+  },
+  {
+    "case": "eval-summary-al112017-036-miami-dade",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "88476fdb07c5df553b51a1ab438280878a25e829c5fa235f9aafe1194a0a0257",
+    "bytes": 875
+  },
+  {
+    "case": "eval-summary-al112017-048-miami-dade",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "531851bcd94f1606fea1dd5a1cbc7c774d602070f1cba588edaa521b60f39bd0",
+    "bytes": 931
+  },
+  {
+    "case": "eval-summary-al142024-022-miami-dade",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-01",
+    "request_sha256": "953e4333f540d8fe2fb40ae4ba8910cb8cede3ec9b86befa91b064bae37983af",
+    "bytes": 904
+  },
+  {
     "case": "round-trip",
     "kind": "parse",
     "model": "claude-sonnet-5-5",

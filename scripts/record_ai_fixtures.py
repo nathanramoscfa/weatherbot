@@ -6,6 +6,9 @@ with the request body ``AiCaller`` would send, checks that the answer validates,
 writes the response body exactly as received, ``<case>.json`` for a message or
 ``<case>.sse`` for the raw event stream, into ``tests/fixtures/ai/``, with
 ``manifest.json`` naming each case's kind, model, date, request body SHA-256, and size.
+The cases are the round trips and the eval set (``tests/ai/eval/cases.py``): every
+briefing case records as a stream and every change summary as a message, with the same
+request body the services send; ``eval`` names them all.
 Nothing else is kept: never a request or response header, so never the credential or the
 ``anthropic-organization-id``. It refuses to overwrite a recording without ``--force``,
 prints each recording's cost from its usage at list price, and writes nothing when the
@@ -16,6 +19,7 @@ Usage::
 
     uv run python scripts/record_ai_fixtures.py --list
     uv run python scripts/record_ai_fixtures.py round-trip round-trip-stream
+    uv run python scripts/record_ai_fixtures.py eval
     uv run python scripts/record_ai_fixtures.py --force round-trip
 """
 
@@ -35,9 +39,24 @@ import httpx2
 from pydantic import BaseModel
 
 from weatherbot.services.ai.caller import request_kwargs, usage_of, validate_output
-from weatherbot.services.ai.pricing import cost_micro_usd, usd_text
+from weatherbot.services.ai.pricing import TokenUsage, cost_micro_usd, usd_text
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
+SUPPORT: Final = tuple(
+    REPO_ROOT / name
+    for name in (
+        "scripts",
+        "tests/contract",
+        "tests/sources",
+        "tests/cli",
+        "tests/services",
+        "tests/engine",
+        "tests/ai",
+    )
+)
+"""The test support directories the eval set imports from."""
+EVAL_GROUP: Final = "eval"
+"""The name that stands for every eval case."""
 FIXTURES: Final = REPO_ROOT / "tests" / "fixtures" / "ai"
 MANIFEST: Final = "manifest.json"
 BUDGET_BYTES: Final = 1_048_576
@@ -57,10 +76,11 @@ type CaseKind = Literal["parse", "stream"]
 
 @dataclass(frozen=True)
 class Case:
-    """One recording: how it is sent, and the request body without ``model``."""
+    """One recording: how it is sent, the request body without ``model``, and its schema."""
 
     kind: CaseKind
     params: Mapping[str, Any]
+    output_format: type[BaseModel] = Ready
 
 
 ROUND_TRIP: Final[Mapping[str, Any]] = {
@@ -72,6 +92,57 @@ CASES: Final[dict[str, Case]] = {
     "round-trip": Case("parse", ROUND_TRIP),
     "round-trip-stream": Case("stream", ROUND_TRIP),
 }
+"""The round trips; ``all_cases`` adds the eval set."""
+
+
+def eval_cases() -> dict[str, Case]:
+    """Build the eval set's recordings from ``tests/ai/eval/cases.py``.
+
+    Returns:
+        Each case by name: a briefing as a stream, a change summary as a message.
+    """
+    for directory in reversed(SUPPORT):
+        if str(directory) not in sys.path:
+            sys.path.insert(0, str(directory))
+    from eval.cases import eval_cases as build  # noqa: PLC0415 - the test support, on demand
+
+    return {
+        case.name: Case(
+            "stream" if case.kind == "briefing" else "parse", case.params(), case.output_format
+        )
+        for case in build()
+    }
+
+
+def all_cases() -> dict[str, Case]:
+    """Every case: the round trips and the eval set.
+
+    Returns:
+        Each case by name.
+    """
+    return {**CASES, **eval_cases()}
+
+
+def resolve(names: Sequence[str]) -> dict[str, Case]:
+    """Find the named cases; ``eval`` stands for every eval case.
+
+    Args:
+        names: Case names.
+
+    Returns:
+        The cases by name, in the order named.
+
+    Raises:
+        RecordingError: No name, or a name that is no case.
+    """
+    known = CASES if all(name in CASES for name in names) else all_cases()
+    evals = [name for name in known if name.startswith(f"{EVAL_GROUP}-")]
+    expanded = [item for name in names for item in (evals if name == EVAL_GROUP else [name])]
+    unknown = [name for name in expanded if name not in known]
+    if unknown or not expanded:
+        message = f"name one or more cases from: {', '.join(CASES)}, or eval"
+        raise RecordingError(message)
+    return {name: known[name] for name in expanded}
 
 
 @dataclass(frozen=True)
@@ -115,13 +186,14 @@ class RecordingTransport(httpx2.AsyncBaseTransport):
 
 @dataclass(frozen=True)
 class Recorded:
-    """What one case wrote, and what it cost."""
+    """What one case wrote, what it used, and what it cost."""
 
     case: str
     file: str
     entry: dict[str, object]
     body: bytes
     cost_micro_usd: int
+    usage: TokenUsage
 
 
 class RecordingError(Exception):
@@ -153,26 +225,26 @@ def _file_name(name: str, case: Case) -> str:
 
 async def _send(client: anthropic.AsyncAnthropic, case: Case) -> anthropic.types.Message:
     # The same request body AiCaller sends: the schema as output_config.format.
-    kwargs = request_kwargs(case.params, Ready)
+    kwargs = request_kwargs(case.params, case.output_format)
     if case.kind == "parse":
         message = await client.messages.create(model=MODEL, stream=False, **kwargs)
     else:
         async with client.messages.stream(model=MODEL, **kwargs) as stream:
             message = await stream.get_final_message()
-    validate_output(Ready, message)
+    validate_output(case.output_format, message)
     return message
 
 
 async def _record_cases(
-    names: Sequence[str], client_factory: ClientFactory, inner: httpx2.AsyncBaseTransport
-) -> list[tuple[str, Exchange, int]]:
-    recorded: list[tuple[str, Exchange, int]] = []
+    cases: Mapping[str, Case], client_factory: ClientFactory, inner: httpx2.AsyncBaseTransport
+) -> list[tuple[str, Exchange, TokenUsage]]:
+    recorded: list[tuple[str, Exchange, TokenUsage]] = []
     transport = RecordingTransport(inner)
     async with client_factory(transport) as client:
-        for name in names:
-            message = await _send(client, CASES[name])
+        for name, case in cases.items():
+            message = await _send(client, case)
             exchange = transport.exchanges[-1]
-            recorded.append((name, exchange, cost_micro_usd(MODEL, usage_of(message.usage))))
+            recorded.append((name, exchange, usage_of(message.usage)))
     return recorded
 
 
@@ -198,7 +270,7 @@ def record(  # noqa: PLR0913 - the cases, then keyword-only seams for the tests
     """Record the named cases and write their bodies and the manifest.
 
     Args:
-        names: The cases, from ``CASES``.
+        names: The cases, from ``all_cases``; ``eval`` stands for every eval case.
         directory: Where recordings live.
         force: Overwrite existing recordings.
         today: The manifest's date; today's UTC date when omitted.
@@ -213,17 +285,14 @@ def record(  # noqa: PLR0913 - the cases, then keyword-only seams for the tests
             directory that would pass 1 MiB. Nothing is written then.
         AnthropicError: Anthropic answered a case with an error; nothing is written.
     """
-    unknown = [name for name in names if name not in CASES]
-    if unknown or not names:
-        message = f"name one or more cases from: {', '.join(CASES)}"
-        raise RecordingError(message)
-    files = {name: _file_name(name, CASES[name]) for name in names}
+    cases = resolve(names)
+    files = {name: _file_name(name, case) for name, case in cases.items()}
     existing = [file for file in files.values() if (directory / file).exists()]
     if existing and not force:
         message = f"refusing to overwrite {', '.join(existing)} without --force"
         raise RecordingError(message)
     # An error answer raises the SDK's typed error here, before anything is written.
-    sent = asyncio.run(_record_cases(names, client_factory, inner or httpx2.AsyncHTTPTransport()))
+    sent = asyncio.run(_record_cases(cases, client_factory, inner or httpx2.AsyncHTTPTransport()))
     day = (today or datetime.now(UTC).date()).isoformat()
     results = [
         Recorded(
@@ -231,16 +300,17 @@ def record(  # noqa: PLR0913 - the cases, then keyword-only seams for the tests
             file=files[name],
             entry={
                 "case": name,
-                "kind": CASES[name].kind,
+                "kind": cases[name].kind,
                 "model": MODEL,
                 "date": day,
                 "request_sha256": hashlib.sha256(exchange.request).hexdigest(),
                 "bytes": len(exchange.body),
             },
             body=exchange.body,
-            cost_micro_usd=cost,
+            cost_micro_usd=cost_micro_usd(MODEL, usage),
+            usage=usage,
         )
-        for name, exchange, cost in sent
+        for name, exchange, usage in sent
     ]
     manifest_path = directory / MANIFEST
     entries: dict[str, dict[str, object]] = {}
@@ -273,7 +343,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--list", action="store_true", help="list the cases and exit")
     arguments = parser.parse_args(argv)
     if arguments.list:
-        for name, case in CASES.items():
+        for name, case in all_cases().items():
             print(f"{name}  ({case.kind}, {MODEL})")
         return 0
     try:
@@ -288,7 +358,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     for result in results:
         total += result.cost_micro_usd
         cost = f"{usd_text(result.cost_micro_usd)} ({result.cost_micro_usd} micro-dollars)"
-        print(f"recorded {result.file}: {result.entry['bytes']} bytes, {cost}")
+        usage = result.usage
+        tokens = (
+            f"{usage.input_tokens} in, {usage.cache_read_tokens} cache read, "
+            f"{usage.cache_write_5m_tokens} cache write, {usage.output_tokens} out"
+        )
+        print(f"recorded {result.file}: {result.entry['bytes']} bytes, {tokens}, {cost}")
     print(f"total cost at list price: {usd_text(total)} ({total} micro-dollars)")
     return 0
 

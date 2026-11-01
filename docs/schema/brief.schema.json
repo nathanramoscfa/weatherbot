@@ -1,0 +1,516 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/brief.schema.json",
+  "$defs": {
+    "BriefData": {
+      "additionalProperties": false,
+      "description": "The briefings this run printed, and today's ledger.",
+      "properties": {
+        "briefings": {
+          "items": {
+            "$ref": "#/$defs/BriefEntry"
+          },
+          "title": "Briefings",
+          "type": "array"
+        },
+        "today": {
+          "$ref": "#/$defs/BriefLedgerEntry"
+        }
+      },
+      "required": [
+        "briefings",
+        "today"
+      ],
+      "title": "BriefData",
+      "type": "object"
+    },
+    "BriefEntry": {
+      "additionalProperties": false,
+      "description": "One location's briefing: written, reused, withheld, or unavailable.",
+      "properties": {
+        "location": {
+          "title": "Location",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "prompt_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The frozen prompt's SHA-256.",
+          "title": "Prompt Version"
+        },
+        "assessment_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Assessment Id"
+        },
+        "as_of": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The assessment's instant.",
+          "title": "As Of"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "withheld",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "briefing": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BriefingEntry"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: withheld or unavailable."
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/BriefSourceEntry"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "withheld_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A validator's rule or a fixed reason.",
+          "title": "Withheld Reason"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        },
+        "reused": {
+          "description": "A stored briefing for the assessment; no request sent.",
+          "title": "Reused",
+          "type": "boolean"
+        },
+        "created_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Created At"
+        },
+        "cost_micro_usd": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The request's cost at list price; null: no request was sent.",
+          "title": "Cost Micro Usd"
+        }
+      },
+      "required": [
+        "location",
+        "model",
+        "prompt_version",
+        "assessment_id",
+        "as_of",
+        "status",
+        "briefing",
+        "sources",
+        "withheld_reason",
+        "unavailable_reason",
+        "reused",
+        "created_at",
+        "cost_micro_usd"
+      ],
+      "title": "BriefEntry",
+      "type": "object"
+    },
+    "BriefKindEntry": {
+      "additionalProperties": false,
+      "description": "Today's requests of one kind, with their tokens and cost.",
+      "properties": {
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "requests": {
+          "minimum": 0,
+          "title": "Requests",
+          "type": "integer"
+        },
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "cache_write_5m_tokens": {
+          "minimum": 0,
+          "title": "Cache Write 5M Tokens",
+          "type": "integer"
+        },
+        "cache_write_1h_tokens": {
+          "minimum": 0,
+          "title": "Cache Write 1H Tokens",
+          "type": "integer"
+        },
+        "cache_read_tokens": {
+          "minimum": 0,
+          "title": "Cache Read Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "cost_micro_usd": {
+          "minimum": 0,
+          "title": "Cost Micro Usd",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "requests",
+        "input_tokens",
+        "cache_write_5m_tokens",
+        "cache_write_1h_tokens",
+        "cache_read_tokens",
+        "output_tokens",
+        "cost_micro_usd"
+      ],
+      "title": "BriefKindEntry",
+      "type": "object"
+    },
+    "BriefLedgerEntry": {
+      "additionalProperties": false,
+      "description": "Today's AI spend against the cap, in micro-dollars.",
+      "properties": {
+        "day": {
+          "description": "The local calendar day.",
+          "title": "Day",
+          "type": "string"
+        },
+        "cap_micro_usd": {
+          "minimum": 0,
+          "title": "Cap Micro Usd",
+          "type": "integer"
+        },
+        "allowance_micro_usd": {
+          "minimum": 0,
+          "title": "Allowance Micro Usd",
+          "type": "integer"
+        },
+        "spent_micro_usd": {
+          "minimum": 0,
+          "title": "Spent Micro Usd",
+          "type": "integer"
+        },
+        "reserved_micro_usd": {
+          "minimum": 0,
+          "title": "Reserved Micro Usd",
+          "type": "integer"
+        },
+        "requests": {
+          "minimum": 0,
+          "title": "Requests",
+          "type": "integer"
+        },
+        "paused": {
+          "title": "Paused",
+          "type": "boolean"
+        },
+        "by_kind": {
+          "items": {
+            "$ref": "#/$defs/BriefKindEntry"
+          },
+          "title": "By Kind",
+          "type": "array"
+        }
+      },
+      "required": [
+        "day",
+        "cap_micro_usd",
+        "allowance_micro_usd",
+        "spent_micro_usd",
+        "reserved_micro_usd",
+        "requests",
+        "paused",
+        "by_kind"
+      ],
+      "title": "BriefLedgerEntry",
+      "type": "object"
+    },
+    "BriefSourceEntry": {
+      "additionalProperties": false,
+      "description": "What a source key names: the product's metadata, never a URL.",
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "source_id": {
+          "$ref": "#/$defs/SourceId"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Code"
+        },
+        "issuer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Issuer"
+        },
+        "advisory": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Advisory"
+        },
+        "issued": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Rounded to the hour, as the request held it.",
+          "title": "Issued"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "source_id",
+        "code",
+        "issuer",
+        "advisory",
+        "issued",
+        "title"
+      ],
+      "title": "BriefSourceEntry",
+      "type": "object"
+    },
+    "BriefSourceNoteEntry": {
+      "additionalProperties": false,
+      "description": "A source a briefing cited, and what it took from it.",
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "why": {
+          "title": "Why",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "why"
+      ],
+      "title": "BriefSourceNoteEntry",
+      "type": "object"
+    },
+    "BriefTimelineEntry": {
+      "additionalProperties": false,
+      "description": "One expected development in a briefing.",
+      "properties": {
+        "when": {
+          "title": "When",
+          "type": "string"
+        },
+        "what": {
+          "title": "What",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "when",
+        "what",
+        "sources"
+      ],
+      "title": "BriefTimelineEntry",
+      "type": "object"
+    },
+    "BriefingEntry": {
+      "additionalProperties": false,
+      "description": "A briefing's sections, as Claude wrote them and the validators passed them.",
+      "properties": {
+        "situation": {
+          "title": "Situation",
+          "type": "string"
+        },
+        "what_it_means_here": {
+          "title": "What It Means Here",
+          "type": "string"
+        },
+        "timeline": {
+          "items": {
+            "$ref": "#/$defs/BriefTimelineEntry"
+          },
+          "title": "Timeline",
+          "type": "array"
+        },
+        "actions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/BriefSourceNoteEntry"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "situation",
+        "what_it_means_here",
+        "timeline",
+        "actions",
+        "sources"
+      ],
+      "title": "BriefingEntry",
+      "type": "object"
+    },
+    "SourceId": {
+      "enum": [
+        "nhc-current-storms",
+        "nhc-arrival-times",
+        "nhc-map-tropical-weather",
+        "nhc-map-tropical-summary",
+        "nhc-map-breakpoints",
+        "nhc-map-peak-surge",
+        "nhc-map-surge-risk",
+        "nhc-gis-rss",
+        "nhc-gis-archive",
+        "nhc-text-products",
+        "nhc-outlook-graphics",
+        "nws-points",
+        "nws-alerts-point",
+        "nws-alerts-zone",
+        "nws-zones",
+        "basemap-osm-tiles",
+        "overlay-radar",
+        "overlay-satellite",
+        "geocode-nominatim"
+      ],
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot brief --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "brief",
+      "default": "brief",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/BriefData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "BriefDocument",
+  "type": "object"
+}

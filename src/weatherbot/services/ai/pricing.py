@@ -63,6 +63,12 @@ PRICES: Final[dict[str, Price]] = {
         output=20_000_000,
     ),
 }
+MODEL_NAMES: Final[dict[str, str]] = {
+    "claude-sonnet-5-5": "Claude Sonnet 5.5",
+    "claude-haiku-5-5": "Claude Haiku 5.5",
+    "claude-opus-5-5": "Claude Opus 5.5",
+}
+"""How a label names each priced model."""
 PRICES_AS_OF: Final = "2026-10-30"
 PRICES_SOURCE: Final = "Anthropic's pricing page (platform.claude.com, About Claude, Pricing)"
 MAX_PROMPT_TOKENS: Final = 100_000
@@ -152,3 +158,15 @@ def usd_text(micro_usd: int) -> str:
     """
     cents = (micro_usd + 5_000) // 10_000
     return f"${cents // 100}.{cents % 100:02d}"
+
+
+def model_name(model: str) -> str:
+    """Name a model for a label: ``Claude Sonnet 5.5``.
+
+    Args:
+        model: The model's id.
+
+    Returns:
+        Its display name, or the id itself for a model the table does not name.
+    """
+    return MODEL_NAMES.get(model, model)

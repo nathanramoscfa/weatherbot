@@ -13,17 +13,33 @@ hand-written error bodies and stops are built here, with synthetic messages.
 """
 
 import json
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Final, Self, cast
+from uuid import UUID
 
 import anthropic
 import httpx2
+from snapshot_support import RecordedSnapshot, recorded_snapshot
+from source_support import NOW
 from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 
-from weatherbot.services.persistence.tables import AiCallRow
+from weatherbot.engine import assess, diff
+from weatherbot.models import Assessment, Snapshot, Thresholds
+from weatherbot.services.ai.guard import ai_engine
+from weatherbot.services.ai.service import AiService
+from weatherbot.services.config import AiSettings
+from weatherbot.services.persistence.database import Database
+from weatherbot.services.persistence.repositories import (
+    AssessmentRepository,
+    LocationRepository,
+    SnapshotRepository,
+    StoredAssessment,
+)
+from weatherbot.services.persistence.tables import AiCallRow, AiOutputRow
 
 FIXTURES: Final = Path(__file__).resolve().parents[1] / "fixtures" / "ai"
 MODEL: Final = "claude-sonnet-5-5"
@@ -320,3 +336,178 @@ def ledger_rows(engine: Engine) -> list[AiCallRow]:
     """
     with Session(engine, expire_on_commit=False) as session:
         return list(session.scalars(select(AiCallRow).order_by(AiCallRow.id)).all())
+
+
+def chunked_stream(  # noqa: PLR0913 - a stream's shape, keyword-only
+    text: str,
+    *,
+    chunk: int = 40,
+    stop_reason: str = "end_turn",
+    final: bool = True,
+    output_tokens: int = 50,
+    thinking: bool = True,
+) -> str:
+    """A hand-written stream whose text arrives in pieces, after a thinking block.
+
+    Args:
+        text: The streamed text.
+        chunk: How many characters each text delta carries.
+        stop_reason: Why the message stopped.
+        final: Whether the stream carries its final events; ``False`` cuts it.
+        output_tokens: The output the final ``message_delta`` reports.
+        thinking: Whether an (omitted) thinking block comes first.
+
+    Returns:
+        The raw stream.
+    """
+    start = message_body("", output_tokens=1)
+    start["content"] = []
+    start["stop_reason"] = None
+    events: list[tuple[str, object]] = [
+        ("message_start", {"type": "message_start", "message": start})
+    ]
+    index = 0
+    if thinking:
+        events += [
+            (
+                "content_block_start",
+                {
+                    "type": "content_block_start",
+                    "index": 0,
+                    "content_block": {"type": "thinking", "thinking": "", "signature": ""},
+                },
+            ),
+            (
+                "content_block_delta",
+                {
+                    "type": "content_block_delta",
+                    "index": 0,
+                    "delta": {"type": "signature_delta", "signature": "c3ludGhldGlj"},
+                },
+            ),
+            ("content_block_stop", {"type": "content_block_stop", "index": 0}),
+        ]
+        index = 1
+    events.append(
+        (
+            "content_block_start",
+            {
+                "type": "content_block_start",
+                "index": index,
+                "content_block": {"type": "text", "text": ""},
+            },
+        )
+    )
+    events += [
+        (
+            "content_block_delta",
+            {
+                "type": "content_block_delta",
+                "index": index,
+                "delta": {"type": "text_delta", "text": text[offset : offset + chunk]},
+            },
+        )
+        for offset in range(0, len(text), chunk)
+    ]
+    if final:
+        events += [
+            ("content_block_stop", {"type": "content_block_stop", "index": index}),
+            (
+                "message_delta",
+                {
+                    "type": "message_delta",
+                    "delta": {"stop_reason": stop_reason, "stop_sequence": None},
+                    "usage": {"output_tokens": output_tokens},
+                },
+            ),
+            ("message_stop", {"type": "message_stop"}),
+        ]
+    return "".join(f"event: {name}\ndata: {json.dumps(data)}\n\n" for name, data in events)
+
+
+async def stored_recorded(database: Database) -> tuple[RecordedSnapshot, StoredAssessment]:
+    """Store the Miami-Dade landmark, the recorded snapshot, and its first assessment.
+
+    Args:
+        database: The open database.
+
+    Returns:
+        The recorded snapshot and the stored assessment.
+    """
+    recorded = await recorded_snapshot()
+    LocationRepository(database.engine).add(recorded.location)
+    SnapshotRepository(database.engine).save(recorded.snapshot, recorded.responses)
+    assessment = assess(recorded.snapshot, recorded.location, Thresholds())
+    stored = AssessmentRepository(database.engine).save(assessment, diff(None, assessment))
+    return recorded, stored
+
+
+def stored_later(
+    database: Database,
+    recorded: RecordedSnapshot,
+    previous: Assessment,
+    number: int = 1,
+    **changes: object,
+) -> StoredAssessment:
+    """Store the recorded records as a later snapshot, ``number`` hours on, and its assessment.
+
+    Args:
+        database: The open database.
+        recorded: The recorded snapshot.
+        previous: The location's previous assessment.
+        number: How many hours later.
+        **changes: Snapshot fields to replace, such as ``alerts={}``.
+
+    Returns:
+        The stored assessment, with its changes from ``previous``.
+    """
+    fields = {name: getattr(recorded.snapshot, name) for name in Snapshot.model_fields}
+    at = recorded.snapshot.completed_at + timedelta(hours=number)
+    moved = {"snapshot_id": UUID(int=number), "started_at": at, "completed_at": at}
+    later = Snapshot.model_validate(fields | moved | changes)
+    SnapshotRepository(database.engine).save(later)
+    assessment = assess(later, recorded.location, Thresholds())
+    return AssessmentRepository(database.engine).save(assessment, diff(previous, assessment))
+
+
+def replayed_service(
+    database: Database,
+    answers: Sequence[RecordedAnswer],
+    *,
+    settings: AiSettings | None = None,
+    now: Callable[[], datetime] = lambda: NOW,
+) -> tuple[AiService, Replay]:
+    """An AI service on the AI engine whose client replays answers.
+
+    Args:
+        database: The open database.
+        answers: The answers, in order.
+        settings: The ``[ai]`` table; the defaults when omitted.
+        now: The clock.
+
+    Returns:
+        The service and its replay.
+    """
+    client, replay = replay_client(answers)
+    service = AiService(
+        ai_engine(database.path),
+        settings or AiSettings(),
+        factory=lambda: client,
+        environ={},
+        now=now,
+        local_zone=UTC,
+    )
+    return service, replay
+
+
+def output_rows(engine: Engine) -> list[AiOutputRow]:
+    """Read every stored AI output, oldest first.
+
+    Args:
+        engine: Any engine on the database.
+
+    Returns:
+        The rows, detached.
+    """
+    with Session(engine, expire_on_commit=False) as session:
+        return list(session.scalars(select(AiOutputRow).order_by(AiOutputRow.id)).all())

@@ -305,7 +305,14 @@ changes them.
    Step 2 counts the real tokens (`count_tokens` and the recorded usage) and
    records their distribution in `docs/AI.md`; if any product's 95th percentile
    exceeds these estimates by more than double, Step 2 changes the ceilings and
-   the default in this roadmap before Step 3 starts.
+   the default in this roadmap before Step 3 starts. (Confirmed 2026-11-01 by
+   Step 2 over its 31 eval recordings: a briefing's prompt is 4,612 to 8,775
+   tokens, median 5,001, with 564 to 899 output tokens, $0.008 to $0.028; a
+   change summary's 3,269 to 3,542 with 117 to 199 output tokens, $0.002 to
+   $0.010. Every 95th percentile is under twice its estimate, so the ceilings
+   and the $1.00 default stand. The frozen prompt and each output schema form a
+   cached prefix, 3,732 tokens for a briefing and 3,025 for a summary, which a
+   later request within five minutes reads at the cache-read price.)
 8. *Products, and when each runs.* A briefing is on demand (the dashboard's
    "Brief me", `weatherbot brief`) and written once per location, assessment,
    model, and prompt version: a stored briefing for the current assessment is
@@ -439,7 +446,7 @@ changes them.
     in-memory snapshot. Offline, on every CI run, the validators pass every
     recorded output and reject its contradicting copy, and the injection cases'
     recorded tool calls stay inside the allowlist with valid arguments. Live,
-    `scripts/eval_ai.py --live` on the operator's machine (about $1 a run, asked
+    `scripts/eval_ai.py --live` on the operator's machine (about $0.30 a run, asked
     first) regenerates and grades every case and prints each product's token and
     cost distribution. Replay assessments are never stored, so the context
     builder takes models, not rows, and the cases are built in memory.
@@ -2062,6 +2069,8 @@ Ranked for coding, high complexity, novel. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
 estimated from the model's measured levels.
 
+> Ran 2026-11-01: Cost Runner-up, Balanced Pick, or Quality Pick — Opus 5.5 · Medium, High, or XHigh.
+
 **Conversation:** New
 
 **Model rationale:** Step 2 is coding with a knowledge secondary category — a
@@ -3016,6 +3025,27 @@ conversation is new per phase-boundary hygiene.
       `ai_outputs`), `briefing.py`, and `summaries.py`; `weatherbot
       brief` exists; the eval set and `scripts/eval_ai.py` grade
       recordings.
+    - As Step 2 shipped them (PR for Step 2): `sentence_violations(
+      sentence, context, levels)` takes any `context` with `sources`
+      and `noaa` (the `Grounding` protocol in `validate.py`) and
+      `levels: Mapping[str, AlertLevel]`; `current_level_asserted`
+      ignores a negated or a definitional statement ("Level 5 means
+      ..."). The eval set lives in `tests/ai/eval/cases.py`
+      (`EvalCase`, `eval_cases()`, which calls `asyncio.run` to build
+      the recorded snapshot, so build it outside a running event loop)
+      and `tests/ai/eval/grading.py` (shared by `test_ai_eval.py` and
+      `scripts/eval_ai.py`); `scripts/record_ai_fixtures.py eval`
+      records it, briefings as streams and summaries as messages. The
+      first recording showed the model narrating the `changes` list
+      with the previous level's number ("rose from 3 to 4"); the frozen
+      prompt now tells it to name a previous level by its label, and a
+      chat prompt that narrates history needs the same care wherever a
+      validator allows only the current level.
+    - A test that hands `cli_support.runtime()` an `environ` must spread
+      `os.environ` into it: `runtime()` now asserts that the test's
+      `WEATHERBOT_DATA_DIR` and `WEATHERBOT_CONFIG_DIR` are kept,
+      because a bare mapping resolved the operator's real data
+      directory during Step 2 and migrated the operator's database.
     - The snapshot's `outlook_graphics` name each PNG by
       `provenance.sha256`, whose body sits zlib-compressed in
       `response_bodies`; `services/persistence/raw_cache.py` has
@@ -3533,6 +3563,21 @@ phase-boundary hygiene.
       `BriefingService.stream`, `ChatService.turn`, and
       `NarrationService.stream` yield typed events; `WebState.ai`
       exists and `/api/health` reads its state.
+    - The briefing's events as Step 2 shipped them:
+      `Started(model, assessment_id, as_of, prompt_version)`,
+      `Section(name, text)` (plain text; the sources section names each
+      key with its product's title), `Done(output_id, briefing,
+      created_at, reused)`, `Withheld(reason, detail, output_id)`
+      (`reason` is a validator rule, `incomplete`, or
+      `invalid_output`), and `Unavailable(reason)` (an AI reason or
+      `no_assessment`). `BriefingService` also has `latest(location)`
+      (`BriefingState(stored, stale, assessment_id)`) and
+      `output(id)`; `ChangeSummaryService.summarize(assessment_id)`
+      returns `SummaryOutcome(status, output_id, summary, reason,
+      reused)` with status `ok`, `withheld`, `skipped`, or
+      `unavailable`. A stored product's `content` is
+      `{"briefing" | "summary": ..., "sources": [SourceRef, ...]}`, so
+      the server maps each key to its record without the model.
     - `web/`: `create_app` includes the read routers, `events`, and
       `actions`; `install_guards` holds the same-origin rule for
       writes and the cross-site refusal; `/api/events` streams through
@@ -4517,7 +4562,7 @@ more cheaply. The conversation is new per phase-boundary hygiene.
     PR, or `main`.
 
     THIS STEP spends the operator's money and touches the operator's
-    machine. The live eval (about $1) and the deployed check (about
+    machine. The live eval (about $0.30, measured by Step 2) and the deployed check (about
     $0.05) each run only after the operator's yes to the stated cost;
     the demonstration server needs no credential and answers AI from
     recordings only; the smoke asserts that the browser sends nothing

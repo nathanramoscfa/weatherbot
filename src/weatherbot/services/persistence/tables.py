@@ -5,9 +5,8 @@ Tables arrive with their writers: Phase 2's snapshots and locations (revisions 0
 0002), the assessments, their evidence, and their changes (revision 0003, Phase 3), the
 shared product contents (revision 0004, Phase 4), the heartbeats and the monitor's cycles
 (revision 0005), the notifications, their decisions, and their deliveries (revision
-0006), and the Claude ledger (revision 0007, Phase 6); the AI's stored outputs are a later
-revision. Every
-instant goes in and comes out as an aware UTC value. A naming convention names every
+0006), the Claude ledger (revision 0007, Phase 6), and the AI's stored outputs (revision
+0008). Every instant goes in and comes out as an aware UTC value. A naming convention names every
 constraint, so a SQLite batch migration can find and alter it.
 
 Records that a snapshot holds by reference (a storm, a text product, a feed item, an
@@ -722,3 +721,41 @@ class AiCallRow(Base):
     )
     request_id: Mapped[str | None] = mapped_column(String(64))
     prices_as_of: Mapped[str] = mapped_column(String(10))
+
+
+class AiOutputRow(Base):
+    """One product Claude wrote: a briefing, a change summary, or a narration (revision 0008).
+
+    ``status`` is ``ok``, with the validated product in ``content``, or ``withheld``, with
+    the reason and no content: a withheld product's text is never stored. ``kind`` and
+    ``status`` are checked by the services, not by a CHECK constraint, so a later phase can
+    extend them. Removing an assessment removes its products; ``call_id`` names the ledger
+    row of the request that wrote the product. The AI engine writes this table and
+    ``ai_calls`` and nothing else.
+    """
+
+    __tablename__ = "ai_outputs"
+    __table_args__ = (
+        Index(None, "kind", "assessment_id"),
+        Index(None, "kind", "location_name", "created_at"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), comment="briefing, summary, or narration")
+    location_name: Mapped[str | None] = mapped_column(String(64))
+    assessment_id: Mapped[int | None] = mapped_column(
+        ForeignKey("assessments.id", ondelete="CASCADE")
+    )
+    snapshot_id: Mapped[UUID | None]
+    graphic_sha256: Mapped[str | None] = mapped_column(String(64), index=True)
+    model: Mapped[str] = mapped_column(String(64))
+    prompt_version: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(16), comment="ok or withheld")
+    withheld_reason: Mapped[str | None] = mapped_column(
+        String(32), comment="A validator's rule or a fixed reason, never the model's text"
+    )
+    content: Mapped[dict[str, Any] | None] = mapped_column(
+        comment="The validated product JSON; NULL when withheld"
+    )
+    call_id: Mapped[int | None] = mapped_column(ForeignKey("ai_calls.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime]

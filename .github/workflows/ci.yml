@@ -151,13 +151,15 @@ jobs:
       # The engine's branch coverage floor holds for every engine module from Phase 3
       # Step 1 on. The coverage data file goes to the runner's temporary directory,
       # never the checkout.
-      - name: Pytest (engine and policy branch coverage at least 90 percent)
+      - name: Pytest (engine, policy, AI context, and AI validator branch coverage at least 90 percent)
         env:
           COVERAGE_FILE: ${{ runner.temp }}/.coverage
         run: >-
           uv run pytest
           --cov=weatherbot.engine
           --cov=weatherbot.services.policy
+          --cov=weatherbot.services.ai.context
+          --cov=weatherbot.services.ai.validate
           --cov-branch
           --cov-report=term-missing:skip-covered
           --cov-fail-under=90
@@ -168,6 +170,24 @@ jobs:
         run: >-
           uv run coverage report
           --include="*/services/policy.py"
+          --fail-under=90
+
+      # What leaves the machine, and what withholds a product, are each held at 90
+      # percent on their own (Phase 6 Step 2).
+      - name: AI context branch coverage at least 90 percent
+        env:
+          COVERAGE_FILE: ${{ runner.temp }}/.coverage
+        run: >-
+          uv run coverage report
+          --include="*/services/ai/context.py"
+          --fail-under=90
+
+      - name: AI validator branch coverage at least 90 percent
+        env:
+          COVERAGE_FILE: ${{ runner.temp }}/.coverage
+        run: >-
+          uv run coverage report
+          --include="*/services/ai/validate.py"
           --fail-under=90
 
   package:

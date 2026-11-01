@@ -912,6 +912,106 @@ class UninstallTaskDocument(_Envelope):
     data: UninstallTaskData
 
 
+# brief -------------------------------------------------------------------------------------
+
+
+class BriefTimelineEntry(_Document):
+    """One expected development in a briefing."""
+
+    when: str
+    what: str
+    sources: tuple[str, ...]
+
+
+class BriefSourceNoteEntry(_Document):
+    """A source a briefing cited, and what it took from it."""
+
+    key: str
+    why: str
+
+
+class BriefingEntry(_Document):
+    """A briefing's sections, as Claude wrote them and the validators passed them."""
+
+    situation: str
+    what_it_means_here: str
+    timeline: tuple[BriefTimelineEntry, ...]
+    actions: tuple[str, ...]
+    sources: tuple[BriefSourceNoteEntry, ...]
+
+
+class BriefSourceEntry(_Document):
+    """What a source key names: the product's metadata, never a URL."""
+
+    key: str
+    source_id: SourceId
+    code: str | None
+    issuer: str | None
+    advisory: str | None
+    issued: datetime | None = Field(description="Rounded to the hour, as the request held it.")
+    title: str
+
+
+class BriefEntry(_Document):
+    """One location's briefing: written, reused, withheld, or unavailable."""
+
+    location: str
+    model: str
+    prompt_version: str | None = Field(description="The frozen prompt's SHA-256.")
+    assessment_id: int | None
+    as_of: datetime | None = Field(description="The assessment's instant.")
+    status: Literal["ok", "withheld", "unavailable"]
+    briefing: BriefingEntry | None = Field(description="null: withheld or unavailable.")
+    sources: tuple[BriefSourceEntry, ...]
+    withheld_reason: str | None = Field(description="A validator's rule or a fixed reason.")
+    unavailable_reason: str | None
+    reused: bool = Field(description="A stored briefing for the assessment; no request sent.")
+    created_at: datetime | None
+    cost_micro_usd: int | None = Field(
+        description="The request's cost at list price; null: no request was sent."
+    )
+
+
+class BriefKindEntry(_Document):
+    """Today's requests of one kind, with their tokens and cost."""
+
+    kind: str
+    requests: int = Field(ge=0)
+    input_tokens: int = Field(ge=0)
+    cache_write_5m_tokens: int = Field(ge=0)
+    cache_write_1h_tokens: int = Field(ge=0)
+    cache_read_tokens: int = Field(ge=0)
+    output_tokens: int = Field(ge=0)
+    cost_micro_usd: int = Field(ge=0)
+
+
+class BriefLedgerEntry(_Document):
+    """Today's AI spend against the cap, in micro-dollars."""
+
+    day: str = Field(description="The local calendar day.")
+    cap_micro_usd: int = Field(ge=0)
+    allowance_micro_usd: int = Field(ge=0)
+    spent_micro_usd: int = Field(ge=0)
+    reserved_micro_usd: int = Field(ge=0)
+    requests: int = Field(ge=0)
+    paused: bool
+    by_kind: tuple[BriefKindEntry, ...]
+
+
+class BriefData(_Document):
+    """The briefings this run printed, and today's ledger."""
+
+    briefings: tuple[BriefEntry, ...]
+    today: BriefLedgerEntry
+
+
+class BriefDocument(_Envelope):
+    """``weatherbot brief --json``."""
+
+    command: Literal["brief"] = "brief"
+    data: BriefData
+
+
 DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "locations": LocationsDocument,
     "fetch": FetchDocument,
@@ -928,6 +1028,7 @@ DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "notify-test": NotifyTestDocument,
     "install-task": InstallTaskDocument,
     "uninstall-task": UninstallTaskDocument,
+    "brief": BriefDocument,
 }
 """Each schema's file stem and its document model."""
 
