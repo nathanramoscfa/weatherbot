@@ -88,6 +88,22 @@ shared `models` package. Each layer's `__init__.py` states its rule;
   `NotificationService.decide_cycle` decides each newly stored assessment
   exactly once. Every writing transaction begins `BEGIN IMMEDIATE`
   (`writing_session`).
+  `weatherbot.services.ai` is the Claude layer and the only code that
+  imports `anthropic` or `httpx2` (two import-linter contracts and
+  `tests/test_architecture.py` enforce it); only its `client.py` and
+  `caller.py` import the SDK at module level, so a command that never uses
+  AI never loads it. It reads and writes the database only through the AI
+  engine (`guard.ai_engine`), whose SQLite authorizer lets it write
+  `ai_calls` and `ai_outputs` and nothing else; it never imports the sources
+  layer, `httpx`, or a writing service, never fetches a URL, and never
+  decides a level. Every request goes through `AiCaller` (reserve under
+  `BEGIN IMMEDIATE`, send, settle from the SDK's usage), and every surface
+  reads `AiService.state()`. The credential is the SDK's to resolve; no code
+  copies it. AI tests replay recorded answers through the real SDK
+  (`tests/ai/ai_support.py`: an `httpx2.MockTransport` behind
+  `anthropic.DefaultAsyncHttpxClient`, a key built at run time) through
+  `Runtime.make_claude` and `WebState.ai`; `tests/conftest.py` deletes every
+  `ANTHROPIC_*` variable, so no test reaches the operator's credential.
 - `web/` — the FastAPI app over the services (`weatherbot.web`). It imports
   `services` and `models` only (never `cli`, `sources`, or `engine`).
 - `cli/` — Typer commands over the services and `web` (`weatherbot serve`

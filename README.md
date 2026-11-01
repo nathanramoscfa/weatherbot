@@ -12,7 +12,9 @@ specifies both in [the project brief](docs/brief/weatherbot-v2-brief.md).
 Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
 discovery), Phase 2 (sources and persistence), Phase 3 (the threat engine),
 Phase 4 (monitoring and notifications), and Phase 5 (the web app MVP) are
-complete; Phase 6 (the Claude layer) is next. No version 2 package is released.
+complete; Phase 6 (the Claude layer) is in progress. AI is optional: it needs an
+Anthropic credential, and everything else works without one (see
+[docs/AI.md](docs/AI.md)). No version 2 package is released.
 The commands below read the official products, and `status` decides each
 location's level from them alone, with the evidence behind it, and notifies you
 of a change through the in-app log, a Windows toast, and the browser; `serve`
@@ -259,6 +261,8 @@ repository; "Local data" there lists the paths and the overrides.
   etiquette.
 - [The alert ladder](docs/ALERT-LADDER.md): levels, actions, ordered rules,
   calibrated thresholds, and the historical replay evidence.
+- [The Claude layer](docs/AI.md): what the optional AI does and never does,
+  what leaves the machine, the credential, the settings, and the daily cap.
 - [CHANGELOG.md](CHANGELOG.md): what has changed.
 
 ## License

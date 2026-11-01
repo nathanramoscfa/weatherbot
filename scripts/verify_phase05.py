@@ -1125,7 +1125,11 @@ def check_46_ci_browser_job(root: Path = REPO_ROOT) -> bool:
 
 
 def check_47_readme_phase05(root: Path = REPO_ROOT) -> bool:
-    """Check 47: README.md has dashboard section, CLI commands, and Phase 5 complete Status."""
+    """Check 47: README.md has dashboard section, CLI commands, and Phase 5 complete Status.
+
+    The ``## Status`` block is read at ``v2.0.0-phase-5``: Phase 6 Step 1 moved the live
+    Status on to Phase 6. The other needles stay live.
+    """
     if not files_exist("README.md", root=root):
         return False
     text = read("README.md", root=root)
@@ -1137,7 +1141,8 @@ def check_47_readme_phase05(root: Path = REPO_ROOT) -> bool:
     )
     if not all(needle in text for needle in required):
         return False
-    status_match = re.search(r"^## Status$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+    tagged_text = tagged("README.md", root=root)
+    status_match = re.search(r"^## Status$(.*?)(?=^## |\Z)", tagged_text, re.MULTILINE | re.DOTALL)
     if status_match is None:
         return False
     status_block = status_match[1]

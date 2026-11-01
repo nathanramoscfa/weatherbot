@@ -1008,6 +1008,45 @@ against `serve_demo.py` in headless Chromium:
   intervals over the same 600 s window, and verifies that both CPU shares remain
   strictly under `0.5%` of one core.
 
+### The AI tests and the recorder
+
+No test reaches Anthropic or the operator's credential. `tests/conftest.py`
+deletes every `ANTHROPIC_*` variable and points `ANTHROPIC_CONFIG_DIR` at an
+empty directory for every test, the socket guard refuses any host but loopback,
+and with no credential the whole offline suite is the "AI off" run. AI tests
+opt in through a replayed client (`tests/ai/ai_support.py`): an
+`AsyncAnthropic` whose `http_client` is `anthropic.DefaultAsyncHttpxClient`
+around an `httpx2.MockTransport` (respx cannot see `httpx2`), with a key built
+at run time, so no tracked byte holds a key shape. Hand the client to the code
+under test through `Runtime.make_claude`, `AiService(factory=...)`, or
+`WebState(ai=...)`. Tests pass keys explicitly; none sets
+`os.environ["ANTHROPIC_API_KEY"]`, because the SDK warns once per process when a
+key shadows a profile, which would make log assertions depend on test order.
+
+```sh
+uv run pytest tests/ai tests/services/test_doctor_ai.py tests/web/test_api_health_ai.py
+```
+
+`tests/fixtures/ai/` holds recorded answers: response bodies only (`<case>.json`,
+or the raw event stream as `<case>.sse`), never a request or response header,
+with `manifest.json` (case, kind, model, date, request body SHA-256, bytes)
+under a 1 MiB budget; `tests/ai/test_ai_fixtures.py` scans them for header
+names and key shapes. Error answers and unusable stops (401, 429, 529, a
+`refusal`, `max_tokens`) are written by hand in `ai_support.py` with synthetic
+messages. A recording needs the operator's credential and spends money, so it
+is made only after the operator says yes to its stated cost:
+
+```sh
+uv run python scripts/record_ai_fixtures.py --list
+uv run python scripts/record_ai_fixtures.py round-trip round-trip-stream   # under $0.01
+```
+
+The recorder sends the request body `AiCaller` would send, checks that the
+answer validates, prints each recording's cost at list price, refuses to
+overwrite a recording without `--force`, and writes nothing when the directory
+would pass its budget. `docs/AI.md` explains the credential, the settings, and
+the ledger.
+
 To start over, delete the data directory. Weatherbot creates a new database
 the next time it opens one. `uv run weatherbot doctor --offline` shows both
 directories, the database file, and its revision against the head.
