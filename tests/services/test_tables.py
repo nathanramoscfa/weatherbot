@@ -41,8 +41,8 @@ SHARED_GEOMETRY_TABLES = {"geometry_contents", "snapshot_provenances", "snapshot
 MONITOR_TABLES = {"heartbeats", "monitor_cycles"}
 # Revision 0006, Phase 4 Step 3: notifications, decisions, and channel deliveries.
 NOTIFICATION_TABLES = {"notifications", "notification_decisions", "notification_deliveries"}
-# Revision 0007, Phase 6 Step 1: the Claude ledger.
-LEDGER_TABLES = {"ai_calls"}
+# Revision 0007, Phase 6 Step 1: the Claude ledger; revision 0008, Step 2: the AI's outputs.
+LEDGER_TABLES = {"ai_calls", "ai_outputs"}
 EASTERN = timezone(timedelta(hours=-4))
 
 

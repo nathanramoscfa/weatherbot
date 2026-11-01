@@ -82,6 +82,8 @@ class AiUnavailable(Exception):  # noqa: N818 - a state the surfaces show, not a
         super().__init__(f"AI unavailable: {MESSAGES[reason]}")
         self.reason: AiUnavailableReason = reason
         self.category = category[:MAX_CATEGORY_LENGTH] if category else None
+        self.call_id: int | None = None
+        """The ledger row of the request, once one was reserved."""
 
 
 class InvalidOutputError(ValueError):
@@ -90,6 +92,8 @@ class InvalidOutputError(ValueError):
     def __init__(self) -> None:
         """Create the error with its fixed message."""
         super().__init__("the answer did not match its schema")
+        self.call_id: int | None = None
+        """The ledger row of the request."""
 
 
 def from_exception(error: BaseException) -> AiUnavailable:

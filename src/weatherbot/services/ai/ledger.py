@@ -128,6 +128,16 @@ class LedgerEntry:
     request_id: str | None
 
 
+@dataclass(frozen=True)
+class KindTotals:
+    """One kind of request's count, tokens, and cost on one day."""
+
+    kind: str
+    requests: int
+    usage: TokenUsage
+    cost_micro_usd: int
+
+
 class AllowanceRefusedError(ValueError):
     """An allowance the ledger refuses; the message is fixed text."""
 
@@ -352,6 +362,52 @@ class Ledger:
                 select(AiCallRow).order_by(AiCallRow.id.desc()).limit(limit)
             ).all()
             return tuple(_entry(row) for row in rows)
+
+    def entry(self, call_id: int) -> LedgerEntry | None:
+        """Read one row.
+
+        Args:
+            call_id: Its id.
+
+        Returns:
+            The row, or ``None``.
+        """
+        with Session(self._engine) as session:
+            row = session.get(AiCallRow, call_id)
+            return _entry(row) if row is not None else None
+
+    def by_kind(self) -> tuple[KindTotals, ...]:
+        """Total today's requests by kind: their count, tokens, and cost.
+
+        Returns:
+            One entry per kind of request that ran today, in ``CALL_KINDS`` order.
+        """
+        day = self.day_of(self._now())
+        columns = (
+            func.count(),
+            func.coalesce(func.sum(AiCallRow.input_tokens), 0),
+            func.coalesce(func.sum(AiCallRow.cache_write_5m_tokens), 0),
+            func.coalesce(func.sum(AiCallRow.cache_write_1h_tokens), 0),
+            func.coalesce(func.sum(AiCallRow.cache_read_tokens), 0),
+            func.coalesce(func.sum(AiCallRow.output_tokens), 0),
+            func.coalesce(func.sum(AiCallRow.cost_micro_usd), 0),
+        )
+        with Session(self._engine) as session:
+            rows = session.execute(
+                select(AiCallRow.kind, *columns)
+                .where(AiCallRow.day == day, AiCallRow.kind.in_(CALL_KINDS))
+                .group_by(AiCallRow.kind)
+            ).all()
+        found = {
+            str(kind): KindTotals(
+                kind=str(kind),
+                requests=int(count),
+                usage=TokenUsage(int(given), int(write_5m), int(write_1h), int(cached), int(out)),
+                cost_micro_usd=int(cost or 0),
+            )
+            for kind, count, given, write_5m, write_1h, cached, out, cost in rows
+        }
+        return tuple(found[kind] for kind in CALL_KINDS if kind in found)
 
     def _control(self, kind: ControlKind, allowance: int = 0) -> None:
         now = self._now()

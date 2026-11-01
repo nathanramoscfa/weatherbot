@@ -279,6 +279,11 @@ def runtime(  # noqa: PLR0913 - test runtime seams
     Its toast is a fake that delivers, and its identity is a fake registry that holds it,
     as on a Windows machine where toasts work; no command test reaches Windows.
     """
+    # An environment without the test's directories resolves the operator's real data
+    # directory and would migrate the operator's database: spread os.environ into it.
+    assert environ is None or {"WEATHERBOT_DATA_DIR", "WEATHERBOT_CONFIG_DIR"} <= set(environ), (
+        "a test runtime's environment must keep the test's data and config directories"
+    )
     channel = toast or FakeToast()
     found = identity or Identity(FakeRegistry(DISPLAY_NAME))
     runner = task_runner or FakeTaskRunner()

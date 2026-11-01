@@ -220,11 +220,12 @@ def validate_output[T: BaseModel](output_format: type[T], message: Message) -> T
 
 @dataclass(frozen=True)
 class Parsed[T: BaseModel]:
-    """A structured request's message and its validated output."""
+    """A structured request's message, its validated output, and its ledger row."""
 
     message: Message
     output: T
     request_id: str | None
+    call_id: int
 
 
 @dataclass(frozen=True)
@@ -276,13 +277,15 @@ def request_kwargs(
 class StreamEvents:
     """The SDK's stream events, watched for the final message and the usage so far."""
 
-    def __init__(self, stream: AsyncMessageStream[None]) -> None:
+    def __init__(self, stream: AsyncMessageStream[None], call_id: int) -> None:
         """Watch a stream.
 
         Args:
             stream: The SDK's stream.
+            call_id: The request's ledger row.
         """
         self._stream = stream
+        self.call_id = call_id
         self._iterator = stream.__aiter__()
         self.started = False
         self.final: Message | None = None
@@ -379,7 +382,7 @@ class AiCaller:
         kwargs: dict[str, Any],
         output_format: type[BaseModel] | None,
         send: Callable[[AsyncAnthropic], Awaitable[Message]],
-    ) -> tuple[Message, BaseModel | None, str | None]:
+    ) -> tuple[Message, BaseModel | None, str | None, int]:
         reservation = await self._reserve(call, kwargs)
         outcome = Outcome("incomplete")
         try:
@@ -408,7 +411,11 @@ class AiCaller:
                         request_id,
                     )
                     raise
-            return message, output, request_id
+        except (AiUnavailable, InvalidOutputError) as error:
+            error.call_id = reservation.id
+            raise
+        else:
+            return message, output, request_id, reservation.id
         finally:
             self._auth.unanswered()
             self._ledger.settle(reservation, outcome)
@@ -447,8 +454,8 @@ class AiCaller:
         async def send(client: AsyncAnthropic) -> Message:
             return await client.messages.create(model=model, stream=False, **kwargs)
 
-        message, output, request_id = await self._send(call, kwargs, output_format, send)
-        return Parsed(message, cast("T", output), request_id)
+        message, output, request_id, call_id = await self._send(call, kwargs, output_format, send)
+        return Parsed(message, cast("T", output), request_id, call_id)
 
     async def create(
         self,
@@ -481,7 +488,7 @@ class AiCaller:
         async def send(client: AsyncAnthropic) -> Message:
             return await client.messages.create(model=model, stream=False, **kwargs)
 
-        message, _, _ = await self._send(call, kwargs, None, send)
+        message, _, _, _ = await self._send(call, kwargs, None, send)
         return message
 
     @asynccontextmanager
@@ -525,7 +532,7 @@ class AiCaller:
                 manager = self._factory().messages.stream(model=model, **kwargs)
                 async with manager as sdk_stream:
                     self._auth.answered()
-                    events = StreamEvents(sdk_stream)
+                    events = StreamEvents(sdk_stream, reservation.id)
                     yield events
                 final = events.final
             except anthropic.AnthropicError as error:
@@ -557,6 +564,9 @@ class AiCaller:
                             outcome.request_id,
                         )
                         raise
+        except (AiUnavailable, InvalidOutputError) as error:
+            error.call_id = reservation.id
+            raise
         finally:
             self._auth.unanswered()
             if outcome is None:

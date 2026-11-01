@@ -53,6 +53,7 @@ FROZEN = {
     "0005_monitor.py": "f85816879172be57a0e3223da2bd99bbcaf1a0521da2895822f3e3c8e76f9520",
     "0006_notifications.py": "88ad27ba143120845fb027270935cd617f8120f970c307fa85fb5d4b6400ee69",
     "0007_ai_calls.py": "7c87d774bda815f4f0db481007b035793058b8f2970e0d83b6dd9293acf649e8",
+    "0008_ai_outputs.py": "d8b63402b6978ed1f2542c889a8b15e7513d5bdbbee18a489ad18012b6b1842b",
 }
 SNAPSHOT_HEX = "8f0c4d1e5b7a4c2e9d3f1a2b3c4d5e6f"
 PROBE = "probe"
@@ -760,3 +761,84 @@ def test_0007_has_defaults_indexes_and_no_check_or_foreign_key(paths: AppPaths) 
     assert defaults["output_tokens"] == "0"
     assert defaults["allowance_micro_usd"] == "0"
     assert defaults["cost_micro_usd"] is None
+
+
+# Revision 0008 -------------------------------------------------------------------------------
+
+OUTPUTS = {"ai_outputs"}
+
+
+def _seed_0007(paths: AppPaths, engine: Engine) -> set[str]:
+    """Revision 0007 with seeded rows and a ledger row; the tables it holds."""
+    _seed_0006(paths, engine)
+    _migrate(engine, "0007")
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO ai_calls (kind, status, day, started_at, ceiling_micro_usd, "
+                "prices_as_of) VALUES ('pause', 'control', '2026-11-01', '2026-11-01', 0, "
+                "'2026-10-30')"
+            )
+        )
+    engine.dispose()
+    return _tables(paths.database_path) - {"alembic_version"}
+
+
+def test_0008_upgrade_keeps_every_existing_row(paths: AppPaths, engine: Engine) -> None:
+    tables = _seed_0007(paths, engine)
+    before = _every_row(paths.database_path, tables)
+    assert not OUTPUTS & tables
+
+    _migrate(engine, "0008")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0008"
+    assert _every_row(paths.database_path, tables) == before
+    assert _every_row(paths.database_path, OUTPUTS) == {"ai_outputs": []}
+
+
+def test_0008_downgrades_to_0007_by_dropping_the_outputs(paths: AppPaths, engine: Engine) -> None:
+    tables = _seed_0007(paths, engine)
+    before = _every_row(paths.database_path, tables)
+    _migrate(engine, "0008")
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO ai_outputs (kind, model, prompt_version, status, "
+                "withheld_reason, created_at) VALUES ('briefing', 'claude-sonnet-5-5', "
+                "'0', 'withheld', 'level', '2026-11-01')"
+            )
+        )
+
+    _migrate(engine, "0007")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0007"
+    assert not OUTPUTS & _tables(paths.database_path)
+    assert _every_row(paths.database_path, tables) == before
+
+
+def test_0008_has_its_indexes_and_foreign_keys_and_no_check(paths: AppPaths) -> None:
+    with open_database(paths) as opened:
+        inspector = inspect(opened.engine)
+        checks = inspector.get_check_constraints("ai_outputs")
+        foreign_keys = {
+            (
+                tuple(key["constrained_columns"]),
+                key["referred_table"],
+                key.get("options", {}).get("ondelete"),
+            )
+            for key in inspector.get_foreign_keys("ai_outputs")
+        }
+        indexes = {index["name"] for index in inspector.get_indexes("ai_outputs")}
+
+    assert checks == []
+    assert foreign_keys == {
+        (("assessment_id",), "assessments", "CASCADE"),
+        (("call_id",), "ai_calls", "SET NULL"),
+    }
+    assert indexes == {
+        "ix_ai_outputs_kind_assessment_id",
+        "ix_ai_outputs_kind_location_name_created_at",
+        "ix_ai_outputs_graphic_sha256",
+    }

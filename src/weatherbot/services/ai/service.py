@@ -42,8 +42,9 @@ if TYPE_CHECKING:
 type AiStateName = Literal["off", "ready", "paused", "capped", "unavailable"]
 type CredentialSource = Literal["environment", "auth_token", "profile", "none"]
 
-SMALLEST_REQUEST_PROMPT_TOKENS: Final = 2_000
-"""A change summary's frozen prompt alone: a floor for the smallest request's prompt."""
+SMALLEST_REQUEST_PROMPT_TOKENS: Final = 3_000
+"""A change summary's frozen part alone, a floor for the smallest request's prompt: the
+system prompt and the summary's schema, measured at 3,025 tokens on 2026-11-01."""
 SMALLEST_REQUEST_MAX_TOKENS: Final = 1_500
 """A change summary's ``max_tokens``."""
 PROBE_TEXT: Final = "ready"
@@ -121,6 +122,16 @@ class AiService:
     def ledger(self) -> Ledger:
         """The ledger."""
         return self._ledger
+
+    @property
+    def engine(self) -> Engine:
+        """The AI engine: reads anything, writes only ``ai_calls`` and ``ai_outputs``."""
+        return self._engine
+
+    @property
+    def clock(self) -> Callable[[], datetime]:
+        """The clock every product stamps its rows with."""
+        return self._now
 
     def credential(self) -> CredentialSource:
         """Resolve where the credential comes from, once; never its value.

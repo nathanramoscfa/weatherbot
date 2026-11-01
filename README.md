@@ -72,6 +72,11 @@ weatherbot notify setup
 weatherbot notify test               # send a test notification through the log and the toast
 weatherbot notify setup --remove     # remove the identity again
 
+# Claude's plain-language briefing on each location's latest assessment (needs ANTHROPIC_API_KEY; see docs/AI.md).
+weatherbot brief                     # every stored location in turn, section by section, labelled as AI
+weatherbot brief "Miami-Dade County Hall" --new   # a new briefing even when one is stored for the assessment
+weatherbot brief --cost              # today's AI spend against the daily cap; sends nothing
+
 weatherbot config show               # every setting's value, and whether it came from the default, weatherbot.toml, or the environment
 weatherbot config path               # where the settings file, the database, its backups, the log file, and the lock files live
 ```
@@ -117,10 +122,17 @@ Weatherbot nothing. `notify test` exits 1 when the toast failed, was disabled,
 or was unavailable on Windows. Set `toast = false` under `[notifications]` in
 `weatherbot.toml` to keep notifications in the log only.
 
+`brief` prints a label line naming the model and the assessment and saying the
+text is not an official product, then each section once it passes the
+validators, and the disclaimer's reminder; a briefing that breaks a rule is
+withheld, and a stored briefing for the latest assessment is shown without a
+new request. [docs/AI.md](docs/AI.md) covers what each request carries and what
+it costs.
+
 `locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, `doctor`,
 `check --once`, `install-task`, `uninstall-task`, `notify log`, `notify setup`,
-`notify test`, `config show`, and `config path` take `--json` and print one JSON
-document whose schema is in [docs/schema/](docs/schema/).
+`notify test`, `config show`, `config path`, and `brief` take `--json` and print
+one JSON document whose schema is in [docs/schema/](docs/schema/).
 `--verbose` (before the command: `weatherbot --verbose fetch`) logs at DEBUG
 to standard error. The exit status is 0 when everything answered, 1 when a
 source failed or a check did, and 2 for a usage error. With one location,

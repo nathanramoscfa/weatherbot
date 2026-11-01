@@ -29,6 +29,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `scripts/record_ai_fixtures.py` records response bodies only into
   `tests/fixtures/ai/`. Phase 5's check 47 now reads `README.md`'s Status at
   `v2.0.0-phase-5`. `docs/AI.md` documents the layer.
+- Add the briefing and the change summary (Phase 6 Step 2): the frozen system
+  prompt rendered from the ladder and hashed into the prompt version, with a
+  five-minute cache marker; the privacy-reduced context (structured fields only,
+  distances as six bands, bearings as 8 compass points, instants to the hour,
+  sources as keys, NOAA text in escaped blocks with its links removed); the
+  `Briefing` and `ChangeSummary` schemas, neither with a level; the validators,
+  which withhold a product that states another level, cites an unknown source,
+  or carries a URL, an unquoted position, an empty section, or text past its
+  bound; revision 0008's `ai_outputs`; a briefing streamed and released section
+  by section, reused per assessment, model, and prompt; change summaries written
+  once per qualifying assessment with `[ai] summary_model`; and `weatherbot brief
+  [LOCATION] [--new] [--json] [--cost]` with its `brief` document.
+- Add the eval set (`tests/ai/eval/`, 31 cases over the recorded snapshot, the
+  replay subset, a failed-input case, and four injection twins) graded offline
+  on every run, and `scripts/eval_ai.py` (`--count`, `--live`); the recordings
+  cost $0.27, and the measured token distribution in `docs/AI.md` confirms the
+  ceilings and the $1.00 cap. CI holds `services/ai/context.py` and
+  `services/ai/validate.py` at 90% branch coverage each.
 
 ### Phase 5 — Web app (MVP)
 - Add Phase 5's repeatable verification script (`scripts/verify_phase05.py`),

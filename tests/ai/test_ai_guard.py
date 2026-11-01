@@ -43,8 +43,8 @@ def _first_column(table: str) -> str:
 
 def test_the_ai_tables_are_the_ledger_and_the_outputs() -> None:
     assert frozenset({"ai_calls", "ai_outputs"}) == AI_TABLES
-    assert "ai_calls" in Base.metadata.tables
-    assert len(OFFICIAL_TABLES) == len(Base.metadata.tables) - 1
+    assert set(Base.metadata.tables) >= AI_TABLES
+    assert len(OFFICIAL_TABLES) == len(Base.metadata.tables) - len(AI_TABLES)
 
 
 @pytest.mark.parametrize("table", OFFICIAL_TABLES)
