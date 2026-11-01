@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 6 — Claude layer
+- Add the AI chassis (Phase 6 Step 1): `anthropic>=2.3.0` and the `[ai]`
+  settings table (`enabled`, `model`, `summary_model`, `daily_cap_usd`,
+  `change_summaries`, `outlook_narration`) with six literal `WEATHERBOT_AI_*`
+  overrides; `weatherbot.services.ai`, the only importer of the SDK, with the
+  client factory (the SDK resolves `ANTHROPIC_API_KEY` or an `ant auth login`
+  profile; nothing copies the value), fixed reasons for every SDK error and the
+  `refusal` and `max_tokens` stops, list prices in integer micro-dollars dated
+  2026-10-30, the AI engine (a SQLite authorizer that lets the package write
+  only `ai_calls` and `ai_outputs`), and revision 0007's `ai_calls` ledger:
+  every request reserved at its ceiling under `BEGIN IMMEDIATE`, sent, and
+  settled from the SDK's usage, under a $1.00 daily cap every process shares,
+  with a pause and bounded daily allowances.
+- `doctor` gains its `ai` check (the credential's source and today's spend,
+  proved online by a free `count_tokens` request) and `/api/health` its `ai`
+  block (`state`, `reason`, `spent_micro_usd`, `cap_micro_usd`); every log
+  record and traceback loses key shapes and authorization values, and the SDK's
+  loggers stay at WARNING at every level.
+- Tests replay recorded answers through the real SDK (`tests/ai/ai_support.py`);
+  `scripts/record_ai_fixtures.py` records response bodies only into
+  `tests/fixtures/ai/`. Phase 5's check 47 now reads `README.md`'s Status at
+  `v2.0.0-phase-5`. `docs/AI.md` documents the layer.
+
 ### Phase 5 — Web app (MVP)
 - Add Phase 5's repeatable verification script (`scripts/verify_phase05.py`),
   its test suite (`tests/test_phase05_verification.py`), the `phase-verify (05)`

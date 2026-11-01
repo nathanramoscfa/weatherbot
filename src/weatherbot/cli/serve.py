@@ -183,6 +183,7 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
         newest_cycle_id=initial_cycle_id,
     )
     channels = serve_channels(context, hub)
+    ai = context.ai_service(database)
     schedule_holder: list[MonitorSchedule] = []
     schedule_ready = asyncio.Event()
     cycle_lock = asyncio.Lock()
@@ -208,6 +209,7 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
         channels=channels,
         network=_make_serve_network(context),
         request_cycle=_request_cycle,
+        ai=ai,
     )
     web_server = WebServer(
         create_app(state),
@@ -253,6 +255,7 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
             timer_task=timer_task,
             web_task=web_task,
         )
+        await ai.close()
 
 
 async def _shutdown_serve_tasks(  # noqa: PLR0913 - stop state and background tasks to clean up

@@ -4,8 +4,9 @@
 Tables arrive with their writers: Phase 2's snapshots and locations (revisions 0001 and
 0002), the assessments, their evidence, and their changes (revision 0003, Phase 3), the
 shared product contents (revision 0004, Phase 4), the heartbeats and the monitor's cycles
-(revision 0005), and the notifications, their decisions, and their deliveries (revision
-0006); briefings and the Claude ledger (Phase 6) are later revisions. Every
+(revision 0005), the notifications, their decisions, and their deliveries (revision
+0006), and the Claude ledger (revision 0007, Phase 6); the AI's stored outputs are a later
+revision. Every
 instant goes in and comes out as an aware UTC value. A naming convention names every
 constraint, so a SQLite batch migration can find and alter it.
 
@@ -677,3 +678,47 @@ class NotificationDeliveryRow(Base):
     detail: Mapped[str | None] = mapped_column(
         Text, comment="An error kind, an HRESULT, or a setting name, never content"
     )
+
+
+class AiCallRow(Base):
+    """One Messages request to Anthropic, or one control of the AI's spend (revision 0007).
+
+    A request is reserved at its ceiling before it is sent and settled from the SDK's usage
+    after it; ``kind`` and ``status`` are checked by the services, not by a CHECK
+    constraint, so a later phase can extend them. Costs are integer micro-dollars at the
+    list prices of ``prices_as_of``. ``day`` is the operator's local calendar day. There is
+    no foreign key, so a removed location keeps its spend history; ``location_name`` is the
+    only location field, and no prompt, answer, or credential is ever stored here.
+    """
+
+    __tablename__ = "ai_calls"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(
+        String(16), comment="briefing, summary, chat, narration, allowance, pause, or resume"
+    )
+    model: Mapped[str | None] = mapped_column(String(64))
+    prompt_version: Mapped[str | None] = mapped_column(String(64))
+    location_name: Mapped[str | None] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(
+        String(16),
+        comment="reserved, ok, failed, incomplete, declined, abandoned, or control",
+    )
+    day: Mapped[str] = mapped_column(String(10), index=True, comment="Local YYYY-MM-DD")
+    started_at: Mapped[datetime] = mapped_column(index=True)
+    finished_at: Mapped[datetime | None]
+    ceiling_micro_usd: Mapped[int]
+    cost_micro_usd: Mapped[int | None]
+    allowance_micro_usd: Mapped[int] = mapped_column(default=0, server_default=text("0"))
+    input_tokens: Mapped[int] = mapped_column(default=0, server_default=text("0"))
+    cache_write_5m_tokens: Mapped[int] = mapped_column(default=0, server_default=text("0"))
+    cache_write_1h_tokens: Mapped[int] = mapped_column(default=0, server_default=text("0"))
+    cache_read_tokens: Mapped[int] = mapped_column(default=0, server_default=text("0"))
+    output_tokens: Mapped[int] = mapped_column(default=0, server_default=text("0"))
+    stop_reason: Mapped[str | None] = mapped_column(String(32))
+    refusal_category: Mapped[str | None] = mapped_column(String(32))
+    error_kind: Mapped[str | None] = mapped_column(
+        String(32), comment="A fixed reason, never an SDK message"
+    )
+    request_id: Mapped[str | None] = mapped_column(String(64))
+    prices_as_of: Mapped[str] = mapped_column(String(10))

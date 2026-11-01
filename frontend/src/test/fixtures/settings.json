@@ -211,6 +211,48 @@
       "table": "web",
       "value": "",
       "variable": "WEATHERBOT_WEB_CORPUS"
+    },
+    {
+      "key": "enabled",
+      "origin": "default",
+      "table": "ai",
+      "value": true,
+      "variable": "WEATHERBOT_AI_ENABLED"
+    },
+    {
+      "key": "model",
+      "origin": "default",
+      "table": "ai",
+      "value": "claude-sonnet-5-5",
+      "variable": "WEATHERBOT_AI_MODEL"
+    },
+    {
+      "key": "summary_model",
+      "origin": "default",
+      "table": "ai",
+      "value": "claude-sonnet-5-5",
+      "variable": "WEATHERBOT_AI_SUMMARY_MODEL"
+    },
+    {
+      "key": "daily_cap_usd",
+      "origin": "default",
+      "table": "ai",
+      "value": 1.0,
+      "variable": "WEATHERBOT_AI_DAILY_CAP_USD"
+    },
+    {
+      "key": "change_summaries",
+      "origin": "default",
+      "table": "ai",
+      "value": true,
+      "variable": "WEATHERBOT_AI_CHANGE_SUMMARIES"
+    },
+    {
+      "key": "outlook_narration",
+      "origin": "default",
+      "table": "ai",
+      "value": false,
+      "variable": "WEATHERBOT_AI_OUTLOOK_NARRATION"
     }
   ],
   "settings_file": "/placeholder/config/weatherbot.toml",

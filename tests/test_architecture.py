@@ -276,6 +276,76 @@ def test_the_scan_catches_a_synthetic_engine_module(tmp_path: Path) -> None:
     assert banned_imports(module.read_text(encoding="utf-8")) == ["httpx"]
 
 
+PACKAGE_DIRECTORY = REPOSITORY_ROOT / "src" / "weatherbot"
+AI_DIRECTORY = PACKAGE_DIRECTORY / "services" / "ai"
+# The Anthropic SDK and its HTTP library: only the AI package may import either.
+AI_LIBRARIES = frozenset({"anthropic", "httpx2"})
+
+
+def ai_library_imports(source: str) -> list[str]:
+    """Return the Anthropic libraries ``source`` imports, in source order, at any depth.
+
+    Args:
+        source: Python source text.
+
+    Returns:
+        One entry per import statement naming ``anthropic`` or ``httpx2``.
+    """
+    found: list[str] = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            names = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            names = [node.module]
+        else:
+            continue
+        found.extend(root for name in names if (root := name.split(".")[0]) in AI_LIBRARIES)
+    return found
+
+
+def test_only_the_ai_package_imports_the_anthropic_libraries() -> None:
+    files = sorted(PACKAGE_DIRECTORY.rglob("*.py"))
+    assert any(path.is_relative_to(AI_DIRECTORY) for path in files)
+
+    violations = {
+        path.relative_to(REPOSITORY_ROOT).as_posix(): found
+        for path in files
+        if not path.is_relative_to(AI_DIRECTORY)
+        and (found := ai_library_imports(path.read_text(encoding="utf-8")))
+    }
+
+    assert not violations
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        ("import anthropic", ["anthropic"]),
+        ("from anthropic import AsyncAnthropic", ["anthropic"]),
+        ("from anthropic.types import Message", ["anthropic"]),
+        ("import httpx2 as httpx", ["httpx2"]),
+        ("def f() -> None:\n    import anthropic\n", ["anthropic"]),
+        ("import httpx\nfrom weatherbot.services.ai import client", []),
+    ],
+)
+def test_the_scan_catches_anthropic_imports(source: str, expected: list[str]) -> None:
+    assert ai_library_imports(source) == expected
+
+
+def test_the_ai_contracts_name_the_libraries_and_the_writing_services() -> None:
+    linter = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    contracts = {c["name"]: c for c in linter["tool"]["importlinter"]["contracts"]}
+    talks = contracts["Only the AI service talks to Anthropic"]
+    writes = contracts["The AI service never fetches or writes the official records"]
+
+    assert set(talks["forbidden_modules"]) == AI_LIBRARIES
+    assert "weatherbot.services" not in talks["source_modules"]
+    assert writes["source_modules"] == ["weatherbot.services.ai"]
+    assert {"weatherbot.sources", "httpx", "weatherbot.services.snapshots"} <= set(
+        writes["forbidden_modules"]
+    )
+
+
 POLICY_MODULE = REPOSITORY_ROOT / "src" / "weatherbot" / "services" / "policy.py"
 POLICY_ALLOWED_IMPORTS = frozenset(
     {

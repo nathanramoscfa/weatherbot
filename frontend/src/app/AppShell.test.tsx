@@ -185,6 +185,12 @@ function buildHealthResponse(
       index_sha256: "abcdef012345",
     },
     corpus: false,
+    ai: {
+      state: "off",
+      reason: "disabled",
+      spent_micro_usd: 0,
+      cap_micro_usd: 0,
+    },
     notice:
       "Informational only — never a substitute for official NHC, NWS, or local emergency-management guidance.",
     ...overrides,

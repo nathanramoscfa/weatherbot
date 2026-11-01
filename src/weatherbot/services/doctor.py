@@ -19,6 +19,13 @@ group paths, and the overlay layers. Nominatim is never probed (its usage policy
 the basemap tiles and the GIS archive are display-only and replay-only; the report says
 so. It also lists the Source-drift warnings stored with the latest snapshot.
 
+The ``ai`` check names where the Anthropic credential comes from, never its value, and
+today's spend against the cap; online it proves the credential with one free
+``count_tokens`` request. It is skipped when the database did not open, while ``[ai]
+enabled`` is false, and when there is no credential, so a fresh install with no key still
+exits 0; it fails for a failed probe, naming the reason only. It imports the AI service
+inside the function, so ``doctor`` loads the SDK only when it has something to judge.
+
 Any failed check, probe, or layer makes the report failed, which the command turns into
 exit status 1.
 """
@@ -28,18 +35,18 @@ import functools
 import os
 import shutil
 import sys
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Final, Literal
+from typing import TYPE_CHECKING, Final, Literal
 from uuid import UUID
 
 import httpx
 
 from weatherbot import __version__
 from weatherbot.models import MapCatalog, SourceId, StormSummary
-from weatherbot.services.config import DATA_DIR_VARIABLE, WebSettings
+from weatherbot.services.config import DATA_DIR_VARIABLE, AiSettings, WebSettings
 from weatherbot.services.health import Staleness, staleness
 from weatherbot.services.network import Network
 from weatherbot.services.notifications import NotificationService, StoredDelivery
@@ -81,6 +88,9 @@ from weatherbot.sources import (
 )
 from weatherbot.sources.errors import SourceError, SourceSchemaError
 from weatherbot.sources.http import Fetcher, MemoryValidatorStore, ValidatorStore
+
+if TYPE_CHECKING:
+    from weatherbot.services.ai.client import ClaudeFactory
 
 type CheckStatus = Literal["pass", "fail", "skip"]
 
@@ -514,6 +524,82 @@ async def web_check(  # noqa: PLR0911, PLR0913 - early returns and keyword-only 
     return Check("web", "pass", f"dashboard reachable at {address}")
 
 
+AI_OFF: Final = "turned off by [ai] enabled"
+NO_CREDENTIAL: Final = (
+    "no Anthropic credential: set ANTHROPIC_API_KEY or run ant auth login; "
+    "everything but AI works without one"
+)
+BLANK_KEY: Final = "ANTHROPIC_API_KEY is set but blank"
+
+
+async def ai_check(  # noqa: PLR0911, PLR0913 - early returns, then keyword-only seams
+    database: Database | None,
+    settings: AiSettings,
+    *,
+    factory: "ClaudeFactory | None" = None,
+    environ: Mapping[str, str] | None = None,
+    now: Callable[[], datetime] | None = None,
+    offline: bool,
+) -> Check:
+    """Judge the AI: its credential's source, today's spend, and online, a free probe.
+
+    Args:
+        database: The open database, or ``None`` when it did not open.
+        settings: The ``[ai]`` table.
+        factory: Builds the Anthropic client; the SDK's default when omitted.
+        environ: The environment; ``os.environ`` when omitted.
+        now: The clock, for the ledger's day.
+        offline: Make no request; report the credential's presence only.
+
+    Returns:
+        The ``ai`` check; its detail names a source, never a value or a path.
+    """
+    if database is None:
+        return Check("ai", "skip", DATABASE_CLOSED)
+    if not settings.enabled:
+        return Check("ai", "skip", AI_OFF)
+    from weatherbot.services.ai.client import (  # noqa: PLC0415 - the SDK loads only for AI
+        SOURCE_TEXT,
+        blank_key,
+        default_client,
+    )
+    from weatherbot.services.ai.errors import AiUnavailable  # noqa: PLC0415 - as above
+    from weatherbot.services.ai.guard import ai_engine  # noqa: PLC0415 - as above
+    from weatherbot.services.ai.pricing import usd_text  # noqa: PLC0415 - as above
+    from weatherbot.services.ai.service import AiService  # noqa: PLC0415 - as above
+
+    env = os.environ if environ is None else environ
+    service = AiService(
+        ai_engine(database.path),
+        settings,
+        factory=factory or default_client,
+        environ=env,
+        now=now or (lambda: datetime.now(UTC)),
+    )
+    try:
+        state = service.state()
+        if state.reason == "price_unknown":
+            return Check("ai", "fail", "a configured model is not in the price table")
+        if state.credential in {None, "none"}:
+            blank = f"; {BLANK_KEY}" if blank_key(env) else ""
+            return Check("ai", "skip", f"{NO_CREDENTIAL}{blank}")
+        source = SOURCE_TEXT[state.credential or "none"]
+        spend = (
+            f"{usd_text(state.today.spent_micro_usd)} of "
+            f"{usd_text(state.today.limit_micro_usd)} today"
+        )
+        detail = f"credential from {source}; {spend}"
+        if offline:
+            return Check("ai", "pass", detail)
+        try:
+            await service.probe()
+        except AiUnavailable as error:
+            return Check("ai", "fail", f"the probe failed ({error.reason}); {detail}")
+        return Check("ai", "pass", f"{detail}; authenticated")
+    finally:
+        await service.close()
+
+
 async def _probe(source_id: SourceId, work: Callable[[], Awaitable[str]]) -> SourceProbe:
     detail: str | None = None
     failure: SourceError | None = None
@@ -669,6 +755,9 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
     which: Callable[[str], str | None] = shutil.which,
     web_settings: WebSettings | None = None,
     web_transport: httpx.AsyncBaseTransport | None = None,
+    ai_settings: AiSettings | None = None,
+    claude_factory: "ClaudeFactory | None" = None,
+    environ: Mapping[str, str] | None = None,
 ) -> DoctorReport:
     r"""Run every check, and every probe unless ``offline``.
 
@@ -693,6 +782,9 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         which: Seam resolving ``weatherbot`` on ``PATH``.
         web_settings: ``[web]`` host and port settings for the ``web`` check.
         web_transport: Optional httpx transport seam for probing ``GET /api/health``.
+        ai_settings: The ``[ai]`` table for the ``ai`` check; the defaults when omitted.
+        claude_factory: Builds the Anthropic client for the ``ai`` check's probe.
+        environ: The environment the ``ai`` check reads the credential's source from.
 
     Returns:
         The report.
@@ -758,7 +850,15 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
             data_dir_overridden=overridden,
             transport=web_transport,
         )
-        checks = (*checks, h_check, toast, t_check, p_check, w_check)
+        a_check = await ai_check(
+            database,
+            ai_settings or AiSettings(),
+            factory=claude_factory,
+            environ=environ,
+            now=lambda: now or datetime.now(UTC),
+            offline=offline,
+        )
+        checks = (*checks, h_check, toast, t_check, p_check, w_check, a_check)
     else:
         w_check = await web_check(
             None,
@@ -773,6 +873,7 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
             t_check,
             p_check,
             w_check,
+            Check("ai", "skip", DATABASE_CLOSED),
         )
     probes: tuple[SourceProbe, ...] = ()
     layers: tuple[LayerDiscovery, ...] = ()

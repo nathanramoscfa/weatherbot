@@ -25,6 +25,8 @@ from weatherbot.models import (
     StormSlot,
     WatchWarningType,
 )
+from weatherbot.services.ai.errors import AiUnavailableReason
+from weatherbot.services.ai.service import AiStateName
 from weatherbot.services.events import EventKind, QueryKey
 
 type GeometryKind = Literal[
@@ -93,6 +95,23 @@ class UiHealth(_ApiModel):
     )
 
 
+class AiHealth(_ApiModel):
+    """The AI's state and today's spend: never a credential, a prompt, or an answer."""
+
+    state: AiStateName = Field(
+        description="off, ready, paused, capped, or unavailable; computed without a request."
+    )
+    reason: AiUnavailableReason | None = Field(
+        description="Why AI is not ready (for example no_credential or capped); null when ready."
+    )
+    spent_micro_usd: int = Field(
+        description="Today's settled AI cost and open reservations, in micro-dollars."
+    )
+    cap_micro_usd: int = Field(
+        description="Today's limit: the daily cap plus any allowances, in micro-dollars."
+    )
+
+
 class HealthResponse(_ApiModel):
     """Response document for ``GET /api/health``."""
 
@@ -114,6 +133,7 @@ class HealthResponse(_ApiModel):
             "Whether a replay corpus is configured and available for historical map replay."
         )
     )
+    ai: AiHealth = Field(description="The AI's state and today's spend against its cap.")
     notice: str = Field(description="One-line informational-only disclaimer notice.")
 
 

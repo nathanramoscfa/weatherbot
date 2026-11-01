@@ -531,6 +531,78 @@
   },
   "components": {
     "schemas": {
+      "AiHealth": {
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/AiStateName",
+            "description": "off, ready, paused, capped, or unavailable; computed without a request."
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiUnavailableReason"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why AI is not ready (for example no_credential or capped); null when ready."
+          },
+          "spent_micro_usd": {
+            "type": "integer",
+            "title": "Spent Micro Usd",
+            "description": "Today's settled AI cost and open reservations, in micro-dollars."
+          },
+          "cap_micro_usd": {
+            "type": "integer",
+            "title": "Cap Micro Usd",
+            "description": "Today's limit: the daily cap plus any allowances, in micro-dollars."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "state",
+          "reason",
+          "spent_micro_usd",
+          "cap_micro_usd"
+        ],
+        "title": "AiHealth",
+        "description": "The AI's state and today's spend: never a credential, a prompt, or an answer."
+      },
+      "AiStateName": {
+        "type": "string",
+        "enum": [
+          "off",
+          "ready",
+          "paused",
+          "capped",
+          "unavailable"
+        ]
+      },
+      "AiUnavailableReason": {
+        "type": "string",
+        "enum": [
+          "disabled",
+          "no_credential",
+          "price_unknown",
+          "paused",
+          "capped",
+          "busy",
+          "auth_failed",
+          "permission",
+          "not_found",
+          "rate_limited",
+          "overloaded",
+          "server_error",
+          "timeout",
+          "network",
+          "bad_request",
+          "too_large",
+          "declined",
+          "truncated"
+        ]
+      },
       "AlertCertainty": {
         "properties": {
           "raw": {
@@ -1972,6 +2044,10 @@
             "title": "Corpus",
             "description": "Whether a replay corpus is configured and available for historical map replay."
           },
+          "ai": {
+            "$ref": "#/components/schemas/AiHealth",
+            "description": "The AI's state and today's spend against its cap."
+          },
           "notice": {
             "type": "string",
             "title": "Notice",
@@ -1991,6 +2067,7 @@
           "next_product_at",
           "ui",
           "corpus",
+          "ai",
           "notice"
         ],
         "title": "HealthResponse",

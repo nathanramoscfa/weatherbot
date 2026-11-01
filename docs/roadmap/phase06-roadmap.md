@@ -1,6 +1,6 @@
 # Phase 6 Roadmap — Claude layer
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -209,10 +209,17 @@ changes them.
    "adaptive"}`, its display omitted), with `output_config.effort` `low` for
    briefings, summaries, and narrations and `medium` for chat, which Steps 2 and
    3 re-measure; `tool_choice` stays `auto`, because a forced choice is a 400 on
-   Sonnet 5.5. Structured outputs go through `client.messages.parse` and, for
-   the streamed briefing, `messages.stream(output_format=...)`, whose growing
-   text `pydantic_core.from_json(..., allow_partial="trailing-strings")` reads
-   section by section (both probed). `max_tokens` is bounded per product —
+   Sonnet 5.5. Structured outputs are asked for with `output_config.format`, the
+   output model's schema through the SDK's public `anthropic.transform_schema`,
+   sent with `messages.create` and, for the streamed briefing,
+   `messages.stream`, whose growing text `pydantic_core.from_json(...,
+   allow_partial="trailing-strings")` reads section by section (probed);
+   `AiCaller` validates the final text after it has checked the stop and read
+   the usage. (Amended 2026-11-01 by Step 1: the SDK's own `messages.parse` and
+   `messages.stream(output_format=...)` validate inside the SDK and raise a
+   pydantic error on a refusal or a `max_tokens` stop before the stop reason and
+   the final usage arrive, so neither the reason nor the ledger would see them,
+   probed with anthropic 2.3.0.) `max_tokens` is bounded per product —
    briefing 6,000, change summary 1,500, narration 2,000, chat round 4,000, at
    most six tool rounds a turn — because the cap reserves against it. The client
    refuses redirects (`DefaultAsyncHttpxClient(follow_redirects=False)`; the
@@ -1119,9 +1126,9 @@ and the Worktree rule permits no concurrent steps.
 
 ---
 
-## Step 1 — The Claude client, the ledger, and the cap
+## Step 1 — The Claude client, the ledger, and the cap ✅
 
-**Status:** Not started
+**Status:** Complete — PR #77 (2026-11-01)
 
 > **Goal:** Lay the AI chassis before any prompt exists, and prove the
 > operator's credential. `anthropic>=2.3.0` joins the dependencies;
@@ -1178,6 +1185,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-01: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -2522,7 +2531,10 @@ conversation is new per phase-boundary hygiene.
       later key appears (or the stream ends) and `validate_section`
       passes — every check that can judge one section (level, source
       keys, URL, coordinates, emptiness, bound) — validates the final
-      `parsed_output` with `validate_briefing`, and stores the
+      output (`events.output`, which `AiCaller.stream` sets once the
+      block ends; `InvalidOutputError` means the text missed the
+      schema and withholds the briefing) with `validate_briefing`,
+      and stores the
       outcome. A failing section ends the stream with `Withheld`
       before any of its text is released. The one check left for the
       end, that every section arrived (a `max_tokens` stop or a cut
@@ -2532,10 +2544,12 @@ conversation is new per phase-boundary hygiene.
 
     <requirement>
       `summaries.py`: `ChangeSummaryService(service)` with
-      `summarize(assessment_id) -> SummaryOutcome` (one `parse` with
-      `[ai] summary_model`, effort `low`, `max_tokens` 1,500,
-      validated, stored; skipped for an assessment whose only change
-      is its first; a stored summary is never rewritten) and
+      `summarize(assessment_id) -> SummaryOutcome` (one
+      `AiCaller.parse` with `[ai] summary_model`, effort `low`,
+      `max_tokens` 1,500, its `Parsed.output` validated, stored, and
+      an `InvalidOutputError` withheld; skipped for an assessment
+      whose only change is its first; a stored summary is never
+      rewritten) and
       `latest(location, limit)`. Step 4 wires it into `serve`.
     </requirement>
 
@@ -5479,7 +5493,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
-| 1    | Claude client + ledger + cap   | Opus 5.5       | Not started        |
+| 1    | Claude client + ledger + cap   | Opus 5.5       | Complete — PR #77  |
 | 2    | Briefing + summary + eval set  | Opus 5.5       | Not started        |
 | 3    | Grounded chat + narration      | Gemini 4 Argon | Not started        |
 | 4    | AI in the API                  | Gemini 4 Argon | Not started        |

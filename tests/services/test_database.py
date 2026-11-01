@@ -52,6 +52,7 @@ FROZEN = {
     "0004_shared_geometry.py": "55d9619fdfcf2fc2566891ea603294ef18a8edcae5094d53cfe969cd3e0e6656",
     "0005_monitor.py": "f85816879172be57a0e3223da2bd99bbcaf1a0521da2895822f3e3c8e76f9520",
     "0006_notifications.py": "88ad27ba143120845fb027270935cd617f8120f970c307fa85fb5d4b6400ee69",
+    "0007_ai_calls.py": "7c87d774bda815f4f0db481007b035793058b8f2970e0d83b6dd9293acf649e8",
 }
 SNAPSHOT_HEX = "8f0c4d1e5b7a4c2e9d3f1a2b3c4d5e6f"
 PROBE = "probe"
@@ -694,3 +695,68 @@ def test_the_merged_revisions_are_byte_identical(name: str) -> None:
     body = (MIGRATIONS_DIRECTORY / "versions" / name).read_bytes().replace(b"\r\n", b"\n")
 
     assert hashlib.sha256(body).hexdigest() == FROZEN[name]
+
+
+# Revision 0007 -------------------------------------------------------------------------------
+
+LEDGER = {"ai_calls"}
+
+
+def _seed_0006(paths: AppPaths, engine: Engine) -> set[str]:
+    """Revision 0006 with seeded rows; the tables it holds."""
+    _seed_0005(paths, engine)
+    _migrate(engine, "0006")
+    engine.dispose()
+    return _tables(paths.database_path) - {"alembic_version"}
+
+
+def test_0007_upgrade_keeps_every_existing_row(paths: AppPaths, engine: Engine) -> None:
+    tables = _seed_0006(paths, engine)
+    before = _every_row(paths.database_path, tables)
+    assert not LEDGER & tables
+
+    _migrate(engine, "0007")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0007"
+    assert _every_row(paths.database_path, tables) == before
+    assert _every_row(paths.database_path, LEDGER) == {"ai_calls": []}
+
+
+def test_0007_downgrades_to_0006_by_dropping_the_ledger(paths: AppPaths, engine: Engine) -> None:
+    tables = _seed_0006(paths, engine)
+    before = _every_row(paths.database_path, tables)
+    _migrate(engine, "0007")
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO ai_calls (kind, status, day, started_at, ceiling_micro_usd, "
+                "prices_as_of) VALUES ('pause', 'control', '2026-10-31', '2026-10-31', 0, "
+                "'2026-10-30')"
+            )
+        )
+
+    _migrate(engine, "0006")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0006"
+    assert not LEDGER & _tables(paths.database_path)
+    assert _every_row(paths.database_path, tables) == before
+
+
+def test_0007_has_defaults_indexes_and_no_check_or_foreign_key(paths: AppPaths) -> None:
+    with open_database(paths) as opened:
+        inspector = inspect(opened.engine)
+        checks = inspector.get_check_constraints("ai_calls")
+        foreign_keys = inspector.get_foreign_keys("ai_calls")
+        indexes = {index["name"] for index in inspector.get_indexes("ai_calls")}
+        defaults = {
+            column["name"]: column["default"] for column in inspector.get_columns("ai_calls")
+        }
+
+    assert checks == []
+    assert foreign_keys == []
+    assert indexes == {"ix_ai_calls_day", "ix_ai_calls_started_at"}
+    assert defaults["output_tokens"] == "0"
+    assert defaults["allowance_micro_usd"] == "0"
+    assert defaults["cost_micro_usd"] is None

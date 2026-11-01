@@ -2,11 +2,14 @@
 """What every command shares: its runtime, its output, and the database it opens.
 
 ``Runtime`` is what a command may be handed through Typer's context object: the
-environment, the fetcher factory, the toast channel's factory, the application identity's
-store, the clock, and whether output is a terminal. The tests pass one, with a fake toast
-and a fake registry; a real run uses the defaults. ``Context.channels`` is the log with the
-toast beside it. ``Output`` prints Rich tables to a terminal and plain text otherwise, and
-keeps standard output to exactly one JSON document under ``--json``. ``open_session``
+environment, the fetcher factory, the toast channel's factory, the Anthropic client's
+factory, the application identity's store, the clock, and whether output is a terminal.
+The tests pass one, with a fake toast, a fake registry, and a replayed Anthropic client; a
+real run uses the defaults, and the default client factory imports the SDK only when it
+is called, so a command that never uses AI never loads it. ``Context.channels`` is the log
+with the toast beside it, and ``Context.ai_service`` the AI service on the AI engine.
+``Output`` prints Rich tables to a terminal and plain text otherwise, and keeps standard
+output to exactly one JSON document under ``--json``. ``open_session``
 opens the database, prints the disclaimer's essentials the first time, and turns the
 services' errors into messages and exit codes: 0 complete, 1 a partial or failed snapshot
 or a failed check, and 2 a usage error.
@@ -21,7 +24,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Final, NoReturn
+from typing import TYPE_CHECKING, Final, NoReturn
 
 import typer
 from pydantic import BaseModel
@@ -43,6 +46,10 @@ from weatherbot.services.persistence.repositories import SettingsRepository
 from weatherbot.services.tasks import ON_WINDOWS, SubprocessRunner, run_subprocess
 from weatherbot.services.toast import Identity, system_identity, toast_channel
 
+if TYPE_CHECKING:
+    from weatherbot.services.ai.client import ClaudeClient, ClaudeFactory
+    from weatherbot.services.ai.service import AiService
+
 EXIT_OK: Final = 0
 EXIT_FAILED: Final = 1
 EXIT_USAGE: Final = 2
@@ -56,6 +63,12 @@ def _open_browser(url: str) -> None:
     webbrowser.open(url)
 
 
+def _default_claude() -> "ClaudeClient":
+    from weatherbot.services.ai.client import default_client  # noqa: PLC0415 - the SDK loads only for AI
+
+    return default_client()
+
+
 type ToastFactory = Callable[[Settings], Channel]
 
 
@@ -67,6 +80,8 @@ class Runtime:
     make_fetcher: FetcherFactory = default_fetcher
     make_toast: ToastFactory = toast_channel
     """The toast channel for the settings, as ``make_fetcher`` is the network."""
+    make_claude: "ClaudeFactory" = _default_claude
+    """The Anthropic client; the SDK resolves the credential, and tests replay answers."""
     identity: Callable[[], Identity] = system_identity
     """The toast's application identity: the registry on Windows, none elsewhere."""
     task_runner: SubprocessRunner = run_subprocess
@@ -107,6 +122,26 @@ class Context:
     def channels(self) -> tuple[Channel, ...]:
         """The delivery channels: the in-app log, and the runtime's toast beside it."""
         return (LogChannel(), self.runtime.make_toast(self.settings))
+
+    def ai_service(self, database: Database) -> "AiService":
+        """Build the AI service on the AI engine over the open database's file.
+
+        Args:
+            database: The open database, at the head revision.
+
+        Returns:
+            The service; no client is constructed until AI is used. Close it when done.
+        """
+        from weatherbot.services.ai.guard import ai_engine  # noqa: PLC0415 - AI loads on demand
+        from weatherbot.services.ai.service import AiService  # noqa: PLC0415 - as above
+
+        return AiService(
+            ai_engine(database.path),
+            self.settings.ai,
+            factory=self.runtime.make_claude,
+            environ=self.runtime.environ,
+            now=self.runtime.now,
+        )
 
 
 def start(runtime: Runtime, *, verbose: bool) -> Context:

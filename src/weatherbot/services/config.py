@@ -6,11 +6,12 @@ and ``WEATHERBOT_DATA_DIR`` when set, else the operating system's user directori
 through ``platformdirs``. The database, its backups, and the lock files live in the data
 directory; ``weatherbot.toml`` lives in the configuration directory.
 
-``Settings`` holds the logging, HTTP, engine, monitor, and notification keys, with the
-precedence environment, then file, then default; ``setting_origins`` says where each
-effective value came from. A setting is never a secret, a location, or a coordinate:
-locations live in the database. An error names the key that is wrong and never repeats its
-value.
+``Settings`` holds the logging, HTTP, engine, monitor, notification, web, and AI keys,
+with the precedence environment, then file, then default; ``setting_origins`` says where
+each effective value came from. A setting is never a secret, a location, or a coordinate:
+locations live in the database, and the Anthropic credential is the SDK's to resolve from
+its own environment variables or profile, never a setting. An error names the key that is
+wrong and never repeats its value.
 """
 
 import os
@@ -38,6 +39,7 @@ from weatherbot.models.ladder import (
     CONE_HORIZON_MIN_H,
     SEGMENT_END_TOLERANCE_MAX_KM,
 )
+from weatherbot.services.ai.pricing import PRICES
 from weatherbot.services.policy import PolicySettings, QuietHours, parse_wall_time
 
 APP_NAME: Final = "weatherbot"
@@ -88,6 +90,12 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("web", "host"): "WEATHERBOT_WEB_HOST",
     ("web", "port"): "WEATHERBOT_WEB_PORT",
     ("web", "corpus"): "WEATHERBOT_WEB_CORPUS",
+    ("ai", "enabled"): "WEATHERBOT_AI_ENABLED",
+    ("ai", "model"): "WEATHERBOT_AI_MODEL",
+    ("ai", "summary_model"): "WEATHERBOT_AI_SUMMARY_MODEL",
+    ("ai", "daily_cap_usd"): "WEATHERBOT_AI_DAILY_CAP_USD",
+    ("ai", "change_summaries"): "WEATHERBOT_AI_CHANGE_SUMMARIES",
+    ("ai", "outlook_narration"): "WEATHERBOT_AI_OUTLOOK_NARRATION",
 }
 _TOML_POSITION: Final = re.compile(r"\(at line \d+, column \d+\)|\(at end of document\)")
 
@@ -398,8 +406,44 @@ class WebSettings(_Section):
         return f"http://{host_text}:{effective_port}"
 
 
+DEFAULT_MODEL: Final = "claude-sonnet-5-5"
+
+
+def _priced_model(value: str, key: str) -> str:
+    cleaned = value.strip()
+    if cleaned not in PRICES:
+        message = f"[ai] {key} must be a model the price table holds: {', '.join(sorted(PRICES))}"
+        raise ValueError(message)
+    return cleaned
+
+
+class AiSettings(_Section):
+    """``[ai]``: whether AI runs, its models, its daily cap in dollars, and its features.
+
+    Each model must be one the price table holds, because the cap cannot price another.
+    The credential is never here.
+    """
+
+    enabled: bool = True
+    model: str = DEFAULT_MODEL
+    summary_model: str = DEFAULT_MODEL
+    daily_cap_usd: float = Field(default=1.0, ge=0, le=100)
+    change_summaries: bool = True
+    outlook_narration: bool = False
+
+    @field_validator("model")
+    @classmethod
+    def _model(cls, value: str) -> str:
+        return _priced_model(value, "model")
+
+    @field_validator("summary_model")
+    @classmethod
+    def _summary_model(cls, value: str) -> str:
+        return _priced_model(value, "summary_model")
+
+
 class Settings(_Section):
-    """The settings: ``[logging]``, ``[http]``, ``[engine]``, ``[monitor]``, ``[notifications]``, and ``[web]``."""  # noqa: E501 - list of all six config tables
+    """The settings: ``[logging]``, ``[http]``, ``[engine]``, ``[monitor]``, ``[notifications]``, ``[web]``, and ``[ai]``."""  # noqa: E501 - list of all seven config tables
 
     logging: LoggingSettings = LoggingSettings()
     http: HttpSettings = HttpSettings()
@@ -407,6 +451,7 @@ class Settings(_Section):
     monitor: MonitorSettings = MonitorSettings()
     notifications: NotificationSettings = NotificationSettings()
     web: WebSettings = WebSettings()
+    ai: AiSettings = AiSettings()
 
     def policy_settings(self, *, local_zone: tzinfo | None = None) -> PolicySettings:
         """Build the notification policy's settings for a cycle."""
