@@ -882,7 +882,7 @@ entries.
 
 ### Phase 6 — Claude layer
 
-**Status:** Not started
+**Status:** In progress — phase06-roadmap.md
 
 **Goal:** Claude Sonnet 5.5 explains the situation: a briefing per
 location, a change summary per advisory, a grounded chat over the stored
@@ -1814,6 +1814,6 @@ The following are deliberately deferred to a future version:
 | 3     | Threat engine                                 | High       | Complete |
 | 4     | Monitoring and notifications                  | Medium     | Complete |
 | 5     | Web app MVP                                   | High       | Complete |
-| 6     | Claude layer                                  | High       | Not started |
+| 6     | Claude layer                                  | High       | In progress |
 | 7     | Depth                                         | Medium     | Not started |
 | 8     | Release 2.0                                   | Medium     | Not started |

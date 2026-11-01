@@ -1,6 +1,6 @@
 # Phase 6 Roadmap — Claude layer
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -1126,9 +1126,9 @@ and the Worktree rule permits no concurrent steps.
 
 ---
 
-## Step 1 — The Claude client, the ledger, and the cap
+## Step 1 — The Claude client, the ledger, and the cap ✅
 
-**Status:** Not started
+**Status:** Complete — PR #77 (2026-11-01)
 
 > **Goal:** Lay the AI chassis before any prompt exists, and prove the
 > operator's credential. `anthropic>=2.3.0` joins the dependencies;
@@ -1185,6 +1185,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-01: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -5491,7 +5493,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
-| 1    | Claude client + ledger + cap   | Opus 5.5       | Not started        |
+| 1    | Claude client + ledger + cap   | Opus 5.5       | Complete — PR #77  |
 | 2    | Briefing + summary + eval set  | Opus 5.5       | Not started        |
 | 3    | Grounded chat + narration      | Gemini 4 Argon | Not started        |
 | 4    | AI in the API                  | Gemini 4 Argon | Not started        |
