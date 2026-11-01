@@ -2016,9 +2016,9 @@ plan. The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 2 — The briefing, the change summary, and the eval set
+## Step 2 — The briefing, the change summary, and the eval set ✅
 
-**Status:** Not started
+**Status:** Complete — PR #80 (2026-11-01)
 
 > **Goal:** Write the narration that can never become a source of fact.
 > `services/ai/prompts.py` renders the frozen system prompt from the ladder
@@ -3025,7 +3025,7 @@ conversation is new per phase-boundary hygiene.
       `ai_outputs`), `briefing.py`, and `summaries.py`; `weatherbot
       brief` exists; the eval set and `scripts/eval_ai.py` grade
       recordings.
-    - As Step 2 shipped them (PR for Step 2): `sentence_violations(
+    - As Step 2 shipped them (PR #80): `sentence_violations(
       sentence, context, levels)` takes any `context` with `sources`
       and `noaa` (the `Grounding` protocol in `validate.py`) and
       `levels: Mapping[str, AlertLevel]`; `current_level_asserted`
@@ -5539,7 +5539,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Claude client + ledger + cap   | Opus 5.5       | Complete — PR #77  |
-| 2    | Briefing + summary + eval set  | Opus 5.5       | Not started        |
+| 2    | Briefing + summary + eval set  | Opus 5.5       | Complete — PR #80  |
 | 3    | Grounded chat + narration      | Gemini 4 Argon | Not started        |
 | 4    | AI in the API                  | Gemini 4 Argon | Not started        |
 | 5    | AI in the page                 | Gemini 4 Argon | Not started        |
