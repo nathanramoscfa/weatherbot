@@ -28,6 +28,10 @@ product quotes stay: they are public. ``render_context`` writes the context as J
 ``<``, ``>``, and ``&`` are escaped too, then the blocks; a context over 60,000 characters
 raises ``ContextTooLarge``, which the caller maps to ``too_large``.
 
+The chat's tools (``tools.py``) build their results from the same records, with
+``SourceKeys``, ``level_ref``, ``threat_ref``, ``change_ref``, ``text_key``, ``noaa_text``,
+and ``escaped_json``, so a tool says no more than a briefing's context does.
+
 The module is pure: it imports the models, pydantic, and the standard library only, and
 reads no clock, file, database, or network.
 """
@@ -416,10 +420,11 @@ def _title(label: str, code: str | None, storm: str | None, advisory: str | None
     return ", ".join(parts)
 
 
-class _Sources:
-    """Hands out source keys in order of first use, one per product."""
+class SourceKeys:
+    """Hands out source keys in order of first use, one per product, for one request or result."""
 
     def __init__(self) -> None:
+        """Start with no key handed out."""
         self._keys: dict[tuple[object, ...], str] = {}
         self.refs: list[SourceRef] = []
 
@@ -434,6 +439,20 @@ class _Sources:
         advisory: str | None = None,
         issued: datetime | None = None,
     ) -> str:
+        """Return a product's key, handing out the next one on its first use.
+
+        Args:
+            identity: What makes the product one source.
+            source_id: Its register source.
+            title: Its title, as a page shows it.
+            code: Its product code.
+            issuer: Its issuing office; read from the source when omitted.
+            advisory: Its advisory, as NHC spells it.
+            issued: Its issuance, rounded to the hour.
+
+        Returns:
+            The key: ``S1``, ``S2``, ...
+        """
         found = self._keys.get(identity)
         if found is not None:
             return found
@@ -464,6 +483,21 @@ class _Sources:
         issued: datetime | None = None,
         issuer: str | None = None,
     ) -> str:
+        """Return the key of the product a citation names.
+
+        Args:
+            citation: The citation; its URL is never kept.
+            label: The product's kind, as a title begins.
+            code: Its product code.
+            storm: The storm's name.
+            atcf_id: The storm's ATCF id.
+            advisory: Its advisory; the citation's when omitted.
+            issued: Its issuance; the citation's when omitted.
+            issuer: Its issuing office.
+
+        Returns:
+            The key.
+        """
         spelled = _advisory(advisory or citation.advisory)
         identity = ("cited", citation.source_id, citation.sha256, label, code, atcf_id, spelled)
         return self.key(
@@ -477,11 +511,19 @@ class _Sources:
         )
 
 
-def _level(level: AlertLevel) -> LevelRef:
+def level_ref(level: AlertLevel) -> LevelRef:
+    """Name a level as the ladder does.
+
+    Args:
+        level: The level.
+
+    Returns:
+        Its number, label, and actions.
+    """
     return LevelRef(number=int(level), label=level.label, actions=level.actions)
 
 
-def _evidence(item: Evidence, sources: _Sources) -> EvidenceRef:
+def _evidence(item: Evidence, sources: SourceKeys) -> EvidenceRef:
     source = None
     if item.citation is not None:
         source = sources.cited(
@@ -507,7 +549,7 @@ def _evidence(item: Evidence, sources: _Sources) -> EvidenceRef:
     )
 
 
-def _official(product: OfficialProduct, sources: _Sources) -> OfficialRef:
+def _official(product: OfficialProduct, sources: SourceKeys) -> OfficialRef:
     source = sources.cited(
         product.citation,
         label=_PRODUCT_TITLES[product.kind],
@@ -532,7 +574,7 @@ def _official(product: OfficialProduct, sources: _Sources) -> OfficialRef:
     )
 
 
-def _wind(reading: LocationWindProbability, sources: _Sources) -> WindRef:
+def _wind(reading: LocationWindProbability, sources: SourceKeys) -> WindRef:
     code = f"{reading.threshold_kt}-kt"
     source = sources.cited(reading.citation, label=_PRODUCT_TITLES["wind_probability"], code=code)
     band = reading.label if reading.reading == "band" and reading.label else None
@@ -543,7 +585,7 @@ def _wind(reading: LocationWindProbability, sources: _Sources) -> WindRef:
     )
 
 
-def _arrival(reading: ArrivalReading, threat: StormThreat, sources: _Sources) -> ArrivalRef:
+def _arrival(reading: ArrivalReading, threat: StormThreat, sources: SourceKeys) -> ArrivalRef:
     source = None
     if reading.citation is not None:
         label = _ARRIVAL_TITLES["track" if reading.origin == "track" else reading.kind]
@@ -575,7 +617,17 @@ def _tcp(threat: StormThreat, snapshot: Snapshot | None) -> TextProduct | None:
     return max(found, key=lambda product: product.issued_at) if found else None
 
 
-def _text_key(product: TextProduct, sources: _Sources, storm: str | None) -> str:
+def text_key(product: TextProduct, sources: SourceKeys, storm: str | None) -> str:
+    """Return the key of a TCP or a TWO.
+
+    Args:
+        product: The text product.
+        sources: The keys handed out so far.
+        storm: A TCP's storm name, for its title.
+
+    Returns:
+        The key.
+    """
     advisory = _advisory(product.advisory)
     if product.code == "TCP":
         title = _title("NHC public advisory", None, storm, advisory)
@@ -594,13 +646,35 @@ def _text_key(product: TextProduct, sources: _Sources, storm: str | None) -> str
     )
 
 
-def _noaa(key: str, code: str, issued: datetime | None, text: str) -> NoaaText:
+def noaa_text(key: str, code: str, issued: datetime | None, text: str) -> NoaaText:
+    """Prepare a NOAA text for a request: its links removed, capped, its issuance to the hour.
+
+    Args:
+        key: Its source key.
+        code: Its product code, or an alert's event.
+        issued: Its issuance.
+        text: The text as received.
+
+    Returns:
+        The text, for ``render_noaa``.
+    """
     return NoaaText(key=key, code=code, issued=_hour(issued), text=clean_noaa(text))
 
 
-def _threat(
-    threat: StormThreat, snapshot: Snapshot | None, sources: _Sources, texts: list[NoaaText]
+def threat_ref(
+    threat: StormThreat, snapshot: Snapshot | None, sources: SourceKeys, texts: list[NoaaText]
 ) -> ThreatRef:
+    """Coarsen one storm's threat: a band, a compass point, and hours.
+
+    Args:
+        threat: The storm's threat to the location.
+        snapshot: The snapshot, for the storm's latest TCP; ``None`` adds no text.
+        sources: The keys handed out so far.
+        texts: Where the TCP's text is appended.
+
+    Returns:
+        The threat as a request may say it.
+    """
     arrivals = tuple(
         _arrival(reading, threat, sources)
         for reading in (threat.earliest_arrival, threat.most_likely_arrival)
@@ -608,9 +682,9 @@ def _threat(
     keys = [arrival.source for arrival in arrivals if arrival.source is not None]
     tcp = _tcp(threat, snapshot)
     if tcp is not None:
-        key = _text_key(tcp, sources, threat.storm_name)
+        key = text_key(tcp, sources, threat.storm_name)
         keys.insert(0, key)
-        texts.append(_noaa(key, tcp.code, tcp.issued_at, tcp.text))
+        texts.append(noaa_text(key, tcp.code, tcp.issued_at, tcp.text))
     return ThreatRef(
         storm=threat.storm_name,
         atcf_id=threat.atcf_id,
@@ -628,7 +702,15 @@ def _threat(
     )
 
 
-def _change(event: ChangeEvent) -> ChangeRef:
+def change_ref(event: ChangeEvent) -> ChangeRef:
+    """Keep a change's structured fields, without its sentence.
+
+    Args:
+        event: The change.
+
+    Returns:
+        The change as a request may say it.
+    """
     return ChangeRef(
         kind=event.kind,
         previous_level=int(event.previous_level) if event.previous_level is not None else None,
@@ -664,7 +746,7 @@ def _alert_texts(
         parts = (alert.headline, alert.description, alert.instruction)
         text = "\n\n".join(part for part in parts if part)
         if text:
-            yield _noaa(key, alert.event, alert.sent, text)
+            yield noaa_text(key, alert.event, alert.sent, text)
 
 
 def briefing_context(
@@ -688,7 +770,7 @@ def briefing_context(
     Raises:
         ContextTooLarge: The rendered context passes ``CONTEXT_LIMIT`` characters.
     """
-    sources = _Sources()
+    sources = SourceKeys()
     evidence = tuple(_evidence(item, sources) for item in assessment.evidence)
     official = tuple(_official(product, sources) for product in assessment.official)
     alert_keys = {
@@ -698,17 +780,17 @@ def briefing_context(
     }
     winds = tuple(_wind(reading, sources) for reading in assessment.wind_probabilities)
     texts: list[NoaaText] = []
-    threats = tuple(_threat(threat, snapshot, sources, texts) for threat in assessment.threats)
+    threats = tuple(threat_ref(threat, snapshot, sources, texts) for threat in assessment.threats)
     if snapshot is not None:
         for product in snapshot.text_products:
             if product.code == "TWO":
-                key = _text_key(product, sources, None)
-                texts.append(_noaa(key, product.code, product.issued_at, product.text))
+                key = text_key(product, sources, None)
+                texts.append(noaa_text(key, product.code, product.issued_at, product.text))
     texts.extend(_alert_texts(assessment, snapshot, alert_keys))
     context = BriefingContext(
         location=assessment.location_name,
         as_of=to_hour(assessment.as_of),
-        level=_level(assessment.level),
+        level=level_ref(assessment.level),
         rule=str(assessment.rule),
         trigger=RULE_TRIGGERS[assessment.rule],
         complete=assessment.complete,
@@ -720,7 +802,7 @@ def briefing_context(
         official=official,
         wind_probabilities=winds,
         threats=threats,
-        changes=tuple(_change(event) for event in changes),
+        changes=tuple(change_ref(event) for event in changes),
         stale_sources=tuple(stale),
         sources=tuple(sources.refs),
         noaa=tuple(texts),
@@ -759,15 +841,15 @@ def change_context(assessment: Assessment, changes: Sequence[ChangeEvent]) -> Ch
     Raises:
         ContextTooLarge: The rendered context passes ``CONTEXT_LIMIT`` characters.
     """
-    sources = _Sources()
+    sources = SourceKeys()
     evidence = tuple(_evidence(item, sources) for item in assessment.evidence)
     context = ChangeContext(
         location=assessment.location_name,
         as_of=to_hour(assessment.as_of),
-        previous_level=_level(previous_level(assessment, changes)),
-        level=_level(assessment.level),
+        previous_level=level_ref(previous_level(assessment, changes)),
+        level=level_ref(assessment.level),
         rule=str(assessment.rule),
-        changes=tuple(_change(event) for event in changes),
+        changes=tuple(change_ref(event) for event in changes),
         evidence=evidence,
         sources=tuple(sources.refs),
     )
@@ -798,11 +880,22 @@ def render_noaa(text: NoaaText) -> str:
     return f"<noaa_product {attributes}>\n{body}\n</noaa_product>"
 
 
-def _json_text(context: BriefingContext | ChangeContext) -> str:
-    document = context.model_dump(mode="json", exclude={"noaa"}, exclude_defaults=True)
+def escaped_json(document: object) -> str:
+    """Write a document as compact JSON whose ``&``, ``<``, and ``>`` are escaped.
+
+    Args:
+        document: A JSON value.
+
+    Returns:
+        The JSON text; no value in it can open or close a block.
+    """
     text = json.dumps(document, ensure_ascii=False, separators=(",", ":"))
     # Valid JSON escapes, so no value can open or close a block.
     return text.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e")
+
+
+def _json_text(context: BriefingContext | ChangeContext) -> str:
+    return escaped_json(context.model_dump(mode="json", exclude={"noaa"}, exclude_defaults=True))
 
 
 def render_context(context: BriefingContext | ChangeContext) -> str:

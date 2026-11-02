@@ -1,5 +1,45 @@
 [
   {
+    "case": "chat-injection",
+    "kind": "chat",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-02",
+    "request_sha256": "b7034fb9bd7a6d0671bd1c74f5381bbda615e51998c637c4ec4eaa363790a7d8",
+    "bytes": 20697
+  },
+  {
+    "case": "chat-ladder",
+    "kind": "chat",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-02",
+    "request_sha256": "822b1f3850b82a04400e27875b13cf44aace31da5652249c8f289d6c315503ab",
+    "bytes": 20422
+  },
+  {
+    "case": "chat-one-round",
+    "kind": "chat",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-02",
+    "request_sha256": "c42254fd1ee1be539bdd8d2a475eae9befbd56ae7c020e4e12420852e2f4579e",
+    "bytes": 14305
+  },
+  {
+    "case": "chat-parallel",
+    "kind": "chat",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-02",
+    "request_sha256": "db8172daab6bae921acf7034f3535dd42dacf08b8d9007439150a2e9a5650cdc",
+    "bytes": 24716
+  },
+  {
+    "case": "chat-storm",
+    "kind": "chat",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-02",
+    "request_sha256": "6f83ef285bbcc5e5b1666997660ed45a1f82bf5f58e1e645ecca4440d4c828dc",
+    "bytes": 24964
+  },
+  {
     "case": "eval-briefing-al052019-001-nassau",
     "kind": "stream",
     "model": "claude-sonnet-5-5",
@@ -246,6 +286,22 @@
     "date": "2026-11-01",
     "request_sha256": "953e4333f540d8fe2fb40ae4ba8910cb8cede3ec9b86befa91b064bae37983af",
     "bytes": 904
+  },
+  {
+    "case": "narration-atl-7d0",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-02",
+    "request_sha256": "a6508c202bfb36e030bab72de2d3f8a16b5c1c8e4e030f18cc9ce4298266691e",
+    "bytes": 8188
+  },
+  {
+    "case": "narration-pac-2d0",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-02",
+    "request_sha256": "c8d9d51b04abdbd25c55c3aeab5d765cd0a520ee857141c4036e8c7cc9975747",
+    "bytes": 8152
   },
   {
     "case": "round-trip",

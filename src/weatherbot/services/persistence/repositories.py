@@ -57,6 +57,7 @@ from weatherbot.models import (
     StormProducts,
     StormSummary,
     TextProduct,
+    Thresholds,
     TrackPoint,
     WatchWarningSegment,
     WindProbabilityProduct,
@@ -1028,6 +1029,17 @@ class StoredAssessment:
     stored_at: datetime
 
 
+@dataclass(frozen=True)
+class AssessmentHead:
+    """A location's latest stored assessment, read from its columns without decoding it."""
+
+    id: int
+    level: int
+    as_of: datetime
+    complete: bool
+    thresholds: Thresholds
+
+
 def _evidence_rows(assessment_id: int, assessment: Assessment) -> list[AssessmentEvidenceRow]:
     rows = [
         AssessmentEvidenceRow(
@@ -1234,6 +1246,41 @@ class AssessmentRepository:
                 if level is not None:
                     levels[loc_name] = int(level)
             return levels
+
+    def latest_heads(self) -> dict[str, AssessmentHead]:
+        """Return each stored location's latest assessment's id, level, instant, and thresholds.
+
+        Returns:
+            The heads by location name, in name order; a location with no stored assessment
+            is absent. Nothing is decoded but the thresholds.
+        """
+        with Session(self._engine) as session:
+            loc_rows = session.execute(
+                select(LocationRow.id, LocationRow.name).order_by(LocationRow.name)
+            ).all()
+            heads: dict[str, AssessmentHead] = {}
+            for loc_id, loc_name in loc_rows:
+                row = session.execute(
+                    select(
+                        AssessmentRow.id,
+                        AssessmentRow.level,
+                        AssessmentRow.as_of,
+                        AssessmentRow.complete,
+                        AssessmentRow.thresholds,
+                    )
+                    .where(AssessmentRow.location_id == loc_id)
+                    .order_by(AssessmentRow.as_of.desc(), AssessmentRow.id.desc())
+                    .limit(1)
+                ).first()
+                if row is not None:
+                    heads[loc_name] = AssessmentHead(
+                        id=row.id,
+                        level=int(row.level),
+                        as_of=row.as_of,
+                        complete=row.complete,
+                        thresholds=validated(Thresholds, row.thresholds),
+                    )
+            return heads
 
     def history(self, location_name: str, limit: int) -> tuple[StoredAssessment, ...]:
         """Return a location's stored assessments, newest first.

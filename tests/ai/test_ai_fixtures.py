@@ -5,6 +5,7 @@ import json
 import re
 
 from ai_support import FIXTURES, HEADER_NAMES
+from eval.chat_cases import CHAT_CASES, NARRATION_CASES
 
 from record_ai_fixtures import BUDGET_BYTES, MANIFEST, all_cases
 
@@ -51,3 +52,14 @@ def test_the_manifest_names_every_recording_with_its_size() -> None:
 
 def test_the_round_trips_were_recorded() -> None:
     assert {"round-trip.json", "round-trip-stream.sse"} <= set(_recordings())
+
+
+def test_every_chat_and_narration_case_was_recorded_and_each_chat_holds_its_rounds() -> None:
+    files = _recordings()
+
+    for case in CHAT_CASES:
+        rounds = json.loads(files[f"{case.name}.json"])["rounds"]
+        assert len(rounds) >= 2, case.name  # noqa: PLR2004 - a lookup, then the answer
+        assert all(text.startswith("event: message_start") for text in rounds)
+    for case in NARRATION_CASES:
+        assert files[f"{case.name}.sse"].startswith(b"event: message_start")

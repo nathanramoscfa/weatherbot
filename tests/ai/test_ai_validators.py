@@ -13,9 +13,18 @@ from weatherbot.services.ai.context import (
     NoaaText,
     SourceRef,
 )
-from weatherbot.services.ai.schemas import Briefing, ChangeSummary, SourceNote, TimelineItem
+from weatherbot.services.ai.schemas import (
+    AreaNote,
+    Briefing,
+    ChangeSummary,
+    OutlookNarration,
+    SourceNote,
+    TimelineItem,
+)
 from weatherbot.services.ai.validate import (
     ACTIONS_LIMIT,
+    AREAS_LIMIT,
+    NARRATION_SUMMARY_LIMIT,
     SECTION_LIMIT,
     SUMMARY_LIMIT,
     TIMELINE_LIMIT,
@@ -23,11 +32,13 @@ from weatherbot.services.ai.validate import (
     first_violation,
     has_url,
     levels_stated,
+    percentages,
     positions,
     sentence_violations,
     source_keys,
     unquoted_positions,
     validate_briefing,
+    validate_narration,
     validate_section,
     validate_summary,
 )
@@ -254,6 +265,9 @@ LEVELS = {"Miami-Dade County Hall": AlertLevel(3), "Parliament Square": AlertLev
         ("Miami-Dade County Hall is not level 5.", False),
         ("Level 5 means a Hurricane Warning covers the location.", False),
         ("A level of preparedness helps.", False),
+        ("The official level is 4.", True),
+        ("Its official level was 4 on Monday.", False),
+        ("Miami-Dade County Hall is at least level 3, Watch / Hurricane Threat.", False),
     ],
 )
 def test_a_sentence_asserting_another_current_level_is_found(
@@ -274,3 +288,61 @@ def test_a_chat_sentence_is_checked_for_urls_positions_and_levels() -> None:
     ]
     assert rules == ["url", "coordinate", "level"]
     assert first_violation(()) is None
+
+
+# Narrations --------------------------------------------------------------------------------
+
+TWO = (
+    "Eastern Tropical Atlantic:\n"
+    "* Formation chance through 48 hours...low...near 0 percent.\n"
+    "* Formation chance through 7 days...low...20 percent.\n"
+    "Another system has a 2.5 percent chance, which no area carries."
+)
+NARRATION = OutlookNarration(
+    summary="The outlook marks one area in the eastern tropical Atlantic.",
+    areas=[AreaNote(description="An area of low pressure.", chance_text="20%")],
+    caveat="This is an AI description of the official graphic, which governs.",
+)
+
+
+@pytest.mark.parametrize(
+    ("text", "found"),
+    [
+        ("20%", {20.0}),
+        ("low...20 percent.", {20.0}),
+        ("near 100 percent", {100.0}),
+        ("a 2.5% chance", {2.5}),
+        ("20 per cent and 30 %", {20.0, 30.0}),
+        ("level 2 and 7 days", set[float]()),
+    ],
+)
+def test_percentages_are_read_as_numbers(text: str, found: set[float]) -> None:
+    assert percentages(text) == found
+
+
+def test_a_narration_quoting_its_twos_chances_passes() -> None:
+    assert validate_narration(NARRATION, TWO) == ()
+    assert validate_narration(NARRATION.model_copy(update={"areas": []}), TWO) == ()
+
+
+@pytest.mark.parametrize(
+    ("changes", "rule"),
+    [
+        ({"areas": [AreaNote(description="A low.", chance_text="30%")]}, "chance"),
+        ({"summary": "It has a 5 percent chance."}, "chance"),
+        ({"summary": "Weatherbot's level is level 2 here."}, "level"),
+        ({"summary": "See hurricanes.gov/gtwo for the map."}, "url"),
+        ({"summary": "A low near 12.3N 45.6W."}, "coordinate"),
+        ({"caveat": "  "}, "empty"),
+        ({"areas": [AreaNote(description="", chance_text="20%")]}, "empty"),
+        ({"summary": "x" * (NARRATION_SUMMARY_LIMIT + 1)}, "length"),
+        (
+            {"areas": [AreaNote(description="A low.", chance_text="20%")] * (AREAS_LIMIT + 1)},
+            "length",
+        ),
+    ],
+)
+def test_each_rule_withholds_a_narration(changes: dict[str, object], rule: str) -> None:
+    found = validate_narration(NARRATION.model_copy(update=changes), TWO)
+
+    assert rule in [item.rule for item in found]

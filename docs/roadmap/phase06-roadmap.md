@@ -312,7 +312,14 @@ changes them.
    $0.010. Every 95th percentile is under twice its estimate, so the ceilings
    and the $1.00 default stand. The frozen prompt and each output schema form a
    cached prefix, 3,732 tokens for a briefing and 3,025 for a summary, which a
-   later request within five minutes reads at the cache-read price.)
+   later request within five minutes reads at the cache-read price. Confirmed
+   for the chat and the narration 2026-11-01 by Step 3 over its seven
+   recordings: a chat turn is 2 to 3 requests of 3,991 to 10,867 prompt tokens
+   (about 3,800 of them the cached tools and prompt) and 55 to 635 output
+   tokens, $0.009 to $0.027 a turn; a narration is 2,496 to 2,643 prompt tokens
+   with 270 to 288 output tokens, $0.005 to $0.009. Both stay under their
+   estimates, so `max_tokens` 4,000 a round, six rounds, and 2,000 a narration
+   stand.)
 8. *Products, and when each runs.* A briefing is on demand (the dashboard's
    "Brief me", `weatherbot brief`) and written once per location, assessment,
    model, and prompt version: a stored briefing for the current assessment is
@@ -2715,9 +2722,9 @@ conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 3 — Grounded chat and the outlook narration
+## Step 3 — Grounded chat and the outlook narration ✅
 
-**Status:** Not started
+**Status:** Complete — PR #81 (2026-11-01)
 
 > **Goal:** Let the operator ask, and let Claude look — at the stored data only.
 > `services/ai/tools.py` defines nine read-only tools with strict schemas
@@ -2762,6 +2769,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-01: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -3578,6 +3587,35 @@ phase-boundary hygiene.
       `unavailable`. A stored product's `content` is
       `{"briefing" | "summary": ..., "sources": [SourceRef, ...]}`, so
       the server maps each key to its record without the model.
+    - The chat and the narration as Step 3 shipped them (PR for Step
+      3): `ChatService(service)` is long-lived (one per web state, its
+      conversations in memory) and `turn(conversation_id | None,
+      question, location | None)` raises `ValueError` for a question
+      outside 1 to 2,000 characters (check it in the route first) and
+      yields `Started(conversation_id, model)`, `Tool(name)` (a tool
+      name or `unknown_tool`), `Text(sentence)`, `Done(call_ids)`,
+      `Withheld(reason, detail, call_ids)` (`reason` a validator rule,
+      `empty`, or `incomplete`), and `Unavailable(reason, call_ids)`
+      (an AI reason, `no_assessment`, `unknown_conversation`,
+      `conversation_closed`, `conversation_full`, `too_many_lookups`,
+      or `busy` for a second turn on a running conversation);
+      `chat.UNAVAILABLE_TEXT` names the chat's own reasons.
+      `NarrationService(service).stream(basin, horizon, new=False)`
+      yields `Started(model, basin, horizon, graphic_sha256,
+      two_issued_at, prompt_version)`, `Done(output_id, narration,
+      created_at, reused)`, `Withheld(reason, detail, output_id)`, and
+      `Unavailable(reason)` (`disabled`, `no_graphic`, `no_outlook`, or
+      an AI reason); a stored narration's `content` is `{"narration",
+      "basin", "horizon", "graphic_sha256", "two_sha256", "two":
+      SourceRef}` and `OutputRepository.narration_for(graphic_sha256,
+      two_sha256, model, prompt_version)` finds the one to reuse.
+      `AssessmentRepository.latest_heads()` reads each location's
+      latest id, level, instant, completeness, and thresholds without
+      decoding JSON. A test that changes the chat's prompt, tools, or
+      preamble breaks the recorded turns' byte-for-byte request checks
+      (`test_each_recorded_turn_replays_the_requests_it_was_recorded_with`):
+      re-record with `scripts/record_ai_fixtures.py --force chat` after
+      the operator's yes.
     - `web/`: `create_app` includes the read routers, `events`, and
       `actions`; `install_guards` holds the same-origin rule for
       writes and the cross-site refusal; `/api/events` streams through
@@ -4562,7 +4600,9 @@ more cheaply. The conversation is new per phase-boundary hygiene.
     PR, or `main`.
 
     THIS STEP spends the operator's money and touches the operator's
-    machine. The live eval (about $0.30, measured by Step 2) and the deployed check (about
+    machine. The live eval (about $0.40: $0.27 for the briefings and
+    summaries, measured by Step 2, and $0.11 for the chat turns and
+    narrations, measured by Step 3) and the deployed check (about
     $0.05) each run only after the operator's yes to the stated cost;
     the demonstration server needs no credential and answers AI from
     recordings only; the smoke asserts that the browser sends nothing
@@ -4583,6 +4623,18 @@ more cheaply. The conversation is new per phase-boundary hygiene.
     - Steps 1 to 5 shipped the services, the API, and the page; every
       test replays recordings; `scripts/eval_ai.py` grades recordings
       and offers `--live`.
+    - As Step 3 left it, `scripts/eval_ai.py` (and `--live`) grades only
+      the briefing and summary cases of `tests/ai/eval/cases.py`. The
+      chat turns and narrations (`tests/ai/eval/chat_cases.py`:
+      `CHAT_CASES`, `run_chat_case`, `store_case_data`,
+      `case_database`, `NARRATION_CASES`, `narration_case_request`) are
+      graded only by their offline tests; "every case, injection
+      included" means `--live` must also run each chat case over a
+      throwaway database (as `scripts/record_ai_fixtures.py`'s
+      `_converse` does) and each narration through
+      `validate_narration`. Step 3's recordings measured a chat turn at
+      $0.009 to $0.027 (2 to 3 requests) and a narration at $0.005 to
+      $0.009, so a full live run is about $0.40.
     - `scripts/serve_demo.py` runs `serve` over recorded answers with
       both landmarks, `--port`, `--corpus`, and `--switch-file`; the
       Playwright specs run through `guard.ts` (local requests only,
@@ -4617,8 +4669,8 @@ more cheaply. The conversation is new per phase-boundary hygiene.
 
     <requirement>
       Ask the operator (AskUserQuestion) before the live eval (about
-      $1) and, separately, before the deployment and its real briefing
-      (about $0.05).
+      $0.40) and, separately, before the deployment and its real
+      briefing (about $0.05).
     </requirement>
 
     <requirement>
@@ -5117,7 +5169,9 @@ new per phase-boundary hygiene.
         with `additionalProperties` false (AST over the literal
         definitions).
     24. `services/ai/chat.py` defines `ChatService`, `MAX_TOOL_ROUNDS
-        = 6`, and `MAX_CONVERSATIONS = 8`.
+        = 6`, and `MAX_CONVERSATIONS = 8` (as shipped, annotated
+        assignments: `MAX_TOOL_ROUNDS: Final = 6`; read them with the
+        AST's `AnnAssign`, not a regex for `= 6`).
     25. `services/ai/narration.py` defines `NarrationService`, and
         `AiSettings.outlook_narration` defaults to `False` (AST).
     26. `cli/__init__.py` registers `app.command("ask")`, and
@@ -5540,7 +5594,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Claude client + ledger + cap   | Opus 5.5       | Complete — PR #77  |
 | 2    | Briefing + summary + eval set  | Opus 5.5       | Complete — PR #80  |
-| 3    | Grounded chat + narration      | Gemini 4 Argon | Not started        |
+| 3    | Grounded chat + narration      | Opus 5.5       | Complete — PR #81  |
 | 4    | AI in the API                  | Gemini 4 Argon | Not started        |
 | 5    | AI in the page                 | Gemini 4 Argon | Not started        |
 | 6    | Live eval + smoke + deploy     | Gemini 4 Argon | Not started        |

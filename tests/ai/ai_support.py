@@ -133,10 +133,11 @@ class RecordedAnswer:
 
 @dataclass(frozen=True)
 class LoggedRequest:
-    """What the replay saw of a request: its path and decoded body, never a header."""
+    """What the replay saw of a request: its path and body, decoded and raw; never a header."""
 
     path: str
     body: dict[str, object]
+    content: bytes = b""
 
 
 @dataclass
@@ -157,7 +158,7 @@ class Replay:
         """
         body: object = json.loads(request.content) if request.content else {}
         assert isinstance(body, dict)
-        self.requests.append(LoggedRequest(request.url.path, body))  # pyright: ignore[reportUnknownArgumentType]
+        self.requests.append(LoggedRequest(request.url.path, body, request.content))  # pyright: ignore[reportUnknownArgumentType]
         assert self.answers, "the replay has no answer left"
         answer = self.answers.pop(0)
         if answer.status == CONNECTION_FAILURE:
@@ -202,6 +203,75 @@ def load_answer(name: str) -> RecordedAnswer:
     if as_json.is_file():
         return RecordedAnswer(body=as_json.read_bytes())
     return RecordedAnswer.events((FIXTURES / f"{name}.sse").read_text(encoding="utf-8"))
+
+
+def load_rounds(name: str) -> list[RecordedAnswer]:
+    """Load a recorded chat turn's rounds from ``tests/fixtures/ai/<name>.json``, in order.
+
+    Args:
+        name: The chat case.
+
+    Returns:
+        One event-stream answer per round.
+    """
+    document = _mapping(json.loads((FIXTURES / f"{name}.json").read_text(encoding="utf-8")))
+    rounds = cast("list[str]", document["rounds"])
+    return [RecordedAnswer.events(text) for text in rounds]
+
+
+def recorded_tool_names(name: str) -> list[str]:
+    """The tools a recorded chat turn looked up, in order.
+
+    Args:
+        name: The chat case.
+
+    Returns:
+        Each ``tool_use`` block's name, round by round.
+    """
+    document = _mapping(json.loads((FIXTURES / f"{name}.json").read_text(encoding="utf-8")))
+    return [
+        str(block["name"])
+        for text in cast("list[str]", document["rounds"])
+        for block in stream_blocks(text)
+        if block["type"] == "tool_use"
+    ]
+
+
+def stream_blocks(text: str) -> list[dict[str, object]]:
+    """Rebuild a recorded stream's final content blocks as the API sent them.
+
+    Args:
+        text: A raw event stream.
+
+    Returns:
+        Each block from its ``content_block_start``, with its text, thinking, signature,
+        and tool input deltas applied, in index order.
+    """
+    blocks: dict[int, dict[str, object]] = {}
+    partial: dict[int, str] = {}
+    for line in text.splitlines():
+        if not line.startswith("data:"):
+            continue
+        event = _mapping(json.loads(line.removeprefix("data:")))
+        if event.get("type") == "content_block_start":
+            index = cast("int", event["index"])
+            blocks[index] = dict(_mapping(event["content_block"]))
+        elif event.get("type") == "content_block_delta":
+            index = cast("int", event["index"])
+            delta = _mapping(event["delta"])
+            block = blocks[index]
+            kind = delta["type"]
+            if kind == "text_delta":
+                block["text"] = cast("str", block["text"]) + cast("str", delta["text"])
+            elif kind == "thinking_delta":
+                block["thinking"] = cast("str", block["thinking"]) + cast("str", delta["thinking"])
+            elif kind == "signature_delta":
+                block["signature"] = cast("str", delta["signature"])
+            elif kind == "input_json_delta":
+                partial[index] = partial.get(index, "") + cast("str", delta["partial_json"])
+    for index, raw in partial.items():
+        blocks[index]["input"] = json.loads(raw) if raw else {}
+    return [blocks[index] for index in sorted(blocks)]
 
 
 def recorded_usage(name: str) -> dict[str, int]:
@@ -422,6 +492,84 @@ def chunked_stream(  # noqa: PLR0913 - a stream's shape, keyword-only
             ),
             ("message_stop", {"type": "message_stop"}),
         ]
+    return "".join(f"event: {name}\ndata: {json.dumps(data)}\n\n" for name, data in events)
+
+
+def tool_stream(*calls: tuple[str, object], text: str = "") -> str:
+    """A hand-written stream that asks for tools: an omitted thinking block, any text, the calls.
+
+    Args:
+        *calls: Each call's tool name and input, in order; ids are ``toolu_1``, ``toolu_2``...
+        text: Text the model writes before its calls.
+
+    Returns:
+        The raw stream, ending with the ``tool_use`` stop.
+    """
+    start = message_body("", output_tokens=1)
+    start["content"] = []
+    start["stop_reason"] = None
+    events: list[tuple[str, object]] = [
+        ("message_start", {"type": "message_start", "message": start}),
+        (
+            "content_block_start",
+            {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {"type": "thinking", "thinking": "", "signature": ""},
+            },
+        ),
+        (
+            "content_block_delta",
+            {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {"type": "signature_delta", "signature": "c3ludGhldGlj"},
+            },
+        ),
+        ("content_block_stop", {"type": "content_block_stop", "index": 0}),
+    ]
+    blocks: list[tuple[dict[str, object], dict[str, object] | None]] = []
+    if text:
+        written: dict[str, object] = {"type": "text_delta", "text": text}
+        blocks.append(({"type": "text", "text": ""}, written))
+    for number, (name, arguments) in enumerate(calls, start=1):
+        call: dict[str, object] = {
+            "type": "tool_use",
+            "id": f"toolu_{number}",
+            "name": name,
+            "input": {},
+        }
+        partial: dict[str, object] = {
+            "type": "input_json_delta",
+            "partial_json": json.dumps(arguments),
+        }
+        blocks.append((call, partial))
+    for index, (block, delta) in enumerate(blocks, start=1):
+        events.append(
+            (
+                "content_block_start",
+                {"type": "content_block_start", "index": index, "content_block": block},
+            )
+        )
+        if delta is not None:
+            events.append(
+                (
+                    "content_block_delta",
+                    {"type": "content_block_delta", "index": index, "delta": delta},
+                )
+            )
+        events.append(("content_block_stop", {"type": "content_block_stop", "index": index}))
+    events += [
+        (
+            "message_delta",
+            {
+                "type": "message_delta",
+                "delta": {"stop_reason": "tool_use", "stop_sequence": None},
+                "usage": {"output_tokens": 30},
+            },
+        ),
+        ("message_stop", {"type": "message_stop"}),
+    ]
     return "".join(f"event: {name}\ndata: {json.dumps(data)}\n\n" for name, data in events)
 
 

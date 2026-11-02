@@ -13,6 +13,11 @@ ledger (spent, cap, allowance, requests, and tokens by kind) and sends nothing. 
 0 when every briefing was written or reused, 1 when one was withheld or AI was
 unavailable (with the reason), and 2 for a usage error.
 
+``--outlook {atl,pac,cpac}`` (with ``--horizon {2d0,7d0}``, seven days by default) prints
+an AI interpretation of NHC's official outlook graphic for the basin instead, once it
+passes its checks, when ``[ai] outlook_narration`` is on; a stored narration of the same
+graphic and TWO is reused without a request unless ``--new`` asks for a new one.
+
 No prompt, context, or answer is logged; the answer goes to the operator's own terminal.
 """
 
@@ -31,9 +36,12 @@ from weatherbot.cli.documents import (
     BriefingEntry,
     BriefKindEntry,
     BriefLedgerEntry,
+    BriefNarrationEntry,
     BriefSourceEntry,
     BriefSourceNoteEntry,
     BriefTimelineEntry,
+    NarrationAreaEntry,
+    NarrationTextEntry,
 )
 from weatherbot.cli.runtime import (
     EXIT_FAILED,
@@ -53,10 +61,13 @@ from weatherbot.services.locations import LocationService
 if TYPE_CHECKING:
     from weatherbot.services.ai.briefing import BriefingEvent, BriefingService, Done
     from weatherbot.services.ai.ledger import KindTotals, LedgerDay
-    from weatherbot.services.ai.schemas import Briefing
+    from weatherbot.services.ai.narration import Started as NarrationStarted
+    from weatherbot.services.ai.schemas import Briefing, OutlookNarration
     from weatherbot.services.ai.service import AiService
 
 type EntryStatus = Literal["ok", "withheld", "unavailable"]
+type Basin = Literal["atl", "pac", "cpac"]
+type Horizon = Literal["2d0", "7d0"]
 
 HEADINGS: Final[dict[str, str]] = {
     "situation": "Situation",
@@ -325,7 +336,135 @@ async def _run(
     return runs, ledger
 
 
-def brief(
+def _narration_entry(  # noqa: PLR0913 - one document entry's fields
+    started: "NarrationStarted | None",
+    place: tuple[Basin, Horizon],
+    model: str,
+    status: EntryStatus,
+    *,
+    narration: "OutlookNarration | None" = None,
+    withheld: str | None = None,
+    unavailable: str | None = None,
+    reused: bool = False,
+    created_at: datetime | None = None,
+    cost: int | None = None,
+) -> BriefNarrationEntry:
+    from weatherbot.services.ai.narration import NARRATION_LABEL  # noqa: PLC0415 - AI loads on demand
+
+    text = None
+    if narration is not None:
+        text = NarrationTextEntry(
+            summary=narration.summary,
+            areas=tuple(
+                NarrationAreaEntry(description=area.description, chance_text=area.chance_text)
+                for area in narration.areas
+            ),
+            caveat=narration.caveat,
+        )
+    return BriefNarrationEntry(
+        label=NARRATION_LABEL,
+        basin=place[0],
+        horizon=place[1],
+        model=started.model if started is not None else model,
+        prompt_version=started.prompt_version if started is not None else None,
+        graphic_sha256=started.graphic_sha256 if started is not None else None,
+        two_issued_at=started.two_issued_at if started is not None else None,
+        status=status,
+        narration=text,
+        withheld_reason=withheld,
+        unavailable_reason=unavailable,
+        reused=reused,
+        created_at=created_at,
+        cost_micro_usd=cost,
+    )
+
+
+def _print_narration(output: Output, narration: "OutlookNarration") -> None:
+    output.line()
+    output.line("Summary", style="bold")
+    output.line(f"  {narration.summary}")
+    output.line()
+    output.line("Areas", style="bold")
+    if not narration.areas:
+        output.line("  none")
+    for area in narration.areas:
+        output.line(f"  {area.description} Chance: {area.chance_text}.")
+    output.line()
+    output.line("Caveat", style="bold")
+    output.line(f"  {narration.caveat}")
+
+
+async def _narrate(
+    output: Output, service: "AiService", place: tuple[Basin, Horizon], *, new: bool
+) -> tuple[BriefNarrationEntry, BriefLedgerEntry]:
+    """Narrate one outlook graphic, printing it once it passes, and read today's ledger."""
+    from weatherbot.services.ai.narration import (  # noqa: PLC0415 - AI loads on demand
+        HORIZON_NAMES,
+        NARRATION_LABEL,
+        UNAVAILABLE_TEXT,
+        Done,
+        NarrationService,
+        Started,
+        Withheld,
+    )
+    from weatherbot.services.ai.tools import BASIN_NAMES  # noqa: PLC0415 - as above
+
+    model = service.settings.model
+    try:
+        narrations = NarrationService(service)
+        started: NarrationStarted | None = None
+        entry = _narration_entry(None, place, model, "unavailable")
+        async for event in narrations.stream(place[0], place[1], new=new):
+            if isinstance(event, Started):
+                started = event
+                output.line(
+                    f"{NARRATION_LABEL} · {model_name(event.model)} · NHC's "
+                    f"{BASIN_NAMES[place[0]]} outlook over {HORIZON_NAMES[place[1]]}, with its "
+                    f"TWO of {event.two_issued_at:%Y-%m-%d %H:%M} UTC · not an official product",
+                    style="bold",
+                )
+            elif isinstance(event, Done):
+                _print_narration(output, event.narration)
+                if event.reused:
+                    output.line()
+                    output.line(
+                        f"(A stored narration, written {event.created_at:%Y-%m-%d %H:%M} UTC; "
+                        "no request was sent. --new asks for a new one.)",
+                        style="dim",
+                    )
+                stored = narrations.output(event.output_id)
+                cost = None
+                if not event.reused and stored is not None and stored.call_id is not None:
+                    found = service.ledger.entry(stored.call_id)
+                    cost = found.cost_micro_usd if found is not None else None
+                entry = _narration_entry(
+                    started,
+                    place,
+                    model,
+                    "ok",
+                    narration=event.narration,
+                    reused=event.reused,
+                    created_at=event.created_at,
+                    cost=cost,
+                )
+            elif isinstance(event, Withheld):
+                output.line(f"Withheld: {event.reason} ({event.detail})", style="yellow")
+                entry = _narration_entry(started, place, model, "withheld", withheld=event.reason)
+            else:
+                known = {**cast("dict[str, str]", MESSAGES), **UNAVAILABLE_TEXT}
+                output.line(
+                    f"AI unavailable: {known.get(event.reason, event.reason)}", style="yellow"
+                )
+                entry = _narration_entry(
+                    started, place, model, "unavailable", unavailable=event.reason
+                )
+        ledger = _ledger_entry(service.ledger.today(), service.ledger.by_kind())
+    finally:
+        await service.close()
+    return entry, ledger
+
+
+def brief(  # noqa: PLR0913 - the command's options
     ctx: typer.Context,
     location: Annotated[
         str | None, typer.Argument(help="Brief this location only; every one by default.")
@@ -338,20 +477,42 @@ def brief(
     cost: Annotated[
         bool, typer.Option("--cost", help="Print today's AI spend and send nothing.")
     ] = False,
+    outlook: Annotated[
+        Literal["atl", "pac", "cpac"] | None,
+        typer.Option(
+            "--outlook",
+            help="Narrate NHC's outlook graphic for this basin instead ([ai] outlook_narration).",
+        ),
+    ] = None,
+    horizon: Annotated[
+        Literal["2d0", "7d0"],
+        typer.Option("--horizon", help="The outlook graphic's horizon: two days or seven days."),
+    ] = "7d0",
 ) -> None:
     """Brief each location in plain language from its latest assessment, through Claude."""
     context = context_of(ctx)
     output = Output(context.runtime, json_mode=json_output)
+    if outlook is not None and location is not None:
+        fail(output, "brief a location or an outlook, not both", EXIT_USAGE)
+    narration: BriefNarrationEntry | None = None
+    runs: list[_Run] = []
     with open_session(context, output) as database:
-        names = [stored.name for stored in LocationService(database.engine).list()]
-        chosen = [] if cost else _choose(output, names, location)
-        service = context.ai_service(database)
         shown = _Silent(context.runtime, json_mode=True) if json_output else output
-        runs, ledger = asyncio.run(_run(shown, service, chosen, new=new))
+        if outlook is not None and not cost:
+            service = context.ai_service(database)
+            narration, ledger = asyncio.run(_narrate(shown, service, (outlook, horizon), new=new))
+        else:
+            names = [stored.name for stored in LocationService(database.engine).list()]
+            chosen = [] if cost else _choose(output, names, location)
+            service = context.ai_service(database)
+            runs, ledger = asyncio.run(_run(shown, service, chosen, new=new))
     entries = tuple(run.entry for run in runs if run.entry is not None)
-    code = EXIT_FAILED if any(entry.status != "ok" for entry in entries) else EXIT_OK
+    failed = any(entry.status != "ok" for entry in entries)
+    code = (
+        EXIT_FAILED if failed or (narration is not None and narration.status != "ok") else EXIT_OK
+    )
     if json_output:
-        data = BriefData(briefings=entries, today=ledger)
+        data = BriefData(briefings=entries, narration=narration, today=ledger)
         output.document(
             BriefDocument(generated_at=context.runtime.now(), disclaimer=NOTICE, data=data)
         )

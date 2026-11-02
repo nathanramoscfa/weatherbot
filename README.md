@@ -76,6 +76,12 @@ weatherbot notify setup --remove     # remove the identity again
 weatherbot brief                     # every stored location in turn, section by section, labelled as AI
 weatherbot brief "Miami-Dade County Hall" --new   # a new briefing even when one is stored for the assessment
 weatherbot brief --cost              # today's AI spend against the daily cap; sends nothing
+weatherbot brief --outlook atl       # an AI interpretation of NHC's seven-day Atlantic outlook graphic (with [ai] outlook_narration on)
+weatherbot brief --outlook pac --horizon 2d0   # the eastern North Pacific's two-day graphic
+
+# Ask Claude about your locations; it reads only Weatherbot's stored data, through nine read-only tools.
+weatherbot ask "Which storm is closest to Miami-Dade County Hall?"
+weatherbot ask "What would raise the level here?" --location "Miami-Dade County Hall" --json
 
 weatherbot config show               # every setting's value, and whether it came from the default, weatherbot.toml, or the environment
 weatherbot config path               # where the settings file, the database, its backups, the log file, and the lock files live
@@ -126,13 +132,20 @@ or was unavailable on Windows. Set `toast = false` under `[notifications]` in
 text is not an official product, then each section once it passes the
 validators, and the disclaimer's reminder; a briefing that breaks a rule is
 withheld, and a stored briefing for the latest assessment is shown without a
-new request. [docs/AI.md](docs/AI.md) covers what each request carries and what
-it costs.
+new request. `brief --outlook` prints an AI interpretation of NHC's official
+outlook graphic for a basin, checked against the basin's own TWO, when `[ai]
+outlook_narration` is on. `ask` answers one question from Weatherbot's stored
+data: it prints a label line, each tool's name as Claude looks something up (to
+standard error), the answer sentence by sentence once each sentence passes its
+checks, and the disclaimer's reminder. A sentence that states another current
+level, a URL, or an unquoted position withholds the rest. The question is never
+logged. [docs/AI.md](docs/AI.md) covers what each request carries and what it
+costs.
 
 `locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, `doctor`,
 `check --once`, `install-task`, `uninstall-task`, `notify log`, `notify setup`,
-`notify test`, `config show`, `config path`, and `brief` take `--json` and print
-one JSON document whose schema is in [docs/schema/](docs/schema/).
+`notify test`, `config show`, `config path`, `brief`, and `ask` take `--json`
+and print one JSON document whose schema is in [docs/schema/](docs/schema/).
 `--verbose` (before the command: `weatherbot --verbose fetch`) logs at DEBUG
 to standard error. The exit status is 0 when everything answered, 1 when a
 source failed or a check did, and 2 for a usage error. With one location,

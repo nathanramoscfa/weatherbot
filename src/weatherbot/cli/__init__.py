@@ -12,7 +12,7 @@ from typing import Annotated
 import typer
 
 from weatherbot import __version__
-from weatherbot.cli import brief, check, config, locations, notify, serve, snapshots, tasks
+from weatherbot.cli import ask, brief, check, config, locations, notify, serve, snapshots, tasks
 from weatherbot.cli import doctor as doctor_command
 from weatherbot.cli import replay as replay_command
 from weatherbot.cli import status as status_command
@@ -38,6 +38,7 @@ app.command("serve")(serve.serve)
 app.command("install-task")(tasks.install_task)
 app.command("uninstall-task")(tasks.uninstall_task)
 app.command("brief")(brief.brief)
+app.command("ask")(ask.ask)
 
 
 def _print_version_and_exit(*, value: bool) -> None:

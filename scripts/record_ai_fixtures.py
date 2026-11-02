@@ -8,7 +8,13 @@ writes the response body exactly as received, ``<case>.json`` for a message or
 ``manifest.json`` naming each case's kind, model, date, request body SHA-256, and size.
 The cases are the round trips and the eval set (``tests/ai/eval/cases.py``): every
 briefing case records as a stream and every change summary as a message, with the same
-request body the services send; ``eval`` names them all.
+request body the services send; ``eval`` names them all. The chat and narration cases
+(``tests/ai/eval/chat_cases.py``) follow: a chat case runs one turn of the real
+``ChatService`` over a throwaway database in a temporary directory (both landmarks over
+the recorded snapshot), and keeps every round's raw event stream in ``<case>.json`` as
+``{"rounds": [...]}``, refusing the recording unless the turn ended whole; a narration
+case records as a stream with the request ``NarrationService`` sends, and is refused
+unless it passes the narration's validators. ``chat`` and ``narration`` name each group.
 Nothing else is kept: never a request or response header, so never the credential or the
 ``anthropic-organization-id``. It refuses to overwrite a recording without ``--force``,
 prints each recording's cost from its usage at list price, and writes nothing when the
@@ -20,6 +26,7 @@ Usage::
     uv run python scripts/record_ai_fixtures.py --list
     uv run python scripts/record_ai_fixtures.py round-trip round-trip-stream
     uv run python scripts/record_ai_fixtures.py eval
+    uv run python scripts/record_ai_fixtures.py chat narration
     uv run python scripts/record_ai_fixtures.py --force round-trip
 """
 
@@ -28,8 +35,9 @@ import asyncio
 import hashlib
 import json
 import sys
+import tempfile
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any, Final, Literal, override
@@ -40,6 +48,8 @@ from pydantic import BaseModel
 
 from weatherbot.services.ai.caller import request_kwargs, usage_of, validate_output
 from weatherbot.services.ai.pricing import TokenUsage, cost_micro_usd, usd_text
+from weatherbot.services.ai.schemas import OutlookNarration
+from weatherbot.services.ai.validate import first_violation, validate_narration
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 SUPPORT: Final = tuple(
@@ -57,6 +67,8 @@ SUPPORT: Final = tuple(
 """The test support directories the eval set imports from."""
 EVAL_GROUP: Final = "eval"
 """The name that stands for every eval case."""
+GROUPS: Final = (EVAL_GROUP, "chat", "narration")
+"""Each name that stands for every case whose name begins with it and a hyphen."""
 FIXTURES: Final = REPO_ROOT / "tests" / "fixtures" / "ai"
 MANIFEST: Final = "manifest.json"
 BUDGET_BYTES: Final = 1_048_576
@@ -71,16 +83,21 @@ class Ready(BaseModel):
     word: str
 
 
-type CaseKind = Literal["parse", "stream"]
+type CaseKind = Literal["parse", "stream", "chat"]
 
 
 @dataclass(frozen=True)
 class Case:
-    """One recording: how it is sent, the request body without ``model``, and its schema."""
+    """One recording: how it is sent, the request body without ``model``, and its schema.
+
+    A ``chat`` case sends no body of its own: it runs its turn of the real chat.
+    """
 
     kind: CaseKind
     params: Mapping[str, Any]
     output_format: type[BaseModel] = Ready
+    check: Callable[[BaseModel], str | None] | None = None
+    """A further check of the output; it names a problem in fixed text, or ``None``."""
 
 
 ROUND_TRIP: Final[Mapping[str, Any]] = {
@@ -95,15 +112,19 @@ CASES: Final[dict[str, Case]] = {
 """The round trips; ``all_cases`` adds the eval set."""
 
 
+def _support() -> None:
+    for directory in reversed(SUPPORT):
+        if str(directory) not in sys.path:
+            sys.path.insert(0, str(directory))
+
+
 def eval_cases() -> dict[str, Case]:
     """Build the eval set's recordings from ``tests/ai/eval/cases.py``.
 
     Returns:
         Each case by name: a briefing as a stream, a change summary as a message.
     """
-    for directory in reversed(SUPPORT):
-        if str(directory) not in sys.path:
-            sys.path.insert(0, str(directory))
+    _support()
     from eval.cases import eval_cases as build  # noqa: PLC0415 - the test support, on demand
 
     return {
@@ -114,17 +135,48 @@ def eval_cases() -> dict[str, Case]:
     }
 
 
+def _narration_check(two_text: str) -> Callable[[BaseModel], str | None]:
+    def check(output: BaseModel) -> str | None:
+        if not isinstance(output, OutlookNarration):
+            return "the answer is not a narration"
+        violation = first_violation(validate_narration(output, two_text))
+        return f"{violation.rule}: {violation.detail}" if violation is not None else None
+
+    return check
+
+
+def chat_cases() -> dict[str, Case]:
+    """Build the chat and narration recordings from ``tests/ai/eval/chat_cases.py``.
+
+    Returns:
+        Each chat case (a turn of the real chat) and each narration case (a stream with
+        the request ``NarrationService`` sends), by name.
+    """
+    _support()
+    from eval.chat_cases import (  # noqa: PLC0415 - the test support, on demand
+        CHAT_CASES,
+        NARRATION_CASES,
+        narration_case_request,
+    )
+
+    found = {case.name: Case("chat", {}) for case in CHAT_CASES}
+    for case in NARRATION_CASES:
+        params, two_text = asyncio.run(narration_case_request(case))
+        found[case.name] = Case("stream", params, OutlookNarration, _narration_check(two_text))
+    return found
+
+
 def all_cases() -> dict[str, Case]:
-    """Every case: the round trips and the eval set.
+    """Every case: the round trips, the eval set, and the chat and narration cases.
 
     Returns:
         Each case by name.
     """
-    return {**CASES, **eval_cases()}
+    return {**CASES, **eval_cases(), **chat_cases()}
 
 
 def resolve(names: Sequence[str]) -> dict[str, Case]:
-    """Find the named cases; ``eval`` stands for every eval case.
+    """Find the named cases; ``eval``, ``chat``, and ``narration`` each stand for a group.
 
     Args:
         names: Case names.
@@ -136,11 +188,11 @@ def resolve(names: Sequence[str]) -> dict[str, Case]:
         RecordingError: No name, or a name that is no case.
     """
     known = CASES if all(name in CASES for name in names) else all_cases()
-    evals = [name for name in known if name.startswith(f"{EVAL_GROUP}-")]
-    expanded = [item for name in names for item in (evals if name == EVAL_GROUP else [name])]
+    groups = {group: [name for name in known if name.startswith(f"{group}-")] for group in GROUPS}
+    expanded = [item for name in names for item in groups.get(name, [name])]
     unknown = [name for name in expanded if name not in known]
     if unknown or not expanded:
-        message = f"name one or more cases from: {', '.join(CASES)}, or eval"
+        message = f"name one or more cases from: {', '.join(CASES)}, or {', '.join(GROUPS)}"
         raise RecordingError(message)
     return {name: known[name] for name in expanded}
 
@@ -231,8 +283,82 @@ async def _send(client: anthropic.AsyncAnthropic, case: Case) -> anthropic.types
     else:
         async with client.messages.stream(model=MODEL, **kwargs) as stream:
             message = await stream.get_final_message()
-    validate_output(case.output_format, message)
+    output = validate_output(case.output_format, message)
+    problem = case.check(output) if case.check is not None else None
+    if problem is not None:
+        message = f"the answer failed its check ({problem}); nothing was written"
+        raise RecordingError(message)
     return message
+
+
+def stream_usage(body: bytes) -> TokenUsage:
+    """Read a recorded event stream's final usage.
+
+    Args:
+        body: The raw stream.
+
+    Returns:
+        The usage of ``message_start`` merged with each ``message_delta``'s, by price.
+    """
+    usage: dict[str, Any] = {}
+    for line in body.decode("utf-8").splitlines():
+        if not line.startswith("data:"):
+            continue
+        event = json.loads(line.removeprefix("data:"))
+        if event.get("type") == "message_start":
+            usage.update(event["message"]["usage"])
+        elif event.get("type") == "message_delta":
+            usage.update({key: value for key, value in event["usage"].items() if value is not None})
+    return usage_of(anthropic.types.Usage.model_validate(usage))
+
+
+def _added(total: TokenUsage, more: TokenUsage) -> TokenUsage:
+    return TokenUsage(
+        **{
+            item.name: getattr(total, item.name) + getattr(more, item.name)
+            for item in fields(TokenUsage)
+        }
+    )
+
+
+async def _converse(client: anthropic.AsyncAnthropic, name: str) -> None:
+    """Run a chat case's turn over a throwaway database; refuse a turn that did not end whole."""
+    from eval.chat_cases import (  # noqa: PLC0415 - the test support, on demand
+        case_database,
+        chat_case,
+        run_chat_case,
+        store_case_data,
+    )
+    from source_support import NOW  # noqa: PLC0415 - as above
+
+    from weatherbot.services.ai.chat import Done  # noqa: PLC0415 - as above
+    from weatherbot.services.ai.guard import ai_engine  # noqa: PLC0415 - as above
+    from weatherbot.services.ai.service import AiService  # noqa: PLC0415 - as above
+    from weatherbot.services.config import AiSettings  # noqa: PLC0415 - as above
+
+    case = chat_case(name)
+    with (
+        tempfile.TemporaryDirectory(prefix="weatherbot-record-", ignore_cleanup_errors=True) as tmp,
+        case_database(Path(tmp)) as database,
+    ):
+        await store_case_data(database, injection=case.injection)
+        service = AiService(
+            ai_engine(database.path),
+            AiSettings(),
+            factory=lambda: client,
+            environ={},
+            now=lambda: NOW,
+            local_zone=UTC,
+        )
+        try:
+            events = await run_chat_case(case, service)
+        finally:
+            service.engine.dispose()
+    last = events[-1]
+    if not isinstance(last, Done):
+        reason = getattr(last, "reason", "")
+        message = f"{name} ended {type(last).__name__} ({reason}); nothing was written"
+        raise RecordingError(message)
 
 
 async def _record_cases(
@@ -242,9 +368,18 @@ async def _record_cases(
     transport = RecordingTransport(inner)
     async with client_factory(transport) as client:
         for name, case in cases.items():
-            message = await _send(client, case)
-            exchange = transport.exchanges[-1]
-            recorded.append((name, exchange, usage_of(message.usage)))
+            if case.kind != "chat":
+                message = await _send(client, case)
+                recorded.append((name, transport.exchanges[-1], usage_of(message.usage)))
+                continue
+            before = len(transport.exchanges)
+            await _converse(client, name)
+            rounds = transport.exchanges[before:]
+            usage = TokenUsage()
+            for exchange in rounds:
+                usage = _added(usage, stream_usage(exchange.body))
+            body = json.dumps({"rounds": [item.body.decode("utf-8") for item in rounds]}, indent=1)
+            recorded.append((name, Exchange(rounds[-1].request, 200, body.encode()), usage))
     return recorded
 
 

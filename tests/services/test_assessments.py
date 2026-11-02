@@ -296,6 +296,31 @@ async def test_the_previous_assessment_is_the_latest_at_or_before_the_snapshot(
         repository.history(LANDMARK_NAME, 0)
 
 
+async def test_the_heads_are_each_locations_latest_assessment_read_from_its_columns(
+    database: Database, recorded: RecordedSnapshot
+) -> None:
+    locations = _stored(database, recorded)
+    repository = AssessmentRepository(database.engine)
+    assert repository.latest_heads() == {}
+    _service(database).assess(recorded.snapshot, locations)
+    later = _later(recorded.snapshot, 1)
+    SnapshotRepository(database.engine).save(later)
+    _service(database, 30).assess(later, locations[:1])
+
+    heads = repository.latest_heads()
+
+    assert list(heads) == sorted(location.name for location in locations)
+    for name, head in heads.items():
+        latest = repository.latest(name)
+        assert latest is not None
+        assert head.id == latest.id
+        assert head.level == int(latest.assessment.level)
+        assert head.as_of == latest.assessment.as_of
+        assert head.complete == latest.assessment.complete
+        assert head.thresholds == latest.assessment.thresholds == Thresholds()
+    assert heads[locations[0].name].as_of == later.completed_at
+
+
 async def test_removing_a_location_removes_its_assessments_evidence_and_changes(
     database: Database, recorded: RecordedSnapshot
 ) -> None:
