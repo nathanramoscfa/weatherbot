@@ -4352,9 +4352,9 @@ The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 6 — The live eval, the browser smoke, and the operator's AI
+## Step 6 — The live eval, the browser smoke, and the operator's AI ✅
 
-**Status:** Not started
+**Status:** Complete — PR #86 (2026-11-02)
 
 > **Goal:** Prove the layer end to end, measure it, and run it for real.
 > `scripts/serve_demo.py` gains `--ai-replay` (AI answered from
@@ -4408,6 +4408,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-02: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -5160,7 +5162,7 @@ new per phase-boundary hygiene.
     verification script, the QA findings, and the matrix entry, and
     close the phase.
 
-    As Step 6 shipped it (for checks 41-43, V6, and the findings):
+    As Step 6 shipped it (PR #86; for checks 41-43, V6, and the findings):
 
     - `scripts/serve_demo.py` offers `--ai-replay` (an
       `argparse.BooleanOptionalAction`, on by default), `--ai-cap-usd`,
@@ -5711,7 +5713,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Grounded chat + narration      | Opus 5.5       | Complete — PR #81  |
 | 4    | AI in the API                  | Opus 5.5       | Complete — PR #83  |
 | 5    | AI in the page                 | Opus 5.5       | Complete — PR #84  |
-| 6    | Live eval + smoke + deploy     | Gemini 4 Argon | Not started        |
+| 6    | Live eval + smoke + deploy     | Opus 5.5       | Complete — PR #86  |
 | 7    | QA + verify_phase06.py         | GPT-6.1 Sol    | Not started        |
 | V1   | Claude client + ledger + cap   | CI             | --                 |
 | V2   | Briefing + summary + eval set  | CI             | --                 |
