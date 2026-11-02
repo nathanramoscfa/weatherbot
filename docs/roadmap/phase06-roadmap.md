@@ -3846,9 +3846,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 5 — The AI in the page
+## Step 5 — The AI in the page ✅
 
-**Status:** Not started
+**Status:** Complete — PR #84 (2026-11-02)
 
 > **Goal:** Show the AI where the operator already looks — after the engine, and
 > labeled. `frontend/src/ai/` gains `readEventStream.ts` (a typed parser of
@@ -3891,6 +3891,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-02: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -4672,6 +4674,32 @@ more cheaply. The conversation is new per phase-boundary hygiene.
       watcher's two AI marks (scalar `max(id)` reads per poll).
     - The operator's copy runs Step 1's build (revision 0007) with a
       credential the scheduled task can see.
+    - The page as Step 5 shipped it (PR #84), for `ai.spec.ts`'s
+      selectors: each dashboard card holds a region named "AI briefing
+      for <location>" with a "Brief me" button ("Brief me again" for a
+      stale or withheld briefing) and a "Writing the briefing…" status
+      while sections stream; every AI block carries
+      `data-testid="ai-label"` ("AI briefing · Claude Sonnet 5.5 ·
+      written …"); the banner is `data-testid="ai-state-banner"` (capped:
+      "AI paused: today's $X cap is reached. …"; auth failure: "AI
+      unavailable: authentication failed — check the credential, then
+      restart serve."). The Ask page (navigation link "Ask") has the
+      select "About", the textarea "Your question", the submit button
+      "Ask", lookup chips such as "Reading storms" in the list
+      "Transcript", and the answer in `data-testid="chat-answer"`. The
+      storms page's six images use alt text "National Hurricane Center
+      official <two-day|seven-day> graphical tropical weather outlook
+      for the <Atlantic|Eastern Pacific|Central Pacific>". With AI off,
+      the panel's banner reads "AI is off: [ai] enabled is false in
+      weatherbot.toml." and "Brief me" is disabled. Every stream
+      invalidates `ai` when it ends, so the banner follows a refused or
+      failed request without waiting for an event; while AI is not
+      `ready`, every AI button is disabled (so the cap test's second
+      request is refused by the page, not the server). Settings'
+      allowance confirmation is a Radix AlertDialog (react-remove-scroll
+      injects a `<style>` with the `__webpack_nonce__` nonce): the smoke
+      should open it once and watch for CSP violations. The main chunk
+      is 772 kB (Vite's 500 kB warning predates Phase 6).
 
     Files to read (every file before drafting):
 
@@ -5233,14 +5261,19 @@ new per phase-boundary hygiene.
     Step 5 (the page) — checks 36-40:
 
     36. `frontend/src/ai/readEventStream.ts`, `AiLabel.tsx`, and
-        `BriefingPanel.tsx` are tracked with their tests, and so are
-        `pages/Ask.tsx` and `Ask.test.tsx`.
+        `BriefingPanel.tsx` are tracked with their tests
+        (`readEventStream.test.ts`, `AiLabel.test.tsx`,
+        `BriefingPanel.test.tsx`), and so are `pages/Ask.tsx` and
+        `Ask.test.tsx`; the literal-rendering test is
+        `frontend/src/ai/AiText.test.tsx` (V5.3).
     37. `frontend/src/api/keys.ts` lists `ai` and `briefings`.
     38. No file under `frontend/src` uses `innerHTML` (beyond Phase
         5's check 37).
     39. `frontend/package.json`'s dependency and devDependency names
         equal `v2.0.0-phase-5`'s (no new frontend dependency).
-    40. `AppShell.tsx` lists the Ask route.
+    40. `AppShell.tsx`'s `NAV_ITEMS` lists `"/ask"` (label "Ask")
+        between `"/timeline"` and `"/settings"`, and `app/routes.tsx`
+        routes `path: "ask"` to `<Ask />` (as Step 5 shipped them).
 
     Step 6 (the live eval and the smoke) — checks 41-45:
 
@@ -5630,7 +5663,7 @@ workflow above maps directly to the corresponding row below.
 | 2    | Briefing + summary + eval set  | Opus 5.5       | Complete — PR #80  |
 | 3    | Grounded chat + narration      | Opus 5.5       | Complete — PR #81  |
 | 4    | AI in the API                  | Opus 5.5       | Complete — PR #83  |
-| 5    | AI in the page                 | Gemini 4 Argon | Not started        |
+| 5    | AI in the page                 | Opus 5.5       | Complete — PR #84  |
 | 6    | Live eval + smoke + deploy     | Gemini 4 Argon | Not started        |
 | 7    | QA + verify_phase06.py         | GPT-6.1 Sol    | Not started        |
 | V1   | Claude client + ledger + cap   | CI             | --                 |
