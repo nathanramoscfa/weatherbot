@@ -1,6 +1,6 @@
 // frontend/src/app/AppShell.test.tsx
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RouterProvider } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -17,6 +17,15 @@ import notificationsFixture from "../test/fixtures/notifications.json";
 import settingsFixture from "../test/fixtures/settings.json";
 import stormsFixture from "../test/fixtures/storms.json";
 import timelineFixture from "../test/fixtures/timeline.json";
+import {
+  TYPED_AI,
+  TYPED_AI_CALLS,
+  TYPED_BRIEFINGS,
+  TYPED_NARRATIONS,
+  TYPED_OUTLOOK,
+  TYPED_SUMMARIES,
+} from "../test/ai.ts";
+import { NAV_ITEMS } from "./AppShell.tsx";
 import type { HealthResponse } from "./AppShell.tsx";
 import { createAppMemoryRouter } from "./routes.tsx";
 
@@ -92,6 +101,15 @@ function seedFixtureCache(queryClient: QueryClient): void {
     ),
   );
   queryClient.setQueryData(queryKeys.licenses(), []);
+  queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
+  queryClient.setQueryData(queryKeys.aiCalls(), TYPED_AI_CALLS);
+  queryClient.setQueryData(queryKeys.briefings(), TYPED_BRIEFINGS);
+  queryClient.setQueryData(queryKeys.aiSummaries(), TYPED_SUMMARIES);
+  queryClient.setQueryData(queryKeys.outlook(), TYPED_OUTLOOK);
+  queryClient.setQueryData(
+    queryKeys.aiNarrations(TYPED_OUTLOOK.snapshot_id),
+    TYPED_NARRATIONS,
+  );
 }
 
 class MockEventSource {
@@ -209,7 +227,7 @@ describe("AppShell and routes", () => {
     vi.stubGlobal("EventSource", originalEventSource);
   });
 
-  it("renders the six routes, keyboard navigation, threat level text+number badges, and footer notice", async () => {
+  it("renders the seven routes, keyboard navigation, threat level text+number badges, and footer notice", async () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
     seedFixtureCache(queryClient);
@@ -243,6 +261,24 @@ describe("AppShell and routes", () => {
     });
     expect(disclaimerLink).toHaveAttribute("href", "/settings#disclaimer");
 
+    const navigation = screen.getByRole("navigation", {
+      name: "Primary navigation",
+    });
+    expect(
+      within(navigation)
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual([
+      "Dashboard",
+      "Map",
+      "Storms",
+      "Alerts",
+      "Timeline",
+      "Ask",
+      "Settings",
+    ]);
+    expect(NAV_ITEMS.map((item) => item.to)).toContain("/ask");
+
     const routeExpectations: readonly {
       readonly linkName: string;
       readonly heading: string;
@@ -251,6 +287,7 @@ describe("AppShell and routes", () => {
       { linkName: "Storms", heading: "Storms" },
       { linkName: "Alerts", heading: "Alerts" },
       { linkName: "Timeline", heading: "Timeline" },
+      { linkName: "Ask", heading: "Ask" },
       { linkName: "Settings", heading: "Settings" },
       { linkName: "Dashboard", heading: "Dashboard" },
     ];

@@ -2,6 +2,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Bell, Clock, Filter } from "lucide-react";
 import { useMemo, useState } from "react";
+import { ChangeSummary } from "../ai/ChangeSummary.tsx";
+import { fetchSummaries, type StoredSummaryResponse } from "../ai/queries.ts";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
@@ -45,6 +47,11 @@ export function Timeline() {
     queryFn: fetchNotifications,
   });
 
+  const summariesQuery = useQuery({
+    queryKey: queryKeys.aiSummaries(),
+    queryFn: fetchSummaries,
+  });
+
   const entries = useMemo(
     () => timelineQuery.data?.entries ?? [],
     [timelineQuery.data],
@@ -53,6 +60,19 @@ export function Timeline() {
     () => notificationsQuery.data?.notifications ?? [],
     [notificationsQuery.data],
   );
+
+  const summaries = useMemo(() => {
+    const byAssessment = new Map<number, StoredSummaryResponse>();
+    for (const summary of summariesQuery.data?.summaries ?? []) {
+      if (
+        summary.assessment_id !== null &&
+        !byAssessment.has(summary.assessment_id)
+      ) {
+        byAssessment.set(summary.assessment_id, summary);
+      }
+    }
+    return byAssessment;
+  }, [summariesQuery.data]);
 
   const locationOptions = useMemo(() => {
     const names = new Set<string>();
@@ -185,6 +205,11 @@ export function Timeline() {
               <TimelineEntryCard
                 key={`${entry.kind}-${String(entry.id)}`}
                 entry={entry}
+                summary={
+                  entry.kind === "assessment"
+                    ? (summaries.get(entry.id) ?? null)
+                    : null
+                }
               />
             ))}
           </div>
@@ -226,8 +251,10 @@ export function Timeline() {
 
 function TimelineEntryCard({
   entry,
+  summary,
 }: {
   readonly entry: TimelineEntryResponse;
+  readonly summary: StoredSummaryResponse | null;
 }) {
   if (entry.kind === "assessment") {
     return (
@@ -274,6 +301,7 @@ function TimelineEntryCard({
             </ul>
           )}
         </div>
+        {summary && <ChangeSummary summary={summary} />}
       </article>
     );
   }

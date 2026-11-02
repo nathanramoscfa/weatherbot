@@ -528,6 +528,53 @@ reads the newest `ai_calls` and `ai_outputs` ids every 10 seconds, so a
 `weatherbot brief` or `ask` in a terminal reaches an open page within 15
 seconds.
 
+## The page
+
+The dashboard shows the AI beneath or beside the engine's level, never in its
+place, and labels every block: the kind, the model's display name, when it was
+written (in the browser's zone and in UTC), and "AI-generated · may be wrong ·
+the level above comes from official products".
+
+- **Dashboard.** Each location card holds an AI briefing panel after the
+  deciding rule, the evidence, and the evacuation toggle: the stored briefing
+  with its sources, and "Brief me", which streams a new one section by section
+  with a writing indicator until the stored briefing replaces the draft. A
+  withheld briefing shows only "Withheld:" and its reason; a briefing written
+  for an older assessment says which one and offers "Brief me again".
+- **Timeline.** Each assessment entry with a stored change summary shows it
+  beneath the engine's changes, labeled, or its withheld reason.
+- **Ask (`/ask`).** The engine's level badges for every location above the
+  chat, a location picker, the transcript (each lookup as a chip such as
+  "Reading storms", the answer appearing sentence by sentence), a question box
+  of at most 2,000 characters with a counter, and "New conversation". A
+  withheld or unavailable answer closes the conversation. The conversation id
+  lives only in the page, so a reload starts afresh.
+- **Storms.** The Graphical Tropical Weather Outlook section shows NHC's six
+  official graphics from the stored snapshot, credited to the National
+  Hurricane Center; with `[ai] outlook_narration` on, each has its stored
+  narration or "Interpret (AI)", labeled "AI interpretation of the official
+  graphic".
+- **Settings (`#ai`).** The state and its reason, where the credential comes
+  from (never its value), the models and features, today's meter (spend and
+  reservations against the cap and allowances, as a bar with the values in
+  text), the recent requests (kind, model, tokens, cost, status, time), "Pause
+  AI" or "Resume AI", and "Allow $X more today" behind a confirmation. Every
+  value refreshes from the `ai` events.
+
+When AI cannot answer, a banner says why: off (no credential, with how to add
+one; or `[ai] enabled = false`), paused by you, today's cap reached (it resets
+at midnight; you can allow more in Settings), or unavailable with its reason
+("authentication failed — check the credential, then restart serve"). A page
+runs one AI stream at a time, and every AI button waits while it runs; leaving
+the page cancels the stream.
+
+Every AI text is plain text in a paragraph that keeps its line breaks: never
+Markdown or HTML, so `<script>`, `&amp;`, or `[a link](https://…)` in model
+text shows exactly as written. The only links are a source's `url` from the
+API, opened with `rel="noopener noreferrer"`. The page writes no AI text,
+question, or answer to the console, sends AI requests only as same-origin JSON
+through the generated client, and never talks to Anthropic.
+
 ## Turning AI off
 
 Set `enabled = false` under `[ai]` in `weatherbot.toml`, or set

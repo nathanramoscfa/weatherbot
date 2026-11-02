@@ -24,16 +24,19 @@ export interface UseEventStreamResult {
   readonly lastEventId: number | null;
 }
 
-const VALID_EVENT_KINDS: ReadonlySet<string> = new Set<EventKind>([
-  "hello",
-  "cycle",
-  "snapshot",
-  "assessment",
-  "alert",
-  "notification",
-  "location",
-  "health",
-]);
+const EVENT_KINDS: Readonly<Record<EventKind, true>> = {
+  hello: true,
+  cycle: true,
+  snapshot: true,
+  assessment: true,
+  alert: true,
+  notification: true,
+  location: true,
+  health: true,
+  ai: true,
+};
+
+const VALID_EVENT_KINDS: ReadonlySet<string> = new Set(Object.keys(EVENT_KINDS));
 
 function isStreamEvent(value: unknown): value is StreamEvent {
   if (typeof value !== "object" || value === null) {

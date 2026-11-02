@@ -9,6 +9,7 @@ import {
   Sliders,
 } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { AiSettingsSection } from "../ai/AiSettingsSection.tsx";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
@@ -378,7 +379,7 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
           Settings
         </h1>
         <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-          Manage watched locations, browser notifications, effective
+          Manage watched locations, browser notifications, the AI, effective
           configuration, the alert ladder, and the full disclaimer.
         </p>
       </section>
@@ -647,6 +648,8 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
           </div>
         )}
       </section>
+
+      <AiSettingsSection />
 
       {/* Effective Settings */}
       <section

@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, RefreshCw, ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { BriefingPanel } from "../ai/BriefingPanel.tsx";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
@@ -566,6 +567,12 @@ function LocationLevelCard({
               </p>
             </div>
           </div>
+
+          <BriefingPanel
+            location={item.name}
+            assessmentId={assessment.id}
+            assessedAt={assessment.as_of}
+          />
 
           {coveringOfficial.length > 0 && (
             <div className="space-y-1.5 text-xs">

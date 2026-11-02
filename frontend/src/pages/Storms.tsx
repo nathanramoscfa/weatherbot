@@ -10,6 +10,7 @@ import {
   formatRouteError,
   formatUtc,
 } from "./format.ts";
+import { OutlookGraphics } from "./OutlookGraphics.tsx";
 
 export type StormsResponse = components["schemas"]["StormsResponse"];
 export type StormSummaryResponse =
@@ -184,6 +185,8 @@ export function Storms() {
             ))}
           </div>
         )}
+
+        <OutlookGraphics />
       </section>
 
       <section

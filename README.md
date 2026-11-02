@@ -208,7 +208,7 @@ Pass `weatherbot serve --corpus DIR` (or set `[web] corpus` in `weatherbot.toml`
 to expose a historical replay corpus on `/map`.
 
 The dashboard refreshes live over Server-Sent Events (`GET /api/events`) without
-reloading the page and provides six pages:
+reloading the page and provides seven pages:
 
 - **Dashboard (`/`)**: each watched location's current threat level (`1` to `5`,
   or `At least Level N` when an input was unavailable), deciding rule and
@@ -217,23 +217,46 @@ reloading the page and provides six pages:
   closest approach, and 34-kt wind arrival times), 5 km wind-speed probabilities,
   changes since the previous assessment, the evacuation-order toggle, and a
   `Check now` button (`POST /api/cycles`) to run an on-demand manual cycle.
+  Beneath the evidence, each card's **AI briefing** panel shows the stored
+  briefing with its sources, and `Brief me` streams a new one section by
+  section (`POST /api/ai/briefings`); a withheld briefing shows only its
+  reason, and a briefing written for an older assessment says so and offers
+  `Brief me again`.
 - **Map (`/map`)**: an interactive Leaflet map over OpenStreetMap tiles showing
   toggleable storm cones, forecast tracks, forecast points, coastal watch and
   warning segments, Tropical Weather Outlook areas, and watched locations (with
   each geometry's CRS in its popup), plus the historical storm and advisory
   replay picker (`not live` banner) when `serve --corpus DIR` is configured.
 - **Storms (`/storms`)**: active cyclones and their advisories, graphical
-  Tropical Weather Outlook areas, and 5 km wind-speed probability summaries.
+  Tropical Weather Outlook areas with NHC's six official outlook graphics from
+  the stored snapshot (and, with `[ai] outlook_narration` on, an
+  `Interpret (AI)` narration labeled "AI interpretation of the official
+  graphic" beneath each), and 5 km wind-speed probability summaries.
 - **Alerts (`/alerts`)**: per-location covering NWS alerts, county-zone context
   alerts, and NHC coastal watch and warning segments.
 - **Timeline (`/timeline`)**: chronological assessment and notification history
-  with a location filter, change events, and per-channel delivery outcomes
-  (`log`, `toast`, `browser`).
+  with a location filter, change events (each with its labeled AI change
+  summary when one is stored), and per-channel delivery outcomes (`log`,
+  `toast`, `browser`).
+- **Ask (`/ask`)**: a grounded chat with Claude beneath the engine's level
+  badges for every location: a location picker, a question box of at most
+  2,000 characters, each lookup shown as a chip (`Reading storms`), the answer
+  streamed sentence by sentence (`POST /api/ai/chat`), and `New conversation`;
+  a withheld or unavailable answer closes the conversation.
 - **Settings (`/settings`)**: add a watched location (`POST /api/locations`),
-  enable or test browser notifications (`POST /api/notifications/test`), inspect
-  effective settings and their origins (`default`, `file`, `environment`), read
-  the 11-rule alert ladder, read the full disclaimer (`#disclaimer`), and view
-  bundled frontend package licences (`/licenses.json`).
+  enable or test browser notifications (`POST /api/notifications/test`), the
+  AI section (`#ai`: the state, the credential's source but never its value,
+  the models, today's spend against the cap, the recent requests,
+  `Pause AI`/`Resume AI`, and `Allow $X more today` behind a confirmation),
+  inspect effective settings and their origins (`default`, `file`,
+  `environment`), read the 11-rule alert ladder, read the full disclaimer
+  (`#disclaimer`), and view bundled frontend package licences
+  (`/licenses.json`).
+
+Every AI block is labeled with the model and the time and says it may be
+wrong; its text renders as plain text (never Markdown or HTML), and when AI is
+off, paused, capped, or unavailable a banner says why. `docs/AI.md` describes
+the page in full.
 
 When `BrowserChannel` (`[notifications] browser = true`) delivers a notification
 over `/api/events`, the dashboard always shows an in-page banner toast, and —

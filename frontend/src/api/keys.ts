@@ -86,7 +86,12 @@ export const queryKeys = {
   notifications: () => invalidatableQueryKey("notifications"),
   settings: () => invalidatableQueryKey("settings"),
   ai: () => invalidatableQueryKey("ai"),
+  aiCalls: () => invalidatableQueryKey("ai", "calls"),
   briefings: () => invalidatableQueryKey("briefings"),
+  aiSummaries: () => invalidatableQueryKey("briefings", "summaries"),
+  aiNarrations: (snapshotId: string | null) =>
+    invalidatableQueryKey("briefings", "narrations", snapshotId),
+  outlook: () => invalidatableQueryKey("storms", "outlook"),
   replay: () => staticQueryKey("replay"),
   replayAdvisory: (atcfId: string, advisory: string) =>
     staticQueryKey("replay", atcfId, advisory),
