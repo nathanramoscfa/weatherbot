@@ -5,10 +5,11 @@ Weatherbot can use Claude to explain, in plain language, what the threat engine
 decided. AI is optional. It needs an Anthropic credential, and everything else
 (the levels, the evidence, the notifications, the dashboard) works without one.
 This page covers what the AI does and never does, what leaves the machine, the
-briefing and the change summary with the validators that guard them, the eval
-set, how to give Weatherbot a credential, the `[ai]` settings, and the spend
-ledger with its daily cap and the measured cost. Phase 6 adds the products step
-by step; this page grows with them.
+briefing, the change summary, the chat with its tools, and the outlook
+narration, with the validators that guard them, the eval set, how to give
+Weatherbot a credential, the `[ai]` settings, and the spend ledger with its
+daily cap and the measured cost. Phase 6 adds the products step by step; this
+page grows with them.
 
 ## What the AI does, and what it never does
 
@@ -32,8 +33,9 @@ never falls back to another model.
 ## What leaves the machine
 
 A request to Anthropic carries location names, the engine's outputs coarsened
-for narration, official products' public text with their links removed, and,
-for the chat, the questions you ask. It never carries a location's coordinates
+for narration, official products' public text with their links removed, for
+the chat the questions you ask and what its tools read, and, with narration on,
+NHC's public outlook graphic. It never carries a location's coordinates
 at any precision, a polygon or other geometry, a URL, a file path, a setting
 other than the ladder's thresholds, or the credential. Anthropic's data
 retention terms apply to what is sent.
@@ -119,6 +121,103 @@ and `max_tokens` 1,500, and it is never rewritten. It may name the previous and
 the new level and no other. Phase 6 Step 4 writes them automatically in
 `serve`.
 
+## The chat
+
+`weatherbot ask QUESTION [--location NAME] [--json]` asks Claude one question
+about your locations. Claude answers from Weatherbot's stored data only, which
+it reads through nine read-only tools; it searches nothing and fetches no URL.
+The command prints:
+
+1. a label line: "AI answer · Claude Sonnet 5.5 · from Weatherbot's stored data
+   · not an official product";
+2. each tool's name as Claude uses it ("looked up: get_storm"), to standard
+   error in plain text and dimmed in a terminal;
+3. the answer, sentence by sentence, each sentence once it passes its checks;
+4. the disclaimer's notice.
+
+The question is 1 to 2,000 characters. Its message starts with a short preamble
+that names the official level and the assessment hour of the location asked
+about (`--location`), or of every location, so the answer starts from the
+engine's level. A sentence that states another current level for a location
+("Miami-Dade County Hall is now level 4", "the official level is 4", "level 4
+now"), carries a URL, or carries a position that no NOAA text the tools returned
+states is never shown. The rest of the answer is withheld ("Withheld: level"),
+and a terminal, which cannot unprint, says to disregard the answer above.
+`--json` prints one `ask` document (`docs/schema/ask.schema.json`) with the
+question, the location, the status, the answer or the reason it was withheld or
+unavailable, the tools used, the model, Anthropic's request ids, and the cost
+in micro-dollars. The exit code is 0 when the answer arrived whole, 1 when it
+was withheld or AI was unavailable, and 2 for a usage error.
+
+Each request is the chat's own frozen prompt and the nine tool definitions,
+each with a five-minute cache marker, then the conversation so far. Thinking is
+adaptive at effort `medium`, `max_tokens` is 4,000 a request, and `tool_choice`
+is `auto`. The prompt tells Claude to write "is level N" only for a location's
+current official level, and to describe any other level by its label.
+Fine-grained tool-input streaming stays off, so the API checks every tool call
+against its strict schema. The tool calls of one round run together, and their
+results return in one message. A turn that still asks for a lookup after six
+rounds ends "AI unavailable: the answer needed too many lookups". Every round is
+one request in the ledger (kind `chat`), under the same cap.
+
+### The tools
+
+| Tool | Input | Returns |
+| ---- | ----- | ------- |
+| `list_locations` | none | each location's name, current level, completeness, and assessment hour; never a point |
+| `get_assessment` | a location | the briefing's context without its NOAA texts: the level, rule, evidence, official products, wind probabilities, each storm's threat, the changes, and the sources |
+| `get_evidence` | a location | the deciding rule, its trigger, each matching product, and the unavailable inputs |
+| `get_alerts` | a location | the official products that cover it; each NWS alert's headline, description, and instruction as NOAA text |
+| `get_storms` | none | each active storm's name, ATCF id, basin, classification, category, and latest advisory |
+| `get_storm` | an ATCF id | the storm's summary, what it means for each location, and its latest TCP as NOAA text |
+| `get_outlook` | `atl`, `pac`, or `cpac` | the basin's TWO as NOAA text and the outlook areas' chances of formation |
+| `get_ladder` | none | the ladder's text and the thresholds in effect |
+| `get_history` | a location, 1 to 10 | the most recent assessments' levels and changes, newest first |
+
+Each tool reads the stored data through the AI engine, which refuses every
+write. Each returns the same privacy-reduced shapes a briefing's context uses:
+no coordinate, geometry, URL, path, or engine-written sentence; distances as
+bands, bearings as compass points, times to the hour; NOAA text in escaped
+blocks without its links. A storm's own position, which its TCP states, is
+public and stays inside the TCP's block. No input takes a URL, a path, a query,
+or SQL. Before a call runs, Weatherbot checks its name against the nine and
+validates its input again. An unknown tool, a bad input, or an unknown location
+or storm gets an error result that lists the allowed values, and nothing else is
+read. Every result is at most 8,000 characters, and a longer one is cut and
+marked.
+
+### Conversations and their bounds
+
+`weatherbot ask` is one turn. In `serve` (from Phase 6 Step 4), a conversation
+lives in memory only: append-only, with every block Claude returned kept as
+received (thinking and tool blocks included), so each request replays the
+history byte for byte. At most 8 conversations of 20 questions are kept. Each is
+dropped after 2 idle hours or a restart, and a withheld or unavailable answer
+closes its conversation. When a newer assessment is stored between two
+questions, a system message after the new question states the new official
+levels. Questions are never logged, at any level.
+
+## The outlook narration
+
+With `outlook_narration = true` under `[ai]` (it is off by default), `weatherbot
+brief --outlook {atl,pac,cpac} [--horizon {2d0,7d0}]` prints an "AI
+interpretation of the official graphic" for the basin's graphical tropical
+weather outlook, seven days by default. The graphic is the PNG stored with the
+latest snapshot, read by its SHA-256 from the raw-response cache, so nothing is
+downloaded. It is sent as an image with the basin's TWO in an escaped block,
+under the narration's own frozen prompt. Thinking is adaptive at effort `low`,
+with `max_tokens` 2,000. The ledger counts the image at its visual tokens (825
+for a 900 by 679 map), not its base64 text.
+
+The narration has a summary, an item per marked area (where it lies, and its
+chance as the TWO states it), and a caveat. It is withheld when it states any
+level, a URL, or a position, lacks its caveat, passes its bounds, or states a
+chance that the TWO's text does not. Chances are compared as numbers, so "20%"
+matches the TWO's "20 percent". A narration is stored once per graphic, TWO
+text, model, and prompt version, and asking again shows the stored one without a
+request (`--new` asks for a new one). `--json` adds a `narration` entry to the
+`brief` document.
+
 ## The validators
 
 Nothing Claude writes reaches a page or a terminal before it passes
@@ -141,9 +240,10 @@ reason, when it:
   8 actions, 600 characters a summary).
 
 A briefing's sections are checked one by one as they stream, so no failing text
-is ever shown. The chat (Phase 6 Step 3) checks each sentence for a URL, an
-unquoted position, or a statement that a location's current level is other
-than the engine's.
+is ever shown. The chat checks each sentence for a URL, an unquoted position, or
+a statement that a location's current level is other than the engine's. A
+narration may state no level at all, no URL, and no position, and only the
+chances its TWO states.
 
 ## The eval set
 
@@ -167,6 +267,17 @@ recordings and prints each product's token and cost spread; `--count` adds a
 free `count_tokens` request for every prompt, and `--live` regenerates and
 grades every case (about $0.30 a run). Neither writes a fixture, and both
 refuse to run without a credential.
+
+`tests/ai/eval/chat_cases.py` adds five recorded chat turns over both landmarks
+and the recorded snapshot (one lookup, several lookups at once and then once
+more, a ladder question, a storm question, and the twin of a storm question
+whose TCP carries the hostile lines), and two narrations (the Atlantic seven-day
+and the Eastern Pacific two-day graphics). A chat recording keeps every round's
+event stream. Its test replays the turn against its own database, and each
+request must equal the recorded one byte for byte. The injection twin's calls
+stay within the nine tools with valid inputs, and its answer states the
+engine's level and prints no link. `scripts/record_ai_fixtures.py chat narration`
+re-records them (ask first).
 
 ## The credential
 
@@ -297,6 +408,23 @@ times, and the summary's cost 1.0 times. So the ceilings (`max_tokens` 6,000
 for a briefing and 1,500 for a summary) and the $1.00 daily cap stand. An
 active-storm day of 12 summaries and 4 briefings costs $0.10 to $0.15 at these
 rates. The 31 recordings cost $0.27.
+
+Measured on 2026-11-01 over the recorded chat turns and narrations (Phase 6
+Step 3), on `claude-sonnet-5-5`, from the recorded usage at list price:
+
+| Product | Cases | Requests | Prompt tokens a request (min / max) | Output tokens a request (min / max) | Cost (min / max) |
+| ------- | ----: | -------: | ----------------------------------- | ----------------------------------- | ---------------- |
+| Chat turn | 5 | 2 to 3 | 3,991 / 10,867 | 55 / 635 | $0.0092 / $0.0270 a turn |
+| Narration | 2 | 1 | 2,496 / 2,643 | 270 / 288 | $0.0051 / $0.0088 |
+
+The chat's tools and prompt form a cached prefix of about 3,800 tokens, which
+every round after the first reads at the cache-read price; each later round
+also reads the conversation so far from the cache. A narration's prompt caches
+the same way (1,360 tokens), and its image counts 825 visual tokens. Against the
+estimates (a chat turn $0.02 to $0.035, a narration about $0.01), both stay at
+or under, so `max_tokens` 4,000 a round, six rounds a turn, 2,000 a narration,
+and the $1.00 cap stand. The committed chat and narration recordings cost
+$0.11.
 
 ### The pause and the allowance
 

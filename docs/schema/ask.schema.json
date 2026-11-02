@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/ask.schema.json",
+  "$defs": {
+    "AskData": {
+      "additionalProperties": false,
+      "description": "One question, Claude's checked answer from the stored data, and what it cost.",
+      "properties": {
+        "question": {
+          "title": "Question",
+          "type": "string"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The location asked about; null: every one.",
+          "title": "Location"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "withheld",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "answer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The answer's checked sentences; null: withheld or unavailable.",
+          "title": "Answer"
+        },
+        "tools_used": {
+          "description": "Each lookup's tool name, in order.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tools Used",
+          "type": "array"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "request_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Request Ids",
+          "type": "array"
+        },
+        "cost_micro_usd": {
+          "description": "Every request's cost at list price.",
+          "minimum": 0,
+          "title": "Cost Micro Usd",
+          "type": "integer"
+        },
+        "withheld_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A validator's rule or a fixed reason.",
+          "title": "Withheld Reason"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        }
+      },
+      "required": [
+        "question",
+        "location",
+        "status",
+        "answer",
+        "tools_used",
+        "model",
+        "request_ids",
+        "cost_micro_usd",
+        "withheld_reason",
+        "unavailable_reason"
+      ],
+      "title": "AskData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot ask --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "ask",
+      "default": "ask",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/AskData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "AskDocument",
+  "type": "object"
+}

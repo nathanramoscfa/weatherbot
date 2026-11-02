@@ -47,6 +47,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cost $0.27, and the measured token distribution in `docs/AI.md` confirms the
   ceilings and the $1.00 cap. CI holds `services/ai/context.py` and
   `services/ai/validate.py` at 90% branch coverage each.
+- Add grounded chat and the outlook narration (Phase 6 Step 3): nine read-only
+  tools (`list_locations`, `get_assessment`, `get_evidence`, `get_alerts`,
+  `get_storms`, `get_storm`, `get_outlook`, `get_ladder`, `get_history`) with
+  strict schemas, read through the AI engine, returning the briefing context's
+  privacy-reduced shapes, each result bounded at 8,000 characters, and an error
+  result listing the allowed values for an unknown tool, a bad input, or an
+  unknown location or storm; `ChatService`, the tool loop (`tool_choice` auto,
+  at most six rounds a turn, a round's calls answered in one message) over
+  conversations held append-only in memory (8 of 20 questions, dropped after 2
+  idle hours), each sentence checked for another current level, a URL, or an
+  unquoted position before it is shown, and a system message stating new
+  official levels when an assessment changes between questions;
+  `NarrationService`, off by default, which sends the stored outlook PNG and its
+  TWO and withholds a narration that states a level, a position, or a chance the
+  TWO does not; and `weatherbot ask QUESTION [--location NAME] [--json]` with
+  its `ask` document (17 documents) and `weatherbot brief --outlook
+  {atl,pac,cpac} [--horizon {2d0,7d0}]`.
+- Record five chat turns (one lookup, parallel lookups over two rounds, the
+  ladder, a storm, and the injection twin whose TCP carries hostile lines) and
+  two narrations; each recorded turn replays its requests byte for byte, and
+  they cost $0.11 at list price.
 
 ### Phase 5 — Web app (MVP)
 - Add Phase 5's repeatable verification script (`scripts/verify_phase05.py`),

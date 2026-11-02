@@ -1,5 +1,5 @@
 # src/weatherbot/services/ai/schemas.py
-"""The shapes Claude writes: a briefing and a change summary, neither with a level.
+"""The shapes Claude writes: a briefing, a change summary, and a narration, none with a level.
 
 Each is a Pydantic model whose JSON Schema ``AiCaller`` sends as ``output_config.format``,
 so the answer's text is JSON of exactly these fields, in this order. No field is named
@@ -60,3 +60,21 @@ class ChangeSummary(_Output):
 
     summary: str = Field(description="What changed and what it means, in two to four sentences.")
     sources: list[str] = Field(description="The source keys the summary cites, such as S2.")
+
+
+class AreaNote(_Output):
+    """One area an outlook graphic marks, in plain words, with its chance as the TWO states it."""
+
+    description: str = Field(description="Where the area lies and what it is, in plain words.")
+    chance_text: str = Field(
+        description='Its chance over the horizon as the TWO states it, such as "20%", or '
+        '"not stated".'
+    )
+
+
+class OutlookNarration(_Output):
+    """An AI interpretation of one official outlook graphic, checked against its TWO."""
+
+    summary: str = Field(description="What the graphic shows over its horizon.")
+    areas: list[AreaNote] = Field(description="Each area the graphic marks, in the TWO's order.")
+    caveat: str = Field(description="That this describes the official graphic, which governs.")

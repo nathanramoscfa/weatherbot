@@ -4,7 +4,7 @@
   "$defs": {
     "BriefData": {
       "additionalProperties": false,
-      "description": "The briefings this run printed, and today's ledger.",
+      "description": "The briefings this run printed (or the outlook narration), and today's ledger.",
       "properties": {
         "briefings": {
           "items": {
@@ -12,6 +12,18 @@
           },
           "title": "Briefings",
           "type": "array"
+        },
+        "narration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BriefNarrationEntry"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "brief --outlook only; null otherwise."
         },
         "today": {
           "$ref": "#/$defs/BriefLedgerEntry"
@@ -286,6 +298,165 @@
       "title": "BriefLedgerEntry",
       "type": "object"
     },
+    "BriefNarrationEntry": {
+      "additionalProperties": false,
+      "description": "An AI interpretation of one official outlook graphic: written, reused, withheld, or not.",
+      "properties": {
+        "label": {
+          "description": "AI interpretation of the official graphic.",
+          "title": "Label",
+          "type": "string"
+        },
+        "basin": {
+          "enum": [
+            "atl",
+            "pac",
+            "cpac"
+          ],
+          "title": "Basin",
+          "type": "string"
+        },
+        "horizon": {
+          "enum": [
+            "2d0",
+            "7d0"
+          ],
+          "title": "Horizon",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "prompt_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The narration prompt's SHA-256.",
+          "title": "Prompt Version"
+        },
+        "graphic_sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The stored PNG body's SHA-256.",
+          "title": "Graphic Sha256"
+        },
+        "two_issued_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The TWO it was checked against.",
+          "title": "Two Issued At"
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "withheld",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "narration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NarrationTextEntry"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null: withheld or unavailable."
+        },
+        "withheld_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A validator's rule or a fixed reason.",
+          "title": "Withheld Reason"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        },
+        "reused": {
+          "description": "A stored narration of the graphic; no request sent.",
+          "title": "Reused",
+          "type": "boolean"
+        },
+        "created_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Created At"
+        },
+        "cost_micro_usd": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The request's cost at list price; null: no request was sent.",
+          "title": "Cost Micro Usd"
+        }
+      },
+      "required": [
+        "label",
+        "basin",
+        "horizon",
+        "model",
+        "prompt_version",
+        "graphic_sha256",
+        "two_issued_at",
+        "status",
+        "narration",
+        "withheld_reason",
+        "unavailable_reason",
+        "reused",
+        "created_at",
+        "cost_micro_usd"
+      ],
+      "title": "BriefNarrationEntry",
+      "type": "object"
+    },
     "BriefSourceEntry": {
       "additionalProperties": false,
       "description": "What a source key names: the product's metadata, never a URL.",
@@ -450,6 +621,55 @@
         "sources"
       ],
       "title": "BriefingEntry",
+      "type": "object"
+    },
+    "NarrationAreaEntry": {
+      "additionalProperties": false,
+      "description": "One area an outlook graphic marks, as the narration describes it.",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "chance_text": {
+          "description": "As the TWO states it, such as 20%, or not stated.",
+          "title": "Chance Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description",
+        "chance_text"
+      ],
+      "title": "NarrationAreaEntry",
+      "type": "object"
+    },
+    "NarrationTextEntry": {
+      "additionalProperties": false,
+      "description": "A narration's text, as Claude wrote it and the validators passed it.",
+      "properties": {
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "areas": {
+          "items": {
+            "$ref": "#/$defs/NarrationAreaEntry"
+          },
+          "title": "Areas",
+          "type": "array"
+        },
+        "caveat": {
+          "title": "Caveat",
+          "type": "string"
+        }
+      },
+      "required": [
+        "summary",
+        "areas",
+        "caveat"
+      ],
+      "title": "NarrationTextEntry",
       "type": "object"
     },
     "SourceId": {

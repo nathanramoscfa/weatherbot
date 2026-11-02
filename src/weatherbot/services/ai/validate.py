@@ -21,9 +21,15 @@ Every briefing section, briefing, and change summary is checked against its own 
   its bound (a section 1,500 characters, a timeline 12 items, actions 8, a summary 600).
 
 A ``Violation`` names its rule and the section in fixed text and never quotes the model,
-because a withheld product's text is never stored, logged, printed, or shown. For the chat
-(Phase 6 Step 3), ``sentence_violations`` applies the URL and coordinate rules and
-``current_level_asserted`` to one sentence.
+because a withheld product's text is never stored, logged, printed, or shown.
+
+The chat checks each sentence before it is shown: ``sentence_violations`` applies the URL
+rule, the coordinate rule against the NOAA texts the tools returned, and the current-level
+check (``current_level_asserted``: "is level 4", "the current or official level is 4",
+"level 4 now" for another level than the engine's latest). A narration of an outlook
+graphic (``validate_narration``) may state no level at all, no URL, and no position, must
+carry its caveat, and may state only the chances its TWO states (``chance``): "20%"
+matches the TWO's "20 percent".
 
 The module is pure: it imports the models, the standard library, and the AI schemas and
 context only.
@@ -46,12 +52,13 @@ from weatherbot.services.ai.schemas import (
     BRIEFING_SECTIONS,
     Briefing,
     ChangeSummary,
+    OutlookNarration,
     SectionName,
     SourceNote,
     TimelineItem,
 )
 
-type ViolationRule = Literal["level", "source", "url", "coordinate", "empty", "length"]
+type ViolationRule = Literal["level", "source", "url", "coordinate", "empty", "length", "chance"]
 type SectionValue = str | Sequence[TimelineItem] | Sequence[str] | Sequence[SourceNote]
 
 SECTION_LIMIT: Final = 1_500
@@ -111,7 +118,7 @@ _ASSERTED_PATTERNS: Final = (
         re.IGNORECASE,
     ),
     re.compile(
-        rf"\b(?:current|present|today's|latest)\s+(?:(?:threat|alert)\s+)?level"
+        rf"\b(?:current|present|today's|latest|official)\s+(?:(?:threat|alert)\s+)?level"
         rf"(?:\s+(?:is|of|stands at|sits at|remains))?[\s:=-]*(?P<number>{_NUMBER})\b",
         re.IGNORECASE,
     ),
@@ -126,6 +133,16 @@ _ASSERTED_PATTERNS: Final = (
     ),
 )
 """Statements that a location's level is something now, for one chat sentence."""
+NARRATION_SUMMARY_LIMIT: Final = 800
+AREA_LIMIT: Final = 400
+AREAS_LIMIT: Final = 8
+PERCENTAGE: Final = re.compile(
+    r"(?<!\w)(?<!\d\.)(?P<number>\d{1,3}(?:\.\d+)?)\s*(?:%|percent\b|per\s+cent\b)",
+    re.IGNORECASE,
+)
+"""A percentage: a number followed by "%", "percent", or "per cent". NHC writes a chance
+after an ellipsis ("low...20 percent"), so only a decimal's fractional digits are refused
+as a start."""
 
 
 @dataclass(frozen=True)
@@ -409,6 +426,69 @@ def sentence_violations(
         violations.append(Violation("coordinate", "the answer carries an unquoted position"))
     if current_level_asserted(sentence, levels):
         violations.append(Violation("level", "the answer states another current level"))
+    return tuple(violations)
+
+
+def percentages(text: str) -> frozenset[float]:
+    """Find the percentages a text states, as numbers.
+
+    Args:
+        text: Any text.
+
+    Returns:
+        Each number written before "%", "percent", or "per cent", so "20%" and "20
+        percent" are the same number.
+    """
+    return frozenset(float(match["number"]) for match in PERCENTAGE.finditer(text))
+
+
+def _narration_texts(narration: OutlookNarration) -> list[str]:
+    texts = [narration.summary]
+    for area in narration.areas:
+        texts.extend((area.description, area.chance_text))
+    texts.append(narration.caveat)
+    return texts
+
+
+def _narration_shape(narration: OutlookNarration) -> list[Violation]:
+    violations: list[Violation] = []
+    blank_area = any(
+        not area.description.strip() or not area.chance_text.strip() for area in narration.areas
+    )
+    if not narration.summary.strip() or not narration.caveat.strip() or blank_area:
+        violations.append(
+            Violation("empty", "the narration's summary or caveat is empty, or an area is")
+        )
+    too_long = len(narration.summary) > NARRATION_SUMMARY_LIMIT or any(
+        len(area.description) > AREA_LIMIT for area in narration.areas
+    )
+    if too_long or len(narration.areas) > AREAS_LIMIT:
+        violations.append(Violation("length", "the narration passes its bounds"))
+    return violations
+
+
+def validate_narration(narration: OutlookNarration, two_text: str) -> tuple[Violation, ...]:
+    """Check a narration of an outlook graphic against its basin's TWO.
+
+    Args:
+        narration: The narration.
+        two_text: The TWO's text as the request carried it.
+
+    Returns:
+        The violations: a level statement of any kind, a URL, any coordinate or position
+        (even one the TWO states), an empty summary, caveat, or area, a text past its
+        bound, or a percentage that the TWO's text does not state (compared as numbers).
+    """
+    violations = _narration_shape(narration)
+    joined = "\n".join(_narration_texts(narration))
+    if levels_stated(joined):
+        violations.append(Violation("level", "the narration states a level"))
+    if has_url(joined):
+        violations.append(Violation("url", "the narration carries a URL"))
+    if positions(joined):
+        violations.append(Violation("coordinate", "the narration carries a position"))
+    if not percentages(joined) <= percentages(two_text):
+        violations.append(Violation("chance", "the narration states a chance the TWO does not"))
     return tuple(violations)
 
 

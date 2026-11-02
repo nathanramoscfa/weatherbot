@@ -998,10 +998,49 @@ class BriefLedgerEntry(_Document):
     by_kind: tuple[BriefKindEntry, ...]
 
 
+class NarrationAreaEntry(_Document):
+    """One area an outlook graphic marks, as the narration describes it."""
+
+    description: str
+    chance_text: str = Field(description="As the TWO states it, such as 20%, or not stated.")
+
+
+class NarrationTextEntry(_Document):
+    """A narration's text, as Claude wrote it and the validators passed it."""
+
+    summary: str
+    areas: tuple[NarrationAreaEntry, ...]
+    caveat: str
+
+
+class BriefNarrationEntry(_Document):
+    """An AI interpretation of one official outlook graphic: written, reused, withheld, or not."""
+
+    label: str = Field(description="AI interpretation of the official graphic.")
+    basin: Literal["atl", "pac", "cpac"]
+    horizon: Literal["2d0", "7d0"]
+    model: str
+    prompt_version: str | None = Field(description="The narration prompt's SHA-256.")
+    graphic_sha256: str | None = Field(description="The stored PNG body's SHA-256.")
+    two_issued_at: datetime | None = Field(description="The TWO it was checked against.")
+    status: Literal["ok", "withheld", "unavailable"]
+    narration: NarrationTextEntry | None = Field(description="null: withheld or unavailable.")
+    withheld_reason: str | None = Field(description="A validator's rule or a fixed reason.")
+    unavailable_reason: str | None
+    reused: bool = Field(description="A stored narration of the graphic; no request sent.")
+    created_at: datetime | None
+    cost_micro_usd: int | None = Field(
+        description="The request's cost at list price; null: no request was sent."
+    )
+
+
 class BriefData(_Document):
-    """The briefings this run printed, and today's ledger."""
+    """The briefings this run printed (or the outlook narration), and today's ledger."""
 
     briefings: tuple[BriefEntry, ...]
+    narration: BriefNarrationEntry | None = Field(
+        default=None, description="brief --outlook only; null otherwise."
+    )
     today: BriefLedgerEntry
 
 
@@ -1010,6 +1049,33 @@ class BriefDocument(_Envelope):
 
     command: Literal["brief"] = "brief"
     data: BriefData
+
+
+# ask ---------------------------------------------------------------------------------------
+
+
+class AskData(_Document):
+    """One question, Claude's checked answer from the stored data, and what it cost."""
+
+    question: str
+    location: str | None = Field(description="The location asked about; null: every one.")
+    status: Literal["ok", "withheld", "unavailable"]
+    answer: str | None = Field(
+        description="The answer's checked sentences; null: withheld or unavailable."
+    )
+    tools_used: tuple[str, ...] = Field(description="Each lookup's tool name, in order.")
+    model: str
+    request_ids: tuple[str, ...]
+    cost_micro_usd: int = Field(ge=0, description="Every request's cost at list price.")
+    withheld_reason: str | None = Field(description="A validator's rule or a fixed reason.")
+    unavailable_reason: str | None
+
+
+class AskDocument(_Envelope):
+    """``weatherbot ask --json``."""
+
+    command: Literal["ask"] = "ask"
+    data: AskData
 
 
 DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
@@ -1029,6 +1095,7 @@ DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "install-task": InstallTaskDocument,
     "uninstall-task": UninstallTaskDocument,
     "brief": BriefDocument,
+    "ask": AskDocument,
 }
 """Each schema's file stem and its document model."""
 

@@ -5,7 +5,9 @@ A product is stored once, as it ended: ``ok`` with its validated content (the pr
 the sources its keys name, never a URL), or ``withheld`` with its reason and no content,
 because a withheld product's text is never stored. A briefing is written once per
 location, assessment, model, and prompt version (``briefing_for`` finds the one to reuse);
-a change summary once per assessment, never rewritten (``summary_for``). The repository
+a change summary once per assessment, never rewritten (``summary_for``); a narration once
+per outlook graphic, the TWO text it was checked against (whose SHA-256 its content
+holds), model, and prompt version (``narration_for``). The repository
 runs on the AI engine (``guard.ai_engine``), whose authorizer lets it write ``ai_outputs``
 and ``ai_calls`` and nothing else, and every write begins ``IMMEDIATE``.
 """
@@ -218,6 +220,31 @@ class OutputRepository:
                 .limit(limit)
             ).all()
             return tuple(_stored(row) for row in rows)
+
+    def narration_for(
+        self, graphic_sha256: str, two_sha256: str, model: str, prompt_version: str
+    ) -> StoredOutput | None:
+        """Find the narration to reuse: an ``ok`` one for the graphic, its TWO, model, and prompt.
+
+        A withheld narration is not reused, so asking again sends a new request.
+
+        Args:
+            graphic_sha256: The graphic's PNG body's SHA-256.
+            two_sha256: The SHA-256 of the TWO's text the narration was checked against.
+            model: The model.
+            prompt_version: The narration prompt's version.
+
+        Returns:
+            The narration, or ``None``.
+        """
+        return self._first(
+            AiOutputRow.kind == "narration",
+            AiOutputRow.graphic_sha256 == graphic_sha256,
+            AiOutputRow.model == model,
+            AiOutputRow.prompt_version == prompt_version,
+            AiOutputRow.status == "ok",
+            AiOutputRow.content["two_sha256"].as_string() == two_sha256,
+        )
 
     def summary_for(self, assessment_id: int) -> StoredOutput | None:
         """Find an assessment's change summary, withheld or not; it is never rewritten.

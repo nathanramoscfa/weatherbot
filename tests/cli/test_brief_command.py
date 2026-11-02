@@ -11,7 +11,7 @@ import json
 import os
 from typing import Any
 
-from ai_support import RecordedAnswer, chunked_stream, replay_client
+from ai_support import RecordedAnswer, chunked_stream, load_answer, replay_client
 from cli_support import MIAMI, NASSAU, Ran, add_landmark, parse, recorded_services, run, runtime
 
 from weatherbot.cli.documents import BriefDocument
@@ -204,3 +204,83 @@ def test_an_unknown_location_or_none_stored_is_a_usage_error() -> None:
     ran, _ = _brief(["Nowhere"], [])
     assert ran.exit_code == USAGE
     assert "no location is named 'Nowhere'" in ran.stderr
+
+
+# brief --outlook ---------------------------------------------------------------------------
+
+NARRATION_LABEL = "AI interpretation of the official graphic · Claude Sonnet 5.5 · NHC's "
+NARRATION_ON = "WEATHERBOT_AI_OUTLOOK_NARRATION"
+
+
+def test_brief_outlook_is_off_by_default_and_sends_nothing() -> None:
+    _assessed(MIAMI)
+
+    ran, replay = _brief(["--outlook", "atl"], [load_answer("narration-atl-7d0")])
+
+    assert ran.exit_code == 1
+    assert "AI unavailable: outlook narration is off; set outlook_narration = true" in ran.stdout
+    assert replay.requests == []
+
+
+def test_brief_outlook_prints_the_label_the_narration_and_the_notice_last() -> None:
+    _assessed(MIAMI)
+    environ = {**os.environ, NARRATION_ON: "true"}
+
+    ran, replay = _brief(["--outlook", "atl"], [load_answer("narration-atl-7d0")], environ=environ)
+
+    assert ran.exit_code == 0, ran.stderr
+    lines = ran.stdout.splitlines()
+    label = next(line for line in lines if line.startswith(NARRATION_LABEL))
+    assert "Atlantic outlook over seven days, with its TWO of 2026-10-12 23:02 UTC" in label
+    assert label.endswith(" · not an official product")
+    for heading in ("Summary", "Areas", "Caveat"):
+        assert heading in lines
+    assert any(line.endswith(" Chance: 20%.") for line in lines)
+    assert lines[-1] == NOTICE
+    assert len(replay.requests) == 1
+
+
+def test_brief_outlook_json_carries_the_narration_entry() -> None:
+    _assessed(MIAMI)
+    environ = {**os.environ, NARRATION_ON: "true"}
+
+    ran, _ = _brief(
+        ["--outlook", "pac", "--horizon", "2d0", "--json"],
+        [load_answer("narration-pac-2d0")],
+        environ=environ,
+    )
+
+    assert ran.exit_code == 0
+    document = parse(ran, BriefDocument)
+    entry = document.data.narration
+    assert entry is not None
+    assert (entry.basin, entry.horizon, entry.status, entry.reused) == ("pac", "2d0", "ok", False)
+    assert entry.label == "AI interpretation of the official graphic"
+    assert entry.narration is not None
+    assert [area.chance_text for area in entry.narration.areas] == ["100%"]
+    assert entry.cost_micro_usd is not None
+    assert entry.graphic_sha256 is not None
+    assert document.data.briefings == ()
+    assert [kind.kind for kind in document.data.today.by_kind] == ["narration"]
+
+
+def test_a_stored_narration_is_reused_without_a_request() -> None:
+    _assessed(MIAMI)
+    environ = {**os.environ, NARRATION_ON: "true"}
+    rt, replay = _runtime([load_answer("narration-atl-7d0")], environ=environ)
+    run(["brief", "--outlook", "atl"], rt)
+
+    again = run(["brief", "--outlook", "atl"], rt)
+
+    assert again.exit_code == 0
+    assert "(A stored narration, written " in again.stdout
+    assert len(replay.requests) == 1
+
+
+def test_brief_a_location_and_an_outlook_together_is_a_usage_error() -> None:
+    _assessed(MIAMI)
+
+    ran, _ = _brief([MIAMI, "--outlook", "atl"], [])
+
+    assert ran.exit_code == USAGE
+    assert "brief a location or an outlook, not both" in ran.stderr
