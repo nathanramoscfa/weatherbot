@@ -44,8 +44,12 @@ export async function fetchBriefings(): Promise<BriefingsResponse> {
   return data;
 }
 
+const SUMMARIES_LIMIT = 200;
+
 export async function fetchSummaries(): Promise<SummariesResponse> {
-  const { data, response } = await apiClient.GET("/api/ai/summaries");
+  const { data, response } = await apiClient.GET("/api/ai/summaries", {
+    params: { query: { limit: SUMMARIES_LIMIT } },
+  });
   if (!response.ok || !data) {
     throw new ApiRequestError("/api/ai/summaries", response.status);
   }
