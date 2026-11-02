@@ -11,6 +11,19 @@ serves the next advisory and the forecast zone serves the synthetic Hurricane Wa
 reusing ``scripts/simulate_advisory.py``'s simulation). Prints its process id and address,
 and one line per roster poll and per cycle; removes its temporary directory on exit; and
 writes nothing in the checkout.
+
+The AI answers from recordings: ``--ai-replay`` (on by default; ``--no-ai-replay`` turns
+AI off) hands ``serve`` a real SDK client whose transport replays ``tests/fixtures/ai/``
+by request kind (a briefing by its location, a change summary, each chat round of a
+recorded turn, a narration by its basin, a ``count_tokens`` probe), pacing each stream so
+its sections arrive one by one; ``--ai-cap-usd`` sets today's cap (0.001 is below the
+smallest request's ceiling, so the state reads ``capped``); and ``--ai-fail-auth`` answers
+every request 401, as Anthropic does for a refused credential, so the third holds AI at
+``auth_failed``. Every ``ANTHROPIC_*`` variable is removed and the SDK's profile directory
+points at an empty one, so no credential is read and nothing leaves the machine. The
+recordings answered the eval set's cases, so their text describes those cases (Parliament
+Square's briefing is Dorian's first advisory there), and the validators still judge each
+one against the demonstration's own context: an answer that fails them is withheld.
 """
 
 from __future__ import annotations
@@ -18,20 +31,24 @@ from __future__ import annotations
 import argparse
 import asyncio
 import contextlib
+import json
 import logging
 import os
 import signal
 import sys
 import time
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, cast
 
+import anthropic
 import httpx
+import httpx2
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import AsyncIterator, Callable
 
     from weatherbot.models import Snapshot
     from weatherbot.services.monitor import CycleResult, CycleTrigger
@@ -42,7 +59,9 @@ REPO_ROOT: Final = Path(__file__).resolve().parents[1]
 for _extra in (
     REPO_ROOT / "src",
     REPO_ROOT / "scripts",
+    REPO_ROOT / "tests" / "ai",
     REPO_ROOT / "tests" / "cli",
+    REPO_ROOT / "tests" / "services",
     REPO_ROOT / "tests" / "sources",
     REPO_ROOT / "tests" / "contract",
 ):
@@ -50,6 +69,7 @@ for _extra in (
     if _text not in sys.path:
         sys.path.insert(0, _text)
 
+from ai_support import RecordedAnswer, fake_api_key, load_answer, load_rounds  # noqa: E402
 from cli_support import (  # noqa: E402
     CORPUS,
     NASSAU,
@@ -78,6 +98,169 @@ from weatherbot.services.replay import ReplayCorpus  # noqa: E402
 from weatherbot.services.schedule import MonitorSchedule  # noqa: E402
 
 DEFAULT_PORT: Final = 8799
+REPLAYED_BRIEFINGS: Final = {NASSAU: "eval-briefing-al052019-001-nassau"}
+"""The recorded briefing a landmark's request is answered with, by the name it carries: the
+landmark's own level-1 case, whose source keys all exist in the demonstration's context."""
+OTHER_BRIEFING: Final = "eval-briefing-recorded-miami-dade"
+"""Any other location's briefing; the validators withhold it (its sources differ)."""
+REPLAYED_SUMMARY: Final = "eval-summary-al112017-036-miami-dade"
+"""Every change summary: the recorded rise to level 5, as the switch file's escalation is."""
+REPLAYED_CHAT: Final = "chat-one-round"
+"""Every chat turn: one lookup, then the answer."""
+REPLAYED_NARRATIONS: Final = {"eastern North Pacific": "narration-pac-2d0"}
+"""A narration by the basin its task line names; any other basin's is the Atlantic one."""
+OTHER_NARRATION: Final = "narration-atl-7d0"
+STREAM_SECONDS: Final = 3.0
+"""How long a replayed stream takes, so a page sees its sections arrive one by one."""
+PROBE_TOKENS: Final = 9
+"""A ``count_tokens`` probe's answer."""
+
+
+@dataclass
+class DemoReplay:
+    """Answers each Anthropic request from ``tests/fixtures/ai/`` by its kind, never the network.
+
+    A briefing is answered by the location its context names, a change summary and a chat
+    turn by one recording each (a chat request's round is the number of assistant messages
+    after its question), a narration by its basin, and a ``count_tokens`` probe with a
+    count. With ``fail_auth`` every request is answered 401 ``authentication_error``.
+    Streams are paced over ``stream_seconds``. Only the kind of each request is kept.
+    """
+
+    fail_auth: bool = False
+    stream_seconds: float = STREAM_SECONDS
+    kinds: list[str] = field(default_factory=list[str])
+
+    async def handler(self, request: httpx2.Request) -> httpx2.Response:
+        """Answer one request with its recorded answer.
+
+        Args:
+            request: The SDK's request.
+
+        Returns:
+            The answer; a stream's events arrive paced.
+        """
+        body = cast("dict[str, object]", json.loads(request.content) if request.content else {})
+        kind = request_kind(request.url.path, body)
+        self.kinds.append(kind)
+        if self.fail_auth:
+            return _response(RecordedAnswer.error(401, "authentication_error"))
+        if kind == "count_tokens":
+            return _response(RecordedAnswer.json({"input_tokens": PROBE_TOKENS}))
+        answer = self.answer(kind, body)
+        if answer.content_type != "text/event-stream":
+            return _response(answer)
+        headers = {"content-type": answer.content_type, "request-id": str(answer.request_id)}
+        return httpx2.Response(200, content=self._paced(answer.body), headers=headers)
+
+    def answer(self, kind: str, body: dict[str, object]) -> RecordedAnswer:
+        """Choose the recording that answers a request of a kind.
+
+        Args:
+            kind: ``briefing``, ``summary``, ``chat``, or ``narration``.
+            body: The request's body.
+
+        Returns:
+            The recorded answer.
+        """
+        text = json.dumps(body.get("messages", []))
+        if kind == "briefing":
+            name = next(
+                (case for place, case in REPLAYED_BRIEFINGS.items() if place in text),
+                OTHER_BRIEFING,
+            )
+            return load_answer(name)
+        if kind == "summary":
+            return load_answer(REPLAYED_SUMMARY)
+        if kind == "chat":
+            rounds = load_rounds(REPLAYED_CHAT)
+            return rounds[min(chat_round(body), len(rounds) - 1)]
+        name = next(
+            (case for basin, case in REPLAYED_NARRATIONS.items() if basin in text),
+            OTHER_NARRATION,
+        )
+        return load_answer(name)
+
+    async def _paced(self, body: bytes) -> AsyncIterator[bytes]:
+        events = [f"{event}\n\n".encode() for event in body.decode("utf-8").split("\n\n") if event]
+        pause = self.stream_seconds / max(len(events), 1)
+        for event in events:
+            await asyncio.sleep(pause)
+            yield event
+
+
+def _response(answer: RecordedAnswer) -> httpx2.Response:
+    headers = {"content-type": answer.content_type}
+    if answer.request_id is not None:
+        headers["request-id"] = answer.request_id
+    return httpx2.Response(answer.status, content=answer.body, headers=headers)
+
+
+def request_kind(path: str, body: dict[str, object]) -> str:
+    """Name a request's kind from its path and body, as the services build them.
+
+    Args:
+        path: The request's URL path.
+        body: Its decoded body.
+
+    Returns:
+        ``count_tokens``, ``chat`` (it carries tools), or by its output schema
+        ``briefing``, ``summary``, or ``narration``.
+    """
+    if path.endswith("/count_tokens"):
+        return "count_tokens"
+    if "tools" in body:
+        return "chat"
+    config = cast("dict[str, object]", body.get("output_config") or {})
+    output = cast("dict[str, object]", config.get("format") or {})
+    schema = cast("dict[str, object]", output.get("schema") or {})
+    properties = cast("dict[str, object]", schema.get("properties") or {})
+    if "situation" in properties:
+        return "briefing"
+    if "areas" in properties:
+        return "narration"
+    return "summary"
+
+
+def chat_round(body: dict[str, object]) -> int:
+    """Count a chat request's round: the assistant messages after the turn's question.
+
+    Args:
+        body: The request's decoded body.
+
+    Returns:
+        0 for the turn's first request, 1 after one tool round, and so on.
+    """
+    messages = cast("list[dict[str, object]]", body.get("messages", []))
+    rounds = 0
+    for message in messages:
+        content = message.get("content")
+        blocks = cast("list[dict[str, object]]", content if isinstance(content, list) else [])
+        asks = isinstance(content, str) or any(block.get("type") == "text" for block in blocks)
+        if message.get("role") == "user" and asks:
+            rounds = 0
+        elif message.get("role") == "assistant":
+            rounds += 1
+    return rounds
+
+
+def demo_claude(replay: DemoReplay) -> Callable[[], anthropic.AsyncAnthropic]:
+    """Build the factory ``serve`` asks for its client: one replaying client, every time.
+
+    Args:
+        replay: Answers every request.
+
+    Returns:
+        The factory; its key is built at run time and never sent anywhere.
+    """
+    client = anthropic.AsyncAnthropic(
+        api_key=fake_api_key(),
+        max_retries=0,
+        http_client=anthropic.DefaultAsyncHttpxClient(
+            transport=httpx2.MockTransport(replay.handler), follow_redirects=False
+        ),
+    )
+    return lambda: client
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -105,6 +288,23 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=None,
         help="When this file exists, serve advisory 023 and the synthetic Hurricane Warning.",
+    )
+    parser.add_argument(
+        "--ai-replay",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Answer AI requests from tests/fixtures/ai (default); --no-ai-replay turns AI off.",
+    )
+    parser.add_argument(
+        "--ai-cap-usd",
+        type=float,
+        default=None,
+        help="Today's AI cap in dollars (0.001 reads capped at once; default keeps $1.00).",
+    )
+    parser.add_argument(
+        "--ai-fail-auth",
+        action="store_true",
+        help="Answer every AI request 401, as Anthropic does for a refused credential.",
     )
     return parser.parse_args(argv)
 
@@ -196,22 +396,33 @@ def _install_demo_instrumentation() -> Callable[[], None]:
 
 
 def _configure_demo_environ(root: Path, args: argparse.Namespace) -> None:
+    # No credential reaches the demonstration: the replay answers every AI request.
+    for variable in [name for name in os.environ if name.startswith("ANTHROPIC_")]:
+        del os.environ[variable]
+    profiles = root / "anthropic"
+    profiles.mkdir(parents=True, exist_ok=True)
+    os.environ["ANTHROPIC_CONFIG_DIR"] = str(profiles)
     os.environ["WEATHERBOT_DATA_DIR"] = str(root / "data")
     os.environ["WEATHERBOT_CONFIG_DIR"] = str(root / "config")
     os.environ["WEATHERBOT_WEB_PORT"] = str(int(args.port))
     os.environ["WEATHERBOT_NOTIFICATIONS_TOAST"] = "false"
+    os.environ["WEATHERBOT_AI_ENABLED"] = "true" if args.ai_replay else "false"
+    if args.ai_cap_usd is not None:
+        os.environ["WEATHERBOT_AI_DAILY_CAP_USD"] = str(float(args.ai_cap_usd))
     if args.roster_interval_minutes is not None:
         interval_text = str(int(args.roster_interval_minutes))
         os.environ["WEATHERBOT_MONITOR_ROSTER_INTERVAL_MINUTES"] = interval_text
         os.environ["WEATHERBOT_MONITOR_ROSTER_INTERVAL_RELEVANT_MINUTES"] = interval_text
 
 
-def _run_serve_loop(
+def _run_serve_loop(  # noqa: PLR0913 - the open database, its settings, and the demo's seams
     database: Database,
     paths: AppPaths,
     settings: Settings,
     clock: Callable[[], datetime],
     corpus: ReplayCorpus | None,
+    *,
+    replay: DemoReplay,
 ) -> None:
     def _make_demo_fetcher(
         client: httpx.AsyncClient,
@@ -224,6 +435,7 @@ def _run_serve_loop(
     rt = runtime(now=NOW, environ=dict(os.environ))
     object.__setattr__(rt, "now", clock)
     object.__setattr__(rt, "make_fetcher", _make_demo_fetcher)
+    object.__setattr__(rt, "make_claude", demo_claude(replay))
 
     # Run the initial startup cycle before the web server binds its port so
     # assessments, snapshot, and heartbeats are ready on the first request.
@@ -320,8 +532,9 @@ def main(argv: list[str] | None = None) -> int:
 
                 paths = AppPaths.resolve(os.environ)
                 settings = load_settings(paths, os.environ)
+                replay = DemoReplay(fail_auth=bool(args.ai_fail_auth))
                 with open_database(paths) as database:
-                    _run_serve_loop(database, paths, settings, clock, corpus)
+                    _run_serve_loop(database, paths, settings, clock, corpus, replay=replay)
         return EXIT_OK
     finally:
         serve_logger.removeHandler(address_handler)

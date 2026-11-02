@@ -11,6 +11,7 @@ sends a request.
 import pytest
 from ai_support import FIXTURES
 from eval.cases import EvalCase, eval_cases
+from eval.chat_cases import CHAT_CASES, NARRATION_CASES
 from eval.grading import (
     contradictions,
     grade,
@@ -97,9 +98,13 @@ def test_the_eval_script_grades_the_recordings(capsys: pytest.CaptureFixture[str
     assert eval_ai.main([]) == 0
 
     out = capsys.readouterr().out
-    assert f"{len(NAMES)} of {len(NAMES)} cases pass" in out
-    assert "briefing: 19 cases" in out
+    every = len(NAMES) + len(CHAT_CASES) + len(NARRATION_CASES)
+    assert f"{every} of {every} cases pass" in out
+    assert "briefing: 19 cases, 19 requests" in out
+    assert f"chat: {len(CHAT_CASES)} cases" in out
+    assert f"narration: {len(NARRATION_CASES)} cases, {len(NARRATION_CASES)} requests" in out
     assert "total cost at list price:" in out
+    assert "FAIL" not in out
 
 
 @pytest.mark.parametrize("mode", ["--live", "--count"])

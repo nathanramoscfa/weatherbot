@@ -18,28 +18,37 @@ one recorded, byte for byte.
 
 The narration cases describe the Atlantic seven-day and the Eastern Pacific two-day
 graphics with the request ``NarrationService`` sends: the stored PNG and its basin's TWO.
+
+``converse`` runs a case's turn over a throwaway database with any client (a replay, or
+``scripts/eval_ai.py --live``'s real one) and keeps each request's usage from the ledger.
 """
 
 import hashlib
+import tempfile
 from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import UTC
 from pathlib import Path
 from typing import Any, Final
 
-from ai_support import shared_recorded_snapshot
+from ai_support import ledger_rows, shared_recorded_snapshot
 from cli_support import MIAMI, NASSAU
 from eval.cases import HOSTILE_LINES
+from source_support import NOW
 
 from ladder_data import public_landmarks
 from weatherbot.engine import assess, diff
-from weatherbot.models import Snapshot, TextProduct, Thresholds
+from weatherbot.models import AlertLevel, Snapshot, TextProduct, Thresholds
 from weatherbot.services.ai.chat import ChatEvent, ChatService
+from weatherbot.services.ai.client import ClaudeFactory
 from weatherbot.services.ai.context import SourceKeys, noaa_text, text_key
+from weatherbot.services.ai.guard import ai_engine
 from weatherbot.services.ai.narration import Horizon, narration_params
+from weatherbot.services.ai.pricing import TokenUsage
 from weatherbot.services.ai.service import AiService
 from weatherbot.services.ai.tools import TWO_BASINS, Basin
-from weatherbot.services.config import AppPaths
+from weatherbot.services.config import AiSettings, AppPaths
 from weatherbot.services.persistence.database import Database, open_database
 from weatherbot.services.persistence.repositories import (
     AssessmentRepository,
@@ -185,6 +194,60 @@ async def run_chat_case(case: ChatCase, service: AiService) -> list[ChatEvent]:
         Every event of the turn.
     """
     return [event async for event in ChatService(service).turn(None, case.question, case.location)]
+
+
+@dataclass(frozen=True)
+class TurnResult:
+    """One chat case's turn: its events, each request's usage, and the official levels."""
+
+    events: list[ChatEvent]
+    usage: list[TokenUsage]
+    levels: dict[str, AlertLevel]
+
+
+async def converse(case: ChatCase, factory: ClaudeFactory) -> TurnResult:
+    """Run a chat case's turn over a throwaway database, as the recorder does.
+
+    Args:
+        case: The case.
+        factory: Builds the client the turn's requests go through; it is not closed.
+
+    Returns:
+        The turn's events, each settled request's usage in order, and each location's
+        latest official level.
+    """
+    with (
+        tempfile.TemporaryDirectory(prefix="weatherbot-eval-", ignore_cleanup_errors=True) as tmp,
+        case_database(Path(tmp)) as database,
+    ):
+        await store_case_data(database, injection=case.injection)
+        heads = AssessmentRepository(database.engine).latest_heads()
+        levels = {name: AlertLevel(head.level) for name, head in heads.items()}
+        service = AiService(
+            ai_engine(database.path),
+            AiSettings(),
+            factory=factory,
+            environ={},
+            now=lambda: NOW,
+            local_zone=UTC,
+        )
+        try:
+            events = await run_chat_case(case, service)
+            rows = ledger_rows(service.engine)
+        finally:
+            service.engine.dispose()
+    usage = [
+        TokenUsage(
+            input_tokens=row.input_tokens,
+            cache_write_5m_tokens=row.cache_write_5m_tokens,
+            cache_write_1h_tokens=row.cache_write_1h_tokens,
+            cache_read_tokens=row.cache_read_tokens,
+            output_tokens=row.output_tokens,
+        )
+        for row in rows
+        if row.status == "ok"
+    ]
+    return TurnResult(events, usage, levels)
 
 
 @contextmanager

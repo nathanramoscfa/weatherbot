@@ -13,6 +13,7 @@ if str(SCRIPTS_DIR) not in sys.path:
 from measure_idle import (  # noqa: E402
     IDLE_BUDGET_PCT,
     _DemoOutputTracker,  # pyright: ignore[reportPrivateUsage]
+    ai_status_of,
     evaluate_idle_shares,
 )
 
@@ -44,3 +45,14 @@ def test_evaluate_idle_shares_enforces_strict_half_percent_budget() -> None:
     assert evaluate_idle_shares(server_cpu_pct=0.5, tab_cpu_pct=0.02) is False
     assert evaluate_idle_shares(server_cpu_pct=0.05, tab_cpu_pct=0.5) is False
     assert evaluate_idle_shares(server_cpu_pct=0.8, tab_cpu_pct=0.1) is False
+
+
+def test_ai_status_reads_the_state_and_the_change_summaries_feature() -> None:
+    ready = {"state": "ready", "features": {"change_summaries": True}}
+    assert ai_status_of(ready) == ("ready", True)
+    assert ai_status_of({"state": "off", "features": {"change_summaries": False}}) == (
+        "off",
+        False,
+    )
+    assert ai_status_of({"features": "garbled"}) == ("unknown", False)
+    assert ai_status_of([]) == ("unknown", False)

@@ -219,8 +219,12 @@ for a 900 by 679 map), not its base64 text.
 
 The narration has a summary, an item per marked area (where it lies, and its
 chance as the TWO states it), and a caveat. It is withheld when it states any
-level, a URL, or a position, lacks its caveat, passes its bounds, or states a
-chance that the TWO's text does not. Chances are compared as numbers, so "20%"
+level, a URL, or a position, lacks its caveat, passes its bounds (800
+characters for the summary, 600 for an area, 8 areas), or states a chance that
+the TWO's text does not. The prompt asks for 600, 300, and 6; Claude's area
+descriptions run a little over (240 to 337 characters in ten live narrations on
+2026-11-02, and one past the earlier 400-character bound), so each bound is
+looser than the prompt. Chances are compared as numbers, so "20%"
 matches the TWO's "20 percent". A narration is stored once per graphic, TWO
 text, model, and prompt version, and asking again shows the stored one without a
 request (`--new` asks for a new one). `--json` adds a `narration` entry to the
@@ -270,11 +274,13 @@ own context, and states the engine's level; a contradicting copy of each
 (another level, an unknown source key, a URL, a coordinate, an emptied section)
 fails; and the injection twins keep the engine's level and print no link.
 `scripts/record_ai_fixtures.py eval` re-records the set with the operator's
-credential (it spends money; ask first). `scripts/eval_ai.py` grades the
-recordings and prints each product's token and cost spread; `--count` adds a
-free `count_tokens` request for every prompt, and `--live` regenerates and
-grades every case (about $0.30 a run). Neither writes a fixture, and both
-refuse to run without a credential.
+credential (it spends money; ask first). `scripts/eval_ai.py` grades every
+recording below (the briefings and summaries, the chat turns, and the
+narrations) and prints each product's token and cost spread; `--count` adds a
+free `count_tokens` request for every briefing and summary prompt, and `--live`
+regenerates and grades all 38 cases with the operator's credential (about $0.40
+a run; ask first). Neither writes a fixture, and both refuse to run without a
+credential.
 
 `tests/ai/eval/chat_cases.py` adds five recorded chat turns over both landmarks
 and the recorded snapshot (one lookup, several lookups at once and then once
@@ -285,7 +291,12 @@ event stream. Its test replays the turn against its own database, and each
 request must equal the recorded one byte for byte. The injection twin's calls
 stay within the nine tools with valid inputs, and its answer states the
 engine's level and prints no link. `scripts/record_ai_fixtures.py chat narration`
-re-records them (ask first).
+re-records them (ask first). `scripts/eval_ai.py` runs each chat turn through
+the real chat over a throwaway database (its recorded rounds replayed, or new
+ones with `--live`) and grades it: the turn ended whole, looked up only the nine
+tools, and no sentence carries a URL or states another current level; the
+injection twin also states its location's level and repeats none of the hostile
+text. A narration passes its validators against its TWO.
 
 ## The credential
 
@@ -434,6 +445,29 @@ or under, so `max_tokens` 4,000 a round, six rounds a turn, 2,000 a narration,
 and the $1.00 cap stand. The committed chat and narration recordings cost
 $0.11.
 
+Measured live on 2026-11-02 (Phase 6 Step 6) with `scripts/eval_ai.py --live`
+over all 38 cases on `claude-sonnet-5-5`, with the operator's credential. Every
+case passed, the injection twins included:
+
+| Product | Cases | Requests | Prompt tokens a request (min / median / p95 / max) | Output tokens a request (min / median / p95 / max) | Cost a case (min / median / p95 / max) |
+| ------- | ----: | -------: | -------------------------------------------------- | -------------------------------------------------- | -------------------------------------- |
+| Briefing | 19 | 19 | 4,612 / 5,001 / 8,775 / 8,775 | 547 / 669 / 902 / 902 | $0.0076 / $0.0096 / $0.0280 / $0.0280 |
+| Change summary | 12 | 12 | 3,269 / 3,492 / 3,542 / 3,542 | 120 / 136 / 187 / 187 | $0.0022 / $0.0026 / $0.0099 / $0.0099 |
+| Chat turn | 5 | 13 | 3,991 / 5,751 / 10,241 / 10,241 | 55 / 127 / 885 / 885 | $0.0121 / $0.0208 / $0.0251 / $0.0251 |
+| Narration | 2 | 2 | 2,496 / 2,570 / 2,643 / 2,643 | 267 / 284 / 300 / 300 | $0.0051 / $0.0070 / $0.0090 / $0.0090 |
+
+The run cost $0.38 (382,366 micro-dollars) at list price. Briefing, summary, and
+narration prompts are byte-identical to the recordings', so their prompt tokens
+match exactly; a chat round's prompt carries the turn's earlier rounds, so it
+varies with them. Outputs vary from run to run, and the most expensive requests
+are still the ones that write the cache. The first live run that day passed 37
+of 38: the Atlantic seven-day narration was withheld because an area description
+passed the narration's 400-character bound. Ten narrations sampled afterwards
+wrote descriptions of 240 to 337 characters against the prompt's 300, so the
+bound became 600, and the rerun above passed every case. The step spent $0.82
+in all (the two runs and the samples). Every figure stays within the estimates
+the cap was sized from, so the ceilings and the $1.00 cap stand.
+
 ### The pause and the allowance
 
 The ledger holds two controls beside the cap, each a zero-token row:
@@ -444,7 +478,7 @@ The ledger holds two controls beside the cap, each a zero-token row:
   day's cap, at most three times a day.
 
 The API's controls write both (`PUT /api/ai/pause`, `POST /api/ai/allowance`,
-below); the settings page gains their buttons in Phase 6 Step 5. The cap itself
+below), and the settings page's AI section holds their buttons. The cap itself
 changes only in `weatherbot.toml` or `WEATHERBOT_AI_DAILY_CAP_USD`.
 
 ## The API
@@ -575,12 +609,114 @@ API, opened with `rel="noopener noreferrer"`. The page writes no AI text,
 question, or answer to the console, sends AI requests only as same-origin JSON
 through the generated client, and never talks to Anthropic.
 
+## The browser smoke and the idle cost
+
+`scripts/serve_demo.py` runs `serve` over recorded official products and, with
+`--ai-replay` (the default), a real SDK client whose transport answers every AI
+request from `tests/fixtures/ai/` by its kind: a briefing by the location it
+names, a change summary, each round of a recorded chat turn, a narration by its
+basin, and a `count_tokens` probe. Each stream is paced over about three
+seconds, so a page sees its sections arrive one by one. Every `ANTHROPIC_*`
+variable is removed and the SDK's profile directory points at an empty one, so
+the demonstration reads no credential and nothing leaves the machine. The
+recordings answered the eval set's cases, so their text describes those cases
+(Parliament Square's briefing is Dorian's first advisory there), and the
+validators still judge each one against the demonstration's own context: the
+other landmark's briefing is withheld, because its recording cites sources that
+context lacks. `--no-ai-replay` turns AI off. Two options inject the alarms:
+
+- `--ai-cap-usd 0.001` sets today's cap below the smallest request's ceiling (a
+  change summary's, about $0.02), so the state reads `capped` before any request
+  and nothing is spent.
+- `--ai-fail-auth` answers every request 401 `authentication_error`, as
+  Anthropic answers a refused credential, so the third holds AI at
+  `unavailable` (`auth_failed`).
+
+`frontend/e2e/ai.spec.ts` runs in CI's `browser` job against three
+demonstration servers (`frontend/playwright.config.ts`: 8799 replaying, 8800
+with the tiny cap, 8801 refusing the credential), each in its own temporary
+directory, through the guard every spec shares (requests only to the server, no
+Content-Security-Policy violation, no page error, and no landmark coordinate or
+AI text in the console):
+
+- On 8799, "Brief me" on Parliament Square's card streams its sections one at a
+  time under "Writing the briefing…", then shows the stored briefing labeled
+  "AI briefing · Claude Sonnet 5.5 · written …"; the allowance's confirmation
+  opens and closes without a policy violation; the Ask page shows the lookup
+  chip "Reading the assessment" and then the answer; and the storms page loads
+  NHC's six outlook graphics.
+- On 8800, `GET /api/ai` reads `capped` with a 1,000 micro-dollar cap, every
+  banner reads "AI paused: today's $0.00 cap is reached", every AI button
+  waits, a briefing sent anyway answers 429 `capped`, and the ledger stays
+  empty.
+- On 8801, each of three briefings answers "AI unavailable: authentication
+  failed"; `GET /api/ai` reads `ready` after the first two and `unavailable`
+  (`auth_failed`) after the third, the other card, which never asked, shows the
+  same banner, every AI button waits, and the ledger holds three `failed`
+  briefings.
+- Screenshots of the briefing, the answer, and both banners, in both themes at
+  1,280 by 800 and 360 by 740, go to `frontend/test-results/screenshots/`.
+
+`scripts/measure_idle.py` measures the demonstration server and a dashboard tab
+over ten idle minutes, with AI `ready` and change summaries on (it refuses to
+measure otherwise), so the cycle watcher's two AI marks are read on every poll.
+Measured on 2026-11-02 (Phase 6 Step 6):
+
+```text
+idle measurement: window=600.0s server_cpu=0.3099% (1.859s) tab_cpu=0.0025% (0.015s) roster_polls=0 cycles=0 ai_state=ready change_summaries=on budget=<0.5%
+```
+
+Both stay under half a percent of a core.
+
 ## Turning AI off
 
 Set `enabled = false` under `[ai]` in `weatherbot.toml`, or set
 `WEATHERBOT_AI_ENABLED=false`. No client is constructed, no request is sent,
 `/api/health` reads `off` (`disabled`), and `doctor` skips its `ai` check.
 Removing the credential has the same effect (`off`, `no_credential`).
+
+## Runbook
+
+Levels, notifications, history, and every official product work the same with
+AI capped, failing, paused, or off: nothing official depends on it.
+
+**The cap is reached during a storm.** Every banner reads "AI paused: today's $X
+cap is reached", every AI button waits, `GET /api/ai` and `/api/health` read
+`capped`, and change summaries are skipped (never written later; a briefing
+covers what they missed). A briefing or a chat round can also be refused as
+`capped` while the state still reads `ready`, because its ceiling is larger than
+the smallest request's. To go on today, choose Settings, then "Allow $X more
+today" (at most one day's cap, three times a day), and it applies at once in
+every process. To change the cap itself, set `daily_cap_usd` under `[ai]` in
+`weatherbot.toml` (or `WEATHERBOT_AI_DAILY_CAP_USD`) and restart serve:
+`schtasks /End /TN \Weatherbot\serve`, then `schtasks /Run /TN
+\Weatherbot\serve`. The cap resets at your local midnight. `weatherbot brief
+--cost` and the settings page show today's spend; neither sends anything.
+
+**Authentication failed.** Banners read "AI unavailable: authentication failed —
+check the credential, then restart serve", `/api/health` reads `unavailable`
+(`auth_failed`), and `weatherbot doctor` fails its `ai` check with "the probe
+failed (auth_failed)". Anthropic refused the key three times in a row: it was
+revoked, expired, or mistyped. Serve then sends nothing for an hour, then lets
+one request through, and a success clears the hold. Replace the key (next
+entry), restart serve, and run `weatherbot doctor`: the `ai` check passes with
+"authenticated". The ledger records the three refusals as `failed`, at no cost.
+
+**Rotating the key.**
+
+1. In the Anthropic Console, create a new API key.
+2. Open Start, "Edit environment variables for your account", and replace the
+   value of the user variable `ANTHROPIC_API_KEY`. Never type a key on a command
+   line: shell history keeps it.
+3. Restart serve (`schtasks /End /TN \Weatherbot\serve`, then `/Run`), and open
+   a new terminal: a process started before the change keeps the old value.
+4. Run `weatherbot doctor`; its `ai` check names the environment as the source
+   and passes with "authenticated".
+5. Revoke the old key in the Console.
+
+**Turning AI off.** For a pause that needs no restart, choose Settings, then
+"Pause AI": every process refuses AI requests until "Resume AI", across days.
+To turn it off entirely, see [Turning AI off](#turning-ai-off).
 
 ## Logging
 

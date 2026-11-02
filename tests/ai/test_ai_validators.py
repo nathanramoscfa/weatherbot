@@ -23,6 +23,7 @@ from weatherbot.services.ai.schemas import (
 )
 from weatherbot.services.ai.validate import (
     ACTIONS_LIMIT,
+    AREA_LIMIT,
     AREAS_LIMIT,
     NARRATION_SUMMARY_LIMIT,
     SECTION_LIMIT,
@@ -336,6 +337,7 @@ def test_a_narration_quoting_its_twos_chances_passes() -> None:
         ({"caveat": "  "}, "empty"),
         ({"areas": [AreaNote(description="", chance_text="20%")]}, "empty"),
         ({"summary": "x" * (NARRATION_SUMMARY_LIMIT + 1)}, "length"),
+        ({"areas": [AreaNote(description="x" * (AREA_LIMIT + 1), chance_text="20%")]}, "length"),
         (
             {"areas": [AreaNote(description="A low.", chance_text="20%")] * (AREAS_LIMIT + 1)},
             "length",
@@ -346,3 +348,10 @@ def test_each_rule_withholds_a_narration(changes: dict[str, object], rule: str) 
     found = validate_narration(NARRATION.model_copy(update=changes), TWO)
 
     assert rule in [item.rule for item in found]
+
+
+def test_an_area_description_as_long_as_claude_writes_them_passes() -> None:
+    # Ten live narrations on 2026-11-02 wrote descriptions of 240 to 337 characters.
+    area = AreaNote(description="x" * AREA_LIMIT, chance_text="20%")
+
+    assert validate_narration(NARRATION.model_copy(update={"areas": [area]}), TWO) == ()
