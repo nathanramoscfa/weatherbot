@@ -3259,9 +3259,9 @@ conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 4 — The AI in the API
+## Step 4 — The AI in the API ✅
 
-**Status:** Not started
+**Status:** Complete — PR #83 (2026-11-01)
 
 > **Goal:** Put the AI behind the loopback API, under every Phase 5 guard.
 > `web/routes/ai.py` adds the reads `GET /api/ai` (the state, models, features,
@@ -3306,6 +3306,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-01: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -5627,7 +5629,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Claude client + ledger + cap   | Opus 5.5       | Complete — PR #77  |
 | 2    | Briefing + summary + eval set  | Opus 5.5       | Complete — PR #80  |
 | 3    | Grounded chat + narration      | Opus 5.5       | Complete — PR #81  |
-| 4    | AI in the API                  | Gemini 4 Argon | Not started        |
+| 4    | AI in the API                  | Opus 5.5       | Complete — PR #83  |
 | 5    | AI in the page                 | Gemini 4 Argon | Not started        |
 | 6    | Live eval + smoke + deploy     | Gemini 4 Argon | Not started        |
 | 7    | QA + verify_phase06.py         | GPT-6.1 Sol    | Not started        |
