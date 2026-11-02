@@ -278,4 +278,52 @@ describe("useEventStream", () => {
     expect(onDisplay).toHaveBeenCalledTimes(1);
     expect(onDisplay).toHaveBeenCalledWith(shownNotification);
   });
+
+  it("invalidates the AI keys an ai event names: a settled request refreshes ai, a stored product briefings", () => {
+    const queryClient = createAppQueryClient();
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+    function Harness() {
+      useEventStream();
+      return <div>subscribed</div>;
+    }
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Harness />
+      </QueryClientProvider>,
+    );
+
+    const source = FakeEventSource.instances[0]!;
+    act(() => {
+      source.emitStreamEvent(makeStreamEvent({ id: 1, kind: "hello" }));
+      source.emitStreamEvent(
+        makeStreamEvent({
+          id: 2,
+          kind: "ai",
+          invalidate: ["ai"],
+          call_id: 5,
+          ai_kind: "briefing",
+          status: "ok",
+          location: "Miami-Dade",
+        }),
+      );
+      source.emitStreamEvent(
+        makeStreamEvent({
+          id: 3,
+          kind: "ai",
+          invalidate: ["briefings"],
+          output_id: 6,
+          ai_kind: "briefing",
+          location: "Miami-Dade",
+        }),
+      );
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateSpy).toHaveBeenNthCalledWith(1, { queryKey: ["ai"] });
+    expect(invalidateSpy).toHaveBeenNthCalledWith(2, {
+      queryKey: ["briefings"],
+    });
+  });
 });

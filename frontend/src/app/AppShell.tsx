@@ -28,6 +28,7 @@ export const NAV_ITEMS = [
   { to: "/storms", label: "Storms", end: false },
   { to: "/alerts", label: "Alerts", end: false },
   { to: "/timeline", label: "Timeline", end: false },
+  { to: "/ask", label: "Ask", end: false },
   { to: "/settings", label: "Settings", end: false },
 ] as const;
 
@@ -149,7 +150,7 @@ export function AppShell({
 
           <nav
             aria-label="Primary navigation"
-            className="grid grid-cols-3 gap-1 sm:flex sm:flex-wrap sm:items-center sm:gap-1.5"
+            className="grid grid-cols-4 gap-1 sm:flex sm:flex-wrap sm:items-center sm:gap-1.5"
           >
             {NAV_ITEMS.map((item) => (
               <NavLink

@@ -1,6 +1,6 @@
 // frontend/src/pages/Dashboard.test.tsx
 import { QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -12,6 +12,7 @@ import {
   type StreamEvent,
 } from "../events/useEventStream.ts";
 import { createAppQueryClient } from "../main.tsx";
+import { TYPED_AI, TYPED_BRIEFINGS } from "../test/ai.ts";
 import assessmentsFixture from "../test/fixtures/assessments.json";
 import disclaimerFixture from "../test/fixtures/disclaimer.json";
 import healthFixture from "../test/fixtures/health.json";
@@ -49,6 +50,8 @@ describe("Dashboard", () => {
     queryClient.setQueryData(queryKeys.assessments(), TYPED_ASSESSMENTS);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.health(), TYPED_HEALTH);
+    queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
+    queryClient.setQueryData(queryKeys.briefings(), TYPED_BRIEFINGS);
     queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
 
     const putSpy = vi
@@ -85,6 +88,34 @@ describe("Dashboard", () => {
     expect(
       screen.getAllByText(/Coastal Flood Statement/).length,
     ).toBeGreaterThan(0);
+
+    // The AI briefing sits in each card after the evidence, beneath the level
+    const miamiCard = screen.getByRole("article", {
+      name: "Miami-Dade County Hall",
+    });
+    const briefing = within(miamiCard).getByRole("region", {
+      name: "AI briefing for Miami-Dade County Hall",
+    });
+    const level = within(miamiCard).getByText("Level 1");
+    const evidence = within(miamiCard).getByRole("switch", {
+      name: "Evacuation order for Miami-Dade County Hall",
+    });
+    expect(within(miamiCard).getByText(/Deciding rule:/)).toBeInTheDocument();
+    expect(
+      level.compareDocumentPosition(briefing) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      evidence.compareDocumentPosition(briefing) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(within(briefing).getByTestId("ai-label")).toHaveTextContent(
+      "AI briefing · Claude Sonnet 5.5",
+    );
+    expect(
+      within(
+        screen.getByRole("article", { name: "Parliament Square" }),
+      ).getByRole("region", { name: "AI briefing for Parliament Square" }),
+    ).toHaveTextContent("No briefing yet.");
 
     // Storm threat with 0.1 km distance and integer degree bearing
     expect(screen.getAllByText(/2798\.0 km at 72 deg/i).length).toBeGreaterThan(
@@ -133,6 +164,8 @@ describe("Dashboard", () => {
     queryClient.setQueryData(queryKeys.assessments(), incompleteAssessments);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.health(), TYPED_HEALTH);
+    queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
+    queryClient.setQueryData(queryKeys.briefings(), TYPED_BRIEFINGS);
 
     const { container } = render(
       <QueryClientProvider client={queryClient}>
@@ -166,6 +199,8 @@ describe("Dashboard", () => {
     queryClient.setQueryData(queryKeys.assessments(), TYPED_ASSESSMENTS);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.health(), TYPED_HEALTH);
+    queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
+    queryClient.setQueryData(queryKeys.briefings(), TYPED_BRIEFINGS);
 
     const postSpy = vi.spyOn(apiClient, "POST");
 

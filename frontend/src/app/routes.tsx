@@ -7,6 +7,7 @@ import {
 } from "react-router";
 import { MapView } from "../map/MapView.tsx";
 import { Alerts } from "../pages/Alerts.tsx";
+import { Ask } from "../pages/Ask.tsx";
 import { Dashboard } from "../pages/Dashboard.tsx";
 import { Settings } from "../pages/Settings.tsx";
 import { Storms } from "../pages/Storms.tsx";
@@ -59,6 +60,10 @@ export function createAppRoutes(shellProps?: AppShellProps): RouteObject[] {
         {
           path: "timeline",
           element: <Timeline />,
+        },
+        {
+          path: "ask",
+          element: <Ask />,
         },
         {
           path: "settings",

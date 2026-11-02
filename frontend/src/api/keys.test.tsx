@@ -34,6 +34,14 @@ describe("query keys vocabulary", () => {
     expect(queryKeys.health()).toEqual(["health"]);
     expect(queryKeys.ai()).toEqual(["ai"]);
     expect(queryKeys.briefings()).toEqual(["briefings"]);
+    expect(queryKeys.aiCalls()).toEqual(["ai", "calls"]);
+    expect(queryKeys.aiSummaries()).toEqual(["briefings", "summaries"]);
+    expect(queryKeys.aiNarrations("snap")).toEqual([
+      "briefings",
+      "narrations",
+      "snap",
+    ]);
+    expect(queryKeys.outlook()).toEqual(["storms", "outlook"]);
     expect(queryKeys.timeline()).toEqual(["timeline"]);
     expect(queryKeys.timeline("Miami-Dade")).toEqual([
       "timeline",

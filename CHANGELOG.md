@@ -89,6 +89,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   watcher, primed so history is never backfilled. The OpenAPI document, the
   frontend's types and query keys, and six new API fixtures follow, and Phase
   5's check 19 now reads the event kinds at `v2.0.0-phase-5`.
+- Put the AI in the page (Phase 6 Step 5): `frontend/src/ai/` gains
+  `readEventStream` (a typed server-sent event parser over `fetch`, with
+  `postStream` sending same-origin JSON through the generated client and
+  mapping a 429 or 503 answer to its reason), `AiLabel` (the model's display
+  name, the time in the browser's zone and in UTC, and "AI-generated · may be
+  wrong · the level above comes from official products"), `AiStateBanner` (off,
+  paused, capped, and unavailable), and the hooks `useAiStatus`, `useBriefing`,
+  `useChat`, and `useNarration`, with one AI stream per page.
+- The dashboard's location cards gain the AI briefing panel (the stored
+  briefing with its sources; `Brief me` streaming sections in order; the
+  withheld, stale, and state banners), the timeline each change's labeled
+  summary, the new Ask page (`/ask`, between Timeline and Settings) its chat
+  beneath the engine's level badges, the storms page NHC's six official
+  outlook graphics with their narration when it is on, and the settings page
+  its AI section (`#ai`: the state, the credential's source, the models,
+  today's meter, the recent requests, the pause, and a confirmed allowance).
+  Every AI text renders as plain text and links only a URL the API supplied.
+- The page now accepts the event stream's `ai` events, which Step 4 added but
+  the page's guard dropped, so the AI values refresh without a reload. No
+  frontend dependency is added; Vitest grows from 34 to 76 tests.
 
 ### Phase 5 — Web app (MVP)
 - Add Phase 5's repeatable verification script (`scripts/verify_phase05.py`),
