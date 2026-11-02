@@ -2722,9 +2722,9 @@ conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 3 — Grounded chat and the outlook narration
+## Step 3 — Grounded chat and the outlook narration ✅
 
-**Status:** Not started
+**Status:** Complete — PR #81 (2026-11-01)
 
 > **Goal:** Let the operator ask, and let Claude look — at the stored data only.
 > `services/ai/tools.py` defines nine read-only tools with strict schemas
@@ -2769,6 +2769,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-01: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -5592,7 +5594,7 @@ workflow above maps directly to the corresponding row below.
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Claude client + ledger + cap   | Opus 5.5       | Complete — PR #77  |
 | 2    | Briefing + summary + eval set  | Opus 5.5       | Complete — PR #80  |
-| 3    | Grounded chat + narration      | Gemini 4 Argon | Not started        |
+| 3    | Grounded chat + narration      | Opus 5.5       | Complete — PR #81  |
 | 4    | AI in the API                  | Gemini 4 Argon | Not started        |
 | 5    | AI in the page                 | Gemini 4 Argon | Not started        |
 | 6    | Live eval + smoke + deploy     | Gemini 4 Argon | Not started        |
