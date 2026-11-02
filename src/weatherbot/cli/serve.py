@@ -13,8 +13,10 @@ import contextlib
 import logging
 import signal
 import sys
+from collections.abc import Callable, Sequence
+from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Final
+from typing import TYPE_CHECKING, Annotated, Final
 
 import typer
 
@@ -45,6 +47,9 @@ from weatherbot.services.persistence.repositories import CycleRepository
 from weatherbot.services.replay import ReplayCorpus, ReplayError
 from weatherbot.services.schedule import MonitorSchedule, run_monitor
 from weatherbot.services.tasks import TaskSchedulerError, query
+
+if TYPE_CHECKING:
+    from weatherbot.services.ai.summaries import ChangeSummarizer
 
 LOGGER: Final = logging.getLogger("weatherbot.cli.serve")
 DEFAULT_WEB_PORT: Final = 8765
@@ -168,6 +173,10 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
         )
         return
 
+    from weatherbot.services.ai.summaries import (  # noqa: PLC0415 - AI loads on demand
+        ChangeSummarizer,
+        ChangeSummaryService,
+    )
     from weatherbot.web.app import WebState, create_app  # noqa: PLC0415
     from weatherbot.web.server import WebServer  # noqa: PLC0415
 
@@ -183,7 +192,8 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
         newest_cycle_id=initial_cycle_id,
     )
     channels = serve_channels(context, hub)
-    ai = context.ai_service(database)
+    ai = context.ai_service(database, publish=hub.publish)
+    summarizer = ChangeSummarizer(ChangeSummaryService(ai), ai, publish=hub.publish)
     schedule_holder: list[MonitorSchedule] = []
     schedule_ready = asyncio.Event()
     cycle_lock = asyncio.Lock()
@@ -217,12 +227,9 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
         port=settings.web.port,
         before_stop=(hub.close,),
     )
-    watcher = CycleWatcher(database.engine, hub)
-    staleness_timer = StalenessTimer(database.engine, hub, now=rt.now)
     web_task = asyncio.create_task(web_server.serve(stop))
     started_task = asyncio.create_task(web_server.started.wait())
-    watcher_task: asyncio.Task[None] | None = None
-    timer_task: asyncio.Task[None] | None = None
+    background: list[asyncio.Task[None]] = []
     try:
         await asyncio.wait({web_task, started_task}, return_when=asyncio.FIRST_COMPLETED)
         if web_server.started.is_set():
@@ -230,8 +237,7 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
             LOGGER.info("dashboard at %s", address)
             if open_browser:
                 rt.open_browser(address)
-            watcher_task = asyncio.create_task(watcher.run(stop))
-            timer_task = asyncio.create_task(staleness_timer.run(stop))
+            background = await _start_background(stop, hub, database, summarizer, now=rt.now)
         await run_monitor(
             database.engine,
             paths,
@@ -251,20 +257,36 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
             stop=stop,
             hub=hub,
             started_task=started_task,
-            watcher_task=watcher_task,
-            timer_task=timer_task,
+            background=background,
             web_task=web_task,
         )
         await ai.close()
 
 
-async def _shutdown_serve_tasks(  # noqa: PLR0913 - stop state and background tasks to clean up
+async def _start_background(
+    stop: asyncio.Event,
+    hub: EventHub,
+    database: Database,
+    summarizer: "ChangeSummarizer",
+    *,
+    now: Callable[[], datetime],
+) -> list[asyncio.Task[None]]:
+    """Start the cycle watcher, the staleness timer, and the change summarizer, primed."""
+    await asyncio.to_thread(summarizer.prime)
+    hub.on_cycle(summarizer.wake)
+    return [
+        asyncio.create_task(CycleWatcher(database.engine, hub).run(stop)),
+        asyncio.create_task(StalenessTimer(database.engine, hub, now=now).run(stop)),
+        asyncio.create_task(summarizer.run(stop)),
+    ]
+
+
+async def _shutdown_serve_tasks(
     *,
     stop: asyncio.Event,
     hub: EventHub,
     started_task: asyncio.Task[bool],
-    watcher_task: asyncio.Task[None] | None,
-    timer_task: asyncio.Task[None] | None,
+    background: Sequence[asyncio.Task[None]],
     web_task: asyncio.Task[None],
 ) -> None:
     if not started_task.done():
@@ -273,7 +295,7 @@ async def _shutdown_serve_tasks(  # noqa: PLR0913 - stop state and background ta
             await started_task
     stop.set()
     hub.close()
-    active_bg = [t for t in (watcher_task, timer_task) if t is not None]
+    active_bg = list(background)
     for bg_task in active_bg:
         if not bg_task.done():
             bg_task.cancel()

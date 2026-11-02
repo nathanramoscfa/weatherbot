@@ -5,12 +5,13 @@
 is on. It reads the latest snapshot's outlook graphic for the basin and horizon and its
 basin's TWO; the PNG comes from the raw-response cache's ``response_bodies`` by the
 graphic's stored SHA-256, through the AI engine, and nothing is downloaded. A body that
-is missing, corrupt, not that SHA-256, or not a PNG is ``no_graphic``. The request is the
-narration's frozen system prompt (marked for the cache), then the image block
-(``image/png``, base64) and the TWO in an escaped ``<noaa_product>`` block with its links
-removed, then the task line; adaptive thinking at effort ``low`` and ``max_tokens`` 2,000,
-streamed as ``OutlookNarration``. The ledger's ceiling counts the image at its visual
-tokens (⌈width/28⌉ x ⌈height/28⌉), never its base64 text.
+is missing, corrupt, not that SHA-256, or not a PNG (``raw_cache.stored_png``) is
+``no_graphic``. The request is the narration's frozen system prompt (marked for the
+cache), then the image block (``image/png``, base64) and the TWO in an escaped
+``<noaa_product>`` block with its links removed, then the task line; adaptive thinking at
+effort ``low`` and ``max_tokens`` 2,000, streamed as ``OutlookNarration``. The ledger's
+ceiling counts the image at its visual tokens (⌈width/28⌉ x ⌈height/28⌉), never its
+base64 text.
 
 ``validate_narration`` withholds a narration that states any level, a URL, or a position,
 lacks its caveat, passes its bounds, or states a chance the TWO's text does not state
@@ -26,15 +27,13 @@ import asyncio
 import base64
 import hashlib
 import json
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncGenerator, AsyncIterator, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Final, Literal
 from uuid import UUID
 
 from pydantic import TypeAdapter
-from sqlalchemy import Engine
-from sqlalchemy.orm import Session
 
 from weatherbot.models import OutlookGraphic, Snapshot, TextProduct
 from weatherbot.services.ai.context import (
@@ -52,9 +51,8 @@ from weatherbot.services.ai.schemas import OutlookNarration
 from weatherbot.services.ai.service import AiService
 from weatherbot.services.ai.tools import BASIN_NAMES, TWO_BASINS, Basin
 from weatherbot.services.ai.validate import ViolationRule, first_violation, validate_narration
-from weatherbot.services.persistence.raw_cache import CorruptBodyError, read_body
+from weatherbot.services.persistence.raw_cache import stored_png
 from weatherbot.services.persistence.repositories import SnapshotRepository
-from weatherbot.services.persistence.tables import ResponseBodyRow
 
 type Horizon = Literal["2d0", "7d0"]
 type NarrationWithheldReason = ViolationRule | Literal["incomplete", "invalid_output"]
@@ -65,7 +63,6 @@ NARRATION_MAX_TOKENS: Final = 2_000
 NARRATION_EFFORT: Final = "low"
 HORIZONS: Final[tuple[Horizon, ...]] = ("2d0", "7d0")
 HORIZON_NAMES: Final[Mapping[Horizon, str]] = {"2d0": "two days", "7d0": "seven days"}
-PNG_SIGNATURE: Final = b"\x89PNG\r\n\x1a\n"
 INCOMPLETE_DETAIL: Final = "the narration did not arrive whole"
 INVALID_DETAIL: Final = "the answer did not match its schema"
 UNAVAILABLE_TEXT: Final[Mapping[str, str]] = {
@@ -200,21 +197,6 @@ def stored_narration(stored: StoredOutput) -> tuple[OutlookNarration, SourceRef]
     return narration, source
 
 
-def _png(engine: Engine, sha256: str) -> bytes | None:
-    """The stored PNG body with this SHA-256, through the AI engine; ``None`` if unusable."""
-    with Session(engine) as session:
-        row = session.get(ResponseBodyRow, sha256)
-        if row is None:
-            return None
-        try:
-            body = read_body(row)
-        except CorruptBodyError:
-            return None
-    if hashlib.sha256(body).hexdigest() != sha256 or not body.startswith(PNG_SIGNATURE):
-        return None
-    return body
-
-
 class _NotNarratableError(Exception):
     def __init__(self, *, reason: NarrationUnavailableReason) -> None:
         super().__init__(reason)
@@ -257,7 +239,7 @@ class NarrationService:
                 writes only ``ai_calls`` and ``ai_outputs``.
         """
         self._service = service
-        self._outputs = OutputRepository(service.engine, now=service.clock)
+        self._outputs = OutputRepository(service.engine, now=service.clock, stored=service.stored)
 
     def output(self, output_id: int) -> StoredOutput | None:
         """Read one stored narration.
@@ -270,13 +252,24 @@ class NarrationService:
         """
         return self._outputs.get(output_id)
 
+    def latest(self, graphic_sha256: str) -> StoredOutput | None:
+        """Read the newest stored narration of an outlook graphic, withheld or not.
+
+        Args:
+            graphic_sha256: The graphic's PNG body's SHA-256.
+
+        Returns:
+            The narration, or ``None``.
+        """
+        return self._outputs.latest_narration(graphic_sha256)
+
     def _graphic(self, basin: Basin, horizon: Horizon) -> _Graphic:
         engine = self._service.engine
         repository = SnapshotRepository(engine)
         snapshot_id = repository.latest_id()
         snapshot = repository.load(snapshot_id) if snapshot_id is not None else None
         graphic, two = _find(snapshot, basin, horizon)
-        png = _png(engine, graphic.provenance.sha256)
+        png = stored_png(engine, graphic.provenance.sha256)
         if png is None or snapshot_id is None:
             raise _NotNarratableError(reason="no_graphic")
         sources = SourceKeys()
@@ -293,7 +286,7 @@ class NarrationService:
 
     async def stream(
         self, basin: Basin, horizon: Horizon = "7d0", *, new: bool = False
-    ) -> AsyncIterator[NarrationEvent]:
+    ) -> AsyncGenerator[NarrationEvent]:
         """Narrate a basin's outlook graphic: reuse the stored one, or ask for a new one.
 
         Args:

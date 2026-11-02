@@ -24,8 +24,7 @@ Nothing here logs a prompt, a context, or an answer. The module loads no SDK.
 """
 
 import asyncio
-import json
-from collections.abc import AsyncIterator, Mapping, Sequence
+from collections.abc import AsyncGenerator, AsyncIterator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Final, Literal, cast
@@ -40,6 +39,7 @@ from weatherbot.services.ai.context import (
     SourceRef,
     briefing_context,
     render_context,
+    stored_sources,
 )
 from weatherbot.services.ai.errors import AiUnavailable, AiUnavailableReason, InvalidOutputError
 from weatherbot.services.ai.outputs import NewOutput, OutputRepository, StoredOutput
@@ -83,7 +83,6 @@ _SECTION_TYPES: Final[Mapping[str, TypeAdapter[Any]]] = {
     "sources": TypeAdapter(list[SourceNote]),
 }
 """Each section's schema type, to read a finished section of a partial answer."""
-_SOURCES: Final = TypeAdapter(tuple[SourceRef, ...])
 
 
 @dataclass(frozen=True)
@@ -213,9 +212,7 @@ def stored_briefing(stored: StoredOutput) -> tuple[Briefing, tuple[SourceRef, ..
         message = "a withheld briefing holds no content"
         raise ValueError(message)
     briefing = Briefing.model_validate(stored.content["briefing"])
-    # The strict models read instants from JSON text, as stored.
-    sources = _SOURCES.validate_json(json.dumps(stored.content["sources"]))
-    return briefing, sources
+    return briefing, stored_sources(stored.content["sources"])
 
 
 def _content(briefing: Briefing, context: BriefingContext) -> dict[str, Any]:
@@ -267,7 +264,7 @@ class BriefingService:
                 writes only ``ai_calls`` and ``ai_outputs``.
         """
         self._service = service
-        self._outputs = OutputRepository(service.engine, now=service.clock)
+        self._outputs = OutputRepository(service.engine, now=service.clock, stored=service.stored)
         self._assessments = AssessmentRepository(service.engine)
 
     def output(self, output_id: int) -> StoredOutput | None:
@@ -315,7 +312,7 @@ class BriefingService:
         stale = [item.name for item in judged if item.stale and item.kind == "source"]
         return briefing_context(stored.assessment, stored.changes, snapshot, stale)
 
-    async def stream(self, location: str, *, new: bool = False) -> AsyncIterator[BriefingEvent]:
+    async def stream(self, location: str, *, new: bool = False) -> AsyncGenerator[BriefingEvent]:
         """Brief a location: replay its stored briefing, or stream a new one section by section.
 
         Args:

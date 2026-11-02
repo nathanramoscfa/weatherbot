@@ -39,6 +39,9 @@ def hub_event_to_stream_event(event: HubEvent) -> StreamEvent:
         title=event.title,
         body=event.body,
         display=event.display,
+        call_id=event.call_id,
+        output_id=event.output_id,
+        ai_kind=event.ai_kind,
     )
 
 

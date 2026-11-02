@@ -1,0 +1,20 @@
+{
+  "limit": 50,
+  "location": null,
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "summaries": [
+    {
+      "assessment_id": 3,
+      "created_at": "2026-10-13T01:33:00Z",
+      "id": 2,
+      "location": "Miami-Dade County Hall",
+      "model": "claude-sonnet-5-5",
+      "model_name": "Claude Sonnet 5.5",
+      "prompt_version": "f6ef880c85e6a49b74673a66bf68bc3c23f486a12fe26320d4368992459f5e31",
+      "sources": [],
+      "status": "ok",
+      "summary": "The evacuation order for Miami-Dade County Hall was lifted, so the official level is no longer driven by it.",
+      "withheld_reason": null
+    }
+  ]
+}

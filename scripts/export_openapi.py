@@ -2,8 +2,9 @@
 """Write the FastAPI application's OpenAPI 3.1 schema to ``docs/api/openapi.json``.
 
 Builds ``weatherbot.web.app.create_app`` with an in-memory SQLite engine and placeholder
-state so no user directory or filesystem state is touched, adds ``StreamEvent`` and every
-model or type alias it references to ``components.schemas`` (which FastAPI's ``itemSchema``
+state so no user directory or filesystem state is touched, adds every stream model
+(``STREAM_MODELS``: ``StreamEvent`` and the three AI streams' events) and every model or
+type alias each references to ``components.schemas`` (which FastAPI's ``itemSchema``
 leaves out of components), and writes the resulting OpenAPI document with two-space
 indentation, UTF-8 encoding, and LF line endings. ``--check`` writes nothing and exits 1
 when ``docs/api/openapi.json`` is missing or stale.
@@ -18,20 +19,33 @@ import sys
 from pathlib import Path
 from typing import Final, cast
 
+from pydantic import BaseModel
 from sqlalchemy import create_engine
 
 from weatherbot.services.config import AppPaths, Settings
 from weatherbot.services.persistence.database import Database
 from weatherbot.web.app import WebState, create_app
-from weatherbot.web.schemas import StreamEvent
+from weatherbot.web.schemas import (
+    BriefingStreamEvent,
+    ChatStreamEvent,
+    NarrationStreamEvent,
+    StreamEvent,
+)
 
 REPOSITORY_ROOT: Final = Path(__file__).resolve().parents[1]
 OPENAPI_PATH: Final = REPOSITORY_ROOT / "docs" / "api" / "openapi.json"
 REF_TEMPLATE: Final = "#/components/schemas/{model}"
+STREAM_MODELS: Final[tuple[type[BaseModel], ...]] = (
+    StreamEvent,
+    BriefingStreamEvent,
+    ChatStreamEvent,
+    NarrationStreamEvent,
+)
+"""The server-sent event models, which FastAPI's ``itemSchema`` leaves out of components."""
 
 
 def _include_stream_event_schemas(schema: dict[str, object]) -> None:
-    """Add ``StreamEvent`` and its ``$defs`` to ``components.schemas``."""
+    """Add every stream model and its ``$defs`` to ``components.schemas``."""
     components = cast(
         "dict[str, object]",
         schema.setdefault("components", {}),
@@ -40,11 +54,12 @@ def _include_stream_event_schemas(schema: dict[str, object]) -> None:
         "dict[str, object]",
         components.setdefault("schemas", {}),
     )
-    event_schema = StreamEvent.model_json_schema(ref_template=REF_TEMPLATE)
-    defs = cast("dict[str, object]", event_schema.pop("$defs", {}))
-    for name, definition in defs.items():
-        schemas.setdefault(name, definition)
-    schemas["StreamEvent"] = event_schema
+    for model in STREAM_MODELS:
+        event_schema = model.model_json_schema(ref_template=REF_TEMPLATE)
+        defs = cast("dict[str, object]", event_schema.pop("$defs", {}))
+        for name, definition in defs.items():
+            schemas.setdefault(name, definition)
+        schemas[model.__name__] = event_schema
     components["schemas"] = dict(sorted(schemas.items()))
 
 

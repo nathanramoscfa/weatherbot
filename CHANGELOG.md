@@ -68,6 +68,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ladder, a storm, and the injection twin whose TCP carries hostile lines) and
   two narrations; each recorded turn replays its requests byte for byte, and
   they cost $0.11 at list price.
+- Put the AI behind the loopback API (Phase 6 Step 4): the reads `GET /api/ai`
+  (state, credential source, models, features, and today's meter),
+  `/api/ai/calls` (the ledger: kinds, statuses, tokens, costs, and reasons,
+  never text), `/api/ai/briefings`, `/api/ai/summaries`, and
+  `/api/ai/narrations` (each source resolved from its stored record and linked
+  only to a public NOAA page that names no point); the guarded server-sent event
+  streams `POST /api/ai/briefings`, `/api/ai/chat`, and `/api/ai/narrations`
+  (503 or 429 with a fixed reason before a stream begins, at most four at once,
+  and a closed page cancels its request and settles the ledger); the controls
+  `PUT /api/ai/pause` and `POST /api/ai/allowance` (at most one day's cap,
+  three a day, a fourth answers 409); and `GET /api/outlook` and
+  `/api/outlook/{basin}/{horizon}`, NHC's outlook PNG read from the stored
+  snapshot by SHA-256.
+- The event stream gains the `ai` kind and the `ai` and `briefings` query keys:
+  a settled request or a control change publishes `ai` invalidating `ai`, a
+  stored product `ai` invalidating `briefings`, and the cycle watcher's two new
+  marks (`ai_calls`, `ai_outputs`) bring what `brief` or `ask` writes in another
+  process to an open page; `serve` runs the change summarizer beside the
+  watcher, primed so history is never backfilled. The OpenAPI document, the
+  frontend's types and query keys, and six new API fixtures follow, and Phase
+  5's check 19 now reads the event kinds at `v2.0.0-phase-5`.
 
 ### Phase 5 — Web app (MVP)
 - Add Phase 5's repeatable verification script (`scripts/verify_phase05.py`),

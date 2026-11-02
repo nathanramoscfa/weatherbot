@@ -1,0 +1,160 @@
+{
+  "location": null,
+  "locations": [
+    {
+      "assessment_id": 3,
+      "briefing": {
+        "actions": [
+          "Normal activities.",
+          "Follow the instructions of your local officials."
+        ],
+        "assessment_id": 3,
+        "created_at": "2026-10-13T01:33:00Z",
+        "id": 1,
+        "model": "claude-sonnet-5-5",
+        "model_name": "Claude Sonnet 5.5",
+        "prompt_version": "f6ef880c85e6a49b74673a66bf68bc3c23f486a12fe26320d4368992459f5e31",
+        "situation": "Hurricane Simon is in the eastern Pacific, about 80 mi (125 km) west of Cabo Corrientes, Mexico, with maximum sustained winds near 100 mph [S7]. The location is beyond 800 km (500 mi) from the storm, lies east of it, and is not in its cone [S7]. Simon's closest approach is listed for 2026-10-16 at 18:00 UTC, and it is expected to be a hurricane by then [S7]. Arrival times for tropical-storm winds are not available for Simon [S5][S6]. Dorian, advisory 36, also appears in the data, but its arrival times are not available and no other details are given [S8][S9]. Wind-speed probabilities at the location are below every band for 34, 50 and 64 knots [S2][S3][S4]. A Rip Current Statement from NWS Miami covers coastal Miami-Dade County [S1]. The Atlantic outlook shows a 20 percent seven-day formation chance far to the east near the Cabo Verde Islands [S10].",
+        "sources": [
+          {
+            "advisory": null,
+            "code": "Rip Current Statement",
+            "issued_at": "2026-10-17T08:00:00Z",
+            "issuer": "NWS Miami FL",
+            "key": "S1",
+            "source_id": "nws-alerts-zone",
+            "title": "NWS alert: Rip Current Statement",
+            "url": "https://alerts.weather.gov/",
+            "why": "Rip current statement covering the county"
+          },
+          {
+            "advisory": null,
+            "code": "Coastal Flood Statement",
+            "issued_at": "2026-10-13T01:00:00Z",
+            "issuer": "NWS Miami FL",
+            "key": "S2",
+            "source_id": "nws-alerts-zone",
+            "title": "NWS alert: Coastal Flood Statement",
+            "url": "https://alerts.weather.gov/",
+            "why": "34-kt probability band"
+          },
+          {
+            "advisory": null,
+            "code": "34-kt",
+            "issued_at": null,
+            "issuer": "NHC",
+            "key": "S3",
+            "source_id": "nhc-map-tropical-summary",
+            "title": "NHC wind-speed probabilities: 34-kt",
+            "url": "https://www.nhc.noaa.gov/",
+            "why": "50-kt probability band"
+          },
+          {
+            "advisory": null,
+            "code": "50-kt",
+            "issued_at": null,
+            "issuer": "NHC",
+            "key": "S4",
+            "source_id": "nhc-map-tropical-summary",
+            "title": "NHC wind-speed probabilities: 50-kt",
+            "url": "https://www.nhc.noaa.gov/",
+            "why": "64-kt probability band"
+          },
+          {
+            "advisory": null,
+            "code": "64-kt",
+            "issued_at": null,
+            "issuer": "NHC",
+            "key": "S5",
+            "source_id": "nhc-map-tropical-summary",
+            "title": "NHC wind-speed probabilities: 64-kt",
+            "url": "https://www.nhc.noaa.gov/",
+            "why": "Simon earliest arrival unavailable"
+          },
+          {
+            "advisory": "22",
+            "code": null,
+            "issued_at": null,
+            "issuer": "NHC",
+            "key": "S6",
+            "source_id": "nhc-arrival-times",
+            "title": "NHC earliest-reasonable arrival time of tropical-storm winds, Simon advisory 22",
+            "url": "https://www.nhc.noaa.gov/gis/",
+            "why": "Simon most-likely arrival unavailable"
+          },
+          {
+            "advisory": "22",
+            "code": null,
+            "issued_at": null,
+            "issuer": "NHC",
+            "key": "S7",
+            "source_id": "nhc-arrival-times",
+            "title": "NHC most-likely arrival time of tropical-storm winds, Simon advisory 22",
+            "url": "https://www.nhc.noaa.gov/gis/",
+            "why": "Simon position, intensity, distance"
+          },
+          {
+            "advisory": "22A",
+            "code": "TCP",
+            "issued_at": "2026-10-13T00:00:00Z",
+            "issuer": "KNHC",
+            "key": "S8",
+            "source_id": "nhc-text-products",
+            "title": "NHC public advisory, Simon advisory 22A",
+            "url": "https://www.nhc.noaa.gov/",
+            "why": "Dorian earliest arrival unavailable"
+          },
+          {
+            "advisory": null,
+            "code": "TWO",
+            "issued_at": "2026-10-12T23:00:00Z",
+            "issuer": "KNHC",
+            "key": "S9",
+            "source_id": "nhc-text-products",
+            "title": "NHC tropical weather outlook, basin AT",
+            "url": "https://www.nhc.noaa.gov/",
+            "why": "Dorian most-likely arrival unavailable"
+          },
+          {
+            "advisory": null,
+            "code": "TWO",
+            "issued_at": "2026-10-12T23:00:00Z",
+            "issuer": "KNHC",
+            "key": "S10",
+            "source_id": "nhc-text-products",
+            "title": "NHC tropical weather outlook, basin EP",
+            "url": "https://www.nhc.noaa.gov/",
+            "why": "Atlantic outlook formation chance"
+          }
+        ],
+        "stale": false,
+        "status": "ok",
+        "timeline": [
+          {
+            "sources": [
+              "S7"
+            ],
+            "what": "Closest approach of Hurricane Simon, as listed by the engine; Simon is expected to be a hurricane by then.",
+            "when": "2026-10-16T18:00:00Z"
+          },
+          {
+            "sources": [
+              "S1"
+            ],
+            "what": "Rip Current Statement for coastal Miami-Dade County.",
+            "when": "2026-10-17T08:00:00Z to 2026-10-18T08:00:00Z"
+          }
+        ],
+        "what_it_means_here": "The location is at least level 1, All Clear. The engine found no other rule that matches: no watch or warning, no cone, and wind probabilities below every band [S2][S3][S4]. This is a floor, not a full result, because the cone data and forecast points were not available. The rip current statement covers the location but is not one of the watch or warning types that raise the level [S1].",
+        "withheld_reason": null
+      },
+      "location": "Miami-Dade County Hall"
+    },
+    {
+      "assessment_id": 4,
+      "briefing": null,
+      "location": "Parliament Square"
+    }
+  ],
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md."
+}

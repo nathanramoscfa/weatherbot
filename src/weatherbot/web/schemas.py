@@ -4,13 +4,15 @@
 Every response model is frozen and forbids unknown fields. No model carries coordinates
 except ``LocationsResponse`` and ``MapResponse`` (and ``/api/replay/{atcf_id}/{advisory}``),
 and validation error responses strip ``input`` so rejected payloads are never echoed back.
+No AI model carries a key, a prompt, a context, or a question; the ledger's rows carry no
+text at all, and a source's ``url`` is only ever a public NOAA page that names no point.
 """
 
 from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from weatherbot.models import (
     AlertCertainty,
@@ -25,8 +27,13 @@ from weatherbot.models import (
     StormSlot,
     WatchWarningType,
 )
+from weatherbot.services.ai.chat import QUESTION_LIMIT
 from weatherbot.services.ai.errors import AiUnavailableReason
-from weatherbot.services.ai.service import AiStateName
+from weatherbot.services.ai.ledger import CallKind
+from weatherbot.services.ai.narration import Horizon
+from weatherbot.services.ai.schemas import SectionName
+from weatherbot.services.ai.service import AiStateName, CredentialSource
+from weatherbot.services.ai.tools import Basin, ToolName
 from weatherbot.services.events import EventKind, QueryKey
 
 type GeometryKind = Literal[
@@ -1294,6 +1301,467 @@ class StreamEvent(_ApiModel):
             "Whether open dashboard pages should display this notification as an active alert."
         ),
     )
+    call_id: int | None = Field(
+        default=None,
+        ge=1,
+        description="AI ledger row identifier (set on ai events about a request or a control).",
+    )
+    output_id: int | None = Field(
+        default=None,
+        ge=1,
+        description="Stored AI product identifier (set on ai events about a stored product).",
+    )
+    ai_kind: str | None = Field(
+        default=None,
+        description=(
+            "AI row kind (briefing, summary, chat, narration, allowance, pause, or resume) "
+            "on ai events, or null."
+        ),
+    )
+
+
+# AI (GET /api/ai, /api/ai/calls, /api/ai/briefings, /api/ai/summaries, /api/ai/narrations) -
+
+
+class AiModelsResponse(_ApiModel):
+    """The models AI requests run on, by id and by display name."""
+
+    model: str = Field(description="Model of briefings, chat, and narrations, by id.")
+    model_name: str = Field(description="Its display name, such as Claude Sonnet 5.5.")
+    summary_model: str = Field(description="Model of the change summaries, by id.")
+    summary_model_name: str = Field(description="Its display name.")
+
+
+class AiFeaturesResponse(_ApiModel):
+    """Which AI products the ``[ai]`` settings switch on."""
+
+    enabled: bool = Field(description="Whether [ai] enabled lets AI run at all.")
+    change_summaries: bool = Field(description="Whether serve summarizes each change.")
+    outlook_narration: bool = Field(description="Whether outlook graphics may be narrated.")
+
+
+class AiKindTotalsResponse(_ApiModel):
+    """One kind of request's count, tokens, and cost today."""
+
+    kind: CallKind = Field(description="Request kind: briefing, summary, chat, or narration.")
+    requests: int = Field(ge=0, description="Requests of this kind today.")
+    input_tokens: int = Field(ge=0, description="Uncached input tokens.")
+    cache_write_tokens: int = Field(ge=0, description="Tokens written to the prompt cache.")
+    cache_read_tokens: int = Field(ge=0, description="Tokens read from the prompt cache.")
+    output_tokens: int = Field(ge=0, description="Output tokens, thinking included.")
+    cost_micro_usd: int = Field(ge=0, description="Cost at list price, in micro-dollars.")
+
+
+class AiTodayResponse(_ApiModel):
+    """Today's AI spend against the cap, in the operator's local calendar day."""
+
+    day: str = Field(description="The operator's local calendar day, YYYY-MM-DD.")
+    spent_micro_usd: int = Field(ge=0, description="Settled requests' cost, in micro-dollars.")
+    reserved_micro_usd: int = Field(
+        ge=0, description="Open reservations at their ceilings, in micro-dollars."
+    )
+    cap_micro_usd: int = Field(ge=0, description="The daily cap, before allowances.")
+    allowance_micro_usd: int = Field(ge=0, description="Today's allowances, in micro-dollars.")
+    allowances_left: int = Field(ge=0, description="How many more allowances today accepts.")
+    calls: int = Field(ge=0, description="Requests today, of every kind.")
+    input_tokens: int = Field(ge=0, description="Uncached input tokens today.")
+    cache_write_tokens: int = Field(ge=0, description="Prompt-cache write tokens today.")
+    cache_read_tokens: int = Field(ge=0, description="Prompt-cache read tokens today.")
+    output_tokens: int = Field(ge=0, description="Output tokens today.")
+    by_kind: tuple[AiKindTotalsResponse, ...] = Field(
+        description="Today's totals per kind of request that ran."
+    )
+
+
+class AiStatusResponse(_ApiModel):
+    """Response document for ``GET /api/ai`` and the AI controls: never a credential."""
+
+    state: AiStateName = Field(
+        description="off, ready, paused, capped, or unavailable; computed without a request."
+    )
+    reason: AiUnavailableReason | None = Field(
+        description="Why AI is not ready (for example no_credential or capped); null when ready."
+    )
+    credential_source: CredentialSource | None = Field(
+        description=(
+            "Where the credential comes from (environment, auth_token, profile, or none), "
+            "never its value; null while [ai] enabled is false."
+        )
+    )
+    models: AiModelsResponse = Field(description="The models AI requests run on.")
+    features: AiFeaturesResponse = Field(description="Which AI products are switched on.")
+    today: AiTodayResponse = Field(description="Today's spend, reservations, and tokens.")
+    paused: bool = Field(description="Whether the manual pause holds.")
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class AiCallResponse(_ApiModel):
+    """One AI ledger row: what it was, how it ended, and what it cost, never any text."""
+
+    id: int = Field(ge=1, description="Ledger row identifier.")
+    kind: str = Field(
+        description="briefing, summary, chat, narration, or a control: allowance, pause, resume."
+    )
+    model: str | None = Field(description="Model id of a request; null for a control.")
+    location: str | None = Field(description="Location name the request was about, or null.")
+    status: str = Field(
+        description=(
+            "reserved, ok, failed, incomplete, declined, abandoned, or control (a control row)."
+        )
+    )
+    started_at: datetime = Field(description="UTC instant the request was reserved.")
+    finished_at: datetime | None = Field(description="UTC instant it settled, or null.")
+    input_tokens: int = Field(ge=0, description="Uncached input tokens.")
+    cache_write_tokens: int = Field(ge=0, description="Prompt-cache write tokens.")
+    cache_read_tokens: int = Field(ge=0, description="Prompt-cache read tokens.")
+    output_tokens: int = Field(ge=0, description="Output tokens.")
+    cost_micro_usd: int | None = Field(
+        description="Cost at list price in micro-dollars; null while reserved."
+    )
+    allowance_micro_usd: int = Field(
+        ge=0, description="An allowance row's amount in micro-dollars; 0 otherwise."
+    )
+    stop_reason: str | None = Field(description="The final message's stop reason, or null.")
+    refusal_category: str | None = Field(description="A refusal's category, or null.")
+    error_kind: str | None = Field(description="Why the request failed, as a reason, or null.")
+
+
+class AiCallsResponse(_ApiModel):
+    """Response document for ``GET /api/ai/calls``: the ledger, newest first."""
+
+    limit: int = Field(ge=1, le=100, description="Maximum number of rows requested.")
+    calls: tuple[AiCallResponse, ...] = Field(description="Ledger rows, newest first.")
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class AiSourceResponse(_ApiModel):
+    """A source an AI product cites, resolved from its stored record, never from the model."""
+
+    key: str = Field(description="The key the product cites, such as S2.")
+    source_id: SourceId = Field(description="Data-source register identifier.")
+    title: str = Field(description="The product's title, as a page shows it.")
+    code: str | None = Field(description="Product code (TCP, TWO, an NWS event), or null.")
+    issuer: str | None = Field(description="Issuing office, such as NHC, or null.")
+    advisory: str | None = Field(description="Advisory number, or null.")
+    issued_at: datetime | None = Field(description="UTC issuance, to the hour, or null.")
+    why: str | None = Field(
+        default=None, description="What the product took from the source, or null."
+    )
+    url: str | None = Field(
+        description="A public NOAA product page that names no point, or null (never the model's)."
+    )
+
+
+class AiTimelineItemResponse(_ApiModel):
+    """One expected development in a briefing's timeline."""
+
+    when: str = Field(description="When, as the products state it.")
+    what: str = Field(description="What happens then, in plain language.")
+    sources: tuple[str, ...] = Field(description="The source keys that state it.")
+
+
+class StoredBriefingResponse(_ApiModel):
+    """A location's newest stored briefing: its sections, or why it was withheld."""
+
+    id: int = Field(ge=1, description="Stored AI product identifier.")
+    status: Literal["ok", "withheld"] = Field(description="ok, or withheld (no text is kept).")
+    withheld_reason: str | None = Field(description="Why it was withheld, or null.")
+    model: str = Field(description="Model id that wrote it.")
+    model_name: str = Field(description="Its display name.")
+    prompt_version: str = Field(description="SHA-256 of the frozen prompt it was written with.")
+    assessment_id: int | None = Field(description="The assessment it was written for.")
+    created_at: datetime = Field(description="UTC instant it was stored.")
+    stale: bool = Field(description="Whether a newer assessment has been stored since.")
+    situation: str | None = Field(description="The situation section, or null when withheld.")
+    what_it_means_here: str | None = Field(
+        description="What the engine's level means here, or null when withheld."
+    )
+    timeline: tuple[AiTimelineItemResponse, ...] = Field(
+        description="Expected developments, earliest first."
+    )
+    actions: tuple[str, ...] = Field(description="The ladder's actions, as the briefing says.")
+    sources: tuple[AiSourceResponse, ...] = Field(description="Every source the briefing cites.")
+
+
+class LocationBriefingResponse(_ApiModel):
+    """One watched location's latest assessment and its newest stored briefing."""
+
+    location: str = Field(description="Watched location name.")
+    assessment_id: int | None = Field(description="The location's latest assessment, or null.")
+    briefing: StoredBriefingResponse | None = Field(
+        description="The newest stored briefing, or null when none is stored."
+    )
+
+
+class BriefingsResponse(_ApiModel):
+    """Response document for ``GET /api/ai/briefings``."""
+
+    location: str | None = Field(description="Location name filter, or null for every one.")
+    locations: tuple[LocationBriefingResponse, ...] = Field(
+        description="Each watched location's newest briefing, in name order."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class StoredSummaryResponse(_ApiModel):
+    """One stored change summary, or why it was withheld."""
+
+    id: int = Field(ge=1, description="Stored AI product identifier.")
+    location: str | None = Field(description="Location name.")
+    assessment_id: int | None = Field(description="The assessment whose changes it summarizes.")
+    status: Literal["ok", "withheld"] = Field(description="ok, or withheld (no text is kept).")
+    withheld_reason: str | None = Field(description="Why it was withheld, or null.")
+    model: str = Field(description="Model id that wrote it.")
+    model_name: str = Field(description="Its display name.")
+    prompt_version: str = Field(description="SHA-256 of the frozen prompt it was written with.")
+    created_at: datetime = Field(description="UTC instant it was stored.")
+    summary: str | None = Field(description="What changed, or null when withheld.")
+    sources: tuple[AiSourceResponse, ...] = Field(description="Every source the summary cites.")
+
+
+class SummariesResponse(_ApiModel):
+    """Response document for ``GET /api/ai/summaries``: newest first."""
+
+    location: str | None = Field(description="Location name filter, or null for every one.")
+    limit: int = Field(ge=1, le=200, description="Maximum number of summaries requested.")
+    summaries: tuple[StoredSummaryResponse, ...] = Field(
+        description="Stored change summaries, newest first."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class AiAreaResponse(_ApiModel):
+    """One area an outlook graphic marks, in plain words, with its chance as the TWO states it."""
+
+    description: str = Field(description="Where the area lies and what it is.")
+    chance_text: str = Field(description='Its chance as the TWO states it, or "not stated".')
+
+
+class StoredNarrationResponse(_ApiModel):
+    """The newest stored narration of one of the latest snapshot's outlook graphics."""
+
+    id: int = Field(ge=1, description="Stored AI product identifier.")
+    basin: Basin = Field(description="Outlook basin: atl, pac, or cpac.")
+    horizon: Horizon = Field(description="Outlook horizon: 2d0 or 7d0.")
+    graphic_sha256: str = Field(description="SHA-256 of the narrated graphic's PNG body.")
+    status: Literal["ok", "withheld"] = Field(description="ok, or withheld (no text is kept).")
+    withheld_reason: str | None = Field(description="Why it was withheld, or null.")
+    model: str = Field(description="Model id that wrote it.")
+    model_name: str = Field(description="Its display name.")
+    prompt_version: str = Field(description="SHA-256 of the narration prompt.")
+    created_at: datetime = Field(description="UTC instant it was stored.")
+    summary: str | None = Field(description="What the graphic shows, or null when withheld.")
+    areas: tuple[AiAreaResponse, ...] = Field(description="Each area the graphic marks.")
+    caveat: str | None = Field(description="That the official graphic governs, or null.")
+    two: AiSourceResponse | None = Field(
+        description="The TWO the narration was checked against, or null when withheld."
+    )
+
+
+class NarrationsResponse(_ApiModel):
+    """Response document for ``GET /api/ai/narrations``."""
+
+    enabled: bool = Field(description="Whether [ai] outlook_narration is on.")
+    label: str = Field(description="How every surface labels a narration.")
+    narrations: tuple[StoredNarrationResponse, ...] = Field(
+        description="The latest snapshot's graphics' newest stored narrations."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class AiRefusalDetail(_ApiModel):
+    """Why an AI stream was refused before it began: a reason and its fixed text."""
+
+    reason: AiUnavailableReason = Field(description="The reason, such as capped or busy.")
+    message: str = Field(description="Fixed text for the reason; never an SDK message.")
+
+
+class AiRefusalResponse(_ApiModel):
+    """Response document of a 503 or 429 answer to an AI stream."""
+
+    detail: AiRefusalDetail = Field(description="Why the stream was refused.")
+
+
+class BriefingRequest(_ApiModel):
+    """Request body for ``POST /api/ai/briefings``."""
+
+    location: str = Field(min_length=1, description="Name of the watched location to brief.")
+    new: bool = Field(default=False, description="Ask for a new briefing even when one is stored.")
+
+
+class ChatRequest(_ApiModel):
+    """Request body for ``POST /api/ai/chat``."""
+
+    question: str = Field(
+        min_length=1, max_length=QUESTION_LIMIT, description="The question, 1 to 2,000 characters."
+    )
+    conversation_id: str | None = Field(
+        default=None, max_length=64, description="The conversation to continue, or null."
+    )
+    location: str | None = Field(
+        default=None, description="The location the question is about, or null for every one."
+    )
+
+    @field_validator("question")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        if not value.strip():
+            message = "a question is not blank"
+            raise ValueError(message)
+        return value
+
+
+class NarrationRequest(_ApiModel):
+    """Request body for ``POST /api/ai/narrations``."""
+
+    basin: Basin = Field(description="Outlook basin: atl, pac, or cpac.")
+    horizon: Horizon = Field(description="Outlook horizon: 2d0 or 7d0.")
+
+
+class PauseRequest(_ApiModel):
+    """Request body for ``PUT /api/ai/pause``."""
+
+    paused: bool = Field(description="Whether every AI request is refused until resumed.")
+
+
+class AllowanceRequest(_ApiModel):
+    """Request body for ``POST /api/ai/allowance``."""
+
+    usd: float = Field(gt=0, description="Dollars to add to today's limit, at most one day's cap.")
+
+
+class BriefingStreamEvent(_ApiModel):
+    """One server-sent event of ``POST /api/ai/briefings``: never a coordinate or a distance."""
+
+    kind: Literal["started", "section", "done", "withheld", "unavailable"] = Field(
+        description="started, then a section per validated section, then done; or withheld "
+        "(remove every section shown) or unavailable."
+    )
+    model: str | None = Field(default=None, description="Model id (started), or null.")
+    model_name: str | None = Field(default=None, description="Its display name, or null.")
+    assessment_id: int | None = Field(
+        default=None, description="The assessment briefed (started), or null."
+    )
+    as_of: datetime | None = Field(
+        default=None, description="UTC instant of that assessment (started), or null."
+    )
+    prompt_version: str | None = Field(
+        default=None, description="SHA-256 of the frozen prompt (started), or null."
+    )
+    section: SectionName | None = Field(default=None, description="The section's name, or null.")
+    text: str | None = Field(default=None, description="The section's plain text, or null.")
+    output_id: int | None = Field(
+        default=None, description="Stored product identifier (done, withheld), or null."
+    )
+    created_at: datetime | None = Field(
+        default=None, description="UTC instant the briefing was stored (done), or null."
+    )
+    reused: bool | None = Field(
+        default=None, description="Whether a stored briefing was replayed (done), or null."
+    )
+    reason: str | None = Field(
+        default=None, description="Why it was withheld or unavailable, or null."
+    )
+    detail: str | None = Field(
+        default=None, description="Fixed text for the reason, never the model's, or null."
+    )
+
+
+class ChatStreamEvent(_ApiModel):
+    """One server-sent event of ``POST /api/ai/chat``: never a coordinate or a distance."""
+
+    kind: Literal["started", "tool", "text", "done", "withheld", "unavailable"] = Field(
+        description="started, then tool and text events, then done; or withheld (the rest of "
+        "the answer and the conversation end) or unavailable."
+    )
+    conversation_id: str | None = Field(
+        default=None, description="The conversation (started), or null."
+    )
+    model: str | None = Field(default=None, description="Model id (started), or null.")
+    model_name: str | None = Field(default=None, description="Its display name, or null.")
+    tool: ToolName | Literal["unknown_tool"] | None = Field(
+        default=None, description="The tool's name only (tool), or null."
+    )
+    text: str | None = Field(default=None, description="One checked sentence (text), or null.")
+    call_ids: tuple[int, ...] = Field(
+        default=(), description="The turn's ledger rows (done, withheld, unavailable)."
+    )
+    reason: str | None = Field(
+        default=None, description="Why it was withheld or unavailable, or null."
+    )
+    detail: str | None = Field(
+        default=None, description="Fixed text for the reason, never the model's, or null."
+    )
+
+
+class NarrationStreamEvent(_ApiModel):
+    """One server-sent event of ``POST /api/ai/narrations``: never a coordinate or a distance."""
+
+    kind: Literal["started", "done", "withheld", "unavailable"] = Field(
+        description="started, then done with the narration; or withheld or unavailable."
+    )
+    model: str | None = Field(default=None, description="Model id (started), or null.")
+    model_name: str | None = Field(default=None, description="Its display name, or null.")
+    basin: Basin | None = Field(default=None, description="Outlook basin (started), or null.")
+    horizon: Horizon | None = Field(default=None, description="Outlook horizon (started), or null.")
+    graphic_sha256: str | None = Field(
+        default=None, description="SHA-256 of the graphic's PNG body (started), or null."
+    )
+    two_issued_at: datetime | None = Field(
+        default=None, description="UTC issuance of the TWO it is checked against, or null."
+    )
+    prompt_version: str | None = Field(
+        default=None, description="SHA-256 of the narration prompt (started), or null."
+    )
+    output_id: int | None = Field(
+        default=None, description="Stored product identifier (done, withheld), or null."
+    )
+    created_at: datetime | None = Field(
+        default=None, description="UTC instant the narration was stored (done), or null."
+    )
+    reused: bool | None = Field(
+        default=None, description="Whether a stored narration was replayed (done), or null."
+    )
+    summary: str | None = Field(default=None, description="What the graphic shows (done), or null.")
+    areas: tuple[AiAreaResponse, ...] = Field(
+        default=(), description="Each area the graphic marks (done)."
+    )
+    caveat: str | None = Field(
+        default=None, description="That the official graphic governs (done), or null."
+    )
+    reason: str | None = Field(
+        default=None, description="Why it was withheld or unavailable, or null."
+    )
+    detail: str | None = Field(
+        default=None, description="Fixed text for the reason, never the model's, or null."
+    )
+
+
+# Outlook (GET /api/outlook, GET /api/outlook/{basin}/{horizon}) -----------------------------
+
+
+class OutlookGraphicResponse(_ApiModel):
+    """One official outlook graphic stored with the latest snapshot."""
+
+    basin: Basin = Field(description="Outlook basin: atl, pac, or cpac.")
+    horizon: Horizon = Field(description="Outlook horizon: 2d0 or 7d0.")
+    width_px: int = Field(gt=0, description="Image width in pixels.")
+    height_px: int = Field(gt=0, description="Image height in pixels.")
+    sha256: str = Field(description="SHA-256 of the PNG body served by the image route.")
+    fetched_at: datetime = Field(description="UTC instant the graphic was fetched.")
+    issued_at: datetime | None = Field(description="UTC issuance when NHC states one, or null.")
+
+
+class OutlookGraphicsResponse(_ApiModel):
+    """Response document for ``GET /api/outlook``."""
+
+    snapshot_id: UUID | None = Field(
+        description="The latest snapshot, or null when no snapshot is stored."
+    )
+    graphics: tuple[OutlookGraphicResponse, ...] = Field(
+        description="The official outlook graphics the latest snapshot stored."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
 
 
 # Actions (POST /api/locations, PUT /api/locations/evacuation, POST /api/cycles,

@@ -11,6 +11,8 @@ Otherwise it inserts a ``reserved`` row. ``Ledger.settle`` writes the outcome: t
 usage priced from ``pricing.PRICES``, or the ceiling for a stream that ended without its
 final message. ``pause``, ``resume``, and ``allow`` write zero-token control rows, because
 the AI engine may write no other table. "Today" is the operator's local calendar day.
+Once a settle or a control row is committed, the ``changed`` hook (the AI service's) hears
+of it: the row's id, kind, status, and location, never its text.
 
 The ledger runs on the AI engine (``guard.ai_engine``) and imports no SDK.
 """
@@ -66,6 +68,7 @@ class Reservation:
     model: str
     ceiling_micro_usd: int
     day: str
+    location: str | None = None
 
 
 @dataclass(frozen=True)
@@ -138,8 +141,25 @@ class KindTotals:
     cost_micro_usd: int
 
 
+@dataclass(frozen=True)
+class LedgerChange:
+    """A committed settle or control row: what a page needs to refetch, never its text."""
+
+    call_id: int
+    kind: str
+    status: str
+    location: str | None
+
+
+type LedgerHook = Callable[[LedgerChange], None]
+
+
 class AllowanceRefusedError(ValueError):
     """An allowance the ledger refuses; the message is fixed text."""
+
+
+class AllowancesExhaustedError(AllowanceRefusedError):
+    """Today's allowances are used up: a fourth is refused."""
 
 
 def _entry(row: AiCallRow) -> LedgerEntry:
@@ -179,6 +199,7 @@ class Ledger:
         cap_micro_usd: int,
         now: Callable[[], datetime],
         local_zone: tzinfo | None = None,
+        changed: LedgerHook | None = None,
     ) -> None:
         """Create the ledger.
 
@@ -187,11 +208,13 @@ class Ledger:
             cap_micro_usd: The daily cap, ``[ai] daily_cap_usd`` in micro-dollars.
             now: The clock.
             local_zone: The operator's time zone; the machine's when omitted.
+            changed: Hears of each committed settle and control row.
         """
         self._engine = engine
         self._cap = cap_micro_usd
         self._now = now
         self._zone = local_zone
+        self._changed = changed
 
     @property
     def cap_micro_usd(self) -> int:
@@ -303,7 +326,7 @@ class Ledger:
             )
             session.add(row)
             session.flush()
-            return Reservation(row.id, kind, model, ceiling, day)
+            return Reservation(row.id, kind, model, ceiling, day, location)
 
     def settle(self, reservation: Reservation, outcome: Outcome) -> None:
         """Write a request's outcome: its usage, its cost, and how it ended.
@@ -338,6 +361,13 @@ class Ledger:
                     request_id=request_id,
                 )
             )
+        self._notify(
+            LedgerChange(reservation.id, reservation.kind, outcome.status, reservation.location)
+        )
+
+    def _notify(self, change: LedgerChange) -> None:
+        if self._changed is not None:
+            self._changed(change)
 
     def today(self) -> LedgerDay:
         """Read today's spend, open reservations, allowances, and the pause.
@@ -416,20 +446,22 @@ class Ledger:
                 today = self._day(session, self.day_of(now))
                 if today.allowances >= MAX_ALLOWANCES_PER_DAY:
                     message = f"at most {MAX_ALLOWANCES_PER_DAY} allowances a day"
-                    raise AllowanceRefusedError(message)
-            session.add(
-                AiCallRow(
-                    kind=kind,
-                    status="control",
-                    day=self.day_of(now),
-                    started_at=now,
-                    finished_at=now,
-                    ceiling_micro_usd=0,
-                    cost_micro_usd=0,
-                    allowance_micro_usd=allowance,
-                    prices_as_of=PRICES_AS_OF,
-                )
+                    raise AllowancesExhaustedError(message)
+            row = AiCallRow(
+                kind=kind,
+                status="control",
+                day=self.day_of(now),
+                started_at=now,
+                finished_at=now,
+                ceiling_micro_usd=0,
+                cost_micro_usd=0,
+                allowance_micro_usd=allowance,
+                prices_as_of=PRICES_AS_OF,
             )
+            session.add(row)
+            session.flush()
+            call_id = row.id
+        self._notify(LedgerChange(call_id, kind, "control", None))
 
     def pause(self) -> None:
         """Pause AI: every request is refused until ``resume``."""
@@ -446,8 +478,8 @@ class Ledger:
             amount_micro_usd: The allowance, in micro-dollars.
 
         Raises:
-            AllowanceRefusedError: The amount is not positive, passes one day's cap, or
-                would be today's fourth allowance.
+            AllowanceRefusedError: The amount is not positive or passes one day's cap;
+                ``AllowancesExhaustedError`` when it would be today's fourth allowance.
         """
         if amount_micro_usd <= 0:
             message = "an allowance must be more than zero"

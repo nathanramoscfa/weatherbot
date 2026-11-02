@@ -69,6 +69,9 @@ const SAMPLE_NOTIFICATION_EVENT: StreamEvent = {
   title: "Miami-Dade County Hall — Level 4 (Prepare to Evacuate)",
   body: ["Level 4: Evacuation order is in effect", "Review your evacuation plan."],
   display: true,
+  call_id: null,
+  output_id: null,
+  ai_kind: null,
 };
 
 describe("notify", () => {

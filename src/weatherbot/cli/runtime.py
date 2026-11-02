@@ -48,7 +48,7 @@ from weatherbot.services.toast import Identity, system_identity, toast_channel
 
 if TYPE_CHECKING:
     from weatherbot.services.ai.client import ClaudeClient, ClaudeFactory
-    from weatherbot.services.ai.service import AiService
+    from weatherbot.services.ai.service import AiPublish, AiService
 
 EXIT_OK: Final = 0
 EXIT_FAILED: Final = 1
@@ -123,11 +123,13 @@ class Context:
         """The delivery channels: the in-app log, and the runtime's toast beside it."""
         return (LogChannel(), self.runtime.make_toast(self.settings))
 
-    def ai_service(self, database: Database) -> "AiService":
+    def ai_service(self, database: Database, *, publish: "AiPublish | None" = None) -> "AiService":
         """Build the AI service on the AI engine over the open database's file.
 
         Args:
             database: The open database, at the head revision.
+            publish: Hears of settled requests, control changes, and stored products
+                (``serve`` hands it the event hub's ``publish``).
 
         Returns:
             The service; no client is constructed until AI is used. Close it when done.
@@ -141,6 +143,7 @@ class Context:
             factory=self.runtime.make_claude,
             environ=self.runtime.environ,
             now=self.runtime.now,
+            publish=publish,
         )
 
 

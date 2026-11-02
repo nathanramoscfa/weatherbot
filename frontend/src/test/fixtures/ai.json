@@ -1,0 +1,60 @@
+{
+  "credential_source": "environment",
+  "features": {
+    "change_summaries": true,
+    "enabled": true,
+    "outlook_narration": true
+  },
+  "models": {
+    "model": "claude-sonnet-5-5",
+    "model_name": "Claude Sonnet 5.5",
+    "summary_model": "claude-sonnet-5-5",
+    "summary_model_name": "Claude Sonnet 5.5"
+  },
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "paused": false,
+  "reason": null,
+  "state": "ready",
+  "today": {
+    "allowance_micro_usd": 0,
+    "allowances_left": 3,
+    "by_kind": [
+      {
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 3732,
+        "cost_micro_usd": 28010,
+        "input_tokens": 4845,
+        "kind": "briefing",
+        "output_tokens": 899,
+        "requests": 1
+      },
+      {
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "cost_micro_usd": 7200,
+        "input_tokens": 3300,
+        "kind": "summary",
+        "output_tokens": 60,
+        "requests": 1
+      },
+      {
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 1360,
+        "cost_micro_usd": 8846,
+        "input_tokens": 1283,
+        "kind": "narration",
+        "output_tokens": 288,
+        "requests": 1
+      }
+    ],
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 5092,
+    "calls": 3,
+    "cap_micro_usd": 1000000,
+    "day": "2026-10-13",
+    "input_tokens": 9428,
+    "output_tokens": 1247,
+    "reserved_micro_usd": 0,
+    "spent_micro_usd": 44056
+  }
+}

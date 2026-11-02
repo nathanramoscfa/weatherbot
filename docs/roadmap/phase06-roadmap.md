@@ -3259,9 +3259,9 @@ conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 4 — The AI in the API
+## Step 4 — The AI in the API ✅
 
-**Status:** Not started
+**Status:** Complete — PR #83 (2026-11-01)
 
 > **Goal:** Put the AI behind the loopback API, under every Phase 5 guard.
 > `web/routes/ai.py` adds the reads `GET /api/ai` (the state, models, features,
@@ -3306,6 +3306,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-01: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -4157,6 +4159,27 @@ The conversation is new per phase-boundary hygiene.
       `EventSource` cannot send a `POST`.
     - Phase 5's checks 26, 30, 35, 36, 37, and 40 read the frontend's
       pins, environment use, licences, pages, inner HTML, and Leaflet.
+    - The shapes as Step 4 shipped them (PR for Step 4): each stream
+      event is one flat object whose `kind` names it, every other field
+      null unless that kind sets it (`BriefingStreamEvent`: `model`,
+      `model_name`, `assessment_id`, `as_of`, `prompt_version`,
+      `section`, `text`, `output_id`, `created_at`, `reused`, `reason`,
+      `detail`; `ChatStreamEvent`: `conversation_id`, `model`,
+      `model_name`, `tool`, `text`, `call_ids`, `reason`, `detail`;
+      `NarrationStreamEvent` adds `basin`, `horizon`, `graphic_sha256`,
+      `two_issued_at`, and `done`'s `summary`, `areas`, `caveat`). A
+      refusal before a stream is JSON, not an event: 503 or 429 with
+      `{"detail": {"reason", "message"}}` (`AiRefusalResponse`), and
+      `busy` means four AI streams run already. `StreamEvent` gained
+      `call_id`, `output_id`, and `ai_kind` (set on `ai` events), so
+      every test literal of a `StreamEvent` carries the three as null.
+      A stored product's sources come resolved as `AiSourceResponse`
+      (`key`, `title`, `code`, `issuer`, `advisory`, `issued_at`, `why`,
+      and a `url` that is a public NOAA page or null): render the key
+      and title as text and the `url` as the only link. `health.json`
+      now reads AI `ready` (the fixtures' web state carries a replayed
+      AI service), and `narrations.json` holds one Atlantic seven-day
+      narration.
 
     Files to read (every file before drafting):
 
@@ -4640,6 +4663,13 @@ more cheaply. The conversation is new per phase-boundary hygiene.
       Playwright specs run through `guard.ts` (local requests only,
       blank tiles); `scripts/measure_idle.py` measured 0.2474% and
       0.0020% after PR #73; CI's `browser` job runs the specs.
+    - Since Step 4, `serve_demo.py` (through `cli/serve.py`'s `_loop`)
+      also builds the AI service with `publish=hub.publish` and runs
+      `ChangeSummarizer`, so a switch-file cycle whose assessment
+      changes asks for a change summary once `--ai-replay` gives AI a
+      client: the replay must answer it (or turn `[ai]
+      change_summaries` off). The idle measurement now includes the
+      watcher's two AI marks (scalar `max(id)` reads per poll).
     - The operator's copy runs Step 1's build (revision 0007) with a
       credential the scheduled task can see.
 
@@ -5191,8 +5221,12 @@ new per phase-boundary hygiene.
         tagged events path).
     32. No module-level `async def` under `web/routes/` names a
         repository, `ai_engine`, or `Session` (AST).
-    33. `CycleWatcher` reads `ai_calls` and `ai_outputs`.
-    34. `cli/serve.py` starts `ChangeSummarizer` and keeps Phase 5's
+    33. `CycleWatcher` reads `ai_calls` and `ai_outputs`: Step 4 reads
+        them through the table classes, so `services/events.py` names
+        `AiCallRow` and `AiOutputRow` (inclusion), not the table names.
+    34. `cli/serve.py` starts `ChangeSummarizer` (Step 4: built in
+        `_loop`, primed and registered with `hub.on_cycle(
+        summarizer.wake)` in `_start_background`) and keeps Phase 5's
         check 7 and 23 calls.
     35. The Step 4 tests and the six AI fixtures are tracked.
 
@@ -5595,7 +5629,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Claude client + ledger + cap   | Opus 5.5       | Complete — PR #77  |
 | 2    | Briefing + summary + eval set  | Opus 5.5       | Complete — PR #80  |
 | 3    | Grounded chat + narration      | Opus 5.5       | Complete — PR #81  |
-| 4    | AI in the API                  | Gemini 4 Argon | Not started        |
+| 4    | AI in the API                  | Opus 5.5       | Complete — PR #83  |
 | 5    | AI in the page                 | Gemini 4 Argon | Not started        |
 | 6    | Live eval + smoke + deploy     | Gemini 4 Argon | Not started        |
 | 7    | QA + verify_phase06.py         | GPT-6.1 Sol    | Not started        |

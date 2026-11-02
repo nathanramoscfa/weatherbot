@@ -34,7 +34,7 @@ import hashlib
 import json
 import re
 import uuid
-from collections.abc import AsyncIterator, Mapping, Sequence
+from collections.abc import AsyncGenerator, AsyncIterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Final, Literal
@@ -341,7 +341,7 @@ class ChatService:
 
     async def turn(
         self, conversation_id: str | None, question: str, location: str | None = None
-    ) -> AsyncIterator[ChatEvent]:
+    ) -> AsyncGenerator[ChatEvent]:
         """Answer one question, in a new conversation or an open one.
 
         Args:

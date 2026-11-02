@@ -10,6 +10,13 @@ geometry coordinates to two decimal places so ``scripts/check_personal_data.py``
 passes, and writes UTF-8 JSON with sorted keys and LF line endings to
 ``frontend/src/test/fixtures/<name>.json``.
 
+The AI reads answer from an AI service whose client replays recorded answers through the
+real SDK (``tests/ai/ai_support.py``) at the fixed clock: Miami-Dade's briefing and the
+Atlantic seven-day narration from their recordings (narration switched on for this
+service only, so ``settings.json`` keeps the defaults), and the change summary of
+Miami-Dade's second assessment from a hand-written answer, because no recording covers
+that change. No request leaves the machine.
+
 Usage::
 
     uv run python scripts/export_api_fixtures.py           # write fixtures
@@ -23,7 +30,7 @@ import re
 import sys
 import tempfile
 from collections.abc import Sequence
-from datetime import timedelta
+from datetime import UTC, timedelta
 from pathlib import Path
 from typing import Final, cast
 
@@ -34,12 +41,15 @@ for _support_dir in (
     REPO_ROOT / "scripts",
     REPO_ROOT / "tests" / "contract",
     REPO_ROOT / "tests" / "sources",
+    REPO_ROOT / "tests" / "services",
     REPO_ROOT / "tests" / "cli",
+    REPO_ROOT / "tests" / "ai",
 ):
     _dir_str = str(_support_dir)
     if _dir_str not in sys.path:
         sys.path.insert(0, _dir_str)
 
+from ai_support import RecordedAnswer, load_answer, message_body, replay_client  # noqa: E402
 from cli_support import (  # noqa: E402
     MIAMI,
     NASSAU,
@@ -50,7 +60,17 @@ from cli_support import (  # noqa: E402
 from source_support import NOW  # noqa: E402
 
 from ladder_data import public_landmarks  # noqa: E402
-from weatherbot.services.config import AppPaths, load_settings, setting_origins  # noqa: E402
+from weatherbot.services.ai.briefing import BriefingService  # noqa: E402
+from weatherbot.services.ai.guard import ai_engine  # noqa: E402
+from weatherbot.services.ai.narration import NarrationService  # noqa: E402
+from weatherbot.services.ai.service import AiService  # noqa: E402
+from weatherbot.services.ai.summaries import ChangeSummaryService  # noqa: E402
+from weatherbot.services.config import (  # noqa: E402
+    AppPaths,
+    Settings,
+    load_settings,
+    setting_origins,
+)
 from weatherbot.services.events import BrowserChannel, EventHub  # noqa: E402
 from weatherbot.services.locations import LocationService  # noqa: E402
 from weatherbot.services.monitor import MonitorService  # noqa: E402
@@ -61,7 +81,8 @@ from weatherbot.services.notifications import (  # noqa: E402
     LogChannel,
     NotificationService,
 )
-from weatherbot.services.persistence.database import open_database  # noqa: E402
+from weatherbot.services.persistence.database import Database, open_database  # noqa: E402
+from weatherbot.services.persistence.repositories import AssessmentRepository  # noqa: E402
 from weatherbot.services.replay import ReplayCorpus  # noqa: E402
 from weatherbot.services.toast import TOAST_OFF, NullChannel  # noqa: E402
 from weatherbot.web.app import WebState, create_app  # noqa: E402
@@ -91,7 +112,20 @@ ROUTE_FIXTURES: Final[tuple[tuple[str, str], ...]] = (
     ("map.json", "/api/map"),
     ("replay.json", "/api/replay"),
     ("replay-advisory.json", "/api/replay/AL112017/036"),
+    ("ai.json", "/api/ai"),
+    ("ai-calls.json", "/api/ai/calls"),
+    ("briefings.json", "/api/ai/briefings"),
+    ("summaries.json", "/api/ai/summaries"),
+    ("narrations.json", "/api/ai/narrations"),
+    ("outlook.json", "/api/outlook"),
 )
+BRIEFING_RECORDING: Final = "eval-briefing-recorded-miami-dade"
+NARRATION_RECORDING: Final = "narration-atl-7d0"
+SUMMARY_ANSWER: Final = (
+    '{"summary": "The evacuation order for Miami-Dade County Hall was lifted, so the '
+    'official level is no longer driven by it.", "sources": []}'
+)
+"""The change summary's hand-written answer: no recording covers the toggle's change."""
 
 
 def _round_coordinates(value: object) -> object:
@@ -139,6 +173,32 @@ def _sanitize_value(
         items = cast("list[object]", value)
         return [_sanitize_value(item, uuid_map) for item in items]
     return value
+
+
+async def _replayed_ai(database: Database, settings: Settings) -> AiService:
+    """Write Miami-Dade's briefing and summary and a narration through replayed answers."""
+    client, _ = replay_client(
+        [
+            load_answer(BRIEFING_RECORDING),
+            RecordedAnswer.json(message_body(SUMMARY_ANSWER, input_tokens=3_300, output_tokens=60)),
+            load_answer(NARRATION_RECORDING),
+        ]
+    )
+    ai_settings = settings.ai.model_copy(update={"outlook_narration": True})
+    ai = AiService(
+        ai_engine(database.path),
+        ai_settings,
+        factory=lambda: client,
+        environ={"ANTHROPIC_API_KEY": "replayed"},
+        now=lambda: NOW + timedelta(minutes=3),
+        local_zone=UTC,
+    )
+    _ = [event async for event in BriefingService(ai).stream(MIAMI)]
+    latest = AssessmentRepository(database.engine).latest(MIAMI)
+    if latest is not None:
+        await ChangeSummaryService(ai).summarize(latest.id)
+    _ = [event async for event in NarrationService(ai).stream("atl", "7d0")]
+    return ai
 
 
 async def _build_raw_payloads() -> dict[str, str]:
@@ -221,6 +281,7 @@ async def _build_raw_payloads() -> dict[str, str]:
                 )
                 await notif_service.send("test", title=TEST_TITLE, body=TEST_BODY)
 
+            ai = await _replayed_ai(database, settings)
             state = WebState(
                 database=database,
                 paths=paths,
@@ -231,26 +292,31 @@ async def _build_raw_payloads() -> dict[str, str]:
                 corpus=corpus,
                 hub=hub,
                 channels=channels,
+                ai=ai,
             )
             app = create_app(state)
             transport = httpx.ASGITransport(app=app)
             uuid_map: dict[str, str] = {}
             rendered: dict[str, str] = {}
 
-            async with httpx.AsyncClient(
-                transport=transport,
-                base_url=f"http://{LOOPBACK_HOST}:8765",
-                headers={"Host": f"{LOOPBACK_HOST}:8765"},
-            ) as client:
-                for filename, route in ROUTE_FIXTURES:
-                    response = await client.get(route)
-                    if response.status_code != 200:  # noqa: PLR2004
-                        msg = f"{route} returned HTTP {response.status_code}"
-                        raise RuntimeError(msg)
-                    sanitized = _sanitize_value(response.json(), uuid_map)
-                    rendered[filename] = (
-                        json.dumps(sanitized, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
-                    )
+            try:
+                async with httpx.AsyncClient(
+                    transport=transport,
+                    base_url=f"http://{LOOPBACK_HOST}:8765",
+                    headers={"Host": f"{LOOPBACK_HOST}:8765"},
+                ) as client:
+                    for filename, route in ROUTE_FIXTURES:
+                        response = await client.get(route)
+                        if response.status_code != 200:  # noqa: PLR2004
+                            msg = f"{route} returned HTTP {response.status_code}"
+                            raise RuntimeError(msg)
+                        sanitized = _sanitize_value(response.json(), uuid_map)
+                        rendered[filename] = (
+                            json.dumps(sanitized, indent=2, sort_keys=True, ensure_ascii=False)
+                            + "\n"
+                        )
+            finally:
+                await ai.close()
 
             return rendered
 

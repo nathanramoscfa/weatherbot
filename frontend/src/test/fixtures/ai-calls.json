@@ -1,0 +1,60 @@
+{
+  "calls": [
+    {
+      "allowance_micro_usd": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 1360,
+      "cost_micro_usd": 8846,
+      "error_kind": null,
+      "finished_at": "2026-10-13T01:33:00Z",
+      "id": 3,
+      "input_tokens": 1283,
+      "kind": "narration",
+      "location": null,
+      "model": "claude-sonnet-5-5",
+      "output_tokens": 288,
+      "refusal_category": null,
+      "started_at": "2026-10-13T01:33:00Z",
+      "status": "ok",
+      "stop_reason": "end_turn"
+    },
+    {
+      "allowance_micro_usd": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 0,
+      "cost_micro_usd": 7200,
+      "error_kind": null,
+      "finished_at": "2026-10-13T01:33:00Z",
+      "id": 2,
+      "input_tokens": 3300,
+      "kind": "summary",
+      "location": "Miami-Dade County Hall",
+      "model": "claude-sonnet-5-5",
+      "output_tokens": 60,
+      "refusal_category": null,
+      "started_at": "2026-10-13T01:33:00Z",
+      "status": "ok",
+      "stop_reason": "end_turn"
+    },
+    {
+      "allowance_micro_usd": 0,
+      "cache_read_tokens": 0,
+      "cache_write_tokens": 3732,
+      "cost_micro_usd": 28010,
+      "error_kind": null,
+      "finished_at": "2026-10-13T01:33:00Z",
+      "id": 1,
+      "input_tokens": 4845,
+      "kind": "briefing",
+      "location": "Miami-Dade County Hall",
+      "model": "claude-sonnet-5-5",
+      "output_tokens": 899,
+      "refusal_category": null,
+      "started_at": "2026-10-13T01:33:00Z",
+      "status": "ok",
+      "stop_reason": "end_turn"
+    }
+  ],
+  "limit": 20,
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md."
+}

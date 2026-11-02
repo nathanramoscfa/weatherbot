@@ -296,7 +296,11 @@ def syntax(relative: str, root: Path = REPO_ROOT) -> ast.Module:
 
 def defines(relative: str, *names: str, root: Path = REPO_ROOT) -> bool:
     """Whether top-level statements in ``relative`` define every name."""
-    tree = syntax(relative, root=root)
+    return defines_in(syntax(relative, root=root), *names)
+
+
+def defines_in(tree: ast.Module, *names: str) -> bool:
+    """Whether top-level statements in a parsed module define every name."""
     defined: set[str] = set()
     for node in tree.body:
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
@@ -704,12 +708,15 @@ def check_18_step2_tests_tracked(root: Path = REPO_ROOT) -> bool:
 
 
 def check_19_events_service(root: Path = REPO_ROOT) -> bool:
-    """Check 19: services/events.py defines EventHub, CycleWatcher, BrowserChannel, EVENT_KINDS."""
+    """Check 19: services/events.py defines EventHub, CycleWatcher, BrowserChannel, EVENT_KINDS.
+
+    The module is read at ``v2.0.0-phase-5``: Phase 6 Step 4 added the ``ai`` event kind.
+    """
     rel = f"{SERVICES}/events.py"
     required = ("EventHub", "CycleWatcher", "StalenessTimer", "BrowserChannel", "EVENT_KINDS")
-    if not files_exist(rel, root=root) or not defines(rel, *required, root=root):
+    tree = ast.parse(tagged(rel, root=root), filename=rel)
+    if not defines_in(tree, *required):
         return False
-    tree = syntax(rel, root=root)
     kinds = tuple(cast("tuple[str, ...]", ast.literal_eval(assigned(tree, "EVENT_KINDS"))))
     return kinds == EVENT_KINDS
 
@@ -1324,7 +1331,7 @@ STATIC_CHECKS: tuple[Check, ...] = (
     ),
     # Step 3 — The event stream, browser notifications, and the actions (19-25)
     (
-        "services/events.py defines EventHub, CycleWatcher, BrowserChannel, and 8 EventKind names",
+        "events.py at v2.0.0-phase-5: EventHub, CycleWatcher, BrowserChannel, 8 EventKind names",
         check_19_events_service,
     ),
     (

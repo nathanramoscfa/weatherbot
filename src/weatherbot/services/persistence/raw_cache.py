@@ -9,8 +9,12 @@ from the stored body. A body is stored once per SHA-256, zlib-compressed.
 Only allowlisted response headers are kept (``HEADER_ALLOWLIST``); no request header is
 ever stored. A URL can carry a location's coordinates: it stays in this local database,
 and no record above DEBUG names it.
+
+``stored_png`` reads one stored image back by its SHA-256 (an outlook graphic, for the page
+and for the narration), never by a path, and refuses a body that is not that PNG.
 """
 
+import hashlib
 import logging
 import zlib
 from dataclasses import dataclass
@@ -33,6 +37,7 @@ from weatherbot.sources.http import (
 
 LOGGER: Final = logging.getLogger("weatherbot.services.persistence")
 _VALIDATED_STATUSES: Final = (HTTP_OK, HTTP_NOT_MODIFIED)
+PNG_SIGNATURE: Final = b"\x89PNG\r\n\x1a\n"
 
 
 class CorruptBodyError(Exception):
@@ -92,6 +97,29 @@ def read_body(row: ResponseBodyRow) -> bytes:
     if len(body) != row.size or not inflater.eof:
         message = f"the stored body {row.sha256[:12]} is corrupt"
         raise CorruptBodyError(message)
+    return body
+
+
+def stored_png(engine: Engine, sha256: str) -> bytes | None:
+    """Read a stored PNG body by its SHA-256, refusing anything but that PNG.
+
+    Args:
+        engine: An engine on the database; the AI engine may read it too.
+        sha256: The body's SHA-256, as a snapshot's provenance records it.
+
+    Returns:
+        The body, or ``None`` when it is missing, corrupt, not that SHA-256, or not a PNG.
+    """
+    with Session(engine) as session:
+        row = session.get(ResponseBodyRow, sha256)
+        if row is None:
+            return None
+        try:
+            body = read_body(row)
+        except CorruptBodyError:
+            return None
+    if hashlib.sha256(body).hexdigest() != sha256 or not body.startswith(PNG_SIGNATURE):
+        return None
     return body
 
 

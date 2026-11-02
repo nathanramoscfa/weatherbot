@@ -218,6 +218,9 @@ describe("Dashboard", () => {
         title: null,
         body: null,
         display: false,
+        call_id: null,
+        output_id: null,
+        ai_kind: null,
       };
       window.dispatchEvent(
         new CustomEvent<StreamEvent>(STREAM_EVENT_DOM_NAME, {

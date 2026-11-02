@@ -186,12 +186,6 @@ def test_post_matrix_evaluates_all_thirty_two_rows_from_recorded_evidence() -> N
             "14",
         ),
         (
-            "src/weatherbot/services/events.py",
-            '"location",',
-            '"other_event",',
-            "19",
-        ),
-        (
             "frontend/vite.config.ts",
             "../src/weatherbot/web/static",
             "../src/weatherbot/web/other",
@@ -280,6 +274,40 @@ def test_the_tagged_status_still_decides_check_47(monkeypatch: pytest.MonkeyPatc
     failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
 
     assert failed == ["47"]
+
+
+def test_the_live_event_kinds_no_longer_move_check_19(monkeypatch: pytest.MonkeyPatch) -> None:
+    original = verification.read
+
+    def edited(path: str, root: Path = verification.REPO_ROOT) -> str:
+        text = original(path, root)
+        if path == "src/weatherbot/services/events.py":
+            assert '"location",' in text
+            return text.replace('"location",', '"other_event",')
+        return text
+
+    monkeypatch.setattr(verification, "read", edited)
+    failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
+
+    assert failed == []
+
+
+def test_the_tagged_event_kinds_still_decide_check_19(monkeypatch: pytest.MonkeyPatch) -> None:
+    original = verification.tagged
+
+    def edited(
+        relative: str, root: Path = verification.REPO_ROOT, *, tag: str = verification.PHASE_5_TAG
+    ) -> str:
+        text = original(relative, root, tag=tag)
+        if relative == "src/weatherbot/services/events.py":
+            assert '"location",' in text
+            return text.replace('"location",', '"other_event",')
+        return text
+
+    monkeypatch.setattr(verification, "tagged", edited)
+    failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
+
+    assert failed == ["19"]
 
 
 @pytest.mark.parametrize(

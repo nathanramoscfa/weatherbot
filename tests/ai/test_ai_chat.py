@@ -9,9 +9,9 @@ real SDK; the edge cases are hand-written streams.
 import hashlib
 import json
 import logging
-from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable, Iterator, Sequence
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator, Sequence
 from datetime import timedelta
-from typing import Any, cast
+from typing import Any
 
 import pytest
 from ai_support import (
@@ -587,7 +587,7 @@ async def test_a_conversation_answers_one_turn_at_a_time(chats: ChatFactory) -> 
 
 async def test_leaving_a_turn_early_closes_its_conversation(chats: ChatFactory) -> None:
     chat, _, _ = await chats([_text("One. Two. Three.")])
-    running = cast("AsyncGenerator[ChatEvent]", chat.turn(None, QUESTION, MIAMI))
+    running = chat.turn(None, QUESTION, MIAMI)
     conversation = _started([await anext(running)])
 
     await running.aclose()
