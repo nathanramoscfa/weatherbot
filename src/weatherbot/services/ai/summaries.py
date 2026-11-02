@@ -10,13 +10,21 @@ levels, the changes, the deciding evidence, the sources) and sends one
 ``max_tokens`` 1,500. ``validate_summary`` allows the previous and the new level only; a
 failing summary, an ``InvalidOutputError``, and a ``max_tokens`` stop are stored withheld
 with their reason and no text. A request refused before it was answered is
-``unavailable`` and stores nothing. ``latest`` reads a location's summaries, newest first.
-Phase 6 Step 4 wires the service into ``serve``.
+``unavailable`` and stores nothing. ``latest`` reads summaries, newest first.
+
+``ChangeSummarizer`` is how ``serve`` writes them: primed at start to the newest stored
+assessment, woken after every cycle, it summarizes the assessments stored since, newest
+first and one at a time, while ``[ai] change_summaries`` is on and the AI is ``ready``.
+Its mark moves past every assessment it reads, summarized or not, so a summary missed
+while ``serve`` was down or the AI was off, paused, or capped is never written later (a
+briefing covers it), and history is never backfilled.
 
 Nothing here logs a prompt, a context, or an answer. The module loads no SDK.
 """
 
 import asyncio
+import contextlib
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Final, Literal
@@ -32,14 +40,17 @@ from weatherbot.services.ai.errors import AiUnavailable, InvalidOutputError
 from weatherbot.services.ai.outputs import NewOutput, OutputRepository, StoredOutput
 from weatherbot.services.ai.prompts import prompt_version, system_blocks, user_turn
 from weatherbot.services.ai.schemas import ChangeSummary
-from weatherbot.services.ai.service import AiService
+from weatherbot.services.ai.service import AiPublish, AiService
 from weatherbot.services.ai.validate import first_violation, validate_summary
 from weatherbot.services.persistence.repositories import AssessmentRepository, StoredAssessment
 
 type SummaryStatus = Literal["ok", "withheld", "skipped", "unavailable"]
 
+LOGGER: Final = logging.getLogger("weatherbot.services.ai")
 SUMMARY_MAX_TOKENS: Final = 1_500
 SUMMARY_EFFORT: Final = "low"
+MAX_NEW_ASSESSMENTS: Final = 20
+"""At most this many assessments, the newest, are read after one wake."""
 
 
 @dataclass(frozen=True)
@@ -117,14 +128,14 @@ class ChangeSummaryService:
             service: The AI service.
         """
         self._service = service
-        self._outputs = OutputRepository(service.engine, now=service.clock)
+        self._outputs = OutputRepository(service.engine, now=service.clock, stored=service.stored)
         self._assessments = AssessmentRepository(service.engine)
 
-    def latest(self, location: str, limit: int) -> tuple[StoredOutput, ...]:
-        """Read a location's change summaries, newest first.
+    def latest(self, location: str | None, limit: int) -> tuple[StoredOutput, ...]:
+        """Read change summaries, newest first.
 
         Args:
-            location: The location's name.
+            location: The location's name, or ``None`` for every location.
             limit: At most this many.
 
         Returns:
@@ -223,3 +234,118 @@ class ChangeSummaryService:
             self._outputs.add, self._output(stored, version, call_id, reason=reason)
         )
         return SummaryOutcome("withheld", saved.id, reason=reason)
+
+
+class ChangeSummarizer:
+    """Writes ``serve``'s change summaries: one per qualifying new assessment, never a backlog."""
+
+    def __init__(
+        self, summaries: ChangeSummaryService, service: AiService, *, publish: AiPublish
+    ) -> None:
+        """Create the summarizer, unprimed.
+
+        Args:
+            summaries: The service that writes one assessment's summary.
+            service: The AI service, for its settings, its state, and its engine.
+            publish: Publishes each stored summary (the event hub's ``publish``).
+        """
+        self._summaries = summaries
+        self._service = service
+        self._publish = publish
+        self._assessments = AssessmentRepository(service.engine)
+        self._mark: int | None = None
+        self._woken = asyncio.Event()
+        self._loop: asyncio.AbstractEventLoop | None = None
+
+    @property
+    def mark(self) -> int | None:
+        """The id of the newest assessment read; ``None`` until primed."""
+        return self._mark
+
+    def prime(self) -> int:
+        """Mark the newest stored assessment, so only assessments stored later are summarized.
+
+        Returns:
+            The mark: the newest id, or 0 when none is stored.
+        """
+        self._mark = self._assessments.newest_id() or 0
+        return self._mark
+
+    def wake(self) -> None:
+        """Ask ``run`` to read the new assessments; safe from any thread."""
+        loop = self._loop
+        try:
+            running = asyncio.get_running_loop()
+        except RuntimeError:
+            running = None
+        if loop is None or running is loop:
+            self._woken.set()
+            return
+        with contextlib.suppress(RuntimeError):  # the loop has closed: nothing is waiting
+            loop.call_soon_threadsafe(self._woken.set)
+
+    async def run(self, stop: asyncio.Event) -> None:
+        """Wait for a wake, summarize what is new, and repeat until ``stop`` is set.
+
+        Args:
+            stop: Set when ``serve`` stops.
+        """
+        self._loop = asyncio.get_running_loop()
+        while not stop.is_set():
+            woken = asyncio.create_task(self._woken.wait())
+            stopped = asyncio.create_task(stop.wait())
+            try:
+                await asyncio.wait({woken, stopped}, return_when=asyncio.FIRST_COMPLETED)
+            finally:
+                for task in (woken, stopped):
+                    task.cancel()
+                await asyncio.gather(woken, stopped, return_exceptions=True)
+            if stop.is_set():
+                break
+            self._woken.clear()
+            await self.summarize_new()
+
+    async def summarize_new(self) -> tuple[SummaryOutcome, ...]:
+        """Summarize the assessments stored after the mark, newest first, one at a time.
+
+        Returns:
+            How each summarized assessment ended; empty when nothing was new, the feature
+            is off, AI is not ready, or the pass failed (logged by its error's type only).
+        """
+        try:
+            return await self._summarize_new()
+        except Exception as error:  # noqa: BLE001 - a summary never stops serve's loop
+            LOGGER.warning("change summaries failed (%s)", type(error).__name__)
+            return ()
+
+    async def _summarize_new(self) -> tuple[SummaryOutcome, ...]:
+        mark = self._mark if self._mark is not None else await asyncio.to_thread(self.prime)
+        new = await asyncio.to_thread(self._assessments.stored_after, mark, MAX_NEW_ASSESSMENTS)
+        if not new:
+            return ()
+        self._mark = max(mark, new[0][0])
+        if not self._service.settings.change_summaries:
+            LOGGER.info("change summaries are off; %d new assessment(s) not summarized", len(new))
+            return ()
+        outcomes: list[SummaryOutcome] = []
+        for assessment_id, location in new:
+            state = await asyncio.to_thread(self._service.state)
+            if state.state != "ready":
+                LOGGER.info("change summaries skipped: AI is %s (%s)", state.state, state.reason)
+                break
+            outcome = await self._summaries.summarize(assessment_id)
+            LOGGER.info(
+                "change summary for assessment %d: %s (%s)",
+                assessment_id,
+                outcome.status,
+                outcome.reason or "-",
+            )
+            if outcome.output_id is not None and not outcome.reused:
+                self._publish(
+                    "ai",
+                    {"output_id": outcome.output_id, "ai_kind": "summary", "location": location},
+                    ("briefings",),
+                    deduplicate=True,
+                )
+            outcomes.append(outcome)
+        return tuple(outcomes)

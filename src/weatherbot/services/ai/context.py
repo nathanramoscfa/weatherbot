@@ -45,7 +45,7 @@ from datetime import UTC, datetime, timedelta
 from types import MappingProxyType
 from typing import Annotated, Final, Literal
 
-from pydantic import AfterValidator, Field
+from pydantic import AfterValidator, Field, TypeAdapter
 
 from weatherbot.models import (
     RULE_TRIGGERS,
@@ -239,6 +239,21 @@ class SourceRef(DomainModel):
     advisory: str | None = None
     issued: Hour | None = None
     title: str = Field(min_length=1)
+
+
+_SOURCE_REFS: Final = TypeAdapter(tuple[SourceRef, ...])
+
+
+def stored_sources(stored: object) -> tuple[SourceRef, ...]:
+    """Read the sources a stored product's content holds back into records.
+
+    Args:
+        stored: The content's ``sources``, as stored (JSON values).
+
+    Returns:
+        The records; the strict models read instants from JSON text, as stored.
+    """
+    return _SOURCE_REFS.validate_json(json.dumps(stored))
 
 
 class NoaaText(DomainModel):

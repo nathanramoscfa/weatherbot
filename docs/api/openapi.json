@@ -527,10 +527,858 @@
           }
         }
       }
+    },
+    "/api/ai": {
+      "get": {
+        "summary": "Get Ai",
+        "description": "Return the AI's state, models, features, and today's spend against the cap.",
+        "operationId": "get_ai_api_ai_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/calls": {
+      "get": {
+        "summary": "Get Ai Calls",
+        "description": "Return the ledger's newest rows: kinds, statuses, tokens, costs, and reasons only.",
+        "operationId": "get_ai_calls_api_ai_calls_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Maximum ledger rows, newest first.",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Maximum ledger rows, newest first."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiCallsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/briefings": {
+      "get": {
+        "summary": "Get Briefings",
+        "description": "Return each watched location's newest stored briefing, and whether it is stale.",
+        "operationId": "get_briefings_api_ai_briefings_get",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional stored location name to filter by.",
+              "title": "Location"
+            },
+            "description": "Optional stored location name to filter by."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BriefingsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Stream Briefing",
+        "description": "Brief a location: replay its stored briefing, or stream a new one section by section.",
+        "operationId": "stream_briefing_api_ai_briefings_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BriefingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string",
+                      "contentMediaType": "application/json",
+                      "contentSchema": {
+                        "$ref": "#/components/schemas/BriefingStreamEvent"
+                      }
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "retry": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI is capped, or four AI streams run.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRefusalResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI is off, paused, or unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRefusalResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/summaries": {
+      "get": {
+        "summary": "Get Summaries",
+        "description": "Return the stored change summaries, newest first, withheld ones with their reason.",
+        "operationId": "get_summaries_api_ai_summaries_get",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional stored location name to filter by.",
+              "title": "Location"
+            },
+            "description": "Optional stored location name to filter by."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "description": "Maximum summaries, newest first.",
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "Maximum summaries, newest first."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummariesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/narrations": {
+      "get": {
+        "summary": "Get Narrations",
+        "description": "Return the newest stored narration of each of the latest snapshot's outlook graphics.",
+        "operationId": "get_narrations_api_ai_narrations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NarrationsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Stream Narration",
+        "description": "Narrate one official outlook graphic: reuse the stored narration, or write one.",
+        "operationId": "stream_narration_api_ai_narrations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NarrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string",
+                      "contentMediaType": "application/json",
+                      "contentSchema": {
+                        "$ref": "#/components/schemas/NarrationStreamEvent"
+                      }
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "retry": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI is capped, or four AI streams run.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRefusalResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI is off, paused, or unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRefusalResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/chat": {
+      "post": {
+        "summary": "Stream Chat",
+        "description": "Answer one question from the stored data, sentence by sentence.",
+        "operationId": "stream_chat_api_ai_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/event-stream": {
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string",
+                      "contentMediaType": "application/json",
+                      "contentSchema": {
+                        "$ref": "#/components/schemas/ChatStreamEvent"
+                      }
+                    },
+                    "event": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "retry": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI is capped, or four AI streams run.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRefusalResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI is off, paused, or unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRefusalResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/pause": {
+      "put": {
+        "summary": "Put Pause",
+        "description": "Pause every AI request, or lift the pause; a control row records each change.",
+        "operationId": "put_pause_api_ai_pause_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatusResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI is off: there is no AI service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRefusalResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ai/allowance": {
+      "post": {
+        "summary": "Post Allowance",
+        "description": "Raise today's limit by at most one day's cap; a fourth allowance in a day answers 409.",
+        "operationId": "post_allowance_api_ai_allowance_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllowanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatusResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI is off: there is no AI service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiRefusalResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Today's three allowances are used."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outlook": {
+      "get": {
+        "summary": "Get Outlook",
+        "description": "Return the official outlook graphics the latest snapshot stored.",
+        "operationId": "get_outlook_api_outlook_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutlookGraphicsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/outlook/{basin}/{horizon}": {
+      "get": {
+        "summary": "Get Outlook Graphic",
+        "description": "Return one official outlook graphic's PNG from the latest snapshot, or 404.",
+        "operationId": "get_outlook_graphic_api_outlook__basin___horizon__get",
+        "parameters": [
+          {
+            "name": "basin",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Basin"
+            }
+          },
+          {
+            "name": "horizon",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Horizon"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The official PNG.",
+            "content": {
+              "image/png": {}
+            }
+          },
+          "404": {
+            "description": "No such stored graphic."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AiAreaResponse": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Where the area lies and what it is."
+          },
+          "chance_text": {
+            "type": "string",
+            "title": "Chance Text",
+            "description": "Its chance as the TWO states it, or \"not stated\"."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "description",
+          "chance_text"
+        ],
+        "title": "AiAreaResponse",
+        "description": "One area an outlook graphic marks, in plain words, with its chance as the TWO states it."
+      },
+      "AiCallResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Id",
+            "description": "Ledger row identifier."
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind",
+            "description": "briefing, summary, chat, narration, or a control: allowance, pause, resume."
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "description": "Model id of a request; null for a control."
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location",
+            "description": "Location name the request was about, or null."
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "reserved, ok, failed, incomplete, declined, abandoned, or control (a control row)."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At",
+            "description": "UTC instant the request was reserved."
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At",
+            "description": "UTC instant it settled, or null."
+          },
+          "input_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Input Tokens",
+            "description": "Uncached input tokens."
+          },
+          "cache_write_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cache Write Tokens",
+            "description": "Prompt-cache write tokens."
+          },
+          "cache_read_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cache Read Tokens",
+            "description": "Prompt-cache read tokens."
+          },
+          "output_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Output Tokens",
+            "description": "Output tokens."
+          },
+          "cost_micro_usd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Micro Usd",
+            "description": "Cost at list price in micro-dollars; null while reserved."
+          },
+          "allowance_micro_usd": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Allowance Micro Usd",
+            "description": "An allowance row's amount in micro-dollars; 0 otherwise."
+          },
+          "stop_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop Reason",
+            "description": "The final message's stop reason, or null."
+          },
+          "refusal_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refusal Category",
+            "description": "A refusal's category, or null."
+          },
+          "error_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Kind",
+            "description": "Why the request failed, as a reason, or null."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "model",
+          "location",
+          "status",
+          "started_at",
+          "finished_at",
+          "input_tokens",
+          "cache_write_tokens",
+          "cache_read_tokens",
+          "output_tokens",
+          "cost_micro_usd",
+          "allowance_micro_usd",
+          "stop_reason",
+          "refusal_category",
+          "error_kind"
+        ],
+        "title": "AiCallResponse",
+        "description": "One AI ledger row: what it was, how it ended, and what it cost, never any text."
+      },
+      "AiCallsResponse": {
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Maximum number of rows requested."
+          },
+          "calls": {
+            "items": {
+              "$ref": "#/components/schemas/AiCallResponse"
+            },
+            "type": "array",
+            "title": "Calls",
+            "description": "Ledger rows, newest first."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "limit",
+          "calls",
+          "notice"
+        ],
+        "title": "AiCallsResponse",
+        "description": "Response document for ``GET /api/ai/calls``: the ledger, newest first."
+      },
+      "AiFeaturesResponse": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "Whether [ai] enabled lets AI run at all."
+          },
+          "change_summaries": {
+            "type": "boolean",
+            "title": "Change Summaries",
+            "description": "Whether serve summarizes each change."
+          },
+          "outlook_narration": {
+            "type": "boolean",
+            "title": "Outlook Narration",
+            "description": "Whether outlook graphics may be narrated."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "enabled",
+          "change_summaries",
+          "outlook_narration"
+        ],
+        "title": "AiFeaturesResponse",
+        "description": "Which AI products the ``[ai]`` settings switch on."
+      },
       "AiHealth": {
         "properties": {
           "state": {
@@ -570,6 +1418,238 @@
         "title": "AiHealth",
         "description": "The AI's state and today's spend: never a credential, a prompt, or an answer."
       },
+      "AiKindTotalsResponse": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/CallKind",
+            "description": "Request kind: briefing, summary, chat, or narration."
+          },
+          "requests": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Requests",
+            "description": "Requests of this kind today."
+          },
+          "input_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Input Tokens",
+            "description": "Uncached input tokens."
+          },
+          "cache_write_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cache Write Tokens",
+            "description": "Tokens written to the prompt cache."
+          },
+          "cache_read_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cache Read Tokens",
+            "description": "Tokens read from the prompt cache."
+          },
+          "output_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Output Tokens",
+            "description": "Output tokens, thinking included."
+          },
+          "cost_micro_usd": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cost Micro Usd",
+            "description": "Cost at list price, in micro-dollars."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "requests",
+          "input_tokens",
+          "cache_write_tokens",
+          "cache_read_tokens",
+          "output_tokens",
+          "cost_micro_usd"
+        ],
+        "title": "AiKindTotalsResponse",
+        "description": "One kind of request's count, tokens, and cost today."
+      },
+      "AiModelsResponse": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "description": "Model of briefings, chat, and narrations, by id."
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name",
+            "description": "Its display name, such as Claude Sonnet 5.5."
+          },
+          "summary_model": {
+            "type": "string",
+            "title": "Summary Model",
+            "description": "Model of the change summaries, by id."
+          },
+          "summary_model_name": {
+            "type": "string",
+            "title": "Summary Model Name",
+            "description": "Its display name."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model",
+          "model_name",
+          "summary_model",
+          "summary_model_name"
+        ],
+        "title": "AiModelsResponse",
+        "description": "The models AI requests run on, by id and by display name."
+      },
+      "AiRefusalDetail": {
+        "properties": {
+          "reason": {
+            "$ref": "#/components/schemas/AiUnavailableReason",
+            "description": "The reason, such as capped or busy."
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Fixed text for the reason; never an SDK message."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason",
+          "message"
+        ],
+        "title": "AiRefusalDetail",
+        "description": "Why an AI stream was refused before it began: a reason and its fixed text."
+      },
+      "AiRefusalResponse": {
+        "properties": {
+          "detail": {
+            "$ref": "#/components/schemas/AiRefusalDetail",
+            "description": "Why the stream was refused."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "AiRefusalResponse",
+        "description": "Response document of a 503 or 429 answer to an AI stream."
+      },
+      "AiSourceResponse": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key",
+            "description": "The key the product cites, such as S2."
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/SourceId",
+            "description": "Data-source register identifier."
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "The product's title, as a page shows it."
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code",
+            "description": "Product code (TCP, TWO, an NWS event), or null."
+          },
+          "issuer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issuer",
+            "description": "Issuing office, such as NHC, or null."
+          },
+          "advisory": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Advisory",
+            "description": "Advisory number, or null."
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At",
+            "description": "UTC issuance, to the hour, or null."
+          },
+          "why": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Why",
+            "description": "What the product took from the source, or null."
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "A public NOAA product page that names no point, or null (never the model's)."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "source_id",
+          "title",
+          "code",
+          "issuer",
+          "advisory",
+          "issued_at",
+          "url"
+        ],
+        "title": "AiSourceResponse",
+        "description": "A source an AI product cites, resolved from its stored record, never from the model."
+      },
       "AiStateName": {
         "type": "string",
         "enum": [
@@ -579,6 +1659,198 @@
           "capped",
           "unavailable"
         ]
+      },
+      "AiStatusResponse": {
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/AiStateName",
+            "description": "off, ready, paused, capped, or unavailable; computed without a request."
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiUnavailableReason"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why AI is not ready (for example no_credential or capped); null when ready."
+          },
+          "credential_source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CredentialSource"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Where the credential comes from (environment, auth_token, profile, or none), never its value; null while [ai] enabled is false."
+          },
+          "models": {
+            "$ref": "#/components/schemas/AiModelsResponse",
+            "description": "The models AI requests run on."
+          },
+          "features": {
+            "$ref": "#/components/schemas/AiFeaturesResponse",
+            "description": "Which AI products are switched on."
+          },
+          "today": {
+            "$ref": "#/components/schemas/AiTodayResponse",
+            "description": "Today's spend, reservations, and tokens."
+          },
+          "paused": {
+            "type": "boolean",
+            "title": "Paused",
+            "description": "Whether the manual pause holds."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "state",
+          "reason",
+          "credential_source",
+          "models",
+          "features",
+          "today",
+          "paused",
+          "notice"
+        ],
+        "title": "AiStatusResponse",
+        "description": "Response document for ``GET /api/ai`` and the AI controls: never a credential."
+      },
+      "AiTimelineItemResponse": {
+        "properties": {
+          "when": {
+            "type": "string",
+            "title": "When",
+            "description": "When, as the products state it."
+          },
+          "what": {
+            "type": "string",
+            "title": "What",
+            "description": "What happens then, in plain language."
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources",
+            "description": "The source keys that state it."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "when",
+          "what",
+          "sources"
+        ],
+        "title": "AiTimelineItemResponse",
+        "description": "One expected development in a briefing's timeline."
+      },
+      "AiTodayResponse": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "title": "Day",
+            "description": "The operator's local calendar day, YYYY-MM-DD."
+          },
+          "spent_micro_usd": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Spent Micro Usd",
+            "description": "Settled requests' cost, in micro-dollars."
+          },
+          "reserved_micro_usd": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Reserved Micro Usd",
+            "description": "Open reservations at their ceilings, in micro-dollars."
+          },
+          "cap_micro_usd": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cap Micro Usd",
+            "description": "The daily cap, before allowances."
+          },
+          "allowance_micro_usd": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Allowance Micro Usd",
+            "description": "Today's allowances, in micro-dollars."
+          },
+          "allowances_left": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Allowances Left",
+            "description": "How many more allowances today accepts."
+          },
+          "calls": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Calls",
+            "description": "Requests today, of every kind."
+          },
+          "input_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Input Tokens",
+            "description": "Uncached input tokens today."
+          },
+          "cache_write_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cache Write Tokens",
+            "description": "Prompt-cache write tokens today."
+          },
+          "cache_read_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cache Read Tokens",
+            "description": "Prompt-cache read tokens today."
+          },
+          "output_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Output Tokens",
+            "description": "Output tokens today."
+          },
+          "by_kind": {
+            "items": {
+              "$ref": "#/components/schemas/AiKindTotalsResponse"
+            },
+            "type": "array",
+            "title": "By Kind",
+            "description": "Today's totals per kind of request that ran."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "spent_micro_usd",
+          "reserved_micro_usd",
+          "cap_micro_usd",
+          "allowance_micro_usd",
+          "allowances_left",
+          "calls",
+          "input_tokens",
+          "cache_write_tokens",
+          "cache_read_tokens",
+          "output_tokens",
+          "by_kind"
+        ],
+        "title": "AiTodayResponse",
+        "description": "Today's AI spend against the cap, in the operator's local calendar day."
       },
       "AiUnavailableReason": {
         "type": "string",
@@ -862,6 +2134,23 @@
         ],
         "title": "AlertsResponse",
         "description": "Response document for ``GET /api/alerts``."
+      },
+      "AllowanceRequest": {
+        "properties": {
+          "usd": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Usd",
+            "description": "Dollars to add to today's limit, at most one day's cap."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "usd"
+        ],
+        "title": "AllowanceRequest",
+        "description": "Request body for ``POST /api/ai/allowance``."
       },
       "ArrivalProductSummaryResponse": {
         "properties": {
@@ -1592,6 +2881,14 @@
         "title": "AssessmentsResponse",
         "description": "Response document for ``GET /api/assessments``."
       },
+      "Basin": {
+        "type": "string",
+        "enum": [
+          "atl",
+          "pac",
+          "cpac"
+        ]
+      },
       "BreakpointSpan": {
         "properties": {
           "names": {
@@ -1636,6 +2933,427 @@
         "title": "BreakpointSpan",
         "description": "The stretch of coast a location sits on, named from NHC's breakpoint catalogue.\n\nEither the two catalogue breakpoints, in catalogue order, between which the\nlocation's coast falls (one when its nearest breakpoint has no neighbour in the same\ncountry), or the one ``country (region)`` entry that holds it. The span names a\ncoast; it never decides whether a watch or warning covers the location."
       },
+      "BriefingRequest": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Location",
+            "description": "Name of the watched location to brief."
+          },
+          "new": {
+            "type": "boolean",
+            "title": "New",
+            "description": "Ask for a new briefing even when one is stored.",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location"
+        ],
+        "title": "BriefingRequest",
+        "description": "Request body for ``POST /api/ai/briefings``."
+      },
+      "BriefingStreamEvent": {
+        "additionalProperties": false,
+        "description": "One server-sent event of ``POST /api/ai/briefings``: never a coordinate or a distance.",
+        "properties": {
+          "kind": {
+            "description": "started, then a section per validated section, then done; or withheld (remove every section shown) or unavailable.",
+            "enum": [
+              "started",
+              "section",
+              "done",
+              "withheld",
+              "unavailable"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Model id (started), or null.",
+            "title": "Model"
+          },
+          "model_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Its display name, or null.",
+            "title": "Model Name"
+          },
+          "assessment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The assessment briefed (started), or null.",
+            "title": "Assessment Id"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "UTC instant of that assessment (started), or null.",
+            "title": "As Of"
+          },
+          "prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "SHA-256 of the frozen prompt (started), or null.",
+            "title": "Prompt Version"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SectionName"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The section's name, or null."
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The section's plain text, or null.",
+            "title": "Text"
+          },
+          "output_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Stored product identifier (done, withheld), or null.",
+            "title": "Output Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "UTC instant the briefing was stored (done), or null.",
+            "title": "Created At"
+          },
+          "reused": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Whether a stored briefing was replayed (done), or null.",
+            "title": "Reused"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Why it was withheld or unavailable, or null.",
+            "title": "Reason"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Fixed text for the reason, never the model's, or null.",
+            "title": "Detail"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "BriefingStreamEvent",
+        "type": "object"
+      },
+      "BriefingsResponse": {
+        "properties": {
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location",
+            "description": "Location name filter, or null for every one."
+          },
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/LocationBriefingResponse"
+            },
+            "type": "array",
+            "title": "Locations",
+            "description": "Each watched location's newest briefing, in name order."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location",
+          "locations",
+          "notice"
+        ],
+        "title": "BriefingsResponse",
+        "description": "Response document for ``GET /api/ai/briefings``."
+      },
+      "CallKind": {
+        "type": "string",
+        "enum": [
+          "briefing",
+          "summary",
+          "chat",
+          "narration"
+        ]
+      },
+      "ChatRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question",
+            "description": "The question, 1 to 2,000 characters."
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id",
+            "description": "The conversation to continue, or null."
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location",
+            "description": "The location the question is about, or null for every one."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "ChatRequest",
+        "description": "Request body for ``POST /api/ai/chat``."
+      },
+      "ChatStreamEvent": {
+        "additionalProperties": false,
+        "description": "One server-sent event of ``POST /api/ai/chat``: never a coordinate or a distance.",
+        "properties": {
+          "kind": {
+            "description": "started, then tool and text events, then done; or withheld (the rest of the answer and the conversation end) or unavailable.",
+            "enum": [
+              "started",
+              "tool",
+              "text",
+              "done",
+              "withheld",
+              "unavailable"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The conversation (started), or null.",
+            "title": "Conversation Id"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Model id (started), or null.",
+            "title": "Model"
+          },
+          "model_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Its display name, or null.",
+            "title": "Model Name"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolName"
+              },
+              {
+                "const": "unknown_tool",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The tool's name only (tool), or null.",
+            "title": "Tool"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "One checked sentence (text), or null.",
+            "title": "Text"
+          },
+          "call_ids": {
+            "default": [],
+            "description": "The turn's ledger rows (done, withheld, unavailable).",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Call Ids",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Why it was withheld or unavailable, or null.",
+            "title": "Reason"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Fixed text for the reason, never the model's, or null.",
+            "title": "Detail"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "ChatStreamEvent",
+        "type": "object"
+      },
       "CreateLocationRequest": {
         "properties": {
           "name": {
@@ -1679,6 +3397,15 @@
         ],
         "title": "CreateLocationRequest",
         "description": "Request body for ``POST /api/locations``."
+      },
+      "CredentialSource": {
+        "type": "string",
+        "enum": [
+          "environment",
+          "auth_token",
+          "profile",
+          "none"
+        ]
       },
       "DatabaseHealth": {
         "properties": {
@@ -1840,7 +3567,8 @@
           "alert",
           "notification",
           "location",
-          "health"
+          "health",
+          "ai"
         ]
       },
       "GeoJsonCrsResponse": {
@@ -2148,6 +3876,13 @@
         "title": "HeartbeatHealth",
         "description": "One source, watch, or runner heartbeat row reported by ``GET /api/health``."
       },
+      "Horizon": {
+        "type": "string",
+        "enum": [
+          "2d0",
+          "7d0"
+        ]
+      },
       "LocationAlertResponse": {
         "properties": {
           "id": {
@@ -2426,6 +4161,47 @@
         "title": "LocationAssessmentResponse",
         "description": "A watched location paired with its latest stored assessment."
       },
+      "LocationBriefingResponse": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Watched location name."
+          },
+          "assessment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Id",
+            "description": "The location's latest assessment, or null."
+          },
+          "briefing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StoredBriefingResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The newest stored briefing, or null when none is stored."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location",
+          "assessment_id",
+          "briefing"
+        ],
+        "title": "LocationBriefingResponse",
+        "description": "One watched location's latest assessment and its newest stored briefing."
+      },
       "LocationResponse": {
         "properties": {
           "name": {
@@ -2672,6 +4448,276 @@
         ],
         "title": "MapResponse",
         "description": "Response document for ``GET /api/map`` and ``GET /api/replay/{atcf_id}/{advisory}``."
+      },
+      "NarrationRequest": {
+        "properties": {
+          "basin": {
+            "$ref": "#/components/schemas/Basin",
+            "description": "Outlook basin: atl, pac, or cpac."
+          },
+          "horizon": {
+            "$ref": "#/components/schemas/Horizon",
+            "description": "Outlook horizon: 2d0 or 7d0."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "basin",
+          "horizon"
+        ],
+        "title": "NarrationRequest",
+        "description": "Request body for ``POST /api/ai/narrations``."
+      },
+      "NarrationStreamEvent": {
+        "additionalProperties": false,
+        "description": "One server-sent event of ``POST /api/ai/narrations``: never a coordinate or a distance.",
+        "properties": {
+          "kind": {
+            "description": "started, then done with the narration; or withheld or unavailable.",
+            "enum": [
+              "started",
+              "done",
+              "withheld",
+              "unavailable"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Model id (started), or null.",
+            "title": "Model"
+          },
+          "model_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Its display name, or null.",
+            "title": "Model Name"
+          },
+          "basin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Basin"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Outlook basin (started), or null."
+          },
+          "horizon": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Horizon"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Outlook horizon (started), or null."
+          },
+          "graphic_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "SHA-256 of the graphic's PNG body (started), or null.",
+            "title": "Graphic Sha256"
+          },
+          "two_issued_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "UTC issuance of the TWO it is checked against, or null.",
+            "title": "Two Issued At"
+          },
+          "prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "SHA-256 of the narration prompt (started), or null.",
+            "title": "Prompt Version"
+          },
+          "output_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Stored product identifier (done, withheld), or null.",
+            "title": "Output Id"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "UTC instant the narration was stored (done), or null.",
+            "title": "Created At"
+          },
+          "reused": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Whether a stored narration was replayed (done), or null.",
+            "title": "Reused"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "What the graphic shows (done), or null.",
+            "title": "Summary"
+          },
+          "areas": {
+            "default": [],
+            "description": "Each area the graphic marks (done).",
+            "items": {
+              "$ref": "#/components/schemas/AiAreaResponse"
+            },
+            "title": "Areas",
+            "type": "array"
+          },
+          "caveat": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "That the official graphic governs (done), or null.",
+            "title": "Caveat"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Why it was withheld or unavailable, or null.",
+            "title": "Reason"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Fixed text for the reason, never the model's, or null.",
+            "title": "Detail"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "NarrationStreamEvent",
+        "type": "object"
+      },
+      "NarrationsResponse": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "Whether [ai] outlook_narration is on."
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "How every surface labels a narration."
+          },
+          "narrations": {
+            "items": {
+              "$ref": "#/components/schemas/StoredNarrationResponse"
+            },
+            "type": "array",
+            "title": "Narrations",
+            "description": "The latest snapshot's graphics' newest stored narrations."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "enabled",
+          "label",
+          "narrations",
+          "notice"
+        ],
+        "title": "NarrationsResponse",
+        "description": "Response document for ``GET /api/ai/narrations``."
       },
       "NotificationDecisionResponse": {
         "properties": {
@@ -3163,6 +5209,106 @@
         "title": "OutlookAreaSummaryResponse",
         "description": "Summary of one Tropical Weather Outlook area in the latest snapshot (without geometry)."
       },
+      "OutlookGraphicResponse": {
+        "properties": {
+          "basin": {
+            "$ref": "#/components/schemas/Basin",
+            "description": "Outlook basin: atl, pac, or cpac."
+          },
+          "horizon": {
+            "$ref": "#/components/schemas/Horizon",
+            "description": "Outlook horizon: 2d0 or 7d0."
+          },
+          "width_px": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Width Px",
+            "description": "Image width in pixels."
+          },
+          "height_px": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Height Px",
+            "description": "Image height in pixels."
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256",
+            "description": "SHA-256 of the PNG body served by the image route."
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At",
+            "description": "UTC instant the graphic was fetched."
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At",
+            "description": "UTC issuance when NHC states one, or null."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "basin",
+          "horizon",
+          "width_px",
+          "height_px",
+          "sha256",
+          "fetched_at",
+          "issued_at"
+        ],
+        "title": "OutlookGraphicResponse",
+        "description": "One official outlook graphic stored with the latest snapshot."
+      },
+      "OutlookGraphicsResponse": {
+        "properties": {
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id",
+            "description": "The latest snapshot, or null when no snapshot is stored."
+          },
+          "graphics": {
+            "items": {
+              "$ref": "#/components/schemas/OutlookGraphicResponse"
+            },
+            "type": "array",
+            "title": "Graphics",
+            "description": "The official outlook graphics the latest snapshot stored."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "graphics",
+          "notice"
+        ],
+        "title": "OutlookGraphicsResponse",
+        "description": "Response document for ``GET /api/outlook``."
+      },
       "OutlookRisk": {
         "properties": {
           "raw": {
@@ -3204,6 +5350,22 @@
         "title": "OutlookRiskCode",
         "description": "Formation risk in the Graphical Tropical Weather Outlook."
       },
+      "PauseRequest": {
+        "properties": {
+          "paused": {
+            "type": "boolean",
+            "title": "Paused",
+            "description": "Whether every AI request is refused until resumed."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "paused"
+        ],
+        "title": "PauseRequest",
+        "description": "Request body for ``PUT /api/ai/pause``."
+      },
       "QueryKey": {
         "type": "string",
         "enum": [
@@ -3215,7 +5377,9 @@
           "map",
           "timeline",
           "notifications",
-          "settings"
+          "settings",
+          "ai",
+          "briefings"
         ]
       },
       "ReplayStormSummaryResponse": {
@@ -3337,6 +5501,16 @@
         ],
         "title": "SchedulerHealth",
         "description": "The ``serve`` runner heartbeat summary reported by ``GET /api/health``."
+      },
+      "SectionName": {
+        "type": "string",
+        "enum": [
+          "situation",
+          "what_it_means_here",
+          "timeline",
+          "actions",
+          "sources"
+        ]
       },
       "SettingOriginResponse": {
         "properties": {
@@ -3809,6 +5983,384 @@
         ],
         "title": "StoredAssessmentResponse",
         "description": "The latest stored assessment for one watched location."
+      },
+      "StoredBriefingResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Id",
+            "description": "Stored AI product identifier."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "withheld"
+            ],
+            "title": "Status",
+            "description": "ok, or withheld (no text is kept)."
+          },
+          "withheld_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withheld Reason",
+            "description": "Why it was withheld, or null."
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "description": "Model id that wrote it."
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name",
+            "description": "Its display name."
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version",
+            "description": "SHA-256 of the frozen prompt it was written with."
+          },
+          "assessment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Id",
+            "description": "The assessment it was written for."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "UTC instant it was stored."
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale",
+            "description": "Whether a newer assessment has been stored since."
+          },
+          "situation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Situation",
+            "description": "The situation section, or null when withheld."
+          },
+          "what_it_means_here": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "What It Means Here",
+            "description": "What the engine's level means here, or null when withheld."
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/AiTimelineItemResponse"
+            },
+            "type": "array",
+            "title": "Timeline",
+            "description": "Expected developments, earliest first."
+          },
+          "actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Actions",
+            "description": "The ladder's actions, as the briefing says."
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/AiSourceResponse"
+            },
+            "type": "array",
+            "title": "Sources",
+            "description": "Every source the briefing cites."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "withheld_reason",
+          "model",
+          "model_name",
+          "prompt_version",
+          "assessment_id",
+          "created_at",
+          "stale",
+          "situation",
+          "what_it_means_here",
+          "timeline",
+          "actions",
+          "sources"
+        ],
+        "title": "StoredBriefingResponse",
+        "description": "A location's newest stored briefing: its sections, or why it was withheld."
+      },
+      "StoredNarrationResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Id",
+            "description": "Stored AI product identifier."
+          },
+          "basin": {
+            "$ref": "#/components/schemas/Basin",
+            "description": "Outlook basin: atl, pac, or cpac."
+          },
+          "horizon": {
+            "$ref": "#/components/schemas/Horizon",
+            "description": "Outlook horizon: 2d0 or 7d0."
+          },
+          "graphic_sha256": {
+            "type": "string",
+            "title": "Graphic Sha256",
+            "description": "SHA-256 of the narrated graphic's PNG body."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "withheld"
+            ],
+            "title": "Status",
+            "description": "ok, or withheld (no text is kept)."
+          },
+          "withheld_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withheld Reason",
+            "description": "Why it was withheld, or null."
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "description": "Model id that wrote it."
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name",
+            "description": "Its display name."
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version",
+            "description": "SHA-256 of the narration prompt."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "UTC instant it was stored."
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary",
+            "description": "What the graphic shows, or null when withheld."
+          },
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/AiAreaResponse"
+            },
+            "type": "array",
+            "title": "Areas",
+            "description": "Each area the graphic marks."
+          },
+          "caveat": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caveat",
+            "description": "That the official graphic governs, or null."
+          },
+          "two": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiSourceResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The TWO the narration was checked against, or null when withheld."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "basin",
+          "horizon",
+          "graphic_sha256",
+          "status",
+          "withheld_reason",
+          "model",
+          "model_name",
+          "prompt_version",
+          "created_at",
+          "summary",
+          "areas",
+          "caveat",
+          "two"
+        ],
+        "title": "StoredNarrationResponse",
+        "description": "The newest stored narration of one of the latest snapshot's outlook graphics."
+      },
+      "StoredSummaryResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Id",
+            "description": "Stored AI product identifier."
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location",
+            "description": "Location name."
+          },
+          "assessment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Id",
+            "description": "The assessment whose changes it summarizes."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "withheld"
+            ],
+            "title": "Status",
+            "description": "ok, or withheld (no text is kept)."
+          },
+          "withheld_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Withheld Reason",
+            "description": "Why it was withheld, or null."
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "description": "Model id that wrote it."
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name",
+            "description": "Its display name."
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version",
+            "description": "SHA-256 of the frozen prompt it was written with."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "UTC instant it was stored."
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary",
+            "description": "What changed, or null when withheld."
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/AiSourceResponse"
+            },
+            "type": "array",
+            "title": "Sources",
+            "description": "Every source the summary cites."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "location",
+          "assessment_id",
+          "status",
+          "withheld_reason",
+          "model",
+          "model_name",
+          "prompt_version",
+          "created_at",
+          "summary",
+          "sources"
+        ],
+        "title": "StoredSummaryResponse",
+        "description": "One stored change summary, or why it was withheld."
       },
       "StormClassification": {
         "properties": {
@@ -4637,6 +7189,47 @@
             "description": "Whether open dashboard pages should display this notification as an active alert.",
             "title": "Display",
             "type": "boolean"
+          },
+          "call_id": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "AI ledger row identifier (set on ai events about a request or a control).",
+            "title": "Call Id"
+          },
+          "output_id": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Stored AI product identifier (set on ai events about a stored product).",
+            "title": "Output Id"
+          },
+          "ai_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "AI row kind (briefing, summary, chat, narration, allowance, pause, or resume) on ai events, or null.",
+            "title": "Ai Kind"
           }
         },
         "required": [
@@ -4646,6 +7239,52 @@
         ],
         "title": "StreamEvent",
         "type": "object"
+      },
+      "SummariesResponse": {
+        "properties": {
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location",
+            "description": "Location name filter, or null for every one."
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Maximum number of summaries requested."
+          },
+          "summaries": {
+            "items": {
+              "$ref": "#/components/schemas/StoredSummaryResponse"
+            },
+            "type": "array",
+            "title": "Summaries",
+            "description": "Stored change summaries, newest first."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location",
+          "limit",
+          "summaries",
+          "notice"
+        ],
+        "title": "SummariesResponse",
+        "description": "Response document for ``GET /api/ai/summaries``: newest first."
       },
       "TestNotificationRequest": {
         "properties": {},
@@ -4953,6 +7592,20 @@
         ],
         "title": "TimelineResponse",
         "description": "Response document for ``GET /api/timeline``."
+      },
+      "ToolName": {
+        "type": "string",
+        "enum": [
+          "list_locations",
+          "get_assessment",
+          "get_evidence",
+          "get_alerts",
+          "get_storms",
+          "get_storm",
+          "get_outlook",
+          "get_ladder",
+          "get_history"
+        ]
       },
       "TriggerCycleRequest": {
         "properties": {},

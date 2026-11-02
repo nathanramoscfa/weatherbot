@@ -105,6 +105,9 @@ function makeStreamEvent(overrides: Partial<StreamEvent>): StreamEvent {
     title: null,
     body: null,
     display: false,
+    call_id: null,
+    output_id: null,
+    ai_kind: null,
     ...overrides,
   };
 }

@@ -98,14 +98,25 @@ shared `models` package. Each layer's `__init__.py` states its rule;
   layer, `httpx`, or a writing service, never fetches a URL, and never
   decides a level. Every request goes through `AiCaller` (reserve under
   `BEGIN IMMEDIATE`, send, settle from the SDK's usage), and every surface
-  reads `AiService.state()`. The credential is the SDK's to resolve; no code
+  reads `AiService.state()`. Its `publish` hook (`serve` hands it the event
+  hub's `publish`) turns each settle, control row, and stored product into an
+  `ai` event, and `serve` runs `ChangeSummarizer` beside the cycle watcher. The credential is the SDK's to resolve; no code
   copies it. AI tests replay recorded answers through the real SDK
   (`tests/ai/ai_support.py`: an `httpx2.MockTransport` behind
   `anthropic.DefaultAsyncHttpxClient`, a key built at run time) through
   `Runtime.make_claude` and `WebState.ai`; `tests/conftest.py` deletes every
   `ANTHROPIC_*` variable, so no test reaches the operator's credential.
 - `web/` — the FastAPI app over the services (`weatherbot.web`). It imports
-  `services` and `models` only (never `cli`, `sources`, or `engine`).
+  `services` and `models` only (never `cli`, `sources`, or `engine`). Its AI
+  routes (`web/routes/ai.py`) are the reads `GET /api/ai`, `/api/ai/calls`,
+  `/api/ai/briefings`, `/api/ai/summaries`, and `/api/ai/narrations`; the
+  server-sent event streams `POST /api/ai/briefings`, `/api/ai/chat`, and
+  `/api/ai/narrations`, guarded writes that answer 503 or 429 with a reason
+  before they begin and run at most four at once, each reaching the database
+  only through the AI services in worker threads; and the controls `PUT
+  /api/ai/pause` and `POST /api/ai/allowance`. `web/routes/outlook.py` serves
+  NHC's outlook PNGs from the stored snapshot by SHA-256. No AI answer or event
+  carries the key, a prompt, a question, or a coordinate.
 - `cli/` — Typer commands over the services and `web` (`weatherbot serve`
   hosts the embedded web server).
 

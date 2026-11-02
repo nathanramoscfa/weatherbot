@@ -1,6 +1,7 @@
 # tests/cli/test_serve_web.py
 """``weatherbot serve`` embedded web server, ``--open/--no-open``, and ``monitor.lock`` URL."""
 
+import asyncio
 import socket
 from typing import Final
 
@@ -10,6 +11,7 @@ from cli_support import MIAMI, add_landmark, quiet_fetcher, recorded_services, r
 from source_support import NOW
 
 from weatherbot.cli.runtime import Runtime
+from weatherbot.services.ai.summaries import ChangeSummarizer
 from weatherbot.services.config import AppPaths
 from weatherbot.services.locks import ProcessLock
 from weatherbot.services.persistence.database import open_database
@@ -95,6 +97,49 @@ def test_serve_opens_browser_by_default_only_in_terminal_and_no_open_suppresses_
 
     assert len(opened_terminal) == 1
     assert opened_no_open == []
+
+
+def test_serve_primes_the_change_summarizer_and_each_cycle_wakes_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    primed: list[int] = []
+    woken = asyncio.Event()
+    prime = ChangeSummarizer.prime
+
+    def _spy_prime(self: ChangeSummarizer) -> int:
+        primed.append(prime(self))
+        return primed[-1]
+
+    async def _spy_pass(_self: ChangeSummarizer) -> tuple[()]:
+        woken.set()
+        return ()
+
+    async def _stop_once_woken(_seconds: float) -> None:
+        await asyncio.wait_for(woken.wait(), timeout=5.0)
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(ChangeSummarizer, "prime", _spy_prime)
+    monkeypatch.setattr(ChangeSummarizer, "summarize_new", _spy_pass)
+    with recorded_services() as router:
+        router.route(host="127.0.0.1").pass_through()
+        add_landmark(MIAMI, "miami-dade")
+        base = runtime(now=NOW)
+        rt = Runtime(
+            environ=base.environ,
+            make_fetcher=quiet_fetcher,
+            make_toast=base.make_toast,
+            identity=base.identity,
+            task_runner=base.task_runner,
+            windows=base.windows,
+            now=lambda: NOW,
+            sleep=_stop_once_woken,
+            terminal=False,
+        )
+        result = run(["serve", "--no-open"], rt)
+
+    assert result.exit_code == 0, result.stderr
+    assert primed == [0]
+    assert woken.is_set()
 
 
 def test_serve_continues_monitor_when_web_port_cannot_be_bound(

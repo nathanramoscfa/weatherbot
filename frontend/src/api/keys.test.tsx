@@ -8,7 +8,7 @@ import {
 } from "./keys.ts";
 
 describe("query keys vocabulary", () => {
-  it("matches the nine server-invalidatable query keys and keeps static keys separate", () => {
+  it("matches the eleven server-invalidatable query keys and keeps static keys separate", () => {
     expect(INVALIDATABLE_QUERY_KEYS).toEqual([
       "health",
       "locations",
@@ -19,6 +19,8 @@ describe("query keys vocabulary", () => {
       "timeline",
       "notifications",
       "settings",
+      "ai",
+      "briefings",
     ]);
     expect(STATIC_QUERY_KEYS).toEqual(["replay", "disclaimer", "licenses"]);
 
@@ -30,6 +32,8 @@ describe("query keys vocabulary", () => {
     }
 
     expect(queryKeys.health()).toEqual(["health"]);
+    expect(queryKeys.ai()).toEqual(["ai"]);
+    expect(queryKeys.briefings()).toEqual(["briefings"]);
     expect(queryKeys.timeline()).toEqual(["timeline"]);
     expect(queryKeys.timeline("Miami-Dade")).toEqual([
       "timeline",

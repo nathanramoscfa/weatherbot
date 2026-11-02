@@ -1247,6 +1247,37 @@ class AssessmentRepository:
                     levels[loc_name] = int(level)
             return levels
 
+    def newest_id(self) -> int | None:
+        """Return the newest stored assessment's id, of any location.
+
+        Returns:
+            The highest id, or ``None`` when none is stored.
+        """
+        with Session(self._engine) as session:
+            return session.scalar(
+                select(AssessmentRow.id).order_by(AssessmentRow.id.desc()).limit(1)
+            )
+
+    def stored_after(self, mark: int, limit: int) -> tuple[tuple[int, str], ...]:
+        """Return the assessments stored after an id, newest first, without decoding them.
+
+        Args:
+            mark: The id after which to read.
+            limit: At most this many, the newest.
+
+        Returns:
+            Each assessment's id and its location's name.
+        """
+        with Session(self._engine) as session:
+            rows = session.execute(
+                select(AssessmentRow.id, LocationRow.name)
+                .join(LocationRow, LocationRow.id == AssessmentRow.location_id)
+                .where(AssessmentRow.id > mark)
+                .order_by(AssessmentRow.id.desc())
+                .limit(limit)
+            ).all()
+            return tuple((int(row_id), str(name)) for row_id, name in rows)
+
     def latest_heads(self) -> dict[str, AssessmentHead]:
         """Return each stored location's latest assessment's id, level, instant, and thresholds.
 

@@ -1,0 +1,60 @@
+{
+  "graphics": [
+    {
+      "basin": "atl",
+      "fetched_at": "2026-10-13T01:30:00Z",
+      "height_px": 679,
+      "horizon": "2d0",
+      "issued_at": null,
+      "sha256": "5f0c2bcd00ad090d2a18ef0f2dba2840170b5fa2472c1883bce02946db4cdecc",
+      "width_px": 900
+    },
+    {
+      "basin": "atl",
+      "fetched_at": "2026-10-13T01:30:00Z",
+      "height_px": 679,
+      "horizon": "7d0",
+      "issued_at": null,
+      "sha256": "d78f6879789d46100745b543bcfa04e9b45b8c980e259d7ce3115bc677fc5013",
+      "width_px": 900
+    },
+    {
+      "basin": "pac",
+      "fetched_at": "2026-10-13T01:30:00Z",
+      "height_px": 547,
+      "horizon": "2d0",
+      "issued_at": null,
+      "sha256": "c3f22e536bb2cb60de2d052bec168ab667c21e8ccd466c13d711357fe954782b",
+      "width_px": 900
+    },
+    {
+      "basin": "pac",
+      "fetched_at": "2026-10-13T01:30:00Z",
+      "height_px": 547,
+      "horizon": "7d0",
+      "issued_at": null,
+      "sha256": "e700c55dc6f26238b398b6a7f57a767c5f401e7e1422f0c0ea04b9b081394f77",
+      "width_px": 900
+    },
+    {
+      "basin": "cpac",
+      "fetched_at": "2026-10-13T01:30:00Z",
+      "height_px": 679,
+      "horizon": "2d0",
+      "issued_at": null,
+      "sha256": "9d2c3766e9d9ee2f81c750bdd0dc3cb9348adcc459d14d8c94e0e8c405b83202",
+      "width_px": 900
+    },
+    {
+      "basin": "cpac",
+      "fetched_at": "2026-10-13T01:30:00Z",
+      "height_px": 679,
+      "horizon": "7d0",
+      "issued_at": null,
+      "sha256": "edf20a90104404d387a83a5a51fe90ffaa5396ca6f7d5bc797e29246651785c9",
+      "width_px": 900
+    }
+  ],
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "snapshot_id": "00000000-0000-4000-8000-000000000001"
+}

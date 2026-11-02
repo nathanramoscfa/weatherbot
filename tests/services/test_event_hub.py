@@ -16,8 +16,10 @@ from check_personal_data import load_landmarks, synthetic_coordinates
 from weatherbot.models import LatLon, Location
 from weatherbot.services.config import AppPaths, Settings
 from weatherbot.services.events import (
+    EVENT_KINDS,
     MAX_QUEUE_SIZE,
     MAX_SUBSCRIBERS,
+    QUERY_KEYS,
     BrowserChannel,
     EventHub,
     HubEvent,
@@ -249,3 +251,37 @@ async def test_cycle_listener_emits_events_in_order_and_no_event_holds_a_coordin
 
     sub.close()
     assert first.cycle_id < second.cycle_id < third.cycle_id
+
+
+@pytest.mark.anyio
+async def test_ai_events_publish_a_row_once_per_status_and_a_product_once() -> None:
+    hub = EventHub(asyncio.get_running_loop(), now=lambda: NOW)
+    sub = hub.subscribe()
+    call = {"call_id": 4, "ai_kind": "chat", "location": "Parliament Square"}
+
+    hub.publish("ai", call | {"status": "reserved"}, ("ai",), deduplicate=True)
+    hub.publish("ai", call | {"status": "ok"}, ("ai",), deduplicate=True)
+    hub.publish("ai", call | {"status": "ok"}, ("ai",), deduplicate=True)
+    output = {"output_id": 2, "ai_kind": "briefing", "location": "Parliament Square"}
+    hub.publish("ai", output, ("briefings",), deduplicate=True)
+    hub.publish("ai", output, ("briefings",), deduplicate=True)
+    events: list[HubEvent] = []
+    while sub.has_pending:
+        events.append(await anext(sub))
+    sub.close()
+
+    assert "ai" in EVENT_KINDS
+    assert {"ai", "briefings"} <= set(QUERY_KEYS)
+    assert sub.hello.invalidate == QUERY_KEYS
+    assert [(e.kind, e.call_id, e.status, e.output_id, e.invalidate) for e in events] == [
+        ("ai", 4, "reserved", None, ("ai",)),
+        ("ai", 4, "ok", None, ("ai",)),
+        ("ai", None, None, 2, ("briefings",)),
+    ]
+    stream = hub_event_to_stream_event(events[-1])
+    assert (stream.kind, stream.output_id, stream.ai_kind, stream.location) == (
+        "ai",
+        2,
+        "briefing",
+        "Parliament Square",
+    )

@@ -11,15 +11,21 @@ once, on first use, and never while AI is off; ``probe()`` sends one free
 ``count_tokens`` request, which the ledger does not record, for ``doctor``'s online
 check. The credential's source is resolved once per service and never its value.
 
+The ``publish`` hook (``serve`` hands it the event hub's ``publish``) hears of every
+settled request and control change, as an ``ai`` event invalidating ``ai``, and of every
+stored product, as one invalidating ``briefings`` and naming the location; each carries
+ids, kinds, a status, and a location name, never a prompt or an answer.
+
 This module imports the SDK only inside ``caller()`` and ``probe()``, so a surface can
 read the state's types without loading it.
 """
 
+import logging
 import os
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from datetime import datetime, tzinfo
-from typing import TYPE_CHECKING, Final, Literal
+from typing import TYPE_CHECKING, Any, Final, Literal, Protocol
 
 from sqlalchemy import Engine
 
@@ -29,7 +35,7 @@ from weatherbot.services.ai.errors import (
     AuthGuard,
     from_exception,
 )
-from weatherbot.services.ai.ledger import Ledger, LedgerDay, micro_usd
+from weatherbot.services.ai.ledger import Ledger, LedgerChange, LedgerDay, micro_usd
 from weatherbot.services.ai.pricing import PRICES, ceiling_micro_usd
 from weatherbot.services.config import AiSettings
 
@@ -38,9 +44,29 @@ if TYPE_CHECKING:
 
     from weatherbot.services.ai.caller import AiCaller
     from weatherbot.services.ai.client import ClaudeFactory
+    from weatherbot.services.ai.outputs import StoredOutput
 
 type AiStateName = Literal["off", "ready", "paused", "capped", "unavailable"]
 type CredentialSource = Literal["environment", "auth_token", "profile", "none"]
+type AiQueryKey = Literal["ai", "briefings"]
+
+LOGGER: Final = logging.getLogger("weatherbot.services.ai")
+
+
+class AiPublish(Protocol):
+    """The event hub's ``publish``, as the AI service calls it."""
+
+    def __call__(
+        self,
+        event_kind: Literal["ai"],
+        data: Mapping[str, Any] | None = None,
+        invalidate: Iterable[AiQueryKey] = (),
+        *,
+        deduplicate: bool = False,
+    ) -> None:
+        """Publish an ``ai`` event naming the query keys a page must refetch."""
+        ...
+
 
 SMALLEST_REQUEST_PROMPT_TOKENS: Final = 3_000
 """A change summary's frozen part alone, a floor for the smallest request's prompt: the
@@ -89,6 +115,7 @@ class AiService:
         environ: Mapping[str, str] | None = None,
         now: Callable[[], datetime],
         local_zone: tzinfo | None = None,
+        publish: AiPublish | None = None,
     ) -> None:
         """Create the service; no client is constructed yet.
 
@@ -99,14 +126,20 @@ class AiService:
             environ: The environment; ``os.environ`` when omitted.
             now: The clock.
             local_zone: The operator's zone for the ledger's day; the machine's by default.
+            publish: Hears of settled requests, control changes, and stored products.
         """
         self._engine = engine
         self._settings = settings
         self._factory = factory
         self._environ: Mapping[str, str] = os.environ if environ is None else environ
         self._now = now
+        self._publish = publish
         self._ledger = Ledger(
-            engine, cap_micro_usd=micro_usd(settings.daily_cap_usd), now=now, local_zone=local_zone
+            engine,
+            cap_micro_usd=micro_usd(settings.daily_cap_usd),
+            now=now,
+            local_zone=local_zone,
+            changed=self._ledger_changed,
         )
         self._auth = AuthGuard(now)
         self._credential: CredentialSource | None = None
@@ -132,6 +165,32 @@ class AiService:
     def clock(self) -> Callable[[], datetime]:
         """The clock every product stamps its rows with."""
         return self._now
+
+    def _ledger_changed(self, change: LedgerChange) -> None:
+        data = {
+            "call_id": change.call_id,
+            "ai_kind": change.kind,
+            "status": change.status,
+            "location": change.location,
+        }
+        self._publish_ai(data, ("ai",))
+
+    def stored(self, output: "StoredOutput") -> None:
+        """Publish a stored product: an ``ai`` event invalidating ``briefings``.
+
+        Args:
+            output: The product, ``ok`` or withheld, just committed.
+        """
+        data = {"output_id": output.id, "ai_kind": output.kind, "location": output.location_name}
+        self._publish_ai(data, ("briefings",))
+
+    def _publish_ai(self, data: Mapping[str, object], invalidate: tuple[AiQueryKey, ...]) -> None:
+        if self._publish is None:
+            return
+        try:
+            self._publish("ai", data, invalidate, deduplicate=True)
+        except Exception as error:  # noqa: BLE001 - a page's refresh never fails a request
+            LOGGER.warning("an ai event was not published (%s)", type(error).__name__)
 
     def credential(self) -> CredentialSource:
         """Resolve where the credential comes from, once; never its value.

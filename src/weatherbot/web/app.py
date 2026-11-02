@@ -25,6 +25,7 @@ from weatherbot.services.schedule import MonitorSchedule
 from weatherbot.services.toast import TOAST_OFF, NullChannel
 from weatherbot.web.guards import install_guards
 from weatherbot.web.routes.actions import router as actions_router
+from weatherbot.web.routes.ai import router as ai_router
 from weatherbot.web.routes.alerts import router as alerts_router
 from weatherbot.web.routes.assessments import router as assessments_router
 from weatherbot.web.routes.disclaimer import router as disclaimer_router
@@ -33,6 +34,7 @@ from weatherbot.web.routes.health import router as health_router
 from weatherbot.web.routes.locations import router as locations_router
 from weatherbot.web.routes.map import router as map_router
 from weatherbot.web.routes.notifications import router as notifications_router
+from weatherbot.web.routes.outlook import router as outlook_router
 from weatherbot.web.routes.replay import router as replay_router
 from weatherbot.web.routes.settings import router as settings_router
 from weatherbot.web.routes.storms import router as storms_router
@@ -40,9 +42,12 @@ from weatherbot.web.routes.timeline import router as timeline_router
 from weatherbot.web.static_files import install_static_routes, load_static_bundle
 
 if TYPE_CHECKING:
+    from weatherbot.services.ai.chat import ChatService
     from weatherbot.services.ai.service import AiService
 
 LOGGER: Final = logging.getLogger("weatherbot.web.app")
+MAX_AI_STREAMS: Final = 4
+"""At most this many AI streams run at once, server-wide; a fifth answers 429."""
 
 
 @dataclass
@@ -54,6 +59,8 @@ class _ActionState:
     last_test_notification_at: datetime | None = None
     cycle_task: asyncio.Task[CycleResult | None] | None = None
     default_schedule: MonitorSchedule | None = None
+    ai_streams: asyncio.Semaphore = field(default_factory=lambda: asyncio.Semaphore(MAX_AI_STREAMS))
+    chat: "ChatService | None" = None
 
 
 @dataclass(frozen=True)
@@ -134,6 +141,19 @@ class WebState:
     def mark_test_notification(self, at: datetime) -> None:
         """Record when ``POST /api/notifications/test`` last ran."""
         self._actions.last_test_notification_at = at
+
+    @property
+    def ai_streams(self) -> asyncio.Semaphore:
+        """The slots of the AI streams running now, at most ``MAX_AI_STREAMS``."""
+        return self._actions.ai_streams
+
+    def chat_service(self, ai: "AiService") -> "ChatService":
+        """Return the one chat service, whose conversations live in this server's memory."""
+        if self._actions.chat is None:
+            from weatherbot.services.ai.chat import ChatService  # noqa: PLC0415 - AI loads on demand
+
+            self._actions.chat = ChatService(ai)
+        return self._actions.chat
 
     def start_manual_cycle(
         self,
@@ -233,5 +253,7 @@ def create_app(state: WebState) -> FastAPI:
     app.include_router(replay_router)
     app.include_router(events_router)
     app.include_router(actions_router)
+    app.include_router(ai_router)
+    app.include_router(outlook_router)
     install_static_routes(app, bundle)
     return app

@@ -10,10 +10,13 @@ thread and from worker threads (via ``loop.call_soon_threadsafe``), and every
 ``assessment``, ``alert``, and ``notification`` events naming the query keys a page must
 refetch. ``CycleWatcher`` polls four high-water marks off the loop's thread every 10
 seconds so cycles, notifications, assessments, and location changes stored by other
-processes reach open pages without duplicate publication. ``StalenessTimer`` schedules one
-``health`` event at the earliest future instant any heartbeat with a cadence turns stale.
-``BrowserChannel`` implements ``Channel`` (``name == "browser"``, ``interrupts == True``)
-and delivers notifications to open dashboards over the hub.
+processes reach open pages without duplicate publication, and two more, the newest
+``ai_calls`` and ``ai_outputs`` ids, so a terminal's ``brief`` or ``ask`` reaches them too.
+An ``ai`` event names a ledger row (with its status) or a stored AI product, its kind, and
+its location, never its text. ``StalenessTimer`` schedules one ``health`` event at the
+earliest future instant any heartbeat with a cadence turns stale. ``BrowserChannel``
+implements ``Channel`` (``name == "browser"``, ``interrupts == True``) and delivers
+notifications to open dashboards over the hub.
 """
 
 from __future__ import annotations
@@ -47,6 +50,8 @@ from weatherbot.services.persistence.repositories import (
     StoredAssessment,
 )
 from weatherbot.services.persistence.tables import (
+    AiCallRow,
+    AiOutputRow,
     AssessmentRow,
     LocationRow,
     MonitorCycleRow,
@@ -67,6 +72,7 @@ type EventKind = Literal[
     "notification",
     "location",
     "health",
+    "ai",
 ]
 EVENT_KINDS: Final[tuple[EventKind, ...]] = (
     "hello",
@@ -77,6 +83,7 @@ EVENT_KINDS: Final[tuple[EventKind, ...]] = (
     "notification",
     "location",
     "health",
+    "ai",
 )
 
 type QueryKey = Literal[
@@ -89,6 +96,8 @@ type QueryKey = Literal[
     "timeline",
     "notifications",
     "settings",
+    "ai",
+    "briefings",
 ]
 QUERY_KEYS: Final[tuple[QueryKey, ...]] = (
     "health",
@@ -100,11 +109,17 @@ QUERY_KEYS: Final[tuple[QueryKey, ...]] = (
     "timeline",
     "notifications",
     "settings",
+    "ai",
+    "briefings",
 )
 
 MAX_SUBSCRIBERS: Final = 16
 MAX_QUEUE_SIZE: Final = 100
 DEFAULT_WATCH_INTERVAL_S: Final = 10.0
+MAX_WATCHED_AI_ROWS: Final = 100
+"""At most this many new ``ai_calls`` or ``ai_outputs`` rows are read in one poll."""
+MAX_PENDING_AI_CALLS: Final = 32
+"""At most this many reserved ledger rows are watched for their settle."""
 
 BROWSER_OFF: Final = "turned off by [notifications] browser"
 NO_OPEN_DASHBOARD: Final = "no open dashboard"
@@ -146,6 +161,9 @@ class HubEvent:
     title: str | None = None
     body: tuple[str, ...] | None = None
     display: bool = False
+    call_id: int | None = None
+    output_id: int | None = None
+    ai_kind: str | None = None
 
 
 class Subscription(AsyncIterator[HubEvent]):
@@ -297,6 +315,7 @@ class EventHub:
         self._published_assessments: set[int] = set()
         self._published_notifications: set[int] = set()
         self._published_locations: dict[str, tuple[bool, datetime | None] | None] = {}
+        self._published_ai: set[tuple[str, int, str | None]] = set()
         self._cycle_callbacks: list[Callable[[], None]] = []
 
     @property
@@ -452,6 +471,9 @@ class EventHub:
             title=payload.get("title"),
             body=tuple(payload["body"]) if payload.get("body") is not None else None,
             display=bool(payload.get("display", False)),
+            call_id=payload.get("call_id"),
+            output_id=payload.get("output_id"),
+            ai_kind=payload.get("ai_kind"),
         )
 
         with self._lock:
@@ -484,22 +506,17 @@ class EventHub:
                 self._published_snapshots,
                 deduplicate=deduplicate,
             )
-        if event_kind == "assessment":
-            return self._record_id_publication(
-                payload.get("assessment_id"),
-                int,
-                self._published_assessments,
-                deduplicate=deduplicate,
+        if event_kind in {"assessment", "notification"}:
+            key, seen = (
+                ("assessment_id", self._published_assessments)
+                if event_kind == "assessment"
+                else ("notification_id", self._published_notifications)
             )
-        if event_kind == "notification":
-            return self._record_id_publication(
-                payload.get("notification_id"),
-                int,
-                self._published_notifications,
-                deduplicate=deduplicate,
-            )
+            return self._record_id_publication(payload.get(key), int, seen, deduplicate=deduplicate)
         if event_kind == "location" and "_location_state" in payload:
             return self._record_location_publication(payload, deduplicate=deduplicate)
+        if event_kind == "ai":
+            return self._record_ai_publication(payload, deduplicate=deduplicate)
         return True
 
     def _record_cycle_publication(self, cycle_id: object, *, deduplicate: bool) -> bool:
@@ -540,6 +557,22 @@ class EventHub:
         if deduplicate and self._published_locations.get(loc_name, ()) == state:
             return False
         self._published_locations[loc_name] = state
+        return True
+
+    def _record_ai_publication(self, payload: dict[str, Any], *, deduplicate: bool) -> bool:
+        """A stored product is published once; a ledger row once per status it reaches."""
+        output_id = payload.get("output_id")
+        call_id = payload.get("call_id")
+        if isinstance(output_id, int):
+            key: tuple[str, int, str | None] = ("output", output_id, None)
+        elif isinstance(call_id, int):
+            status = payload.get("status")
+            key = ("call", call_id, status if isinstance(status, str) else None)
+        else:
+            return True
+        if deduplicate and key in self._published_ai:
+            return False
+        self._published_ai.add(key)
         return True
 
     def record_location_change(
@@ -641,6 +674,16 @@ class EventHub:
 
 
 @dataclass(frozen=True, slots=True)
+class _AiRow:
+    """A ledger row or a stored AI product: its id, kind, location, and a row's status."""
+
+    id: int
+    kind: str
+    location: str | None
+    status: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class _WatchedState:
     cycles: tuple[MonitorCycle, ...]
     notifications: tuple[StoredNotification, ...]
@@ -649,10 +692,47 @@ class _WatchedState:
     max_cycle_id: int = 0
     max_notification_id: int = 0
     latest_assessment_ids: dict[str, int] | None = None
+    max_call_id: int = 0
+    max_output_id: int = 0
+    calls: tuple[_AiRow, ...] = ()
+    """New ledger rows and the watched reserved ones, oldest first."""
+    outputs: tuple[_AiRow, ...] = ()
+    reserved: tuple[int, ...] = ()
+    """The ledger rows still reserved when the watcher primed."""
+
+
+def _read_ai_rows(
+    session: Session, call_mark: int, output_mark: int, pending: Iterable[int]
+) -> tuple[tuple[_AiRow, ...], tuple[_AiRow, ...]]:
+    """Read the ledger rows after ``call_mark`` or in ``pending``, and the products after theirs."""
+    call_columns = select(AiCallRow.id, AiCallRow.kind, AiCallRow.location_name, AiCallRow.status)
+    rows = list(
+        session.execute(
+            call_columns.where(AiCallRow.id > call_mark)
+            .order_by(AiCallRow.id.desc())
+            .limit(MAX_WATCHED_AI_ROWS)
+        ).all()
+    )
+    watched = tuple(pending)
+    if watched:
+        rows.extend(session.execute(call_columns.where(AiCallRow.id.in_(watched))).all())
+    calls = {
+        row_id: _AiRow(row_id, kind, location, status) for row_id, kind, location, status in rows
+    }
+    outputs = session.execute(
+        select(AiOutputRow.id, AiOutputRow.kind, AiOutputRow.location_name)
+        .where(AiOutputRow.id > output_mark)
+        .order_by(AiOutputRow.id.desc())
+        .limit(MAX_WATCHED_AI_ROWS)
+    ).all()
+    return (
+        tuple(calls[row_id] for row_id in sorted(calls)),
+        tuple(_AiRow(row_id, kind, location) for row_id, kind, location in reversed(outputs)),
+    )
 
 
 class CycleWatcher:
-    """Polls four high-water marks off the loop's thread for changes from other processes."""
+    """Polls six high-water marks off the loop's thread for changes from other processes."""
 
     def __init__(
         self,
@@ -672,6 +752,9 @@ class CycleWatcher:
         self._notification_id = 0
         self._assessment_ids: dict[str, int] = {}
         self._locations: dict[str, tuple[bool, datetime | None]] = {}
+        self._call_id = 0
+        self._output_id = 0
+        self._pending_calls: set[int] = set()
 
     def _read_state(self) -> _WatchedState:
         with Session(self._engine) as session:
@@ -710,17 +793,43 @@ class CycleWatcher:
                 )
                 if latest_id is not None:
                     latest_assessment_ids[loc_name] = int(latest_id)
-
-        if not self._primed:
-            return _WatchedState(
-                cycles=(),
-                notifications=(),
-                assessments={},
-                locations=locations,
-                max_cycle_id=int(max_cycle_id),
-                max_notification_id=int(max_notif_id),
-                latest_assessment_ids=latest_assessment_ids,
+            max_call_id = (
+                session.scalar(select(AiCallRow.id).order_by(AiCallRow.id.desc()).limit(1)) or 0
             )
+            max_output_id = (
+                session.scalar(select(AiOutputRow.id).order_by(AiOutputRow.id.desc()).limit(1)) or 0
+            )
+            if not self._primed:
+                reserved = tuple(
+                    session.scalars(
+                        select(AiCallRow.id)
+                        .where(AiCallRow.status == "reserved")
+                        .order_by(AiCallRow.id.desc())
+                        .limit(MAX_PENDING_AI_CALLS)
+                    ).all()
+                )
+                return _WatchedState(
+                    cycles=(),
+                    notifications=(),
+                    assessments={},
+                    locations=locations,
+                    max_cycle_id=int(max_cycle_id),
+                    max_notification_id=int(max_notif_id),
+                    latest_assessment_ids=latest_assessment_ids,
+                    max_call_id=int(max_call_id),
+                    max_output_id=int(max_output_id),
+                    reserved=reserved,
+                )
+            calls: tuple[_AiRow, ...] = ()
+            outputs: tuple[_AiRow, ...] = ()
+            if (
+                max_call_id > self._call_id
+                or max_output_id > self._output_id
+                or self._pending_calls
+            ):
+                calls, outputs = _read_ai_rows(
+                    session, self._call_id, self._output_id, self._pending_calls
+                )
 
         cycles = (
             tuple(
@@ -756,10 +865,14 @@ class CycleWatcher:
             max_cycle_id=int(max_cycle_id),
             max_notification_id=int(max_notif_id),
             latest_assessment_ids=latest_assessment_ids,
+            max_call_id=int(max_call_id),
+            max_output_id=int(max_output_id),
+            calls=calls,
+            outputs=outputs,
         )
 
     async def poll(self) -> None:
-        """Read the four high-water marks off the loop's thread and publish newer records."""
+        """Read the six high-water marks off the loop's thread and publish newer records."""
         read_future = asyncio.get_running_loop().run_in_executor(None, self._read_state)
         try:
             state = await asyncio.shield(read_future)
@@ -774,6 +887,7 @@ class CycleWatcher:
         self._publish_new_assessments(state.assessments, state.locations)
         self._publish_new_notifications(state.notifications)
         self._publish_location_changes(state.locations)
+        self._publish_ai_rows(state)
 
     def _prime_state(self, state: _WatchedState) -> None:
         self._primed = True
@@ -791,6 +905,9 @@ class CycleWatcher:
         self._locations = dict(state.locations)
         for name, loc_state in state.locations.items():
             self._hub.prime_location(name, loc_state)
+        self._call_id = state.max_call_id
+        self._output_id = state.max_output_id
+        self._pending_calls = set(state.reserved)
 
     def _publish_new_cycles(self, cycles: tuple[MonitorCycle, ...]) -> None:
         new_cycles = sorted((c for c in cycles if c.id > self._cycle_id), key=lambda c: c.id)
@@ -903,6 +1020,43 @@ class CycleWatcher:
                 deduplicate=True,
             )
         self._locations = dict(locations)
+
+    def _publish_ai_rows(self, state: _WatchedState) -> None:
+        """Publish ledger rows and stored products another process wrote.
+
+        A ledger row is published once per status it reaches: one seen ``reserved`` stays
+        watched until it settles. Rows this process published already are deduplicated by
+        the hub's publication records.
+        """
+        for row in state.calls:
+            if row.status == "reserved" and row.id in self._pending_calls:
+                continue  # watched already, and not settled yet
+            self._hub.publish(
+                "ai",
+                {
+                    "call_id": row.id,
+                    "ai_kind": row.kind,
+                    "status": row.status,
+                    "location": row.location,
+                },
+                ("ai",),
+                deduplicate=True,
+            )
+            if row.status == "reserved":
+                self._pending_calls.add(row.id)
+            else:
+                self._pending_calls.discard(row.id)
+        while len(self._pending_calls) > MAX_PENDING_AI_CALLS:
+            self._pending_calls.discard(min(self._pending_calls))
+        self._call_id = max(self._call_id, state.max_call_id)
+        for row in state.outputs:
+            self._hub.publish(
+                "ai",
+                {"output_id": row.id, "ai_kind": row.kind, "location": row.location},
+                ("briefings",),
+                deduplicate=True,
+            )
+        self._output_id = max(self._output_id, state.max_output_id)
 
     async def _sleep_once(self) -> None:
         await self._sleep(self._interval_s)

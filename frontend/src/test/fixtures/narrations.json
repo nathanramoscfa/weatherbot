@@ -1,0 +1,38 @@
+{
+  "enabled": true,
+  "label": "AI interpretation of the official graphic",
+  "narrations": [
+    {
+      "areas": [
+        {
+          "chance_text": "20%",
+          "description": "An elongated area of low pressure over the eastern tropical Atlantic, several hundred miles west of the Cabo Verde Islands. It has disorganized showers and thunderstorms, and is expected to move slowly northward to north-northwestward."
+        }
+      ],
+      "basin": "atl",
+      "caveat": "This is an AI description of the official graphic; NHC's graphic and the Tropical Weather Outlook are the official products, and outlooks change.",
+      "created_at": "2026-10-13T01:33:00Z",
+      "graphic_sha256": "d78f6879789d46100745b543bcfa04e9b45b8c980e259d7ce3115bc677fc5013",
+      "horizon": "7d0",
+      "id": 3,
+      "model": "claude-sonnet-5-5",
+      "model_name": "Claude Sonnet 5.5",
+      "prompt_version": "db39a26f90e101529bc1bd729d47ae67f37fd23d3b49e694bc5f0e7bdf903a7d",
+      "status": "ok",
+      "summary": "The seven-day outlook for the Atlantic, Caribbean Sea and Gulf of America marks one area, in the eastern tropical Atlantic west of the Cabo Verde Islands. The text gives it a low chance of formation, 20%, over seven days. The rest of the basin has no marked areas, and heavy rain and some flooding are possible in the western Cabo Verde Islands.",
+      "two": {
+        "advisory": null,
+        "code": "TWO",
+        "issued_at": "2026-10-12T23:00:00Z",
+        "issuer": "KNHC",
+        "key": "S1",
+        "source_id": "nhc-text-products",
+        "title": "NHC tropical weather outlook, basin AT",
+        "url": "https://www.nhc.noaa.gov/",
+        "why": null
+      },
+      "withheld_reason": null
+    }
+  ],
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md."
+}

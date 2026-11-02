@@ -7,9 +7,9 @@ decided. AI is optional. It needs an Anthropic credential, and everything else
 This page covers what the AI does and never does, what leaves the machine, the
 briefing, the change summary, the chat with its tools, and the outlook
 narration, with the validators that guard them, the eval set, how to give
-Weatherbot a credential, the `[ai]` settings, and the spend ledger with its
-daily cap and the measured cost. Phase 6 adds the products step by step; this
-page grows with them.
+Weatherbot a credential, the `[ai]` settings, the spend ledger with its daily
+cap and the measured cost, and the loopback API the dashboard reads them
+through. Phase 6 adds the products step by step; this page grows with them.
 
 ## What the AI does, and what it never does
 
@@ -118,8 +118,16 @@ location's previous and new assessment. It is written once per assessment whose
 changes are more than its first (a location's first assessment, and an
 assessment with no changes, get none), with `[ai] summary_model`, effort `low`,
 and `max_tokens` 1,500, and it is never rewritten. It may name the previous and
-the new level and no other. Phase 6 Step 4 writes them automatically in
-`serve`.
+the new level and no other.
+
+`serve` writes them automatically while `[ai] change_summaries` is on (the
+default). At start it marks the newest stored assessment, so history is never
+backfilled; after every cycle (its own, or one another process ran) it reads
+the assessments stored since and summarizes them newest first, one at a time,
+while the AI is `ready`. Its mark moves past every assessment it reads, so a
+summary missed while `serve` was down, or while AI was off, paused, or capped,
+is never written later: a briefing covers it. It logs only each assessment's
+id, the outcome, and its reason, and a failure never stops the monitor.
 
 ## The chat
 
@@ -435,8 +443,90 @@ The ledger holds two controls beside the cap, each a zero-token row:
 - **Allow more today.** An allowance raises only today's limit, by at most one
   day's cap, at most three times a day.
 
-The settings page and the API gain the buttons for both later in Phase 6. The
-cap itself changes only in `weatherbot.toml` or `WEATHERBOT_AI_DAILY_CAP_USD`.
+The API's controls write both (`PUT /api/ai/pause`, `POST /api/ai/allowance`,
+below); the settings page gains their buttons in Phase 6 Step 5. The cap itself
+changes only in `weatherbot.toml` or `WEATHERBOT_AI_DAILY_CAP_USD`.
+
+## The API
+
+`serve`'s loopback API carries the AI under every guard of the rest of the API
+(`docs/api/openapi.json` is the contract). Nothing it answers carries the key,
+a prompt, a context, or a question.
+
+**Reads.** Plain reads that send nothing to Anthropic:
+
+- `GET /api/ai`: the state, its reason, where the credential comes from
+  (`environment`, `auth_token`, `profile`, or `none`, never its value), the
+  models, the features, the pause, and today's meter: spend, open
+  reservations, the cap, today's allowances and how many remain, the request
+  count, and tokens in total and by kind.
+- `GET /api/ai/calls?limit=` (at most 100): the ledger, newest first. Each row
+  is a kind, a model, a location name, a status, its times, tokens, cost, stop
+  reason, refusal category, and error kind; no row carries text.
+- `GET /api/ai/briefings?location=`: each watched location's newest stored
+  briefing (its sections, or its withheld reason and no text), with the model,
+  the prompt version, the assessment it was written for, when it was stored,
+  and whether a newer assessment has made it stale.
+- `GET /api/ai/summaries?location=&limit=` (at most 200): the stored change
+  summaries, newest first.
+- `GET /api/ai/narrations`: the newest stored narration of each of the latest
+  snapshot's outlook graphics, and whether narration is on.
+
+A source in a stored product is resolved from its stored record (its key,
+register source, title, code, issuer, advisory, and issuance), never from the
+model. Its `url` is only a public NOAA product page that names no point: NHC's
+pages for NHC's sources and the NWS alerts portal for a zone alert. A source
+whose requests name a point (an NWS point or point-alert query, a geocode) has
+no link at all.
+
+**Streams.** A request spends money, so each is a `POST` behind the same-origin
+JSON rule: a foreign `Origin` or a cross-site `Sec-Fetch-Site` answers 403 and
+a body that is not JSON 415, so a hostile page can neither start a request nor
+read its answer. The answer is a stream of server-sent events, each a JSON
+object with a `kind`; the page reads it with `fetch`, because `EventSource`
+cannot `POST`.
+
+- `POST /api/ai/briefings` (`{"location": ..., "new": false}`): `started` (the
+  model, the assessment and its time, the prompt version), a `section` per
+  validated section, then `done` (the stored briefing's id and time, and
+  whether it was reused); or `withheld` (remove every section shown) or
+  `unavailable`, each with a reason and fixed text.
+- `POST /api/ai/chat` (`{"question": ..., "conversation_id": null,
+  "location": null}`, a question of 1 to 2,000 characters): `started` (the
+  conversation and the model), a `tool` per lookup (its name only), a `text`
+  per checked sentence, then `done`; or `withheld` or `unavailable`.
+- `POST /api/ai/narrations` (`{"basin": "atl", "horizon": "7d0"}`): `started`,
+  then `done` with the narration; or `withheld` or `unavailable` (`disabled`
+  while `[ai] outlook_narration` is off).
+
+Before a stream begins, a state other than `ready` answers 503 with a JSON
+`detail` naming the reason (`disabled`, `no_credential`, `paused`,
+`auth_failed`, ...), `capped` answers 429, and at most four AI streams run at
+once on the server: a fifth answers 429 `busy`. A reservation refused once the
+stream has begun ends it with an `unavailable` event. When the page is closed,
+the server cancels the request and the ledger settles it (at its ceiling, as
+`incomplete`, because tokens may have been billed).
+
+**Controls.** `PUT /api/ai/pause` (`{"paused": true}` or `false`) writes a
+pause or resume row when the state changes, and `POST /api/ai/allowance`
+(`{"usd": 0.5}`) adds more than nothing and at most one day's cap to today's
+limit (422 otherwise), three times a day (a fourth answers 409). Both answer
+the status of `GET /api/ai`.
+
+**The official outlook graphics.** `GET /api/outlook` lists the outlook
+graphics the latest snapshot stored (basin, horizon, size, SHA-256, and when it
+was fetched), and `GET /api/outlook/{basin}/{horizon}` serves one as
+`image/png`, read from the stored answers by its SHA-256, never from a path or
+the network; any other basin or horizon, a missing graphic, or a body that is
+not that PNG answers 404.
+
+**Events.** The dashboard's event stream (`GET /api/events`) carries an `ai`
+event, naming ids, a kind, a status, and a location, never text: a settled
+request and a pause or an allowance invalidate the `ai` query, and a stored
+briefing, summary, or narration invalidates `briefings`. The cycle watcher
+reads the newest `ai_calls` and `ai_outputs` ids every 10 seconds, so a
+`weatherbot brief` or `ask` in a terminal reaches an open page within 15
+seconds.
 
 ## Turning AI off
 

@@ -1,9 +1,9 @@
 {
   "ai": {
-    "cap_micro_usd": 0,
-    "reason": "disabled",
-    "spent_micro_usd": 0,
-    "state": "off"
+    "cap_micro_usd": 1000000,
+    "reason": null,
+    "spent_micro_usd": 44056,
+    "state": "ready"
   },
   "corpus": true,
   "database": {

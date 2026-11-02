@@ -12,12 +12,14 @@ Recorded answers live in ``tests/fixtures/ai/`` (``scripts/record_ai_fixtures.py
 hand-written error bodies and stops are built here, with synthetic messages.
 """
 
+import asyncio
 import json
-from collections.abc import Callable, Sequence
+import shutil
+from collections.abc import Callable, Coroutine, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Final, Self, cast
+from typing import Any, Final, Self, cast
 from uuid import UUID
 
 import anthropic
@@ -30,9 +32,10 @@ from sqlalchemy.orm import Session
 from weatherbot.engine import assess, diff
 from weatherbot.models import Assessment, Snapshot, Thresholds
 from weatherbot.services.ai.guard import ai_engine
-from weatherbot.services.ai.service import AiService
-from weatherbot.services.config import AiSettings
-from weatherbot.services.persistence.database import Database
+from weatherbot.services.ai.service import AiPublish, AiService
+from weatherbot.services.config import AiSettings, AppPaths, Settings
+from weatherbot.services.events import EventHub
+from weatherbot.services.persistence.database import Database, open_database
 from weatherbot.services.persistence.repositories import (
     AssessmentRepository,
     LocationRepository,
@@ -40,6 +43,7 @@ from weatherbot.services.persistence.repositories import (
     StoredAssessment,
 )
 from weatherbot.services.persistence.tables import AiCallRow, AiOutputRow
+from weatherbot.web.app import WebState
 
 FIXTURES: Final = Path(__file__).resolve().parents[1] / "fixtures" / "ai"
 MODEL: Final = "claude-sonnet-5-5"
@@ -639,6 +643,7 @@ def replayed_service(
     *,
     settings: AiSettings | None = None,
     now: Callable[[], datetime] = lambda: NOW,
+    publish: AiPublish | None = None,
 ) -> tuple[AiService, Replay]:
     """An AI service on the AI engine whose client replays answers.
 
@@ -647,6 +652,7 @@ def replayed_service(
         answers: The answers, in order.
         settings: The ``[ai]`` table; the defaults when omitted.
         now: The clock.
+        publish: The service's publish hook, such as an event hub's ``publish``.
 
     Returns:
         The service and its replay.
@@ -659,8 +665,90 @@ def replayed_service(
         environ={},
         now=now,
         local_zone=UTC,
+        publish=publish,
     )
     return service, replay
+
+
+def database_template(
+    directory: Path, store: Callable[[Database], Coroutine[Any, Any, object]]
+) -> Path:
+    """Build a database once, at the head revision, with whatever ``store`` writes.
+
+    A module fixture builds it once and each test copies it (``copied_database``), so a
+    test does not store the recorded snapshot again (issue #82).
+
+    Args:
+        directory: An empty directory of the module's own.
+        store: Writes the records, such as ``stored_recorded`` or ``store_case_data``.
+
+    Returns:
+        The closed database file.
+    """
+    paths = AppPaths(config_dir=directory / "config", data_dir=directory / "data")
+    with open_database(paths, now=lambda: NOW) as database:
+        asyncio.run(store(database))
+    return paths.database_path
+
+
+def copied_database(template: Path) -> Database:
+    """Open a copy of a template as this test's database (its data directory's own file).
+
+    Args:
+        template: A file ``database_template`` built.
+
+    Returns:
+        The open database; close it when done.
+    """
+    paths = AppPaths.resolve()
+    paths.database_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(template, paths.database_path)
+    return open_database(paths, now=lambda: NOW)
+
+
+def ai_web_state(
+    database: Database,
+    ai: AiService | None,
+    *,
+    hub: EventHub | None = None,
+    clock: Callable[[], datetime] = lambda: NOW,
+) -> WebState:
+    """A web state over the test's database with an AI service (or none).
+
+    Args:
+        database: The open database.
+        ai: The AI service, or ``None`` for AI off.
+        hub: The event hub; a new one when omitted.
+        clock: The server's clock.
+
+    Returns:
+        The state.
+    """
+    return WebState(
+        database=database,
+        paths=AppPaths.resolve(),
+        settings=Settings(),
+        clock=clock,
+        started_at=clock(),
+        hub=hub or EventHub(),
+        ai=ai,
+    )
+
+
+def sse_payloads(text: str) -> list[dict[str, object]]:
+    """Read every ``data:`` frame of a server-sent event body as JSON.
+
+    Args:
+        text: The body.
+
+    Returns:
+        Each frame's object, in order.
+    """
+    return [
+        _mapping(json.loads(line.removeprefix("data:")))
+        for line in text.splitlines()
+        if line.startswith("data:")
+    ]
 
 
 def output_rows(engine: Engine) -> list[AiOutputRow]:

@@ -9,7 +9,8 @@ a change summary once per assessment, never rewritten (``summary_for``); a narra
 per outlook graphic, the TWO text it was checked against (whose SHA-256 its content
 holds), model, and prompt version (``narration_for``). The repository
 runs on the AI engine (``guard.ai_engine``), whose authorizer lets it write ``ai_outputs``
-and ``ai_calls`` and nothing else, and every write begins ``IMMEDIATE``.
+and ``ai_calls`` and nothing else, and every write begins ``IMMEDIATE``. Once a product is
+committed, the ``stored`` hook (the AI service's) hears of it.
 """
 
 from collections.abc import Callable, Sequence
@@ -100,15 +101,23 @@ def _stored(row: AiOutputRow) -> StoredOutput:
 class OutputRepository:
     """The AI's products: stored as they ended, read back newest first."""
 
-    def __init__(self, engine: Engine, *, now: Callable[[], datetime]) -> None:
+    def __init__(
+        self,
+        engine: Engine,
+        *,
+        now: Callable[[], datetime],
+        stored: Callable[[StoredOutput], None] | None = None,
+    ) -> None:
         """Create the repository.
 
         Args:
             engine: The AI engine.
             now: The clock, for when a product is stored.
+            stored: Hears of each product once it is committed.
         """
         self._engine = engine
         self._now = now
+        self._stored = stored
 
     def add(self, output: NewOutput) -> StoredOutput:
         """Store a product.
@@ -119,6 +128,12 @@ class OutputRepository:
         Returns:
             The stored product.
         """
+        saved = self._insert(output)
+        if self._stored is not None:
+            self._stored(saved)
+        return saved
+
+    def _insert(self, output: NewOutput) -> StoredOutput:
         reason = output.withheld_reason[:MAX_REASON_LENGTH] if output.withheld_reason else None
         with writing_session(self._engine) as session:
             row = AiOutputRow(
@@ -196,11 +211,11 @@ class OutputRepository:
             AiOutputRow.status == "ok",
         )
 
-    def summaries(self, location: str, limit: int) -> tuple[StoredOutput, ...]:
-        """Read a location's change summaries, newest first, withheld ones included.
+    def summaries(self, location: str | None, limit: int) -> tuple[StoredOutput, ...]:
+        """Read change summaries, newest first, withheld ones included.
 
         Args:
-            location: The location's name.
+            location: The location's name, or ``None`` for every location.
             limit: At most this many.
 
         Returns:
@@ -212,14 +227,30 @@ class OutputRepository:
         if limit < 1:
             message = "a listing holds at least one summary"
             raise ValueError(message)
+        conditions = [AiOutputRow.kind == "summary"]
+        if location is not None:
+            conditions.append(AiOutputRow.location_name == location)
         with Session(self._engine) as session:
             rows: Sequence[AiOutputRow] = session.scalars(
                 select(AiOutputRow)
-                .where(AiOutputRow.kind == "summary", AiOutputRow.location_name == location)
+                .where(*conditions)
                 .order_by(AiOutputRow.created_at.desc(), AiOutputRow.id.desc())
                 .limit(limit)
             ).all()
             return tuple(_stored(row) for row in rows)
+
+    def latest_narration(self, graphic_sha256: str) -> StoredOutput | None:
+        """Read the newest narration of an outlook graphic, withheld or not.
+
+        Args:
+            graphic_sha256: The graphic's PNG body's SHA-256.
+
+        Returns:
+            The narration, or ``None`` when none is stored.
+        """
+        return self._first(
+            AiOutputRow.kind == "narration", AiOutputRow.graphic_sha256 == graphic_sha256
+        )
 
     def narration_for(
         self, graphic_sha256: str, two_sha256: str, model: str, prompt_version: str

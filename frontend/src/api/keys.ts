@@ -13,6 +13,8 @@ export const INVALIDATABLE_QUERY_KEYS = [
   "timeline",
   "notifications",
   "settings",
+  "ai",
+  "briefings",
 ] as const satisfies readonly InvalidatableQueryKey[];
 
 type MissingInvalidatableKey = Exclude<
@@ -83,6 +85,8 @@ export const queryKeys = {
       : invalidatableQueryKey("timeline"),
   notifications: () => invalidatableQueryKey("notifications"),
   settings: () => invalidatableQueryKey("settings"),
+  ai: () => invalidatableQueryKey("ai"),
+  briefings: () => invalidatableQueryKey("briefings"),
   replay: () => staticQueryKey("replay"),
   replayAdvisory: (atcfId: string, advisory: string) =>
     staticQueryKey("replay", atcfId, advisory),

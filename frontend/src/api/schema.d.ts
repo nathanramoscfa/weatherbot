@@ -328,10 +328,363 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ai
+         * @description Return the AI's state, models, features, and today's spend against the cap.
+         */
+        get: operations["get_ai_api_ai_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/calls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ai Calls
+         * @description Return the ledger's newest rows: kinds, statuses, tokens, costs, and reasons only.
+         */
+        get: operations["get_ai_calls_api_ai_calls_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/briefings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Briefings
+         * @description Return each watched location's newest stored briefing, and whether it is stale.
+         */
+        get: operations["get_briefings_api_ai_briefings_get"];
+        put?: never;
+        /**
+         * Stream Briefing
+         * @description Brief a location: replay its stored briefing, or stream a new one section by section.
+         */
+        post: operations["stream_briefing_api_ai_briefings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/summaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Summaries
+         * @description Return the stored change summaries, newest first, withheld ones with their reason.
+         */
+        get: operations["get_summaries_api_ai_summaries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/narrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Narrations
+         * @description Return the newest stored narration of each of the latest snapshot's outlook graphics.
+         */
+        get: operations["get_narrations_api_ai_narrations_get"];
+        put?: never;
+        /**
+         * Stream Narration
+         * @description Narrate one official outlook graphic: reuse the stored narration, or write one.
+         */
+        post: operations["stream_narration_api_ai_narrations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stream Chat
+         * @description Answer one question from the stored data, sentence by sentence.
+         */
+        post: operations["stream_chat_api_ai_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Pause
+         * @description Pause every AI request, or lift the pause; a control row records each change.
+         */
+        put: operations["put_pause_api_ai_pause_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ai/allowance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Allowance
+         * @description Raise today's limit by at most one day's cap; a fourth allowance in a day answers 409.
+         */
+        post: operations["post_allowance_api_ai_allowance_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/outlook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Outlook
+         * @description Return the official outlook graphics the latest snapshot stored.
+         */
+        get: operations["get_outlook_api_outlook_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/outlook/{basin}/{horizon}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Outlook Graphic
+         * @description Return one official outlook graphic's PNG from the latest snapshot, or 404.
+         */
+        get: operations["get_outlook_graphic_api_outlook__basin___horizon__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AiAreaResponse
+         * @description One area an outlook graphic marks, in plain words, with its chance as the TWO states it.
+         */
+        AiAreaResponse: {
+            /**
+             * Description
+             * @description Where the area lies and what it is.
+             */
+            description: string;
+            /**
+             * Chance Text
+             * @description Its chance as the TWO states it, or "not stated".
+             */
+            chance_text: string;
+        };
+        /**
+         * AiCallResponse
+         * @description One AI ledger row: what it was, how it ended, and what it cost, never any text.
+         */
+        AiCallResponse: {
+            /**
+             * Id
+             * @description Ledger row identifier.
+             */
+            id: number;
+            /**
+             * Kind
+             * @description briefing, summary, chat, narration, or a control: allowance, pause, resume.
+             */
+            kind: string;
+            /**
+             * Model
+             * @description Model id of a request; null for a control.
+             */
+            model: string | null;
+            /**
+             * Location
+             * @description Location name the request was about, or null.
+             */
+            location: string | null;
+            /**
+             * Status
+             * @description reserved, ok, failed, incomplete, declined, abandoned, or control (a control row).
+             */
+            status: string;
+            /**
+             * Started At
+             * Format: date-time
+             * @description UTC instant the request was reserved.
+             */
+            started_at: string;
+            /**
+             * Finished At
+             * @description UTC instant it settled, or null.
+             */
+            finished_at: string | null;
+            /**
+             * Input Tokens
+             * @description Uncached input tokens.
+             */
+            input_tokens: number;
+            /**
+             * Cache Write Tokens
+             * @description Prompt-cache write tokens.
+             */
+            cache_write_tokens: number;
+            /**
+             * Cache Read Tokens
+             * @description Prompt-cache read tokens.
+             */
+            cache_read_tokens: number;
+            /**
+             * Output Tokens
+             * @description Output tokens.
+             */
+            output_tokens: number;
+            /**
+             * Cost Micro Usd
+             * @description Cost at list price in micro-dollars; null while reserved.
+             */
+            cost_micro_usd: number | null;
+            /**
+             * Allowance Micro Usd
+             * @description An allowance row's amount in micro-dollars; 0 otherwise.
+             */
+            allowance_micro_usd: number;
+            /**
+             * Stop Reason
+             * @description The final message's stop reason, or null.
+             */
+            stop_reason: string | null;
+            /**
+             * Refusal Category
+             * @description A refusal's category, or null.
+             */
+            refusal_category: string | null;
+            /**
+             * Error Kind
+             * @description Why the request failed, as a reason, or null.
+             */
+            error_kind: string | null;
+        };
+        /**
+         * AiCallsResponse
+         * @description Response document for ``GET /api/ai/calls``: the ledger, newest first.
+         */
+        AiCallsResponse: {
+            /**
+             * Limit
+             * @description Maximum number of rows requested.
+             */
+            limit: number;
+            /**
+             * Calls
+             * @description Ledger rows, newest first.
+             */
+            calls: components["schemas"]["AiCallResponse"][];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
+         * AiFeaturesResponse
+         * @description Which AI products the ``[ai]`` settings switch on.
+         */
+        AiFeaturesResponse: {
+            /**
+             * Enabled
+             * @description Whether [ai] enabled lets AI run at all.
+             */
+            enabled: boolean;
+            /**
+             * Change Summaries
+             * @description Whether serve summarizes each change.
+             */
+            change_summaries: boolean;
+            /**
+             * Outlook Narration
+             * @description Whether outlook graphics may be narrated.
+             */
+            outlook_narration: boolean;
+        };
         /**
          * AiHealth
          * @description The AI's state and today's spend: never a credential, a prompt, or an answer.
@@ -352,8 +705,256 @@ export interface components {
              */
             cap_micro_usd: number;
         };
+        /**
+         * AiKindTotalsResponse
+         * @description One kind of request's count, tokens, and cost today.
+         */
+        AiKindTotalsResponse: {
+            /** @description Request kind: briefing, summary, chat, or narration. */
+            kind: components["schemas"]["CallKind"];
+            /**
+             * Requests
+             * @description Requests of this kind today.
+             */
+            requests: number;
+            /**
+             * Input Tokens
+             * @description Uncached input tokens.
+             */
+            input_tokens: number;
+            /**
+             * Cache Write Tokens
+             * @description Tokens written to the prompt cache.
+             */
+            cache_write_tokens: number;
+            /**
+             * Cache Read Tokens
+             * @description Tokens read from the prompt cache.
+             */
+            cache_read_tokens: number;
+            /**
+             * Output Tokens
+             * @description Output tokens, thinking included.
+             */
+            output_tokens: number;
+            /**
+             * Cost Micro Usd
+             * @description Cost at list price, in micro-dollars.
+             */
+            cost_micro_usd: number;
+        };
+        /**
+         * AiModelsResponse
+         * @description The models AI requests run on, by id and by display name.
+         */
+        AiModelsResponse: {
+            /**
+             * Model
+             * @description Model of briefings, chat, and narrations, by id.
+             */
+            model: string;
+            /**
+             * Model Name
+             * @description Its display name, such as Claude Sonnet 5.5.
+             */
+            model_name: string;
+            /**
+             * Summary Model
+             * @description Model of the change summaries, by id.
+             */
+            summary_model: string;
+            /**
+             * Summary Model Name
+             * @description Its display name.
+             */
+            summary_model_name: string;
+        };
+        /**
+         * AiRefusalDetail
+         * @description Why an AI stream was refused before it began: a reason and its fixed text.
+         */
+        AiRefusalDetail: {
+            /** @description The reason, such as capped or busy. */
+            reason: components["schemas"]["AiUnavailableReason"];
+            /**
+             * Message
+             * @description Fixed text for the reason; never an SDK message.
+             */
+            message: string;
+        };
+        /**
+         * AiRefusalResponse
+         * @description Response document of a 503 or 429 answer to an AI stream.
+         */
+        AiRefusalResponse: {
+            /** @description Why the stream was refused. */
+            detail: components["schemas"]["AiRefusalDetail"];
+        };
+        /**
+         * AiSourceResponse
+         * @description A source an AI product cites, resolved from its stored record, never from the model.
+         */
+        AiSourceResponse: {
+            /**
+             * Key
+             * @description The key the product cites, such as S2.
+             */
+            key: string;
+            /** @description Data-source register identifier. */
+            source_id: components["schemas"]["SourceId"];
+            /**
+             * Title
+             * @description The product's title, as a page shows it.
+             */
+            title: string;
+            /**
+             * Code
+             * @description Product code (TCP, TWO, an NWS event), or null.
+             */
+            code: string | null;
+            /**
+             * Issuer
+             * @description Issuing office, such as NHC, or null.
+             */
+            issuer: string | null;
+            /**
+             * Advisory
+             * @description Advisory number, or null.
+             */
+            advisory: string | null;
+            /**
+             * Issued At
+             * @description UTC issuance, to the hour, or null.
+             */
+            issued_at: string | null;
+            /**
+             * Why
+             * @description What the product took from the source, or null.
+             */
+            why?: string | null;
+            /**
+             * Url
+             * @description A public NOAA product page that names no point, or null (never the model's).
+             */
+            url: string | null;
+        };
         /** @enum {string} */
         AiStateName: "off" | "ready" | "paused" | "capped" | "unavailable";
+        /**
+         * AiStatusResponse
+         * @description Response document for ``GET /api/ai`` and the AI controls: never a credential.
+         */
+        AiStatusResponse: {
+            /** @description off, ready, paused, capped, or unavailable; computed without a request. */
+            state: components["schemas"]["AiStateName"];
+            /** @description Why AI is not ready (for example no_credential or capped); null when ready. */
+            reason: components["schemas"]["AiUnavailableReason"] | null;
+            /** @description Where the credential comes from (environment, auth_token, profile, or none), never its value; null while [ai] enabled is false. */
+            credential_source: components["schemas"]["CredentialSource"] | null;
+            /** @description The models AI requests run on. */
+            models: components["schemas"]["AiModelsResponse"];
+            /** @description Which AI products are switched on. */
+            features: components["schemas"]["AiFeaturesResponse"];
+            /** @description Today's spend, reservations, and tokens. */
+            today: components["schemas"]["AiTodayResponse"];
+            /**
+             * Paused
+             * @description Whether the manual pause holds.
+             */
+            paused: boolean;
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
+         * AiTimelineItemResponse
+         * @description One expected development in a briefing's timeline.
+         */
+        AiTimelineItemResponse: {
+            /**
+             * When
+             * @description When, as the products state it.
+             */
+            when: string;
+            /**
+             * What
+             * @description What happens then, in plain language.
+             */
+            what: string;
+            /**
+             * Sources
+             * @description The source keys that state it.
+             */
+            sources: string[];
+        };
+        /**
+         * AiTodayResponse
+         * @description Today's AI spend against the cap, in the operator's local calendar day.
+         */
+        AiTodayResponse: {
+            /**
+             * Day
+             * @description The operator's local calendar day, YYYY-MM-DD.
+             */
+            day: string;
+            /**
+             * Spent Micro Usd
+             * @description Settled requests' cost, in micro-dollars.
+             */
+            spent_micro_usd: number;
+            /**
+             * Reserved Micro Usd
+             * @description Open reservations at their ceilings, in micro-dollars.
+             */
+            reserved_micro_usd: number;
+            /**
+             * Cap Micro Usd
+             * @description The daily cap, before allowances.
+             */
+            cap_micro_usd: number;
+            /**
+             * Allowance Micro Usd
+             * @description Today's allowances, in micro-dollars.
+             */
+            allowance_micro_usd: number;
+            /**
+             * Allowances Left
+             * @description How many more allowances today accepts.
+             */
+            allowances_left: number;
+            /**
+             * Calls
+             * @description Requests today, of every kind.
+             */
+            calls: number;
+            /**
+             * Input Tokens
+             * @description Uncached input tokens today.
+             */
+            input_tokens: number;
+            /**
+             * Cache Write Tokens
+             * @description Prompt-cache write tokens today.
+             */
+            cache_write_tokens: number;
+            /**
+             * Cache Read Tokens
+             * @description Prompt-cache read tokens today.
+             */
+            cache_read_tokens: number;
+            /**
+             * Output Tokens
+             * @description Output tokens today.
+             */
+            output_tokens: number;
+            /**
+             * By Kind
+             * @description Today's totals per kind of request that ran.
+             */
+            by_kind: components["schemas"]["AiKindTotalsResponse"][];
+        };
         /** @enum {string} */
         AiUnavailableReason: "disabled" | "no_credential" | "price_unknown" | "paused" | "capped" | "busy" | "auth_failed" | "permission" | "not_found" | "rate_limited" | "overloaded" | "server_error" | "timeout" | "network" | "bad_request" | "too_large" | "declined" | "truncated";
         /**
@@ -472,6 +1073,17 @@ export interface components {
              * @description One-line informational-only disclaimer notice.
              */
             notice: string;
+        };
+        /**
+         * AllowanceRequest
+         * @description Request body for ``POST /api/ai/allowance``.
+         */
+        AllowanceRequest: {
+            /**
+             * Usd
+             * @description Dollars to add to today's limit, at most one day's cap.
+             */
+            usd: number;
         };
         /**
          * ArrivalProductSummaryResponse
@@ -805,6 +1417,8 @@ export interface components {
              */
             notice: string;
         };
+        /** @enum {string} */
+        Basin: "atl" | "pac" | "cpac";
         /**
          * BreakpointSpan
          * @description The stretch of coast a location sits on, named from NHC's breakpoint catalogue.
@@ -829,6 +1443,210 @@ export interface components {
              * @description The catalogue's idp_filedate; None for one stored before it was read.
              */
             catalog_loaded_at?: string | null;
+        };
+        /**
+         * BriefingRequest
+         * @description Request body for ``POST /api/ai/briefings``.
+         */
+        BriefingRequest: {
+            /**
+             * Location
+             * @description Name of the watched location to brief.
+             */
+            location: string;
+            /**
+             * New
+             * @description Ask for a new briefing even when one is stored.
+             * @default false
+             */
+            new: boolean;
+        };
+        /**
+         * BriefingStreamEvent
+         * @description One server-sent event of ``POST /api/ai/briefings``: never a coordinate or a distance.
+         */
+        BriefingStreamEvent: {
+            /**
+             * Kind
+             * @description started, then a section per validated section, then done; or withheld (remove every section shown) or unavailable.
+             * @enum {string}
+             */
+            kind: "started" | "section" | "done" | "withheld" | "unavailable";
+            /**
+             * Model
+             * @description Model id (started), or null.
+             * @default null
+             */
+            model: string | null;
+            /**
+             * Model Name
+             * @description Its display name, or null.
+             * @default null
+             */
+            model_name: string | null;
+            /**
+             * Assessment Id
+             * @description The assessment briefed (started), or null.
+             * @default null
+             */
+            assessment_id: number | null;
+            /**
+             * As Of
+             * @description UTC instant of that assessment (started), or null.
+             * @default null
+             */
+            as_of: string | null;
+            /**
+             * Prompt Version
+             * @description SHA-256 of the frozen prompt (started), or null.
+             * @default null
+             */
+            prompt_version: string | null;
+            /**
+             * @description The section's name, or null.
+             * @default null
+             */
+            section: components["schemas"]["SectionName"] | null;
+            /**
+             * Text
+             * @description The section's plain text, or null.
+             * @default null
+             */
+            text: string | null;
+            /**
+             * Output Id
+             * @description Stored product identifier (done, withheld), or null.
+             * @default null
+             */
+            output_id: number | null;
+            /**
+             * Created At
+             * @description UTC instant the briefing was stored (done), or null.
+             * @default null
+             */
+            created_at: string | null;
+            /**
+             * Reused
+             * @description Whether a stored briefing was replayed (done), or null.
+             * @default null
+             */
+            reused: boolean | null;
+            /**
+             * Reason
+             * @description Why it was withheld or unavailable, or null.
+             * @default null
+             */
+            reason: string | null;
+            /**
+             * Detail
+             * @description Fixed text for the reason, never the model's, or null.
+             * @default null
+             */
+            detail: string | null;
+        };
+        /**
+         * BriefingsResponse
+         * @description Response document for ``GET /api/ai/briefings``.
+         */
+        BriefingsResponse: {
+            /**
+             * Location
+             * @description Location name filter, or null for every one.
+             */
+            location: string | null;
+            /**
+             * Locations
+             * @description Each watched location's newest briefing, in name order.
+             */
+            locations: components["schemas"]["LocationBriefingResponse"][];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /** @enum {string} */
+        CallKind: "briefing" | "summary" | "chat" | "narration";
+        /**
+         * ChatRequest
+         * @description Request body for ``POST /api/ai/chat``.
+         */
+        ChatRequest: {
+            /**
+             * Question
+             * @description The question, 1 to 2,000 characters.
+             */
+            question: string;
+            /**
+             * Conversation Id
+             * @description The conversation to continue, or null.
+             */
+            conversation_id?: string | null;
+            /**
+             * Location
+             * @description The location the question is about, or null for every one.
+             */
+            location?: string | null;
+        };
+        /**
+         * ChatStreamEvent
+         * @description One server-sent event of ``POST /api/ai/chat``: never a coordinate or a distance.
+         */
+        ChatStreamEvent: {
+            /**
+             * Kind
+             * @description started, then tool and text events, then done; or withheld (the rest of the answer and the conversation end) or unavailable.
+             * @enum {string}
+             */
+            kind: "started" | "tool" | "text" | "done" | "withheld" | "unavailable";
+            /**
+             * Conversation Id
+             * @description The conversation (started), or null.
+             * @default null
+             */
+            conversation_id: string | null;
+            /**
+             * Model
+             * @description Model id (started), or null.
+             * @default null
+             */
+            model: string | null;
+            /**
+             * Model Name
+             * @description Its display name, or null.
+             * @default null
+             */
+            model_name: string | null;
+            /**
+             * Tool
+             * @description The tool's name only (tool), or null.
+             * @default null
+             */
+            tool: components["schemas"]["ToolName"] | "unknown_tool" | null;
+            /**
+             * Text
+             * @description One checked sentence (text), or null.
+             * @default null
+             */
+            text: string | null;
+            /**
+             * Call Ids
+             * @description The turn's ledger rows (done, withheld, unavailable).
+             * @default []
+             */
+            call_ids: number[];
+            /**
+             * Reason
+             * @description Why it was withheld or unavailable, or null.
+             * @default null
+             */
+            reason: string | null;
+            /**
+             * Detail
+             * @description Fixed text for the reason, never the model's, or null.
+             * @default null
+             */
+            detail: string | null;
         };
         /**
          * CreateLocationRequest
@@ -856,6 +1674,8 @@ export interface components {
              */
             polygon?: ("county" | "forecast") | null;
         };
+        /** @enum {string} */
+        CredentialSource: "environment" | "auth_token" | "profile" | "none";
         /**
          * DatabaseHealth
          * @description Database revision status reported by ``GET /api/health``.
@@ -951,7 +1771,7 @@ export interface components {
             notice: string;
         };
         /** @enum {string} */
-        EventKind: "hello" | "cycle" | "snapshot" | "assessment" | "alert" | "notification" | "location" | "health";
+        EventKind: "hello" | "cycle" | "snapshot" | "assessment" | "alert" | "notification" | "location" | "health" | "ai";
         /**
          * GeoJsonCrsResponse
          * @description Explicit geographic coordinate reference system metadata without WKT.
@@ -1133,6 +1953,8 @@ export interface components {
              */
             stale: boolean;
         };
+        /** @enum {string} */
+        Horizon: "2d0" | "7d0";
         /**
          * LocationAlertResponse
          * @description An active NWS alert associated with a watched location.
@@ -1273,6 +2095,24 @@ export interface components {
             assessment: components["schemas"]["StoredAssessmentResponse"] | null;
         };
         /**
+         * LocationBriefingResponse
+         * @description One watched location's latest assessment and its newest stored briefing.
+         */
+        LocationBriefingResponse: {
+            /**
+             * Location
+             * @description Watched location name.
+             */
+            location: string;
+            /**
+             * Assessment Id
+             * @description The location's latest assessment, or null.
+             */
+            assessment_id: number | null;
+            /** @description The newest stored briefing, or null when none is stored. */
+            briefing: components["schemas"]["StoredBriefingResponse"] | null;
+        };
+        /**
          * LocationResponse
          * @description A watched location with its coordinates, NWS coverage, toggle state, and zone polygon.
          */
@@ -1376,6 +2216,142 @@ export interface components {
             locations: components["schemas"]["GeoJsonFeatureCollectionResponse"];
             /** @description Stored county or forecast zone Polygon/MultiPolygon features for watched locations. */
             location_polygons: components["schemas"]["GeoJsonFeatureCollectionResponse"];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
+         * NarrationRequest
+         * @description Request body for ``POST /api/ai/narrations``.
+         */
+        NarrationRequest: {
+            /** @description Outlook basin: atl, pac, or cpac. */
+            basin: components["schemas"]["Basin"];
+            /** @description Outlook horizon: 2d0 or 7d0. */
+            horizon: components["schemas"]["Horizon"];
+        };
+        /**
+         * NarrationStreamEvent
+         * @description One server-sent event of ``POST /api/ai/narrations``: never a coordinate or a distance.
+         */
+        NarrationStreamEvent: {
+            /**
+             * Kind
+             * @description started, then done with the narration; or withheld or unavailable.
+             * @enum {string}
+             */
+            kind: "started" | "done" | "withheld" | "unavailable";
+            /**
+             * Model
+             * @description Model id (started), or null.
+             * @default null
+             */
+            model: string | null;
+            /**
+             * Model Name
+             * @description Its display name, or null.
+             * @default null
+             */
+            model_name: string | null;
+            /**
+             * @description Outlook basin (started), or null.
+             * @default null
+             */
+            basin: components["schemas"]["Basin"] | null;
+            /**
+             * @description Outlook horizon (started), or null.
+             * @default null
+             */
+            horizon: components["schemas"]["Horizon"] | null;
+            /**
+             * Graphic Sha256
+             * @description SHA-256 of the graphic's PNG body (started), or null.
+             * @default null
+             */
+            graphic_sha256: string | null;
+            /**
+             * Two Issued At
+             * @description UTC issuance of the TWO it is checked against, or null.
+             * @default null
+             */
+            two_issued_at: string | null;
+            /**
+             * Prompt Version
+             * @description SHA-256 of the narration prompt (started), or null.
+             * @default null
+             */
+            prompt_version: string | null;
+            /**
+             * Output Id
+             * @description Stored product identifier (done, withheld), or null.
+             * @default null
+             */
+            output_id: number | null;
+            /**
+             * Created At
+             * @description UTC instant the narration was stored (done), or null.
+             * @default null
+             */
+            created_at: string | null;
+            /**
+             * Reused
+             * @description Whether a stored narration was replayed (done), or null.
+             * @default null
+             */
+            reused: boolean | null;
+            /**
+             * Summary
+             * @description What the graphic shows (done), or null.
+             * @default null
+             */
+            summary: string | null;
+            /**
+             * Areas
+             * @description Each area the graphic marks (done).
+             * @default []
+             */
+            areas: components["schemas"]["AiAreaResponse"][];
+            /**
+             * Caveat
+             * @description That the official graphic governs (done), or null.
+             * @default null
+             */
+            caveat: string | null;
+            /**
+             * Reason
+             * @description Why it was withheld or unavailable, or null.
+             * @default null
+             */
+            reason: string | null;
+            /**
+             * Detail
+             * @description Fixed text for the reason, never the model's, or null.
+             * @default null
+             */
+            detail: string | null;
+        };
+        /**
+         * NarrationsResponse
+         * @description Response document for ``GET /api/ai/narrations``.
+         */
+        NarrationsResponse: {
+            /**
+             * Enabled
+             * @description Whether [ai] outlook_narration is on.
+             */
+            enabled: boolean;
+            /**
+             * Label
+             * @description How every surface labels a narration.
+             */
+            label: string;
+            /**
+             * Narrations
+             * @description The latest snapshot's graphics' newest stored narrations.
+             */
+            narrations: components["schemas"]["StoredNarrationResponse"][];
             /**
              * Notice
              * @description One-line informational-only disclaimer notice.
@@ -1641,6 +2617,63 @@ export interface components {
             issued_at: string;
         };
         /**
+         * OutlookGraphicResponse
+         * @description One official outlook graphic stored with the latest snapshot.
+         */
+        OutlookGraphicResponse: {
+            /** @description Outlook basin: atl, pac, or cpac. */
+            basin: components["schemas"]["Basin"];
+            /** @description Outlook horizon: 2d0 or 7d0. */
+            horizon: components["schemas"]["Horizon"];
+            /**
+             * Width Px
+             * @description Image width in pixels.
+             */
+            width_px: number;
+            /**
+             * Height Px
+             * @description Image height in pixels.
+             */
+            height_px: number;
+            /**
+             * Sha256
+             * @description SHA-256 of the PNG body served by the image route.
+             */
+            sha256: string;
+            /**
+             * Fetched At
+             * Format: date-time
+             * @description UTC instant the graphic was fetched.
+             */
+            fetched_at: string;
+            /**
+             * Issued At
+             * @description UTC issuance when NHC states one, or null.
+             */
+            issued_at: string | null;
+        };
+        /**
+         * OutlookGraphicsResponse
+         * @description Response document for ``GET /api/outlook``.
+         */
+        OutlookGraphicsResponse: {
+            /**
+             * Snapshot Id
+             * @description The latest snapshot, or null when no snapshot is stored.
+             */
+            snapshot_id: string | null;
+            /**
+             * Graphics
+             * @description The official outlook graphics the latest snapshot stored.
+             */
+            graphics: components["schemas"]["OutlookGraphicResponse"][];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
          * OutlookRisk
          * @description An outlook area's ``risk2day`` or ``risk7day``.
          */
@@ -1657,8 +2690,19 @@ export interface components {
          * @enum {string}
          */
         OutlookRiskCode: "Low" | "Medium" | "High";
+        /**
+         * PauseRequest
+         * @description Request body for ``PUT /api/ai/pause``.
+         */
+        PauseRequest: {
+            /**
+             * Paused
+             * @description Whether every AI request is refused until resumed.
+             */
+            paused: boolean;
+        };
         /** @enum {string} */
-        QueryKey: "health" | "locations" | "assessments" | "storms" | "alerts" | "map" | "timeline" | "notifications" | "settings";
+        QueryKey: "health" | "locations" | "assessments" | "storms" | "alerts" | "map" | "timeline" | "notifications" | "settings" | "ai" | "briefings";
         /**
          * ReplayStormSummaryResponse
          * @description One historical storm available in the configured replay corpus.
@@ -1734,6 +2778,8 @@ export interface components {
              */
             stale: boolean;
         };
+        /** @enum {string} */
+        SectionName: "situation" | "what_it_means_here" | "timeline" | "actions" | "sources";
         /**
          * SettingOriginResponse
          * @description Effective value and origin of one configuration setting.
@@ -1998,6 +3044,216 @@ export interface components {
              * @description Note explaining that the toggle changed after this assessment was stored, or null.
              */
             toggle_note?: string | null;
+        };
+        /**
+         * StoredBriefingResponse
+         * @description A location's newest stored briefing: its sections, or why it was withheld.
+         */
+        StoredBriefingResponse: {
+            /**
+             * Id
+             * @description Stored AI product identifier.
+             */
+            id: number;
+            /**
+             * Status
+             * @description ok, or withheld (no text is kept).
+             * @enum {string}
+             */
+            status: "ok" | "withheld";
+            /**
+             * Withheld Reason
+             * @description Why it was withheld, or null.
+             */
+            withheld_reason: string | null;
+            /**
+             * Model
+             * @description Model id that wrote it.
+             */
+            model: string;
+            /**
+             * Model Name
+             * @description Its display name.
+             */
+            model_name: string;
+            /**
+             * Prompt Version
+             * @description SHA-256 of the frozen prompt it was written with.
+             */
+            prompt_version: string;
+            /**
+             * Assessment Id
+             * @description The assessment it was written for.
+             */
+            assessment_id: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             * @description UTC instant it was stored.
+             */
+            created_at: string;
+            /**
+             * Stale
+             * @description Whether a newer assessment has been stored since.
+             */
+            stale: boolean;
+            /**
+             * Situation
+             * @description The situation section, or null when withheld.
+             */
+            situation: string | null;
+            /**
+             * What It Means Here
+             * @description What the engine's level means here, or null when withheld.
+             */
+            what_it_means_here: string | null;
+            /**
+             * Timeline
+             * @description Expected developments, earliest first.
+             */
+            timeline: components["schemas"]["AiTimelineItemResponse"][];
+            /**
+             * Actions
+             * @description The ladder's actions, as the briefing says.
+             */
+            actions: string[];
+            /**
+             * Sources
+             * @description Every source the briefing cites.
+             */
+            sources: components["schemas"]["AiSourceResponse"][];
+        };
+        /**
+         * StoredNarrationResponse
+         * @description The newest stored narration of one of the latest snapshot's outlook graphics.
+         */
+        StoredNarrationResponse: {
+            /**
+             * Id
+             * @description Stored AI product identifier.
+             */
+            id: number;
+            /** @description Outlook basin: atl, pac, or cpac. */
+            basin: components["schemas"]["Basin"];
+            /** @description Outlook horizon: 2d0 or 7d0. */
+            horizon: components["schemas"]["Horizon"];
+            /**
+             * Graphic Sha256
+             * @description SHA-256 of the narrated graphic's PNG body.
+             */
+            graphic_sha256: string;
+            /**
+             * Status
+             * @description ok, or withheld (no text is kept).
+             * @enum {string}
+             */
+            status: "ok" | "withheld";
+            /**
+             * Withheld Reason
+             * @description Why it was withheld, or null.
+             */
+            withheld_reason: string | null;
+            /**
+             * Model
+             * @description Model id that wrote it.
+             */
+            model: string;
+            /**
+             * Model Name
+             * @description Its display name.
+             */
+            model_name: string;
+            /**
+             * Prompt Version
+             * @description SHA-256 of the narration prompt.
+             */
+            prompt_version: string;
+            /**
+             * Created At
+             * Format: date-time
+             * @description UTC instant it was stored.
+             */
+            created_at: string;
+            /**
+             * Summary
+             * @description What the graphic shows, or null when withheld.
+             */
+            summary: string | null;
+            /**
+             * Areas
+             * @description Each area the graphic marks.
+             */
+            areas: components["schemas"]["AiAreaResponse"][];
+            /**
+             * Caveat
+             * @description That the official graphic governs, or null.
+             */
+            caveat: string | null;
+            /** @description The TWO the narration was checked against, or null when withheld. */
+            two: components["schemas"]["AiSourceResponse"] | null;
+        };
+        /**
+         * StoredSummaryResponse
+         * @description One stored change summary, or why it was withheld.
+         */
+        StoredSummaryResponse: {
+            /**
+             * Id
+             * @description Stored AI product identifier.
+             */
+            id: number;
+            /**
+             * Location
+             * @description Location name.
+             */
+            location: string | null;
+            /**
+             * Assessment Id
+             * @description The assessment whose changes it summarizes.
+             */
+            assessment_id: number | null;
+            /**
+             * Status
+             * @description ok, or withheld (no text is kept).
+             * @enum {string}
+             */
+            status: "ok" | "withheld";
+            /**
+             * Withheld Reason
+             * @description Why it was withheld, or null.
+             */
+            withheld_reason: string | null;
+            /**
+             * Model
+             * @description Model id that wrote it.
+             */
+            model: string;
+            /**
+             * Model Name
+             * @description Its display name.
+             */
+            model_name: string;
+            /**
+             * Prompt Version
+             * @description SHA-256 of the frozen prompt it was written with.
+             */
+            prompt_version: string;
+            /**
+             * Created At
+             * Format: date-time
+             * @description UTC instant it was stored.
+             */
+            created_at: string;
+            /**
+             * Summary
+             * @description What changed, or null when withheld.
+             */
+            summary: string | null;
+            /**
+             * Sources
+             * @description Every source the summary cites.
+             */
+            sources: components["schemas"]["AiSourceResponse"][];
         };
         /**
          * StormClassification
@@ -2388,6 +3644,50 @@ export interface components {
              * @default false
              */
             display: boolean;
+            /**
+             * Call Id
+             * @description AI ledger row identifier (set on ai events about a request or a control).
+             * @default null
+             */
+            call_id: number | null;
+            /**
+             * Output Id
+             * @description Stored AI product identifier (set on ai events about a stored product).
+             * @default null
+             */
+            output_id: number | null;
+            /**
+             * Ai Kind
+             * @description AI row kind (briefing, summary, chat, narration, allowance, pause, or resume) on ai events, or null.
+             * @default null
+             */
+            ai_kind: string | null;
+        };
+        /**
+         * SummariesResponse
+         * @description Response document for ``GET /api/ai/summaries``: newest first.
+         */
+        SummariesResponse: {
+            /**
+             * Location
+             * @description Location name filter, or null for every one.
+             */
+            location: string | null;
+            /**
+             * Limit
+             * @description Maximum number of summaries requested.
+             */
+            limit: number;
+            /**
+             * Summaries
+             * @description Stored change summaries, newest first.
+             */
+            summaries: components["schemas"]["StoredSummaryResponse"][];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
         };
         /**
          * TestNotificationRequest
@@ -2545,6 +3845,8 @@ export interface components {
              */
             notice: string;
         };
+        /** @enum {string} */
+        ToolName: "list_locations" | "get_assessment" | "get_evidence" | "get_alerts" | "get_storms" | "get_storm" | "get_outlook" | "get_ladder" | "get_history";
         /**
          * TriggerCycleRequest
          * @description Empty JSON request body for ``POST /api/cycles``.
@@ -3190,6 +4492,447 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["NotificationItemResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ai_api_ai_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiStatusResponse"];
+                };
+            };
+        };
+    };
+    get_ai_calls_api_ai_calls_get: {
+        parameters: {
+            query?: {
+                /** @description Maximum ledger rows, newest first. */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiCallsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_briefings_api_ai_briefings_get: {
+        parameters: {
+            query?: {
+                /** @description Optional stored location name to filter by. */
+                location?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BriefingsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_briefing_api_ai_briefings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BriefingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description AI is capped, or four AI streams run. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRefusalResponse"];
+                };
+            };
+            /** @description AI is off, paused, or unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRefusalResponse"];
+                };
+            };
+        };
+    };
+    get_summaries_api_ai_summaries_get: {
+        parameters: {
+            query?: {
+                /** @description Optional stored location name to filter by. */
+                location?: string | null;
+                /** @description Maximum summaries, newest first. */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummariesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_narrations_api_ai_narrations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NarrationsResponse"];
+                };
+            };
+        };
+    };
+    stream_narration_api_ai_narrations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NarrationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description AI is capped, or four AI streams run. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRefusalResponse"];
+                };
+            };
+            /** @description AI is off, paused, or unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRefusalResponse"];
+                };
+            };
+        };
+    };
+    stream_chat_api_ai_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description AI is capped, or four AI streams run. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRefusalResponse"];
+                };
+            };
+            /** @description AI is off, paused, or unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRefusalResponse"];
+                };
+            };
+        };
+    };
+    put_pause_api_ai_pause_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PauseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiStatusResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description AI is off: there is no AI service. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRefusalResponse"];
+                };
+            };
+        };
+    };
+    post_allowance_api_ai_allowance_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AllowanceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiStatusResponse"];
+                };
+            };
+            /** @description Today's three allowances are used. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description AI is off: there is no AI service. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiRefusalResponse"];
+                };
+            };
+        };
+    };
+    get_outlook_api_outlook_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutlookGraphicsResponse"];
+                };
+            };
+        };
+    };
+    get_outlook_graphic_api_outlook__basin___horizon__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                basin: string;
+                horizon: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The official PNG. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": unknown;
+                };
+            };
+            /** @description No such stored graphic. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
