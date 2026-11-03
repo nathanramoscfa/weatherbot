@@ -319,7 +319,10 @@ changes them.
    tokens, $0.009 to $0.027 a turn; a narration is 2,496 to 2,643 prompt tokens
    with 270 to 288 output tokens, $0.005 to $0.009. Both stay under their
    estimates, so `max_tokens` 4,000 a round, six rounds, and 2,000 a narration
-   stand.)
+   stand. Confirmed live 2026-11-02 by Step 6 over all 38 cases: a briefing
+   $0.0076 to $0.0280, a change summary $0.0022 to $0.0099, a chat turn $0.0121
+   to $0.0251, a narration $0.0051 to $0.0090, and $0.38 for the run, so the
+   ceilings and the $1.00 default stand.)
 8. *Products, and when each runs.* A briefing is on demand (the dashboard's
    "Brief me", `weatherbot brief`) and written once per location, assessment,
    model, and prompt version: a stored briefing for the current assessment is
@@ -438,7 +441,14 @@ changes them.
     after which one request is let through and a success clears it. No
     notification kind is added (Phase 4's check 43 stays exact): reaching the
     cap is not an emergency, and levels and notifications never depend on AI.
-    Step 6 injects both alarms and sees each fire.
+    Step 6 injects both alarms and sees each fire. (Done 2026-11-02 by Step 6.
+    A $0.001 cap is below the smallest request's ceiling ($0.021), so the
+    demonstration reads `capped` before any request, not after a first one: no
+    cap lets one briefing through and then reads `capped`, because a briefing's
+    ceiling (about $0.07) exceeds its settled cost ($0.01 to $0.03) by more than
+    that smallest ceiling. The smoke sees the page and the server each refuse
+    the first request with nothing spent. Three 401 answers hold `auth_failed`,
+    seen in the page, in `/api/ai`, and in `doctor --json`.)
 16. *The eval set.* `tests/ai/eval/` holds cases built from the recorded
     2026-10-12 snapshot at both landmarks (with its real TCP and TWO texts) and
     from the committed replay subset — the advisory where each golden ladder
@@ -457,6 +467,11 @@ changes them.
     first) regenerates and grades every case and prints each product's token and
     cost distribution. Replay assessments are never stored, so the context
     builder takes models, not rows, and the cases are built in memory.
+    (Amended 2026-11-02 by Step 6: `--live` also runs the five chat turns, each
+    through the real chat over a throwaway database, and the two narrations,
+    38 cases at about $0.40 a run. The live run passed all 38 for $0.38 once
+    the narration's area bound moved from 400 to 600 characters, after the
+    first run withheld one narration for it.)
 17. *Phase 5's checks stay green, with two planned conversions.* Check 47
     (`README.md`'s Status) converts in Step 1, the first step to edit that
     section; check 19 (`EventKind`) converts in Step 4, which adds `ai`; each
@@ -4337,9 +4352,9 @@ The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 6 — The live eval, the browser smoke, and the operator's AI
+## Step 6 — The live eval, the browser smoke, and the operator's AI ✅
 
-**Status:** Not started
+**Status:** Complete — PR #86 (2026-11-02)
 
 > **Goal:** Prove the layer end to end, measure it, and run it for real.
 > `scripts/serve_demo.py` gains `--ai-replay` (AI answered from
@@ -4393,6 +4408,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-02: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -5145,6 +5162,38 @@ new per phase-boundary hygiene.
     verification script, the QA findings, and the matrix entry, and
     close the phase.
 
+    As Step 6 shipped it (PR #86; for checks 41-43, V6, and the findings):
+
+    - `scripts/serve_demo.py` offers `--ai-replay` (an
+      `argparse.BooleanOptionalAction`, on by default), `--ai-cap-usd`,
+      and `--ai-fail-auth`; `DemoReplay`, `request_kind`, `chat_round`,
+      and `demo_claude` answer by request kind from
+      `tests/fixtures/ai/`. Replayed text describes the eval cases, not
+      the demonstration (Parliament Square's briefing is Dorian advisory
+      1 there; the other landmark's briefing is withheld by design).
+    - `frontend/playwright.config.ts` starts three demonstration
+      servers (8799; 8800 `--ai-cap-usd 0.001`; 8801 `--ai-fail-auth`).
+      `frontend/e2e/ai.spec.ts` holds three tests, and `guard.ts`
+      gained `recordAiText`/`leaksAiText` (no AI text in the console).
+      A $0.001 cap reads `capped` before any request, not after a
+      first one (decision 15's amendment), so V6.2's pause is seen from
+      the start, with a 429 `capped` and an empty ledger.
+    - The doctor half of the authentication alarm is
+      `tests/services/test_doctor_ai.py::test_doctor_json_fails_ai_online_when_anthropic_refuses_the_credential`.
+    - `scripts/measure_idle.py` refuses to measure unless `/api/ai`
+      reads `ready` with change summaries on and prints
+      `ai_state=ready change_summaries=on`: measured 2026-11-02 at
+      `server_cpu=0.3099% tab_cpu=0.0025%` over 600.0 s.
+    - `scripts/eval_ai.py` grades 38 cases (31, five chat turns, two
+      narrations), offline by default; `--live` passed all 38 on
+      2026-11-02 for $0.38 (`docs/AI.md`, "Measured cost"), after the
+      first run withheld the Atlantic narration for an area past 400
+      characters and `validate.AREA_LIMIT` became 600. `--ai` should
+      quote about $0.40. The script's test is
+      `tests/ai/test_ai_eval.py::test_the_eval_script_grades_the_recordings`,
+      and the chat and narration grading is in
+      `tests/ai/test_ai_eval_conversations.py`.
+
     Reference scripts (pattern templates):
 
     - scripts/verify_phase05.py (the structural precedent: 53 static
@@ -5664,7 +5713,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Grounded chat + narration      | Opus 5.5       | Complete — PR #81  |
 | 4    | AI in the API                  | Opus 5.5       | Complete — PR #83  |
 | 5    | AI in the page                 | Opus 5.5       | Complete — PR #84  |
-| 6    | Live eval + smoke + deploy     | Gemini 4 Argon | Not started        |
+| 6    | Live eval + smoke + deploy     | Opus 5.5       | Complete — PR #86  |
 | 7    | QA + verify_phase06.py         | GPT-6.1 Sol    | Not started        |
 | V1   | Claude client + ledger + cap   | CI             | --                 |
 | V2   | Briefing + summary + eval set  | CI             | --                 |

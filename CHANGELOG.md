@@ -109,6 +109,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The page now accepts the event stream's `ai` events, which Step 4 added but
   the page's guard dropped, so the AI values refresh without a reload. No
   frontend dependency is added; Vitest grows from 34 to 76 tests.
+- Prove the AI end to end (Phase 6 Step 6): `scripts/serve_demo.py` gains
+  `--ai-replay` (on by default: a real SDK client whose transport answers each
+  request kind from `tests/fixtures/ai/`, streams paced so sections arrive one
+  by one, every `ANTHROPIC_*` variable removed), `--ai-cap-usd`, and
+  `--ai-fail-auth` (every request answered 401); `frontend/playwright.config.ts`
+  starts two more demonstration servers (8800 with a $0.001 cap, 8801 refusing
+  the credential); and `frontend/e2e/ai.spec.ts` streams a labeled briefing
+  section by section, sees a lookup chip and then the answer, loads NHC's six
+  outlook graphics, opens the allowance's confirmation under the policy, sees
+  the cap's pause and the third authentication failure's hold, and captures the
+  AI blocks in both themes at desktop and phone width. The shared guard now also
+  fails a test whose console repeats AI text.
+- `scripts/eval_ai.py` grades the chat turns (each run through the real chat
+  over a throwaway database) and the narrations beside the briefings and
+  summaries: 38 cases, offline by default and with `--live`; the live run of
+  2026-11-02 passed all 38, the injection twins included, for $0.38. The first
+  live run withheld the Atlantic narration for an area description past 400
+  characters, so the narration's area bound is now 600 (twice what the prompt
+  asks; ten live samples wrote 240 to 337).
+- `scripts/measure_idle.py` measures only with AI `ready` and change summaries
+  on: 0.3099% of a core for the server and 0.0025% for the tab over ten idle
+  minutes. `doctor --json` fails its `ai` check on a 401 (tested through the
+  CLI). `docs/AI.md` records the live numbers, the idle line, the smoke, and a
+  runbook (the cap reached during a storm, an authentication failure, rotating
+  the key, and turning AI off).
 
 ### Phase 5 — Web app (MVP)
 - Add Phase 5's repeatable verification script (`scripts/verify_phase05.py`),

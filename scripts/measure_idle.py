@@ -7,6 +7,9 @@ Starts ``scripts/serve_demo.py`` at production intervals on a free loopback port
 window (after ``idle.spec.ts``'s 30 s settle), prints both shares of one core (``< 0.5%``
 each) along with the window duration and the number of roster polls and cycles
 ``serve_demo.py`` reported inside the window, and exits 1 if either share is ``>= 0.5%``.
+The demonstration answers AI from recordings, so the server measures with AI ``ready``
+and change summaries on (its cycle watcher reads the AI marks on every poll); the script
+reads ``/api/ai`` first, prints both, and exits 1 when either is not so.
 """
 
 from __future__ import annotations
@@ -107,6 +110,49 @@ def _wait_for_health(port: int, deadline: float) -> None:
         time.sleep(POLL_INTERVAL_S)
     message = f"measure_idle: timed out waiting for http://127.0.0.1:{port}/api/health"
     raise RuntimeError(message)
+
+
+def _read_ai_status(port: int) -> tuple[str, bool]:
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=5.0)
+    try:
+        conn.request("GET", "/api/ai", headers={"Host": f"127.0.0.1:{port}"})
+        response = conn.getresponse()
+        document: object = json.loads(response.read())
+    finally:
+        conn.close()
+    return ai_status_of(document)
+
+
+def _require_ai_ready(port: int) -> str:
+    ai_state, change_summaries = _read_ai_status(port)
+    if ai_state != "ready" or not change_summaries:
+        message = (
+            "measure_idle: AI must be ready with change summaries on "
+            f"(state={ai_state} change_summaries={change_summaries})"
+        )
+        raise RuntimeError(message)
+    return ai_state
+
+
+def ai_status_of(document: object) -> tuple[str, bool]:
+    """Read ``/api/ai``'s state and whether change summaries are on.
+
+    Args:
+        document: The decoded answer.
+
+    Returns:
+        The state (``unknown`` when absent) and the change-summaries feature.
+    """
+    if not isinstance(document, dict):
+        return "unknown", False
+    status = cast("dict[str, object]", document)
+    features = status.get("features")
+    summaries = (
+        isinstance(features, dict)
+        and cast("dict[str, object]", features).get("change_summaries") is True
+    )
+    state = status.get("state")
+    return (state if isinstance(state, str) else "unknown"), summaries
 
 
 def _stop_process(process: subprocess.Popen[str]) -> None:
@@ -229,6 +275,7 @@ def main() -> int:
             message = "measure_idle: timed out waiting for serve_demo.py startup line"
             raise RuntimeError(message)
         _wait_for_health(port, time.monotonic() + STARTUP_TIMEOUT_S)
+        ai_state = _require_ai_ready(port)
 
         target_pid = tracker.pid or serve_proc.pid
         ps_proc = psutil.Process(target_pid)
@@ -268,6 +315,7 @@ def main() -> int:
             f"tab_cpu={tab_cpu_pct:.4f}% ({tab_cpu_delta_s:.3f}s) "
             f"roster_polls={tracker.roster_polls_in_window} "
             f"cycles={tracker.cycles_in_window} "
+            f"ai_state={ai_state} change_summaries=on "
             f"budget=<{IDLE_BUDGET_PCT:.1f}%",
             flush=True,
         )

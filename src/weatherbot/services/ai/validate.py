@@ -134,7 +134,9 @@ _ASSERTED_PATTERNS: Final = (
 )
 """Statements that a location's level is something now, for one chat sentence."""
 NARRATION_SUMMARY_LIMIT: Final = 800
-AREA_LIMIT: Final = 400
+AREA_LIMIT: Final = 600
+"""Twice the 300 characters the narration prompt asks for: ten live narrations on
+2026-11-02 wrote 240 to 337, and one in the live eval passed the earlier 400."""
 AREAS_LIMIT: Final = 8
 PERCENTAGE: Final = re.compile(
     r"(?<!\w)(?<!\d\.)(?P<number>\d{1,3}(?:\.\d+)?)\s*(?:%|percent\b|per\s+cent\b)",

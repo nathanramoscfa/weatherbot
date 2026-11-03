@@ -1,6 +1,6 @@
 // frontend/e2e/guard.ts
 import { readFileSync } from "node:fs";
-import { test as base, expect } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 
 declare global {
   interface Window {
@@ -45,6 +45,25 @@ export function leaksCoordinate(text: string): boolean {
     }
   }
   return DECIMAL_COORDINATE.test(text);
+}
+
+const AI_FRAGMENT_MIN = 16;
+const AI_TEXTS = new WeakMap<Page, string[]>();
+
+// Remembers AI text a spec saw on the page; the guard fails the test when any
+// sentence of it reached the console.
+export function recordAiText(page: Page, text: string): void {
+  const fragments = text
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((fragment) => fragment.trim())
+    .filter((fragment) => fragment.length >= AI_FRAGMENT_MIN);
+  AI_TEXTS.set(page, [...(AI_TEXTS.get(page) ?? []), ...fragments]);
+}
+
+export function leaksAiText(page: Page, message: string): boolean {
+  return (AI_TEXTS.get(page) ?? []).some((fragment) =>
+    message.includes(fragment),
+  );
 }
 
 export const test = base.extend<{ guard: void }>({
@@ -107,6 +126,9 @@ export const test = base.extend<{ guard: void }>({
       const leakingMessages = consoleMessages.filter((msg) =>
         leaksCoordinate(msg),
       );
+      const aiMessages = consoleMessages.filter((msg) =>
+        leaksAiText(page, msg),
+      );
 
       expect(
         unexpectedOrigins,
@@ -121,6 +143,7 @@ export const test = base.extend<{ guard: void }>({
         leakingMessages,
         "Console messages holding landmark coordinate renderings",
       ).toEqual([]);
+      expect(aiMessages, "Console messages holding AI text").toEqual([]);
     },
     { auto: true },
   ],

@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 import anthropic
 import pytest
 from ai_support import RecordedAnswer, Replay, fake_api_key, replay_client
-from cli_support import run, runtime
+from cli_support import recorded_services, run, runtime
 
 from weatherbot.services.ai.client import default_client
 from weatherbot.services.config import AiSettings, AppPaths
@@ -183,6 +183,31 @@ def test_doctor_names_only_the_source() -> None:
     assert key not in result.stderr
     assert replay.requests == []
     assert "ANTHROPIC_API_KEY" not in os.environ
+
+
+def test_doctor_json_fails_ai_online_when_anthropic_refuses_the_credential() -> None:
+    # The authentication alarm, as the operator's doctor would show it (Phase 6 Step 6).
+    client, replay = replay_client([RecordedAnswer.error(401, "authentication_error")])
+    key = fake_api_key()
+    environ = {**os.environ, "ANTHROPIC_API_KEY": key}
+    rt = dataclasses.replace(runtime(environ=environ), make_claude=lambda: client)
+
+    # Online, doctor also probes every official source: the recordings answer them.
+    with recorded_services():
+        result = run(["doctor", "--json"], rt)
+    document = json.loads(result.stdout)["data"]
+    checks = {check["name"]: check for check in document["checks"]}
+
+    assert result.exit_code == 1
+    assert [check["name"] for check in document["checks"] if check["status"] == "fail"] == ["ai"]
+    assert all(probe["status"] != "fail" for probe in document["probes"])
+    assert checks["ai"]["status"] == "fail"
+    assert checks["ai"]["detail"].startswith("the probe failed (auth_failed)")
+    assert "the environment (ANTHROPIC_API_KEY)" in checks["ai"]["detail"]
+    assert [request.path for request in replay.requests] == ["/v1/messages/count_tokens"]
+    assert key not in result.stdout
+    assert key not in result.stderr
+    assert "synthetic" not in result.stdout
 
 
 def test_the_sdk_raises_credentials_error_without_a_credential() -> None:
