@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 5 Complete — 2026-10-29; PR #72, #73; v2.0.0-phase-5. Phase 6 (Claude layer) is next.
+> **Status:** Phase 6 Complete — 2026-11-02; PR #88; v2.0.0-phase-6. Phase 7 (depth) is next.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -880,9 +880,9 @@ entries.
 
 ---
 
-### Phase 6 — Claude layer
+### Phase 6 — Claude layer ✅
 
-**Status:** In progress — phase06-roadmap.md
+**Status:** Complete — 2026-11-02; PR #88; v2.0.0-phase-6; phase06-roadmap.md
 
 **Goal:** Claude Sonnet 5.5 explains the situation: a briefing per
 location, a change summary per advisory, a grounded chat over the stored
@@ -1020,6 +1020,12 @@ matrix entries.
   the SDK's reported usage on recorded calls.
 - The eval set passes; a briefing that contradicts the engine's level
   fails it.
+- The canonical Phase 6 `--post` sweep reports all 51 static checks and
+  V1.1 through V7.4 PASS (see `phase06-roadmap.md`). Both `ci` and
+  `phase-verify` (matrix `"01"` through `"06"`) are green on `main`, and
+  annotated `v2.0.0-phase-6` peels to the closure merge commit. The QA
+  ledger (`docs/phase06-qa-findings.md`) assigns every finding a
+  destination.
 - **Security:** gate green; the key never appears in logs, the
   database, the client bundle, or a test fixture; prompt-injection
   cases in the eval (hostile text inside a fetched advisory) do not
@@ -1076,6 +1082,30 @@ them into steps that each ship alone. Opus 5.5 at `Max` on Claude Code
 names; Gemini 4 Argon on Antigravity, then GPT-6.1 Sol on Codex, each at
 `Max`, if its pool is short. The conversation is new: the roadmap is
 written once, from this roadmap and `main` as Phase 6 leaves it.
+
+Phase 7 keeps Phase 6's verification green as it grows
+(`docs/phase06-qa-findings.md`). `scripts/verify_phase06.py` was written so new
+routes, OpenAPI paths, query keys, CLI commands, and `phase-verify.yml` matrix
+entries pass by inclusion. Twelve checks are exact and stay live until a Phase
+7 step deliberately changes what they read: check 1 (`anthropic>=2.3.0` in
+dependencies, `httpx2` only in `dev`); check 2 (the two forbidden AI
+`import-linter` contracts); check 3 (`AiSettings`'s six fields and
+`WEATHERBOT_AI_*` overrides); check 4 (`PRICES` three models, `PRICES_AS_OF`,
+`MAX_PROMPT_TOKENS = 100_000`); check 5 (`AI_TABLES = {'ai_calls', 'ai_outputs'}`
+and `set_authorizer`); checks 7 and 16 (`0007_ai_calls.py` and
+`0008_ai_outputs.py` pinned in `FROZEN`); checks 14 and 15 (`context.py` and
+`validate.py` pure imports, `Briefing`'s five fields, no `level` on any AI
+schema); checks 22, 23, and 24 (`TOOL_NAMES` exact nine-tool tuple, strict tool
+schemas, `MAX_TOOL_ROUNDS = 6`, `MAX_CONVERSATIONS = 8`); check 32 (no
+module-level `async def` under `web/routes/` naming a repository, `ai_engine`,
+or `Session`); check 39 (`frontend/package.json` dependency and devDependency
+names equal `v2.0.0-phase-5`'s — convert in the same PR to
+`v2.0.0-phase-6:frontend/package.json` when a Phase 7 step adds a frontend
+library); check 40 (`AppShell.tsx` `NAV_ITEMS` listing `"/ask"` between
+`"/timeline"` and `"/settings"`); and check 44 (`README.md`'s `## Status`
+naming Phase 6 complete and Phase 7 next — convert in the same PR to
+`v2.0.0-phase-6:README.md` when Phase 7 updates `## Status`). Keep `"01"`
+through `"06"` in `phase-verify.yml`.
 
 #### 7.1 Charts and layers
 - Wind-probability charts per location over the forecast period,
@@ -1814,6 +1844,6 @@ The following are deliberately deferred to a future version:
 | 3     | Threat engine                                 | High       | Complete |
 | 4     | Monitoring and notifications                  | Medium     | Complete |
 | 5     | Web app MVP                                   | High       | Complete |
-| 6     | Claude layer                                  | High       | In progress |
+| 6     | Claude layer                                  | High       | Complete |
 | 7     | Depth                                         | Medium     | Not started |
 | 8     | Release 2.0                                   | Medium     | Not started |

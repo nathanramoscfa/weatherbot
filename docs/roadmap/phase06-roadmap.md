@@ -1,6 +1,6 @@
-# Phase 6 Roadmap — Claude layer
+# Phase 6 Roadmap — Claude layer ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-11-02; PR #88; v2.0.0-phase-6
 
 ## Overview
 
@@ -4856,9 +4856,9 @@ more cheaply. The conversation is new per phase-boundary hygiene.
 
 ---
 
-## Step 7 — QA & Verification Script
+## Step 7 — QA & Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #88 (2026-11-02)
 
 > **Goal:** Package the verification matrix into `scripts/verify_phase06.py`
 > (with `--fast`, `--py`, `--node`, `--ui`, `--live`, `--ai`, `--security`,
@@ -4905,6 +4905,8 @@ Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
 
 **Conversation:** New
+
+> Ran 2026-11-02: Quality Pick — Gemini 4 Argon · High.
 
 **Model rationale:** Step 7 is coding with an agentic secondary category —
 GitHub readbacks, on-machine sweeps, the live AI eval inside `--post`, and the
@@ -5233,9 +5235,9 @@ new per phase-boundary hygiene.
         `ANTHROPIC_` variables and sets `ANTHROPIC_CONFIG_DIR`.
     9.  `services/doctor.py` calls `Check` with the literal `"ai"`
         (AST), and `HealthResponse` has `ai`.
-    10. `services/logs.py`'s `QUIET_LIBRARIES` holds `anthropic`,
-        `httpx2`, and `httpcore2`, and the module defines its key
-        redaction.
+    10. `services/logs.py`'s `SILENT_LIBRARIES` (shipped name in Step 1)
+        holds `anthropic`, `httpx2`, and `httpcore2`, and the module
+        defines its key redaction (`SecretFilter` / `redact_secrets`).
     11. No module outside `src/weatherbot/services/ai/` imports
         `anthropic` or `httpx2` (AST over every package module).
     12. The Step 1 tests and `tests/fixtures/ai/manifest.json` are
@@ -5261,10 +5263,12 @@ new per phase-boundary hygiene.
     18. `tests/ai/eval/` is tracked with its cases, and
         `scripts/eval_ai.py` offers `--live`.
     19. `tests/fixtures/ai/` stays under 1 MiB, its manifest lists
-        every file, and no file there names `authorization`,
-        `x-api-key`, or `anthropic-organization-id` (any case).
-    20. `docs/AI.md` holds "What leaves the machine", "The cap", and
-        "Measured cost".
+        every file (each entry's `case` and `kind` mapping `stream` to
+        `.sse` and `parse`/`chat` to `.json`), and no file there names
+        `authorization`, `x-api-key`, or `anthropic-organization-id`
+        (any case).
+    20. `docs/AI.md` holds `## What leaves the machine`, `## The ledger
+        and the daily cap`, and `### Measured cost`.
     21. The Step 2 tests are tracked, `tests/ai/test_ai_eval.py` among
         them.
 
@@ -5714,7 +5718,7 @@ workflow above maps directly to the corresponding row below.
 | 4    | AI in the API                  | Opus 5.5       | Complete — PR #83  |
 | 5    | AI in the page                 | Opus 5.5       | Complete — PR #84  |
 | 6    | Live eval + smoke + deploy     | Opus 5.5       | Complete — PR #86  |
-| 7    | QA + verify_phase06.py         | GPT-6.1 Sol    | Not started        |
+| 7    | QA + verify_phase06.py         | Gemini 4 Argon | Complete — PR #88  |
 | V1   | Claude client + ledger + cap   | CI             | --                 |
 | V2   | Briefing + summary + eval set  | CI             | --                 |
 | V3   | Grounded chat + narration      | CI             | --                 |

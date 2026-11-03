@@ -69,7 +69,7 @@ This ledger records every judgement call, verification receipt, cost measurement
 ## Step 7 — QA & Verification Script
 
 - **Summary:** Authored `scripts/verify_phase06.py` (51 static checks and 28 V1–V7 post-implementation verification matrix rows across `--fast`, `--py`, `--node`, `--ui`, `--live`, `--ai`, `--security`, `--all`, and `--post`, totaling 79 checks in `--post`), `tests/test_phase06_verification.py` (covering `--fast` < 30 s, the 28-row V1–V7 matrix, `phase-verify.yml` `"06"` membership, single-deliverable red-check isolation across Steps 1–7, fail-closed skipped JUnit evidence, and post probe failures without invoking `--ai`), appended `"06"` to `.github/workflows/phase-verify.yml` with its own conditional Node 24 setup steps (`if: "!cancelled() && matrix.phase == '06'"`) while leaving `"05"` untouched, updated `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `docs/roadmap/ROADMAP.md`, and `docs/roadmap/phase06-roadmap.md`, and recorded this ledger.
-- **Disposition:** Completed in Step 7 (`2026-11-02`).
+- **Disposition:** Merged in PR #88 (`2026-11-02`).
 
 ## Measured cost
 
