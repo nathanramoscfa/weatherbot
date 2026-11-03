@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 6 — Claude layer
+- Add Phase 6's repeatable verification script (`scripts/verify_phase06.py`),
+  its test suite (`tests/test_phase06_verification.py`), the `phase-verify (06)`
+  CI matrix entry with its own conditional Node 24 setup before `--security`
+  (`.github/workflows/phase-verify.yml`), and the Phase 6 QA findings ledger
+  (`docs/phase06-qa-findings.md`), closing Phase 6 (`v2.0.0-phase-6`):
+  - `scripts/verify_phase06.py`: 51 standard-library static checks covering
+    Steps 1–6 and Step 7 self-checks plus the 28-row V1–V7 post-implementation
+    verification matrix (79 total checks in `--post`), supporting `--fast`,
+    `--py`, `--node`, `--ui`, `--live`, `--ai`, `--security`, `--all`, and
+    `--post`.
+  - `tests/test_phase06_verification.py`: offline regression tests covering
+    `--fast` (< 30 s), the 28-row V-matrix, `phase-verify.yml` `"06"` matrix
+    membership, non-echoing failure continuation, fail-closed skipped JUnit
+    evidence, mutually exclusive mode flags, and single-deliverable red-check
+    isolation across Steps 1–7 without invoking `--ai`.
+  - `docs/phase06-qa-findings.md`: rollup of PR #76 (roadmap) and Steps 1–7
+    (PRs #77, #80, #81, #83, #84, #86, and Step 7), the measured token and cost
+    distribution vs. roadmap estimates ($1.595 total Phase 6 AI spend across
+    Steps 1–6), the 600 s idle CPU measurement with AI ready (`server_cpu=0.3099%`,
+    `tab_cpu=0.0025%`), the 38/38 live eval results, model and source drift
+    observations (`validate.AREA_LIMIT` 400 -> 600, SDK `output_config.format`
+    validation, `nws-points` 502 tracked in Issue #87), the exact vs.
+    growth-proof Phase 6 checks for Phase 7, live smoke runs, and pre-ship items.
 - Add the AI chassis (Phase 6 Step 1): `anthropic>=2.3.0` and the `[ai]`
   settings table (`enabled`, `model`, `summary_model`, `daily_cap_usd`,
   `change_summaries`, `outlook_narration`) with six literal `WEATHERBOT_AI_*`

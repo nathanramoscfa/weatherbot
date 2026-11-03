@@ -36,13 +36,15 @@ uv run pytest              # tests: no network, each in a temporary directory
 ```
 
 CI's `test` job runs the suite with a coverage floor: at least 90 percent
-branch coverage of `weatherbot.engine` and of `weatherbot.services.policy` on
+branch coverage of `weatherbot.engine`, `weatherbot.services.policy`,
+`weatherbot.services.ai.context`, and `weatherbot.services.ai.validate`, each on
 its own. Run the same locally with the coverage data file in a temporary
 directory, never the checkout:
 
 ```sh
 COVERAGE_FILE="$(mktemp -d)/.coverage" uv run pytest \
   --cov=weatherbot.engine --cov=weatherbot.services.policy \
+  --cov=weatherbot.services.ai.context --cov=weatherbot.services.ai.validate \
   --cov-branch --cov-report=term-missing:skip-covered --cov-fail-under=90
 ```
 
@@ -157,11 +159,43 @@ Phase 5's is `uv run python scripts/verify_phase05.py`, adding `--node` and
   plus `GET /api/health` against your running service. Findings are in
   [the Phase 5 QA ledger](docs/phase05-qa-findings.md).
 
+Phase 6's is `uv run python scripts/verify_phase06.py`, adding `--ai`:
+
+- `--fast`: 51 numbered, independent checks, offline and standard-library only.
+- `--py`: static checks, lint, formatting, types (Windows and `--pythonplatform
+  Linux`), import contracts, the offline tests with the engine, policy, AI
+  context, and AI validator branch-coverage floors (the coverage data file goes
+  to a temporary directory), `export_schemas.py --check`,
+  `export_openapi.py --check`, `export_api_fixtures.py --check`, and the
+  installed-wheel smoke (`scripts/smoke_installed_web.py`).
+- `--node`: static checks and, in `frontend/`, `npm ci`, `npm audit signatures`,
+  `api:check`, `lint`, `typecheck`, Vitest with a JUnit reporter, `build`, and
+  `licenses:check`.
+- `--ui`: static checks and the Playwright Chromium smoke (`ai.spec.ts`
+  included) with a JUnit reporter.
+- `--live`: static checks and `pytest -m live` (landmarks only; no AI request).
+- `--ai`: static checks and `scripts/eval_ai.py --live` (the only mode that
+  spends money, about $0.40 at list price; refuses without a credential and
+  never runs in CI).
+- `--security`: static checks and the security gate over both stacks (gitleaks,
+  bandit, `scripts/audit_deps.py`, `scripts/check_personal_data.py`,
+  `npm audit --audit-level=high`, ESLint at `--max-warnings 0`, and a key-shape
+  scan over the phase's paths).
+- `--all`: the Python, Node, UI, live, and security suites together (everything
+  except `--ai` and `--post`).
+- `--post`: the canonical 79-check pre-tag sweep: the 28-row V1-V7 matrix from
+  one offline pytest run, one frontend/Vitest run, one Playwright run, one live
+  run, and `scripts/eval_ai.py --live` (after the operator's yes), GitHub
+  readbacks, Phase 5's own `--post` (85 checks), the 600-second idle CPU
+  measurement with AI ready, and `GET /api/health`, `GET /api/ai/calls`, and
+  online `doctor --json` against your running service. Findings are in
+  [the Phase 6 QA ledger](docs/phase06-qa-findings.md).
+
 Both `gate` and `phase-verify` are required on protected `main`. The latter
 aggregates the `phase-verify (01)`, `phase-verify (02)`, `phase-verify (03)`,
-`phase-verify (04)`, and `phase-verify (05)` matrix jobs; later phases append
-their entries and retain the aggregate name. Both workflows run on every pull
-request.
+`phase-verify (04)`, `phase-verify (05)`, and `phase-verify (06)` matrix jobs;
+later phases append their entries and retain the aggregate name. Both workflows
+run on every pull request.
 
 The test suite blocks all network access except loopback, and every test
 runs in a temporary working directory, so a test can never read or write the
