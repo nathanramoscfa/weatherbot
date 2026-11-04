@@ -66,14 +66,14 @@ LOGGER: Final = logging.getLogger("weatherbot.services.notifications")
 NOTIFICATION_KINDS: Final = ("location", "degraded", "recovered", "stale_monitor", "test")
 type NotificationKind = Literal["location", "degraded", "recovered", "stale_monitor", "test"]
 
-CHANNEL_NAMES: Final = ("log", "toast", "browser")
-type ChannelName = Literal["log", "toast", "browser"]
+CHANNEL_NAMES: Final = ("log", "toast", "browser", "ntfy")
+type ChannelName = Literal["log", "toast", "browser", "ntfy"]
 
-DELIVERY_RESULTS: Final = ("delivered", "failed", "disabled", "unavailable")
-type DeliveryResult = Literal["delivered", "failed", "disabled", "unavailable"]
+DELIVERY_RESULTS: Final = ("delivered", "failed", "disabled", "unavailable", "muted")
+type DeliveryResult = Literal["delivered", "failed", "disabled", "unavailable", "muted"]
 
 TEST_TITLE: Final = "Weatherbot test notification"
-TEST_BODY: Final = ("If you can read this, toasts work.",)
+TEST_BODY: Final = ("If you can read this, this channel works.",)
 """``weatherbot notify test``'s notification: it says it is a test and names no location."""
 
 
@@ -379,6 +379,69 @@ class NotificationService:
         )
         self.confirm_at: datetime | None = None
 
+    def _muted_delivery(
+        self,
+        channel_name: str,
+        notification: StoredNotification,
+    ) -> Delivery | None:
+        """Return a ``muted`` delivery when ``notification`` is filtered by location preferences."""
+        if notification.location_name is None or channel_name not in {"toast", "browser", "ntfy"}:
+            return None
+        with Session(self._engine) as session:
+            loc = session.scalar(
+                select(LocationRow).where(LocationRow.name == notification.location_name)
+            )
+            if loc is None:
+                return None
+            enabled = (
+                loc.notify_toast
+                if channel_name == "toast"
+                else loc.notify_browser
+                if channel_name == "browser"
+                else loc.notify_phone
+            )
+            if not enabled:
+                return Delivery("muted", "turned off for this location")
+            if (
+                channel_name == "ntfy"
+                and notification.level is not None
+                and int(notification.level) < loc.notify_phone_min_level
+                and not self._previous_location_ntfy_delivered(session, loc.id, notification.id)
+            ):
+                return Delivery("muted", "below this location's phone level")
+        return None
+
+    @staticmethod
+    def _previous_location_ntfy_delivered(
+        session: Session,
+        location_id: int,
+        notification_id: int,
+    ) -> bool:
+        prev_id = session.scalar(
+            select(NotificationRow.id)
+            .where(
+                NotificationRow.location_id == location_id,
+                NotificationRow.kind == "location",
+                NotificationRow.id < notification_id,
+            )
+            .order_by(NotificationRow.id.desc())
+            .limit(1)
+        )
+        if prev_id is None:
+            return False
+        return (
+            session.scalar(
+                select(NotificationDeliveryRow.id)
+                .where(
+                    NotificationDeliveryRow.notification_id == prev_id,
+                    NotificationDeliveryRow.channel == "ntfy",
+                    NotificationDeliveryRow.result == "delivered",
+                )
+                .limit(1)
+            )
+            is not None
+        )
+
     async def _deliver_one(
         self,
         notification: StoredNotification,
@@ -400,7 +463,8 @@ class NotificationService:
         channel_outcomes: list[tuple[str, datetime, Delivery]] = []
         for channel in active_channels:
             attempted_at = self._now()
-            outcome = await channel.deliver(notification)
+            muted = self._muted_delivery(channel.name, notification)
+            outcome = muted if muted is not None else await channel.deliver(notification)
             channel_outcomes.append((channel.name, attempted_at, outcome))
             LOGGER.info(
                 "notification delivery: id=%d channel=%s result=%s",
@@ -545,7 +609,7 @@ class NotificationService:
         return await self._deliver_one(notification, (), include_toast=include_toast)
 
     def latest_delivery(self, channel: ChannelName) -> StoredDelivery | None:
-        """Return the newest stored delivery through ``channel``, if any.
+        """Return the newest non-muted stored delivery through ``channel``, if any.
 
         Args:
             channel: The channel's name.
@@ -556,7 +620,10 @@ class NotificationService:
         with Session(self._engine) as session:
             row = session.scalars(
                 select(NotificationDeliveryRow)
-                .where(NotificationDeliveryRow.channel == channel)
+                .where(
+                    NotificationDeliveryRow.channel == channel,
+                    NotificationDeliveryRow.result != "muted",
+                )
                 .order_by(
                     NotificationDeliveryRow.attempted_at.desc(), NotificationDeliveryRow.id.desc()
                 )

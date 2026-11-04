@@ -11,6 +11,7 @@ import { BROWSER_NOTIFICATIONS_STORAGE_KEY } from "../notifications/notify.ts";
 import { aiStatus, TYPED_AI, TYPED_AI_CALLS } from "../test/ai.ts";
 import disclaimerFixture from "../test/fixtures/disclaimer.json";
 import locationsFixture from "../test/fixtures/locations.json";
+import notificationChannelsFixture from "../test/fixtures/notification-channels.json";
 import notificationsFixture from "../test/fixtures/notifications.json";
 import settingsFixture from "../test/fixtures/settings.json";
 import { asSchema, type JsonFixture } from "./format.ts";
@@ -38,6 +39,13 @@ const TYPED_NOTIFICATIONS = asSchema<
     components["schemas"]["NotificationsResponse"]
   >,
 );
+const TYPED_CHANNELS = asSchema<
+  components["schemas"]["NotificationChannelsResponse"]
+>(
+  notificationChannelsFixture satisfies JsonFixture<
+    components["schemas"]["NotificationChannelsResponse"]
+  >,
+);
 
 const SAMPLE_LICENSES: BundledLicenseEntry[] = [
   { name: "react", version: "19.3.1", license: "MIT" },
@@ -62,6 +70,7 @@ describe("Settings", () => {
     });
     queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
+    queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);
     queryClient.setQueryData(queryKeys.licenses(), SAMPLE_LICENSES);
     queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
     queryClient.setQueryData(queryKeys.aiCalls(), TYPED_AI_CALLS);
@@ -110,6 +119,7 @@ describe("Settings", () => {
     queryClient.setQueryData(queryKeys.settings(), TYPED_SETTINGS);
     queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
+    queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);
     queryClient.setQueryData(queryKeys.licenses(), SAMPLE_LICENSES);
     queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
     queryClient.setQueryData(queryKeys.aiCalls(), TYPED_AI_CALLS);
@@ -157,6 +167,7 @@ describe("Settings", () => {
     queryClient.setQueryData(queryKeys.settings(), TYPED_SETTINGS);
     queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
+    queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);
     queryClient.setQueryData(queryKeys.licenses(), SAMPLE_LICENSES);
     queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
     queryClient.setQueryData(queryKeys.aiCalls(), TYPED_AI_CALLS);
@@ -288,6 +299,7 @@ describe("Settings", () => {
     queryClient.setQueryData(queryKeys.settings(), TYPED_SETTINGS);
     queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
+    queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);
     queryClient.setQueryData(queryKeys.licenses(), SAMPLE_LICENSES);
     queryClient.setQueryData(
       queryKeys.ai(),

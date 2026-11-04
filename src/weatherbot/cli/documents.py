@@ -659,7 +659,7 @@ class NotificationDeliveryEntry(_Document):
     id: int = Field(ge=1)
     channel: str
     attempted_at: datetime
-    result: Literal["delivered", "failed", "disabled", "unavailable"]
+    result: Literal["delivered", "failed", "disabled", "unavailable", "muted"]
     detail: str | None
 
 

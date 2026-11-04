@@ -40,13 +40,19 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Final, Literal
+from urllib.parse import urlsplit
 from uuid import UUID
 
 import httpx
 
 from weatherbot import __version__
 from weatherbot.models import MapCatalog, SourceId, StormSummary
-from weatherbot.services.config import DATA_DIR_VARIABLE, AiSettings, WebSettings
+from weatherbot.services.config import (
+    DATA_DIR_VARIABLE,
+    DEFAULT_NTFY_SERVER,
+    AiSettings,
+    WebSettings,
+)
 from weatherbot.services.health import Staleness, staleness
 from weatherbot.services.network import Network
 from weatherbot.services.notifications import NotificationService, StoredDelivery
@@ -271,6 +277,50 @@ def toast_check(
         detail = f"the identity {APP_ID} is missing, although a toast was delivered before"
         return Check("toast", "fail", f"{detail}; {MISSING_IDENTITY}")
     return Check("toast", "pass", f"the latest toast {latest.result}")
+
+
+NTFY_OFF: Final = "turned off by [notifications] ntfy"
+MISSING_NTFY_TOPIC: Final = (
+    "[notifications] ntfy is true, but WEATHERBOT_NTFY_TOPIC is not set; see docs/NOTIFICATIONS.md"
+)
+
+
+def ntfy_check(
+    *,
+    ntfy_on: bool,
+    ntfy_server: str = DEFAULT_NTFY_SERVER,
+    environ: Mapping[str, str] | None = None,
+    latest: StoredDelivery | None = None,
+) -> Check:
+    """Judge the ``ntfy`` channel without sending a message or naming the topic or token.
+
+    Skipped while ``[notifications] ntfy`` is off. Fails when ``ntfy`` is on and
+    ``WEATHERBOT_NTFY_TOPIC`` is unset or blank, or when the latest stored ``ntfy``
+    delivery failed or was unavailable. Passes otherwise, reporting the server host,
+    whether a bearer token is configured, and the latest delivery status.
+    """
+    if not ntfy_on:
+        return Check("ntfy", "skip", NTFY_OFF)
+    env = os.environ if environ is None else environ
+    topic = env.get("WEATHERBOT_NTFY_TOPIC", "").strip()
+    if not topic:
+        return Check("ntfy", "fail", MISSING_NTFY_TOPIC)
+    host = urlsplit(ntfy_server).hostname or ntfy_server
+    if latest is not None and latest.result in {"failed", "unavailable"}:
+        reason = f" ({latest.detail})" if latest.detail else ""
+        return Check(
+            "ntfy",
+            "fail",
+            f"the latest ntfy delivery to {host} {latest.result}{reason}; "
+            f"{SEND_ANOTHER} (see docs/NOTIFICATIONS.md)",
+        )
+    token_state = (
+        "with bearer token" if env.get("WEATHERBOT_NTFY_TOKEN", "").strip() else "no bearer token"
+    )
+    delivery_state = (
+        f"latest delivery {latest.result}" if latest is not None else "no delivery stored yet"
+    )
+    return Check("ntfy", "pass", f"server {host} ({token_state}); {delivery_state}")
 
 
 def heartbeat_check(
@@ -745,6 +795,8 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
     now: datetime | None = None,
     identity: bool | None = None,
     toast_on: bool = True,
+    ntfy_on: bool = False,
+    ntfy_server: str = DEFAULT_NTFY_SERVER,
     data_dir_overridden: bool | None = None,
     windows: bool = ON_WINDOWS,
     tasks: Sequence[ScheduledTask] | None = None,
@@ -772,6 +824,8 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
         now: The instant the heartbeats are judged at; the clock's when omitted.
         identity: Whether the toast identity is registered; ``None`` off Windows.
         toast_on: ``[notifications] toast``.
+        ntfy_on: ``[notifications] ntfy``.
+        ntfy_server: ``[notifications] ntfy_server``.
         data_dir_overridden: Whether ``WEATHERBOT_DATA_DIR`` overrides the default data directory.
         windows: Whether the platform is Windows.
         tasks: Pre-queried ``\Weatherbot\`` tasks; queried on Windows when ``None``.
@@ -839,6 +893,12 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
             toast_on=toast_on,
             delivered_before=deliveries.delivered_before("toast"),
         )
+        ntfy = ntfy_check(
+            ntfy_on=ntfy_on,
+            ntfy_server=ntfy_server,
+            environ=environ,
+            latest=deliveries.latest_delivery("ntfy"),
+        )
         h_check = heartbeat_check(
             judged,
             serve_installed=serve_installed,
@@ -858,7 +918,7 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
             now=lambda: now or datetime.now(UTC),
             offline=offline,
         )
-        checks = (*checks, h_check, toast, t_check, p_check, w_check, a_check)
+        checks = (*checks, h_check, toast, ntfy, t_check, p_check, w_check, a_check)
     else:
         w_check = await web_check(
             None,
@@ -870,6 +930,7 @@ async def diagnose(  # noqa: PLR0913 - the local state, then the probe's inputs,
             *checks,
             Check("heartbeat", "skip", DATABASE_CLOSED),
             Check("toast", "skip", DATABASE_CLOSED),
+            Check("ntfy", "skip", DATABASE_CLOSED),
             t_check,
             p_check,
             w_check,

@@ -10546,6 +10546,12 @@
           "name": "EPSG:4326"
         },
         "type": "MultiPolygon"
+      },
+      "preferences": {
+        "browser": true,
+        "phone": true,
+        "phone_min_level": 2,
+        "toast": true
       }
     },
     {
@@ -10566,7 +10572,13 @@
       "longitude": -77.3405,
       "name": "Parliament Square",
       "nws": null,
-      "polygon": null
+      "polygon": null,
+      "preferences": {
+        "browser": true,
+        "phone": true,
+        "phone_min_level": 2,
+        "toast": true
+      }
     }
   ],
   "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md."

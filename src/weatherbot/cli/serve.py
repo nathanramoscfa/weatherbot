@@ -117,11 +117,13 @@ def _open_configured_corpus(settings: Settings) -> ReplayCorpus | None:
 
 
 def serve_channels(context: Context, hub: EventHub) -> tuple[Channel, ...]:
-    """Return ``serve``'s notification channels: ``context.channels`` plus ``BrowserChannel``."""
-    return (
-        *context.channels,
+    """Return ``serve``'s notification channels: log, toast, browser, and ntfy when on."""
+    base: list[Channel] = [
+        *context.channels[:2],
         BrowserChannel(hub, enabled=context.settings.notifications.browser),
-    )
+        *context.channels[2:],
+    ]
+    return tuple(base)
 
 
 def _make_check_installed(context: Context):  # noqa: ANN202 - returns zero-arg bool callable
@@ -220,6 +222,9 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
         network=_make_serve_network(context),
         request_cycle=_request_cycle,
         ai=ai,
+        environ=rt.environ,
+        windows=rt.windows,
+        toast_registered=bool(rt.identity().registered()),
     )
     web_server = WebServer(
         create_app(state),
@@ -324,6 +329,7 @@ def run_monitor_loop(
     configure_logging(
         "DEBUG" if context.verbose else context.settings.logging.level,
         log_file=paths.log_file_path,
+        environ=context.runtime.environ,
     )
     if opened_corpus is None and runner == "serve":
         opened_corpus = _open_configured_corpus(context.settings)
@@ -353,7 +359,10 @@ def run_monitor_loop(
             )
     finally:
         lock.release()
-        configure_logging("DEBUG" if context.verbose else context.settings.logging.level)
+        configure_logging(
+            "DEBUG" if context.verbose else context.settings.logging.level,
+            environ=context.runtime.environ,
+        )
     raise typer.Exit(EXIT_OK)
 
 

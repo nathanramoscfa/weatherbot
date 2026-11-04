@@ -38,6 +38,7 @@ from weatherbot.services.notifications import (
     TEST_BODY,
     TEST_TITLE,
     NotificationService,
+    StoredDelivery,
     StoredNotification,
 )
 from weatherbot.services.toast import (
@@ -221,6 +222,17 @@ def _print_test(output: Output, data: NotifyTestData) -> None:
         output.line("Every channel answered as expected.", style="bold green")
 
 
+def _failed(
+    delivery: StoredDelivery,
+    *,
+    windows: bool,
+    toast_on: bool,
+) -> bool:
+    if delivery.channel == "ntfy":
+        return delivery.result != "delivered"
+    return delivery_failed(delivery.result, windows=windows, toast_on=toast_on)
+
+
 @app.command("test")
 def send_test(ctx: typer.Context, *, json_output: JsonOption = False) -> None:
     """Send a test notification through every channel, and print what each did with it."""
@@ -238,9 +250,7 @@ def send_test(ctx: typer.Context, *, json_output: JsonOption = False) -> None:
     toast_on = context.settings.notifications.toast
     data = NotifyTestData(
         notification=notification_entry(sent),
-        failed=any(
-            delivery_failed(d.result, windows=windows, toast_on=toast_on) for d in sent.deliveries
-        ),
+        failed=any(_failed(d, windows=windows, toast_on=toast_on) for d in sent.deliveries),
     )
     code = EXIT_FAILED if data.failed else EXIT_OK
     if json_output:

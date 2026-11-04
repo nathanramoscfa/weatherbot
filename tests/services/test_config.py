@@ -430,6 +430,22 @@ def test_notifications_and_monitor_confirm_settings_load_and_override() -> None:
             "[monitor]\nconfirm_after_minutes = 0\n",
             "[monitor] confirm_after_minutes",
         ),
+        (
+            '[notifications]\nntfy_server = "http://ntfy.example.com"\n',
+            "[notifications] ntfy_server",
+        ),
+        (
+            f'[notifications]\nntfy_server = "https://ntfy.sh/{UNECHOED}"\n',
+            "[notifications] ntfy_server",
+        ),
+        (
+            f'[notifications]\nntfy_server = "https://{UNECHOED}@ntfy.sh"\n',
+            "[notifications] ntfy_server",
+        ),
+        (
+            f'[notifications]\nntfy_server = "https://ntfy.sh?token={UNECHOED}"\n',
+            "[notifications] ntfy_server",
+        ),
     ],
 )
 def test_bad_notification_or_confirm_settings_are_refused(text: str, expected: str) -> None:
@@ -440,3 +456,25 @@ def test_bad_notification_or_confirm_settings_are_refused(text: str, expected: s
         load_settings(paths, {})
 
     assert expected in str(failure.value)
+    assert UNECHOED not in str(failure.value)
+
+
+def test_ntfy_settings_and_overrides_load_and_validate_loopback_http() -> None:
+    paths = AppPaths.resolve()
+    _write(
+        paths,
+        '[notifications]\nntfy = true\nntfy_server = "https://ntfy.example.com:8443/"\n',
+    )
+    from_file = load_settings(paths, {})
+    assert from_file.notifications.ntfy is True
+    assert from_file.notifications.ntfy_server == "https://ntfy.example.com:8443"
+
+    overridden = load_settings(
+        paths,
+        {
+            "WEATHERBOT_NOTIFICATIONS_NTFY": "false",
+            "WEATHERBOT_NOTIFICATIONS_NTFY_SERVER": "http://127.0.0.1:8080/",
+        },
+    )
+    assert overridden.notifications.ntfy is False
+    assert overridden.notifications.ntfy_server == "http://127.0.0.1:8080"

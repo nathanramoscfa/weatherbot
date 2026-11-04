@@ -84,6 +84,8 @@ export const queryKeys = {
       ? invalidatableQueryKey("timeline", location)
       : invalidatableQueryKey("timeline"),
   notifications: () => invalidatableQueryKey("notifications"),
+  notificationChannels: () =>
+    invalidatableQueryKey("notifications", "channels"),
   settings: () => invalidatableQueryKey("settings"),
   ai: () => invalidatableQueryKey("ai"),
   aiCalls: () => invalidatableQueryKey("ai", "calls"),

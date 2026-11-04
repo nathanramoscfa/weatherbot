@@ -1,0 +1,33 @@
+{
+  "channels": [
+    {
+      "detail": "Stored in SQLite (notifications and notification_deliveries).",
+      "last_attempted_at": "2026-10-13T01:32:00Z",
+      "last_result": "delivered",
+      "name": "log",
+      "state": "on"
+    },
+    {
+      "detail": "Windows desktop toast (Weatherbot.Monitor).",
+      "last_attempted_at": "2026-10-13T01:32:00Z",
+      "last_result": "unavailable",
+      "name": "toast",
+      "state": "on"
+    },
+    {
+      "detail": "Server-sent event stream (/api/events); per-browser toggle below.",
+      "last_attempted_at": "2026-10-13T01:32:00Z",
+      "last_result": "unavailable",
+      "name": "browser",
+      "state": "on"
+    },
+    {
+      "detail": "Turned off by [notifications] ntfy.",
+      "last_attempted_at": null,
+      "last_result": null,
+      "name": "ntfy",
+      "state": "off"
+    }
+  ],
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md."
+}

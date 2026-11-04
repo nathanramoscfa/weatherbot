@@ -143,6 +143,10 @@ class LocationRow(Base):
     evacuation_order_set_at: Mapped[datetime | None] = mapped_column(
         comment="When the toggle was last turned on or off (revision 0003)"
     )
+    notify_toast: Mapped[bool] = mapped_column(server_default=text("1"))
+    notify_browser: Mapped[bool] = mapped_column(server_default=text("1"))
+    notify_phone: Mapped[bool] = mapped_column(server_default=text("1"))
+    notify_phone_min_level: Mapped[int] = mapped_column(server_default=text("2"))
     geocoding: Mapped[dict[str, Any] | None] = mapped_column(comment="Provenance JSON")
     created_at: Mapped[datetime]
     updated_at: Mapped[datetime]

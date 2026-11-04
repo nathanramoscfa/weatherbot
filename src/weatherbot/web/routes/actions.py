@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Final, cast
 
 from fastapi import APIRouter, HTTPException, Request, status
 
+from weatherbot.models import LocationPreferences
 from weatherbot.services.disclaimer import NOTICE
 from weatherbot.services.locations import (
     NOMINATIM_SEARCH_ATTRIBUTION,
@@ -22,6 +23,7 @@ from weatherbot.services.notifications import (
     TEST_TITLE,
     NotificationService,
 )
+from weatherbot.services.persistence.repositories import LocationNotFoundError
 from weatherbot.web.routes.locations import location_to_response
 from weatherbot.web.routes.notifications import notification_to_response
 from weatherbot.web.schemas import (
@@ -38,6 +40,7 @@ from weatherbot.web.schemas import (
     TriggerCycleRequest,
     TriggerCycleResponse,
     UpdateEvacuationRequest,
+    UpdateLocationPreferencesRequest,
 )
 
 if TYPE_CHECKING:
@@ -217,6 +220,36 @@ def update_evacuation(
         changed=changed,
         notice=NOTICE,
     )
+
+
+@router.put("/api/locations/preferences")
+def update_location_preferences(
+    request: Request,
+    body: UpdateLocationPreferencesRequest,
+) -> LocationResponse:
+    """Update a watched location's notification channel preferences."""
+    state = cast("WebState", request.app.state.web)
+    service = LocationService(state.database.engine, now=state.clock)
+    preferences = LocationPreferences(
+        toast=body.preferences.toast,
+        browser=body.preferences.browser,
+        phone=body.preferences.phone,
+        phone_min_level=body.preferences.phone_min_level,
+    )
+    try:
+        location = service.set_preferences(body.location, preferences)
+    except (LocationNotFoundError, LocationError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="no location has that name",
+        ) from error
+
+    state.hub.publish(
+        "location",
+        {"location": location.name},
+        ("locations",),
+    )
+    return location_to_response(location)
 
 
 @router.post("/api/cycles", status_code=status.HTTP_202_ACCEPTED)

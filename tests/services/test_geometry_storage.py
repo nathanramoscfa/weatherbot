@@ -22,7 +22,7 @@ from snapshot_support import (
     recorded_snapshot,
     with_second_storm,
 )
-from sqlalchemy import Engine, delete, distinct, func, select, update
+from sqlalchemy import Engine, delete, distinct, func, select, text, update
 from sqlalchemy.orm import Session
 
 from weatherbot.models import (
@@ -32,6 +32,7 @@ from weatherbot.models import (
     DisplayLayer,
     DomainModel,
     ForecastTrack,
+    Location,
     OutlookArea,
     OutlookGraphic,
     Provenance,
@@ -273,17 +274,49 @@ def _written_as_before(
         )
 
 
+def _add_location_before_0009(engine: Engine, location: Location) -> None:
+    """Insert a location into the revision-0003 ``locations`` table before revision 0009."""
+    assert location.nws is not None
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO locations (name, latitude, longitude, polygon, polygon_crs, "
+                "polygon_crs_datum, country_code, display_name, nws_forecast_zone, "
+                "nws_county_zone, nws_cwa, nws_time_zone, nws_city, nws_state, breakpoint_span, "
+                "evacuation_order_in_effect, evacuation_order_set_at, geocoding, created_at, "
+                "updated_at) VALUES (:name, :lat, :lon, NULL, NULL, NULL, :cc, :dn, :fz, :cz, "
+                ":cwa, :tz, :city, :state, NULL, 0, NULL, NULL, '2026-10-13 00:00:00', "
+                "'2026-10-13 00:00:00')"
+            ),
+            {
+                "name": location.name,
+                "lat": location.point.latitude,
+                "lon": location.point.longitude,
+                "cc": location.country_code,
+                "dn": location.display_name,
+                "fz": location.nws.forecast_zone,
+                "cz": location.nws.county_zone or "",
+                "cwa": location.nws.cwa,
+                "tz": location.nws.time_zone,
+                "city": location.nws.city,
+                "state": location.nws.state,
+            },
+        )
+
+
 async def test_a_snapshot_stored_before_0004_loads_back_equal_after_the_upgrade(
     recorded: RecordedSnapshot, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     paths = AppPaths.resolve()
     old = recorded.snapshot
     engine = _at_revision(paths, "0003")
-    with monkeypatch.context() as patched:
-        patched.setattr(repositories, "_save_products", _written_as_before)
-        LocationRepository(engine).add(recorded.location)
-        SnapshotRepository(engine).save(old, recorded.responses)
-    engine.dispose()
+    try:
+        with monkeypatch.context() as patched:
+            patched.setattr(repositories, "_save_products", _written_as_before)
+            _add_location_before_0009(engine, recorded.location)
+            SnapshotRepository(engine).save(old, recorded.responses)
+    finally:
+        engine.dispose()
 
     with open_database(paths) as opened:
         assert opened.backup_path is not None

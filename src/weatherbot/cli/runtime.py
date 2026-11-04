@@ -41,6 +41,7 @@ from weatherbot.services.notifications import (
     LogChannel,
     deliver_database_refused_toast,
 )
+from weatherbot.services.ntfy import ntfy_channel
 from weatherbot.services.persistence.database import Database, DatabaseError, open_database
 from weatherbot.services.persistence.repositories import SettingsRepository
 from weatherbot.services.tasks import ON_WINDOWS, SubprocessRunner, run_subprocess
@@ -70,6 +71,7 @@ def _default_claude() -> "ClaudeClient":
 
 
 type ToastFactory = Callable[[Settings], Channel]
+type NtfyFactory = Callable[..., Channel | None]
 
 
 @dataclass(frozen=True)
@@ -80,6 +82,8 @@ class Runtime:
     make_fetcher: FetcherFactory = default_fetcher
     make_toast: ToastFactory = toast_channel
     """The toast channel for the settings, as ``make_fetcher`` is the network."""
+    make_ntfy: NtfyFactory = ntfy_channel
+    """The ``ntfy`` channel for the settings when ``[notifications] ntfy`` is on."""
     make_claude: "ClaudeFactory" = _default_claude
     """The Anthropic client; the SDK resolves the credential, and tests replay answers."""
     identity: Callable[[], Identity] = system_identity
@@ -118,10 +122,23 @@ class Context:
         """The timeout setting and the runtime's fetcher factory."""
         return Network(self.settings.http.timeout_seconds, self.runtime.make_fetcher)
 
+    def ntfy_channel(self) -> Channel | None:
+        """Build the ``ntfy`` channel using ``runtime.environ`` when on the default factory."""
+        if self.runtime.make_ntfy is ntfy_channel:
+            return ntfy_channel(self.settings, environ=self.runtime.environ)
+        try:
+            return self.runtime.make_ntfy(self.settings, self.runtime.environ)
+        except TypeError:
+            return self.runtime.make_ntfy(self.settings)
+
     @property
     def channels(self) -> tuple[Channel, ...]:
-        """The delivery channels: the in-app log, and the runtime's toast beside it."""
-        return (LogChannel(), self.runtime.make_toast(self.settings))
+        """The delivery channels: the in-app log, the toast, and ``ntfy`` when present."""
+        base: list[Channel] = [LogChannel(), self.runtime.make_toast(self.settings)]
+        ntfy = self.ntfy_channel()
+        if ntfy is not None:
+            base.append(ntfy)
+        return tuple(base)
 
     def ai_service(self, database: Database, *, publish: "AiPublish | None" = None) -> "AiService":
         """Build the AI service on the AI engine over the open database's file.
@@ -167,7 +184,7 @@ def start(runtime: Runtime, *, verbose: bool) -> Context:
         settings = load_settings(paths, runtime.environ)
     except ConfigError as error:
         problem = str(error)
-    configure_logging("DEBUG" if verbose else settings.logging.level)
+    configure_logging("DEBUG" if verbose else settings.logging.level, environ=runtime.environ)
     return Context(runtime, paths, settings, problem, exists, verbose=verbose)
 
 

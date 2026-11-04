@@ -192,6 +192,20 @@
       "variable": "WEATHERBOT_NOTIFICATIONS_BROWSER"
     },
     {
+      "key": "ntfy",
+      "origin": "default",
+      "table": "notifications",
+      "value": false,
+      "variable": "WEATHERBOT_NOTIFICATIONS_NTFY"
+    },
+    {
+      "key": "ntfy_server",
+      "origin": "default",
+      "table": "notifications",
+      "value": "https://ntfy.sh",
+      "variable": "WEATHERBOT_NOTIFICATIONS_NTFY_SERVER"
+    },
+    {
       "key": "host",
       "origin": "default",
       "table": "web",

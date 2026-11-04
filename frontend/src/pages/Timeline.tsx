@@ -410,7 +410,12 @@ function NotificationLogCard({
             {item.deliveries.map((deliv) => (
               <span
                 key={deliv.id}
-                className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-0.5 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                data-delivery-result={deliv.result}
+                className={
+                  deliv.result === "muted"
+                    ? "inline-flex items-center gap-1 rounded border border-slate-200 bg-slate-100 px-2 py-0.5 text-slate-500 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-400"
+                    : "inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-0.5 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                }
               >
                 <strong>{deliv.channel}:</strong> {deliv.result}
                 {deliv.detail ? ` (${deliv.detail})` : ""} ·{" "}

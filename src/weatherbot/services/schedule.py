@@ -449,7 +449,7 @@ class MonitorSchedule:
                     )
                     self._alarmed[key] = True
                     self._toast_delivered[key] = any(
-                        d.channel == "toast" and d.result == "delivered" for d in sent.deliveries
+                        d.channel != "log" and d.result == "delivered" for d in sent.deliveries
                     )
             else:
                 self._first_failure_at.pop(key, None)

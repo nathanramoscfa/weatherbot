@@ -17,6 +17,7 @@ from source_support import NOW
 
 from check_personal_data import load_landmarks, synthetic_coordinates
 from weatherbot.services.config import AppPaths, load_settings, setting_origins
+from weatherbot.services.logs import configure_logging
 from weatherbot.services.network import Network
 from weatherbot.services.persistence.database import open_database
 from weatherbot.services.replay import ReplayCorpus
@@ -110,6 +111,7 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
             "/api/alerts",
             "/api/timeline",
             "/api/notifications",
+            "/api/notifications/channels",
             "/api/settings",
             "/api/disclaimer",
             "/api/map",
@@ -155,6 +157,7 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
         "/api/alerts",
         "/api/timeline",
         "/api/notifications",
+        "/api/notifications/channels",
         "/api/settings",
         "/api/disclaimer",
         "/api/replay",
@@ -208,7 +211,9 @@ def test_place_search_route_never_logs_or_echoes_search_query_in_errors_or_logs(
 ) -> None:
     private_query = "SecretTypedPlaceQuery54321"
     paths = AppPaths.resolve()
-    caplog.set_level(logging.INFO)
+    configure_logging("INFO")
+    caplog.clear()
+    caplog.set_level(logging.INFO, logger="weatherbot")
     with (
         open_database(paths, now=lambda: NOW) as database,
         respx.mock(assert_all_called=False) as router,

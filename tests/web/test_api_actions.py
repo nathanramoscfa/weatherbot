@@ -91,6 +91,19 @@ def test_every_write_refuses_cross_site_and_non_json_requests() -> None:
         writes: tuple[tuple[str, str, dict[str, object]], ...] = (
             ("POST", "/api/locations", {"name": "Home", "latitude": 25.0, "longitude": -80.0}),
             ("PUT", "/api/locations/evacuation", {"location": "Home", "on": True}),
+            (
+                "PUT",
+                "/api/locations/preferences",
+                {
+                    "location": "Home",
+                    "preferences": {
+                        "toast": True,
+                        "browser": True,
+                        "phone": True,
+                        "phone_min_level": 2,
+                    },
+                },
+            ),
             ("POST", "/api/cycles", {}),
             ("POST", "/api/notifications/test", {}),
         )
