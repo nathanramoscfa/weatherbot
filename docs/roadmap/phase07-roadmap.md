@@ -1582,9 +1582,9 @@ step does not need. The conversation is new, per phase-boundary hygiene.
 
 ---
 
-## Step 2 — Locations
+## Step 2 — Locations ✅
 
-**Status:** Not started
+**Status:** Complete — PR #91 (2026-11-04)
 
 > **Goal:** Let the operator watch their own place, and find any place by name.
 > Issue #87: `NwsCoverage.county_zone` becomes optional and `cwa` takes a digit,
@@ -1637,6 +1637,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-04: Balanced Pick or Quality Runner-up — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6923,7 +6925,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Test budget (xdist)            | GPT-6.1 Sol    | Complete — PR #90  |
-| 2    | Locations + place search       | Opus 5.5       | Not started        |
+| 2    | Locations + place search       | Gemini 4 Argon | Complete — PR #91  |
 | 3    | ntfy + preferences             | Opus 5.5       | Not started        |
 | 4    | Settings + retention           | Opus 5.5       | Not started        |
 | 5    | Map layers + time slider       | Gemini 4 Argon | Not started        |
