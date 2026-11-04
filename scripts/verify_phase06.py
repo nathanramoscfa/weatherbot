@@ -1178,10 +1178,14 @@ def check_43_ai_doc_live_idle_runbook(root: Path = REPO_ROOT) -> bool:
 
 
 def check_44_readme_status_phase06(root: Path = REPO_ROOT) -> bool:
-    """Check 44: README.md's ## Status names Phase 6 complete and Phase 7 next."""
+    """Check 44: README.md's ## Status at v2.0.0-phase-6 names Phase 6 complete and Phase 7 next.
+
+    The ``## Status`` block is read at ``v2.0.0-phase-6``: Phase 7 Step 1 moved the live
+    Status on to Phase 7.
+    """
     if not files_exist("README.md", root=root):
         return False
-    text = read("README.md", root=root)
+    text = tagged("README.md", tag=PHASE_6_TAG)
     status_match = re.search(r"^## Status$(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
     if status_match is None:
         return False

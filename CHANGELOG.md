@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 7 — Depth
+- Parallelize the CI `test` job with `pytest-xdist` (Phase 7 Step 1, closing
+  issue #82): add `pytest-xdist>=3.8.0` (`execnet==2.1.2`) to the `dev`
+  dependency group, run `.github/workflows/ci.yml`'s `test` job with `uv run
+  pytest -n auto` while keeping `pyproject.toml`'s `addopts` serial and all four
+  branch-coverage floors (`weatherbot.engine`, `weatherbot.services.policy`,
+  `weatherbot.services.ai.context`, and `weatherbot.services.ai.validate` at
+  `>=90%`) unchanged, add `tests/test_ci_budget.py` proving the CI configuration
+  and worker-process loopback socket and working-directory guards, update
+  `README.md`'s `## Status` to Phase 7 in progress, and convert Phase 6's check
+  44 (`scripts/verify_phase06.py` and `tests/test_phase06_verification.py`) to
+  read `README.md` at `v2.0.0-phase-6`.
+
 ### Phase 6 — Claude layer
 - Add Phase 6's repeatable verification script (`scripts/verify_phase06.py`),
   its test suite (`tests/test_phase06_verification.py`), the `phase-verify (06)`
