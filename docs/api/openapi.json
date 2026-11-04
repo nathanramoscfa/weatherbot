@@ -245,6 +245,25 @@
         }
       }
     },
+    "/api/notifications/channels": {
+      "get": {
+        "summary": "Get Notification Channels",
+        "description": "Return the configured state and latest non-muted delivery of the four channels.",
+        "operationId": "get_notification_channels_api_notifications_channels_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationChannelsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/settings": {
       "get": {
         "summary": "Get Settings",
@@ -511,6 +530,45 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EvacuationUpdateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/locations/preferences": {
+      "put": {
+        "summary": "Update Location Preferences",
+        "description": "Update a watched location's notification channel preferences.",
+        "operationId": "update_location_preferences_api_locations_preferences_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLocationPreferencesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationResponse"
                 }
               }
             }
@@ -4280,6 +4338,40 @@
         "title": "LocationBriefingResponse",
         "description": "One watched location's latest assessment and its newest stored briefing."
       },
+      "LocationPreferencesResponse": {
+        "properties": {
+          "toast": {
+            "type": "boolean",
+            "title": "Toast",
+            "description": "Whether Windows desktop toasts are enabled for this location.",
+            "default": true
+          },
+          "browser": {
+            "type": "boolean",
+            "title": "Browser",
+            "description": "Whether browser alert banners are enabled for this location.",
+            "default": true
+          },
+          "phone": {
+            "type": "boolean",
+            "title": "Phone",
+            "description": "Whether phone push notifications (ntfy) are enabled for this location.",
+            "default": true
+          },
+          "phone_min_level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 2.0,
+            "title": "Phone Min Level",
+            "description": "Minimum threat level (2..5) that triggers a phone push notification.",
+            "default": 2
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "LocationPreferencesResponse",
+        "description": "Per-location notification preferences returned by ``GET /api/locations``."
+      },
       "LocationResponse": {
         "properties": {
           "name": {
@@ -4380,6 +4472,16 @@
               }
             ],
             "description": "Nearest NHC coastal breakpoint span, or null before the first assessment."
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/LocationPreferencesResponse",
+            "description": "Per-location notification channel preferences.",
+            "default": {
+              "toast": true,
+              "browser": true,
+              "phone": true,
+              "phone_min_level": 2
+            }
           }
         },
         "additionalProperties": false,
@@ -4860,6 +4962,101 @@
         "title": "NarrationsResponse",
         "description": "Response document for ``GET /api/ai/narrations``."
       },
+      "NotificationChannelStatusResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "log",
+              "toast",
+              "browser",
+              "ntfy"
+            ],
+            "title": "Name",
+            "description": "Delivery channel name."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "on",
+              "off",
+              "unconfigured"
+            ],
+            "title": "State",
+            "description": "Current channel state: on, off, or unconfigured."
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "description": "Human-readable configuration summary (never a secret or topic)."
+          },
+          "last_result": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "delivered",
+                  "failed",
+                  "disabled",
+                  "unavailable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Result",
+            "description": "Most recent non-muted delivery result for this channel, or null."
+          },
+          "last_attempted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempted At",
+            "description": "UTC instant of the most recent non-muted delivery attempt, or null."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "state",
+          "detail"
+        ],
+        "title": "NotificationChannelStatusResponse",
+        "description": "Configured status and latest non-muted delivery outcome of one notification channel."
+      },
+      "NotificationChannelsResponse": {
+        "properties": {
+          "channels": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationChannelStatusResponse"
+            },
+            "type": "array",
+            "title": "Channels",
+            "description": "Status of the four delivery channels in order: log, toast, browser, ntfy."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "channels",
+          "notice"
+        ],
+        "title": "NotificationChannelsResponse",
+        "description": "Response document for ``GET /api/notifications/channels``."
+      },
       "NotificationDecisionResponse": {
         "properties": {
           "id": {
@@ -5000,7 +5197,8 @@
               "delivered",
               "failed",
               "disabled",
-              "unavailable"
+              "unavailable",
+              "muted"
             ],
             "title": "Result",
             "description": "Outcome of the channel delivery attempt."
@@ -7933,6 +8131,28 @@
         ],
         "title": "UpdateEvacuationRequest",
         "description": "Request body for ``PUT /api/locations/evacuation``."
+      },
+      "UpdateLocationPreferencesRequest": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Location",
+            "description": "Name of the watched location to update."
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/LocationPreferencesResponse",
+            "description": "Per-location notification channel preferences."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location",
+          "preferences"
+        ],
+        "title": "UpdateLocationPreferencesRequest",
+        "description": "Request body for ``PUT /api/locations/preferences``."
       },
       "ValidationError": {
         "properties": {

@@ -16,10 +16,13 @@ NAMES = tuple(
 )
 
 
+_REAL_CANDIDATES = build_notification_goldens.candidates
+
+
 @cache
 def current_notification_goldens() -> dict[str, dict[str, object]]:
     """Run both Irma notification timelines once for the frozen-reference checks."""
-    return build_notification_goldens.candidates()
+    return _REAL_CANDIDATES()
 
 
 @pytest.mark.parametrize("name", NAMES)

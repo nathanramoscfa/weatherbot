@@ -129,6 +129,37 @@ def test_the_log_file_loses_the_key(tmp_path: Path) -> None:
     assert "<redacted>" in text
 
 
+def test_ntfy_token_shape_and_configured_topic_and_token_are_redacted_from_records_and_tracebacks(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    token_shape = f"{'tk'}_{'z' * 29}"
+    custom_topic = "my-custom-random-topic-secret-998877"
+    custom_token = f"opaque-custom-bearer-{'secret'}-445566"
+
+    assert token_shape not in redact_secrets(f"token is {token_shape}")
+    assert custom_topic not in redact_secrets(f"WEATHERBOT_NTFY_TOPIC={custom_topic}")
+    assert custom_token not in redact_secrets(f"WEATHERBOT_NTFY_TOKEN={custom_token}")
+
+    configure_logging(
+        "DEBUG",
+        environ={
+            "WEATHERBOT_NTFY_TOPIC": custom_topic,
+            "WEATHERBOT_NTFY_TOKEN": custom_token,
+        },
+    )
+    LOGGER.debug("posting body {'topic': '%s'} with token %s", custom_topic, custom_token)
+    try:
+        _fail(RuntimeError(f"failed for topic={custom_topic} token={token_shape}"))
+    except RuntimeError:
+        LOGGER.exception("ntfy post failed")
+
+    err = capsys.readouterr().err
+    assert custom_topic not in err
+    assert custom_token not in err
+    assert token_shape not in err
+    assert "<redacted>" in err
+
+
 def test_the_sdk_loggers_stay_at_warning_at_every_level() -> None:
     for level in ("DEBUG", "INFO", "WARNING"):
         configure_logging(level)

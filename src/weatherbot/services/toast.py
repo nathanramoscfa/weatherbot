@@ -442,37 +442,52 @@ class ToastChannel:
 
 
 class NullChannel:
-    """The toast channel where there is none: always ``unavailable``, saying why."""
+    """A channel where there is none: always ``unavailable`` (or ``result``), saying why."""
 
-    def __init__(self, reason: str = sys.platform) -> None:
+    def __init__(
+        self,
+        reason: str = sys.platform,
+        *,
+        channel_name: str = "toast",
+        result: DeliveryResult = "unavailable",
+    ) -> None:
         """Answer every delivery with ``reason``.
 
         Args:
-            reason: The platform's name, or that the toast is turned off.
+            reason: The platform's name, or that the channel is turned off.
+            channel_name: The channel identifier (defaults to ``toast``).
+            result: The delivery result to report (defaults to ``unavailable``).
         """
         self._reason = reason
+        self._name = channel_name
+        self._result: DeliveryResult = result
 
     @property
     def name(self) -> str:
         """The channel's identifier."""
-        return "toast"
+        return self._name
 
     @property
     def interrupts(self) -> bool:
-        """A desktop toast interrupts the operator."""
+        """An external channel interrupts the operator."""
         return True
 
+    def send(self, notification: StoredNotification) -> Delivery:
+        """Answer synchronously with ``result`` and ``reason``."""
+        del notification
+        return Delivery(self._result, self._reason)
+
     async def deliver(self, notification: StoredNotification) -> Delivery:
-        """Answer ``unavailable``.
+        """Answer ``unavailable`` (or ``result``).
 
         Args:
             notification: The stored notification, which goes nowhere.
 
         Returns:
-            ``unavailable`` with the reason.
+            ``unavailable`` (or ``result``) with the reason.
         """
         del notification
-        return Delivery("unavailable", self._reason)
+        return Delivery(self._result, self._reason)
 
 
 def toast_channel(settings: Settings) -> Channel:

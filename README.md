@@ -17,9 +17,10 @@ needs an Anthropic credential, and everything else works without one (see
 [docs/AI.md](docs/AI.md)). No version 2 package is released.
 The commands below read the official products, and `status` decides each
 location's level from them alone, with the evidence behind it, and notifies you
-of a change through the in-app log, a Windows toast, and the browser; `serve`
-and `check` run the monitor on NHC's UTC schedule, and `serve` also hosts the
-local loopback web app. The plan lives in [the roadmap](docs/roadmap/ROADMAP.md).
+of a change through the in-app log, a Windows toast, the browser, and optional
+phone push via ntfy; `serve` and `check` run the monitor on NHC's UTC schedule,
+and `serve` also hosts the local loopback web app. The plan lives in
+[the roadmap](docs/roadmap/ROADMAP.md).
 
 ## Commands
 
@@ -72,9 +73,9 @@ weatherbot install-task              # register \Weatherbot\serve (logon) and \W
 weatherbot uninstall-task            # stop \Weatherbot\serve and remove both scheduled tasks
 weatherbot notify log                # the newest stored notifications first, with their deliveries
 
-# Windows toasts: register Weatherbot's toast identity once (your account only; no administrator).
+# Windows toasts and phone push: register Weatherbot's toast identity once (your account only; no administrator).
 weatherbot notify setup
-weatherbot notify test               # send a test notification through the log and the toast
+weatherbot notify test               # send a test notification through the log, the toast, and ntfy (when [notifications] ntfy = true)
 weatherbot notify setup --remove     # remove the identity again
 
 # Claude's plain-language briefing on each location's latest assessment (needs ANTHROPIC_API_KEY; see docs/AI.md).
@@ -122,16 +123,21 @@ cadence a scheduled monitor promised for it); a manual command promises no
 cadence, so it never makes data look stale.
 
 `status` and `check --once` send each notification the policy decides through
-the in-app log and, on Windows, a toast: the title, its first two lines, and
-the disclaimer's reminder, under the identity `notify setup` registers.
-`notify log` shows each delivery's result. A toast reads `delivered` when Windows
-accepted it, `disabled` when Windows' notification settings turn Weatherbot off
-(with the setting), `failed` with Windows' error code, or `unavailable` before
-`notify setup` and everywhere but Windows. With Do Not Disturb on, Windows
-files the toast in the notification center without showing it, and tells
-Weatherbot nothing. `notify test` exits 1 when the toast failed, was disabled,
-or was unavailable on Windows. Set `toast = false` under `[notifications]` in
-`weatherbot.toml` to keep notifications in the log only.
+the in-app log, a Windows toast (under the identity `notify setup` registers),
+the browser (`serve`), and — when `[notifications] ntfy = true` and
+`WEATHERBOT_NTFY_TOPIC` is set in the environment — an HTTPS POST to your ntfy
+server (`[notifications] ntfy_server`, default `https://ntfy.sh`, with an
+optional `WEATHERBOT_NTFY_TOKEN` bearer token). Each watched location also has
+its own notification preferences (`toast`, `browser`, `phone`, and
+`phone_min_level` from `2` to `5`), recording a `muted` delivery when a channel
+is turned off or below that location's phone threshold while still sending an
+`ALL_CLEAR` follow-up if the prior notification for that location reached the
+phone. `notify log` shows each delivery's result (`delivered`, `disabled`,
+`failed`, `unavailable`, or `muted`). `notify test` exits 1 when the toast or
+ntfy failed, was disabled, or was unavailable. Set `toast = false` or
+`ntfy = false` under `[notifications]` in `weatherbot.toml` to turn either
+channel off; see [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) for the full
+setup and runbook.
 
 `brief` prints a label line naming the model and the assessment and saying the
 text is not an official product, then each section once it passes the
@@ -242,7 +248,7 @@ reloading the page and provides seven pages:
 - **Timeline (`/timeline`)**: chronological assessment and notification history
   with a location filter, change events (each with its labeled AI change
   summary when one is stored), and per-channel delivery outcomes (`log`,
-  `toast`, `browser`).
+  `toast`, `browser`, `ntfy`, including `muted` deliveries).
 - **Ask (`/ask`)**: a grounded chat with Claude beneath the engine's level
   badges for every location: a location picker, a question box of at most
   2,000 characters, each lookup shown as a chip (`Reading storms`), the answer
@@ -250,10 +256,14 @@ reloading the page and provides seven pages:
   a withheld or unavailable answer closes the conversation.
 - **Settings (`/settings`)**: search for a place (`POST /api/locations/search`)
   or enter coordinates to add a watched location (`POST /api/locations`) with a
-  short typed label, remove a watched location (`POST /api/locations/remove`)
+  short typed label, configure per-location notification preferences (`PUT
+  /api/locations/preferences`: `Toast`, `Browser`, `Phone`, and `Phone from`
+  level `2`–`5`), remove a watched location (`POST /api/locations/remove`)
   along with its stored history behind a confirmation,
-  enable or test browser notifications (`POST /api/notifications/test`), the
-  AI section (`#ai`: the state, the credential's source but never its value,
+  inspect notification channel states (`GET /api/notifications/channels`) and
+  enable or test browser, toast, and phone notifications (`POST
+  /api/notifications/test`), the AI section (`#ai`: the state, the credential's
+  source but never its value,
   the models, today's spend against the cap, the recent requests,
   `Pause AI`/`Resume AI`, and `Allow $X more today` behind a confirmation),
   inspect effective settings and their origins (`default`, `file`,
@@ -317,6 +327,10 @@ repository; "Local data" there lists the paths and the overrides.
   etiquette.
 - [The alert ladder](docs/ALERT-LADDER.md): levels, actions, ordered rules,
   calibrated thresholds, and the historical replay evidence.
+- [Notifications and phone delivery](docs/NOTIFICATIONS.md): the four
+  notification channels (`log`, `toast`, `browser`, `ntfy`), ntfy setup,
+  per-location preferences, priorities, quiet hours, and the troubleshooting
+  runbook.
 - [The Claude layer](docs/AI.md): what the optional AI does and never does,
   what leaves the machine, the credential, the settings, and the daily cap.
 - [CHANGELOG.md](CHANGELOG.md): what has changed.

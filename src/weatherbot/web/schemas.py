@@ -228,6 +228,29 @@ class SnapshotSummaryResponse(_ApiModel):
 # Locations (GET /api/locations) ------------------------------------------------------------
 
 
+class LocationPreferencesResponse(_ApiModel):
+    """Per-location notification preferences returned by ``GET /api/locations``."""
+
+    toast: bool = Field(
+        default=True,
+        description="Whether Windows desktop toasts are enabled for this location.",
+    )
+    browser: bool = Field(
+        default=True,
+        description="Whether browser alert banners are enabled for this location.",
+    )
+    phone: bool = Field(
+        default=True,
+        description="Whether phone push notifications (ntfy) are enabled for this location.",
+    )
+    phone_min_level: int = Field(
+        default=2,
+        ge=2,
+        le=5,
+        description="Minimum threat level (2..5) that triggers a phone push notification.",
+    )
+
+
 class LocationResponse(_ApiModel):
     """A watched location with its coordinates, NWS coverage, toggle state, and zone polygon."""
 
@@ -260,6 +283,10 @@ class LocationResponse(_ApiModel):
     )
     breakpoint_span: BreakpointSpan | None = Field(
         description="Nearest NHC coastal breakpoint span, or null before the first assessment."
+    )
+    preferences: LocationPreferencesResponse = Field(
+        default=LocationPreferencesResponse(),
+        description="Per-location notification channel preferences.",
     )
 
 
@@ -861,10 +888,39 @@ class NotificationDeliveryResponse(_ApiModel):
     id: int = Field(ge=1, description="Database primary key of the delivery record.")
     channel: str = Field(description="Delivery channel name, such as log, toast, or browser.")
     attempted_at: datetime = Field(description="UTC instant of the delivery attempt.")
-    result: Literal["delivered", "failed", "disabled", "unavailable"] = Field(
+    result: Literal["delivered", "failed", "disabled", "unavailable", "muted"] = Field(
         description="Outcome of the channel delivery attempt."
     )
     detail: str | None = Field(description="Error class or reason when not delivered, or null.")
+
+
+class NotificationChannelStatusResponse(_ApiModel):
+    """Configured status and latest non-muted delivery outcome of one notification channel."""
+
+    name: Literal["log", "toast", "browser", "ntfy"] = Field(description="Delivery channel name.")
+    state: Literal["on", "off", "unconfigured"] = Field(
+        description="Current channel state: on, off, or unconfigured."
+    )
+    detail: str = Field(
+        description="Human-readable configuration summary (never a secret or topic)."
+    )
+    last_result: Literal["delivered", "failed", "disabled", "unavailable"] | None = Field(
+        default=None,
+        description="Most recent non-muted delivery result for this channel, or null.",
+    )
+    last_attempted_at: datetime | None = Field(
+        default=None,
+        description="UTC instant of the most recent non-muted delivery attempt, or null.",
+    )
+
+
+class NotificationChannelsResponse(_ApiModel):
+    """Response document for ``GET /api/notifications/channels``."""
+
+    channels: tuple[NotificationChannelStatusResponse, ...] = Field(
+        description="Status of the four delivery channels in order: log, toast, browser, ntfy."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
 
 
 class NotificationDecisionResponse(_ApiModel):
@@ -1840,6 +1896,15 @@ class EvacuationUpdateResponse(_ApiModel):
         description="Whether the evacuation-order toggle changed from its previous state."
     )
     notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class UpdateLocationPreferencesRequest(_ApiModel):
+    """Request body for ``PUT /api/locations/preferences``."""
+
+    location: str = Field(min_length=1, description="Name of the watched location to update.")
+    preferences: LocationPreferencesResponse = Field(
+        description="Per-location notification channel preferences."
+    )
 
 
 class TriggerCycleRequest(_ApiModel):

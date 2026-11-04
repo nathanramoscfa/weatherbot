@@ -37,6 +37,31 @@ class NwsCoverage(DomainModel):
     state: str = Field(description="relativeLocation's state.")
 
 
+class LocationPreferences(DomainModel):
+    """Per-location notification channel and threshold preferences."""
+
+    toast: bool = Field(
+        default=True,
+        description="Whether Windows toast notifications are enabled for this location.",
+    )
+    browser: bool = Field(
+        default=True,
+        description="Whether browser and desktop notifications are enabled for this location.",
+    )
+    phone: bool = Field(
+        default=True,
+        description="Whether ntfy phone notifications are enabled for this location.",
+    )
+    phone_min_level: int = Field(
+        default=2,
+        ge=2,
+        le=5,
+        description=(
+            "Minimum threat level (2 to 5) that sends a phone notification for this location."
+        ),
+    )
+
+
 class Location(DomainModel):
     """A named place to assess: a point, and optionally an NWS zone's shape.
 
@@ -61,6 +86,10 @@ class Location(DomainModel):
     evacuation_order_set_at: UtcDatetime | None = Field(
         default=None,
         description="When the operator last turned the toggle on or off; None if never.",
+    )
+    preferences: LocationPreferences = Field(
+        default_factory=LocationPreferences,
+        description="Per-location notification channel and threshold preferences.",
     )
     geocoding: Provenance | None = Field(
         default=None, description="The reverse-geocoding response, when one was made."

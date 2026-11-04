@@ -107,6 +107,7 @@ ROUTE_FIXTURES: Final[tuple[tuple[str, str], ...]] = (
     ("alerts.json", "/api/alerts"),
     ("timeline.json", "/api/timeline"),
     ("notifications.json", "/api/notifications"),
+    ("notification-channels.json", "/api/notifications/channels"),
     ("settings.json", "/api/settings"),
     ("disclaimer.json", "/api/disclaimer"),
     ("map.json", "/api/map"),
@@ -293,6 +294,9 @@ async def _build_raw_payloads() -> dict[str, str]:
                 hub=hub,
                 channels=channels,
                 ai=ai,
+                environ={},
+                windows=True,
+                toast_registered=True,
             )
             app = create_app(state)
             transport = httpx.ASGITransport(app=app)

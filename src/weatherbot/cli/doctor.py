@@ -208,6 +208,8 @@ def doctor(
                 now=context.runtime.now(),
                 identity=context.runtime.identity().registered(),
                 toast_on=context.settings.notifications.toast,
+                ntfy_on=context.settings.notifications.ntfy,
+                ntfy_server=context.settings.notifications.ntfy_server,
                 data_dir_overridden=overridden,
                 windows=context.runtime.windows,
                 task_runner=context.runtime.task_runner,

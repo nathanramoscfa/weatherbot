@@ -288,4 +288,72 @@ describe("LocationManager", () => {
       );
     });
   });
+
+  it("submits PUT /api/locations/preferences when toggling Toast, Browser, Phone, or changing Phone minimum level, and disables the level select when Phone is off", async () => {
+    const user = userEvent.setup();
+    const queryClient = createAppQueryClient();
+    const putSpy = vi.spyOn(apiClient, "PUT").mockResolvedValue({
+      data: TYPED_LOCATIONS.locations[0]!,
+      response: new Response(null, { status: 200 }),
+    });
+
+    const customLocations: LocationResponse[] = [
+      TYPED_LOCATIONS.locations[0]!,
+      {
+        ...TYPED_LOCATIONS.locations[1]!,
+        preferences: {
+          toast: true,
+          browser: true,
+          phone: false,
+          phone_min_level: 3,
+        },
+      },
+    ];
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <LocationManager locations={customLocations} />
+      </QueryClientProvider>,
+    );
+
+    const miamiCard = screen.getByRole("article", {
+      name: "Miami-Dade County Hall",
+    });
+    const nassauCard = screen.getByRole("article", {
+      name: "Parliament Square",
+    });
+
+    expect(
+      within(nassauCard).getByLabelText("Phone minimum level"),
+    ).toBeDisabled();
+
+    await user.click(within(miamiCard).getByRole("switch", { name: "Toast" }));
+    expect(putSpy).toHaveBeenLastCalledWith("/api/locations/preferences", {
+      body: {
+        location: "Miami-Dade County Hall",
+        preferences: {
+          toast: false,
+          browser: true,
+          phone: true,
+          phone_min_level: 2,
+        },
+      },
+    });
+
+    await user.selectOptions(
+      within(miamiCard).getByLabelText("Phone minimum level"),
+      "4",
+    );
+    expect(putSpy).toHaveBeenLastCalledWith("/api/locations/preferences", {
+      body: {
+        location: "Miami-Dade County Hall",
+        preferences: {
+          toast: true,
+          browser: true,
+          phone: true,
+          phone_min_level: 4,
+        },
+      },
+    });
+  });
 });

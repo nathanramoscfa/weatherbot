@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 7 — Depth
+- Add the `ntfy` phone notification channel and per-location notification
+  preferences (Phase 7 Step 3):
+  - `weatherbot.services.ntfy` (`NtfyChannel` and `ntfy_channel`): HTTPS root
+    JSON `POST` to `[notifications] ntfy_server` (default `https://ntfy.sh`, or
+    `http://` on loopback only; `WEATHERBOT_NTFY_TOPIC` and optional
+    `WEATHERBOT_NTFY_TOKEN` read only from the environment, never in URLs or
+    `weatherbot.toml`), with `follow_redirects=False`, priority mapping (`5`
+    urgent for level 5 or an escalation to level 4, `4` high for levels 3–4 or
+    an escalation to level 2, and `3` default otherwise), 4,000-byte UTF-8
+    boundary truncation, one retry on HTTP 429 (`Retry-After` up to 5 s) or 5xx,
+    a 15 s total timeout budget placed last in `Context.channels` and
+    `WebState.notification_channels`, and secret redaction for `tk_...` tokens
+    and runtime `WEATHERBOT_NTFY_TOPIC`/`WEATHERBOT_NTFY_TOKEN` values in
+    `SecretFilter`.
+  - Per-location notification preferences (Alembic revision `0009` on
+    `locations`: `notify_toast`, `notify_browser`, `notify_phone`, and
+    `notify_phone_min_level` in `2..5`): `LocationPreferences` on `Location`,
+    `LocationRepository.set_preferences` and `LocationService.set_preferences`,
+    `muted` deliveries (`"turned off for this location"` and `"below this
+    location's phone level"`) that skip calling the channel and are skipped by
+    `NotificationService.latest_delivery`, an `ALL_CLEAR` follow-up exception on
+    `ntfy` when the location's previous notification delivered on `ntfy`, and
+    `recovered` monitor notifications following a `degraded` alarm delivered on
+    any interrupting channel (`toast` or `ntfy`).
+  - CLI, web API, and UI: `doctor`'s `ntfy` check, `notify test` checking both
+    `toast` and `ntfy` when enabled (`TEST_BODY` updated to
+    `("If you can read this, this channel works.",)`), `PUT
+    /api/locations/preferences`, `GET /api/notifications/channels`, per-location
+    notification controls in `LocationManager.tsx`, the 4-channel status table
+    in `Settings.tsx`, muted-delivery styling in `Timeline.tsx`, and
+    `docs/NOTIFICATIONS.md`.
 - Add multi-location management, Nominatim forward place search, and marine-zone
   `/points` support (Phase 7 Step 2, closing issues #87 and #71):
   - Issue #87 fix: make `NwsCoverage.county_zone` optional (`str | None`),

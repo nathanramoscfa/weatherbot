@@ -26,12 +26,16 @@ from typing import Final, Literal
 
 from sqlalchemy import Engine
 
-from weatherbot.models import GeocodeCandidate, LatLon, Location
+from weatherbot.models import GeocodeCandidate, LatLon, Location, LocationPreferences
 from weatherbot.services.config import AppPaths
 from weatherbot.services.locks import LockBusyError, ProcessLock
 from weatherbot.services.network import Network, product_key
 from weatherbot.services.persistence.raw_cache import RawResponseCache
-from weatherbot.services.persistence.repositories import LocationExistsError, LocationRepository
+from weatherbot.services.persistence.repositories import (
+    LocationExistsError,
+    LocationNotFoundError,
+    LocationRepository,
+)
 from weatherbot.sources import nominatim, nws
 from weatherbot.sources.http import FetchResult, MemoryValidatorStore
 
@@ -355,6 +359,27 @@ class LocationService:
             raise LocationError(message)
         LOGGER.info("location %r: evacuation-order toggle %s", name, "on" if on else "off")
         return updated, True
+
+    def set_preferences(self, name: str, preferences: LocationPreferences) -> Location:
+        """Update a location's notification preferences.
+
+        Args:
+            name: The location's name.
+            preferences: The new notification preferences.
+
+        Returns:
+            The updated location.
+
+        Raises:
+            LocationError: No location has that name.
+        """
+        try:
+            updated = self._repository.set_preferences(name, preferences, now=self._now())
+        except LocationNotFoundError:
+            message = f"no location is named {name!r}"
+            raise LocationError(message) from None
+        LOGGER.info("location %r: updated notification preferences", name)
+        return updated
 
     def remove(self, name: str) -> None:
         """Remove a location, its cascades, and its coordinate-bearing raw responses.

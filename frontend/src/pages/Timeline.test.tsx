@@ -128,4 +128,41 @@ describe("Timeline", () => {
       ).queryByTestId("ai-label"),
     ).toBeNull();
   });
+
+  it("renders a muted delivery chip with its detail on the notification log", () => {
+    const queryClient = createAppQueryClient();
+    queryClient.setQueryData(queryKeys.timeline(), TYPED_TIMELINE);
+    const baseNotif = TYPED_NOTIFICATIONS.notifications[0]!;
+    queryClient.setQueryData(queryKeys.notifications(), {
+      ...TYPED_NOTIFICATIONS,
+      notifications: [
+        {
+          ...baseNotif,
+          deliveries: [
+            ...baseNotif.deliveries,
+            {
+              id: 99,
+              channel: "ntfy",
+              attempted_at: "2026-10-13T01:30:05Z",
+              result: "muted",
+              detail: "below this location's phone level",
+            },
+          ],
+        },
+      ],
+    });
+    queryClient.setQueryData(queryKeys.aiSummaries(), {
+      ...TYPED_SUMMARIES,
+      summaries: [],
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Timeline />
+      </QueryClientProvider>,
+    );
+
+    const mutedChip = screen.getByText(/below this location's phone level/);
+    expect(mutedChip).toHaveAttribute("data-delivery-result", "muted");
+  });
 });

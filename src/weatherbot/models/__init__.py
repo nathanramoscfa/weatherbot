@@ -70,7 +70,7 @@ from weatherbot.models.ladder import (
     RuleId,
     Thresholds,
 )
-from weatherbot.models.location import LatLon, Location, NwsCoverage
+from weatherbot.models.location import LatLon, Location, LocationPreferences, NwsCoverage
 from weatherbot.models.outlook import (
     WIND_PROBABILITY_BANDS,
     OutlookArea,
@@ -176,6 +176,7 @@ __all__ = [
     "GisFeedItem",
     "LatLon",
     "Location",
+    "LocationPreferences",
     "LocationWindProbability",
     "MapCatalog",
     "MapLayer",

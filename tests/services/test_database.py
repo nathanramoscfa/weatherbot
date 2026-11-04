@@ -54,6 +54,9 @@ FROZEN = {
     "0006_notifications.py": "88ad27ba143120845fb027270935cd617f8120f970c307fa85fb5d4b6400ee69",
     "0007_ai_calls.py": "7c87d774bda815f4f0db481007b035793058b8f2970e0d83b6dd9293acf649e8",
     "0008_ai_outputs.py": "d8b63402b6978ed1f2542c889a8b15e7513d5bdbbee18a489ad18012b6b1842b",
+    "0009_location_preferences.py": (
+        "c8e69121ec8e4f0f3a957bd30917829ba5a32bd3f4f43d4d776ab9e618daa93f"
+    ),
 }
 SNAPSHOT_HEX = "8f0c4d1e5b7a4c2e9d3f1a2b3c4d5e6f"
 PROBE = "probe"
@@ -842,3 +845,47 @@ def test_0008_has_its_indexes_and_foreign_keys_and_no_check(paths: AppPaths) -> 
         "ix_ai_outputs_kind_location_name_created_at",
         "ix_ai_outputs_graphic_sha256",
     }
+
+
+# Revision 0009 -------------------------------------------------------------------------------
+
+
+def _seed_0008(paths: AppPaths, engine: Engine) -> set[str]:
+    """Revision 0008 with seeded rows; the tables it holds."""
+    _seed_0007(paths, engine)
+    _migrate(engine, "0008")
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO ai_outputs (kind, model, prompt_version, status, "
+                "withheld_reason, created_at) VALUES ('briefing', 'claude-sonnet-5-5', "
+                "'0', 'withheld', 'level', '2026-11-01')"
+            )
+        )
+    engine.dispose()
+    return _tables(paths.database_path) - {"alembic_version"}
+
+
+def test_0009_upgrade_populates_preference_defaults_and_downgrade_preserves_child_rows(
+    paths: AppPaths, engine: Engine
+) -> None:
+    tables = _seed_0008(paths, engine)
+    before = _every_row(paths.database_path, tables)
+
+    _migrate(engine, "0009")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0009"
+    with closing(sqlite3.connect(paths.database_path)) as connection:
+        rows = connection.execute(
+            "SELECT notify_toast, notify_browser, notify_phone, notify_phone_min_level "
+            "FROM locations"
+        ).fetchall()
+    assert rows
+    assert all(row == (1, 1, 1, 2) for row in rows)
+
+    _migrate(engine, "0008")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0008"
+    assert _every_row(paths.database_path, tables) == before

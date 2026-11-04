@@ -353,7 +353,8 @@
             "delivered",
             "failed",
             "disabled",
-            "unavailable"
+            "unavailable",
+            "muted"
           ],
           "title": "Result",
           "type": "string"

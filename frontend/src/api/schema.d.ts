@@ -148,6 +148,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/notifications/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Notification Channels
+         * @description Return the configured state and latest non-muted delivery of the four channels.
+         */
+        get: operations["get_notification_channels_api_notifications_channels_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/settings": {
         parameters: {
             query?: never;
@@ -321,6 +341,26 @@ export interface paths {
          * @description Turn a watched location's evacuation-order toggle on or off.
          */
         put: operations["update_evacuation_api_locations_evacuation_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/locations/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Location Preferences
+         * @description Update a watched location's notification channel preferences.
+         */
+        put: operations["update_location_preferences_api_locations_preferences_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2153,6 +2193,36 @@ export interface components {
             briefing: components["schemas"]["StoredBriefingResponse"] | null;
         };
         /**
+         * LocationPreferencesResponse
+         * @description Per-location notification preferences returned by ``GET /api/locations``.
+         */
+        LocationPreferencesResponse: {
+            /**
+             * Toast
+             * @description Whether Windows desktop toasts are enabled for this location.
+             * @default true
+             */
+            toast: boolean;
+            /**
+             * Browser
+             * @description Whether browser alert banners are enabled for this location.
+             * @default true
+             */
+            browser: boolean;
+            /**
+             * Phone
+             * @description Whether phone push notifications (ntfy) are enabled for this location.
+             * @default true
+             */
+            phone: boolean;
+            /**
+             * Phone Min Level
+             * @description Minimum threat level (2..5) that triggers a phone push notification.
+             * @default 2
+             */
+            phone_min_level: number;
+        };
+        /**
          * LocationResponse
          * @description A watched location with its coordinates, NWS coverage, toggle state, and zone polygon.
          */
@@ -2203,6 +2273,16 @@ export interface components {
             evacuation_order_set_at: string | null;
             /** @description Nearest NHC coastal breakpoint span, or null before the first assessment. */
             breakpoint_span: components["schemas"]["BreakpointSpan"] | null;
+            /**
+             * @description Per-location notification channel preferences.
+             * @default {
+             *       "toast": true,
+             *       "browser": true,
+             *       "phone": true,
+             *       "phone_min_level": 2
+             *     }
+             */
+            preferences: components["schemas"]["LocationPreferencesResponse"];
         };
         /**
          * LocationSearchCandidateResponse
@@ -2440,6 +2520,55 @@ export interface components {
             notice: string;
         };
         /**
+         * NotificationChannelStatusResponse
+         * @description Configured status and latest non-muted delivery outcome of one notification channel.
+         */
+        NotificationChannelStatusResponse: {
+            /**
+             * Name
+             * @description Delivery channel name.
+             * @enum {string}
+             */
+            name: "log" | "toast" | "browser" | "ntfy";
+            /**
+             * State
+             * @description Current channel state: on, off, or unconfigured.
+             * @enum {string}
+             */
+            state: "on" | "off" | "unconfigured";
+            /**
+             * Detail
+             * @description Human-readable configuration summary (never a secret or topic).
+             */
+            detail: string;
+            /**
+             * Last Result
+             * @description Most recent non-muted delivery result for this channel, or null.
+             */
+            last_result?: ("delivered" | "failed" | "disabled" | "unavailable") | null;
+            /**
+             * Last Attempted At
+             * @description UTC instant of the most recent non-muted delivery attempt, or null.
+             */
+            last_attempted_at?: string | null;
+        };
+        /**
+         * NotificationChannelsResponse
+         * @description Response document for ``GET /api/notifications/channels``.
+         */
+        NotificationChannelsResponse: {
+            /**
+             * Channels
+             * @description Status of the four delivery channels in order: log, toast, browser, ntfy.
+             */
+            channels: components["schemas"]["NotificationChannelStatusResponse"][];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
          * NotificationDecisionResponse
          * @description One notification policy decision recorded during a monitor cycle.
          */
@@ -2524,7 +2653,7 @@ export interface components {
              * @description Outcome of the channel delivery attempt.
              * @enum {string}
              */
-            result: "delivered" | "failed" | "disabled" | "unavailable";
+            result: "delivered" | "failed" | "disabled" | "unavailable" | "muted";
             /**
              * Detail
              * @description Error class or reason when not delivered, or null.
@@ -4055,6 +4184,19 @@ export interface components {
              */
             on: boolean;
         };
+        /**
+         * UpdateLocationPreferencesRequest
+         * @description Request body for ``PUT /api/locations/preferences``.
+         */
+        UpdateLocationPreferencesRequest: {
+            /**
+             * Location
+             * @description Name of the watched location to update.
+             */
+            location: string;
+            /** @description Per-location notification channel preferences. */
+            preferences: components["schemas"]["LocationPreferencesResponse"];
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -4413,6 +4555,26 @@ export interface operations {
             };
         };
     };
+    get_notification_channels_api_notifications_channels_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationChannelsResponse"];
+                };
+            };
+        };
+    };
     get_settings_api_settings_get: {
         parameters: {
             query?: never;
@@ -4631,6 +4793,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EvacuationUpdateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_location_preferences_api_locations_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLocationPreferencesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationResponse"];
                 };
             };
             /** @description Validation Error */

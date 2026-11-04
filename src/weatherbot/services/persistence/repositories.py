@@ -47,6 +47,7 @@ from weatherbot.models import (
     GisFeedItem,
     LatLon,
     Location,
+    LocationPreferences,
     NwsAlert,
     NwsCoverage,
     OutlookArea,
@@ -136,6 +137,10 @@ class LocationExistsError(Exception):
     """A location of that name is already stored."""
 
 
+class LocationNotFoundError(Exception):
+    """A location of that name is not stored."""
+
+
 class SnapshotStoreError(Exception):
     """A snapshot cannot be stored as given."""
 
@@ -187,6 +192,10 @@ def _location_row(location: Location, now: datetime) -> LocationRow:
         breakpoint_span=dump(location.breakpoint_span) if location.breakpoint_span else None,
         evacuation_order_in_effect=location.evacuation_order_in_effect,
         evacuation_order_set_at=location.evacuation_order_set_at,
+        notify_toast=location.preferences.toast,
+        notify_browser=location.preferences.browser,
+        notify_phone=location.preferences.phone,
+        notify_phone_min_level=location.preferences.phone_min_level,
         geocoding=dump(location.geocoding) if location.geocoding else None,
         created_at=now,
         updated_at=now,
@@ -223,6 +232,12 @@ def _location(row: LocationRow) -> Location:
             "breakpoint_span": row.breakpoint_span,
             "evacuation_order_in_effect": row.evacuation_order_in_effect,
             "evacuation_order_set_at": row.evacuation_order_set_at,
+            "preferences": LocationPreferences(
+                toast=row.notify_toast,
+                browser=row.notify_browser,
+                phone=row.notify_phone,
+                phone_min_level=row.notify_phone_min_level,
+            ),
             "geocoding": row.geocoding,
         },
     )
@@ -358,6 +373,39 @@ class LocationRepository:
             row.breakpoint_span = dump(span) if span is not None else None
             row.updated_at = self._now()
             return True
+
+    def set_preferences(
+        self,
+        name: str,
+        preferences: LocationPreferences,
+        *,
+        now: datetime | None = None,
+    ) -> Location:
+        """Update a location's notification preferences and return the updated location.
+
+        Args:
+            name: The location's name.
+            preferences: The new notification preferences.
+            now: Timestamp for ``updated_at``, or the repository's clock when omitted.
+
+        Returns:
+            The updated location.
+
+        Raises:
+            LocationNotFoundError: When no stored location has ``name``.
+        """
+        stamp = now if now is not None else self._now()
+        with writing_session(self._engine) as session:
+            row = session.scalar(select(LocationRow).where(LocationRow.name == name))
+            if row is None:
+                raise LocationNotFoundError(name)
+            row.notify_toast = preferences.toast
+            row.notify_browser = preferences.browser
+            row.notify_phone = preferences.phone
+            row.notify_phone_min_level = preferences.phone_min_level
+            row.updated_at = stamp
+            session.flush()
+            return _location(row)
 
 
 # Snapshots ---------------------------------------------------------------------------------

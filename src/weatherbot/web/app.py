@@ -3,7 +3,7 @@
 
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -20,10 +20,12 @@ from weatherbot.services.locations import SearchCache
 from weatherbot.services.monitor import CycleResult, CycleTrigger
 from weatherbot.services.network import Network
 from weatherbot.services.notifications import Channel, LogChannel
+from weatherbot.services.ntfy import ntfy_channel
 from weatherbot.services.persistence.database import Database
 from weatherbot.services.replay import ReplayCorpus
 from weatherbot.services.schedule import MonitorSchedule
-from weatherbot.services.toast import TOAST_OFF, NullChannel
+from weatherbot.services.tasks import ON_WINDOWS
+from weatherbot.services.toast import TOAST_OFF, NullChannel, system_identity
 from weatherbot.web.guards import install_guards
 from weatherbot.web.routes.actions import router as actions_router
 from weatherbot.web.routes.ai import router as ai_router
@@ -84,17 +86,23 @@ class WebState:
     request_cycle: Callable[[], Awaitable[CycleResult]] | None = None
     ai: "AiService | None" = None
     """The AI service ``serve`` built; ``None`` reads as AI off (``disabled``)."""
+    environ: Mapping[str, str] | None = None
+    windows: bool = ON_WINDOWS
+    toast_registered: bool | None = None
     _actions: _ActionState = field(default_factory=_ActionState, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         """Populate default channels and network settings when omitted."""
         if not self.channels:
-            default_channels: tuple[Channel, ...] = (
+            default_channels: list[Channel] = [
                 LogChannel(),
                 NullChannel(TOAST_OFF if not self.settings.notifications.toast else "test"),
                 BrowserChannel(self.hub, enabled=self.settings.notifications.browser),
-            )
-            object.__setattr__(self, "channels", default_channels)
+            ]
+            ntfy = ntfy_channel(self.settings, environ=self.environ)
+            if ntfy is not None:
+                default_channels.append(ntfy)
+            object.__setattr__(self, "channels", tuple(default_channels))
         if self.network.timeout_seconds is None:
             object.__setattr__(
                 self,
@@ -104,6 +112,14 @@ class WebState:
                     make_fetcher=self.network.make_fetcher,
                 ),
             )
+
+    def is_toast_registered(self) -> bool:
+        """Whether the Windows toast AUMID is registered."""
+        if self.toast_registered is not None:
+            return self.toast_registered
+        if not self.windows:
+            return False
+        return bool(system_identity().registered())
 
     @property
     def cycle_in_flight(self) -> bool:

@@ -59,7 +59,7 @@ describe("Dashboard", () => {
       .mockResolvedValue({
         data: TYPED_LOCATIONS.locations[0]!,
         response: new Response(null, { status: 200 }),
-      } as never);
+      });
 
     render(
       <QueryClientProvider client={queryClient}>

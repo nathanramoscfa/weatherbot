@@ -13,9 +13,28 @@ import {
 } from "../pages/format.ts";
 
 export type LocationResponse = components["schemas"]["LocationResponse"];
+export type LocationPreferencesResponse =
+  components["schemas"]["LocationPreferencesResponse"];
 export type LocationSearchCandidateResponse =
   components["schemas"]["LocationSearchCandidateResponse"];
 export type PolygonKind = "county" | "forecast";
+
+const DEFAULT_PREFERENCES: LocationPreferencesResponse = {
+  toast: true,
+  browser: true,
+  phone: true,
+  phone_min_level: 2,
+};
+
+const PHONE_MIN_LEVEL_OPTIONS: ReadonlyArray<{
+  readonly level: number;
+  readonly label: string;
+}> = [
+  { level: 2, label: "Level 2 — Watch / Advisory" },
+  { level: 3, label: "Level 3 — Prepare" },
+  { level: 4, label: "Level 4 — Act Now" },
+  { level: 5, label: "Level 5 — Extreme Threat" },
+];
 
 const SEARCH_COOLDOWN_MS = 2000;
 const DEFAULT_ATTRIBUTION =
@@ -93,6 +112,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
   const [locFeedback, setLocFeedback] = useState<Feedback | null>(null);
 
   const [removingName, setRemovingName] = useState<string | null>(null);
+  const [savingPrefsName, setSavingPrefsName] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -277,6 +297,40 @@ export function LocationManager({ locations }: LocationManagerProps) {
     }
   };
 
+  const handleUpdatePreferences = async (
+    loc: LocationResponse,
+    next: LocationPreferencesResponse,
+  ) => {
+    setSavingPrefsName(loc.name);
+    setLocFeedback(null);
+    try {
+      const { data, response } = await apiClient.PUT(
+        "/api/locations/preferences",
+        {
+          body: {
+            location: loc.name,
+            preferences: next,
+          },
+        },
+      );
+      if (response.ok && data) {
+        await queryClient.invalidateQueries({ queryKey: queryKeys.locations() });
+        return;
+      }
+      setLocFeedback({
+        kind: "error",
+        text: formatRouteError("/api/locations/preferences", response.status),
+      });
+    } catch {
+      setLocFeedback({
+        kind: "error",
+        text: formatRouteError("/api/locations/preferences"),
+      });
+    } finally {
+      setSavingPrefsName(null);
+    }
+  };
+
   const handleRemoveLocation = async (name: string) => {
     setRemovingName(name);
     setLocFeedback(null);
@@ -406,6 +460,98 @@ export function LocationManager({ locations }: LocationManagerProps) {
                   ? ` (since ${formatBothTimes(loc.evacuation_order_set_at, loc.nws?.time_zone)})`
                   : ""}
               </div>
+              {(() => {
+                const prefs = loc.preferences ?? DEFAULT_PREFERENCES;
+                const busy = savingPrefsName === loc.name;
+                return (
+                  <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-slate-200/80 pt-2 dark:border-slate-700/70">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">
+                      Notifications:
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={prefs.toast}
+                      aria-label="Toast"
+                      disabled={busy}
+                      onClick={() =>
+                        void handleUpdatePreferences(loc, {
+                          ...prefs,
+                          toast: !prefs.toast,
+                        })
+                      }
+                      className={`rounded px-2 py-0.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 ${
+                        prefs.toast
+                          ? "bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950"
+                          : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                      }`}
+                    >
+                      Toast: {prefs.toast ? "On" : "Off"}
+                    </button>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={prefs.browser}
+                      aria-label="Browser"
+                      disabled={busy}
+                      onClick={() =>
+                        void handleUpdatePreferences(loc, {
+                          ...prefs,
+                          browser: !prefs.browser,
+                        })
+                      }
+                      className={`rounded px-2 py-0.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 ${
+                        prefs.browser
+                          ? "bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950"
+                          : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                      }`}
+                    >
+                      Browser: {prefs.browser ? "On" : "Off"}
+                    </button>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={prefs.phone}
+                      aria-label="Phone"
+                      disabled={busy}
+                      onClick={() =>
+                        void handleUpdatePreferences(loc, {
+                          ...prefs,
+                          phone: !prefs.phone,
+                        })
+                      }
+                      className={`rounded px-2 py-0.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 ${
+                        prefs.phone
+                          ? "bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950"
+                          : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                      }`}
+                    >
+                      Phone: {prefs.phone ? "On" : "Off"}
+                    </button>
+                    <label className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                      <span>Phone minimum level</span>
+                      <select
+                        aria-label="Phone minimum level"
+                        disabled={!prefs.phone || busy}
+                        value={String(prefs.phone_min_level)}
+                        onChange={(e) =>
+                          void handleUpdatePreferences(loc, {
+                            ...prefs,
+                            phone_min_level: Number(e.target.value),
+                          })
+                        }
+                        className="rounded border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      >
+                        {PHONE_MIN_LEVEL_OPTIONS.map((opt) => (
+                          <option key={opt.level} value={String(opt.level)}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                );
+              })()}
             </article>
           ))}
         </div>

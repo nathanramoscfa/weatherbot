@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, tzinfo
 from pathlib import Path
 from typing import Final, Literal, Self, cast
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import platformdirs
@@ -87,6 +88,8 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("notifications", "quiet_hours_time_zone"): "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_TIME_ZONE",
     ("notifications", "toast"): "WEATHERBOT_NOTIFICATIONS_TOAST",
     ("notifications", "browser"): "WEATHERBOT_NOTIFICATIONS_BROWSER",
+    ("notifications", "ntfy"): "WEATHERBOT_NOTIFICATIONS_NTFY",
+    ("notifications", "ntfy_server"): "WEATHERBOT_NOTIFICATIONS_NTFY_SERVER",
     ("web", "host"): "WEATHERBOT_WEB_HOST",
     ("web", "port"): "WEATHERBOT_WEB_PORT",
     ("web", "corpus"): "WEATHERBOT_WEB_CORPUS",
@@ -299,8 +302,13 @@ class MonitorSettings(_Section):
     heartbeat_minutes: int = Field(default=5, ge=1, le=60)
 
 
+LOOPBACK_HOSTS: Final[frozenset[str]] = frozenset({"127.0.0.1", "::1", "localhost"})
+PRIVILEGED_PORT_MAX: Final[int] = 1023
+DEFAULT_NTFY_SERVER: Final = "https://ntfy.sh"
+
+
 class NotificationSettings(_Section):
-    """``[notifications]``: cooldown, quiet hours, and whether toast and browser are on."""
+    """``[notifications]``: cooldown, quiet hours, and whether toast, browser, and ntfy are on."""
 
     cooldown_hours: int = Field(default=6, ge=0, le=48)
     quiet_hours_start: str = ""
@@ -308,6 +316,46 @@ class NotificationSettings(_Section):
     quiet_hours_time_zone: str = "local"
     toast: bool = True
     browser: bool = True
+    ntfy: bool = False
+    ntfy_server: str = DEFAULT_NTFY_SERVER
+
+    @field_validator("ntfy_server")
+    @classmethod
+    def _ntfy_server(cls, value: str) -> str:
+        cleaned = value.strip()
+        parts = urlsplit(cleaned)
+        scheme = parts.scheme.lower()
+        hostname = parts.hostname
+        if not hostname:
+            message = "must be an https:// URL (or http:// on loopback) with a host"
+            raise ValueError(message)
+        if scheme == "http":
+            if hostname not in LOOPBACK_HOSTS:
+                message = "http:// is allowed only for loopback hosts (127.0.0.1, ::1, localhost)"
+                raise ValueError(message)
+        elif scheme != "https":
+            message = "must use https:// (or http:// on loopback)"
+            raise ValueError(message)
+        if parts.username is not None or parts.password is not None:
+            message = "must not include credentials"
+            raise ValueError(message)
+        try:
+            port = parts.port
+        except ValueError:
+            message = "must have a valid port"
+            raise ValueError(message) from None
+        if port is not None and port < 1:
+            message = "must have a valid port"
+            raise ValueError(message)
+        if parts.path not in {"", "/"}:
+            message = (
+                "must not include a path (set the topic in WEATHERBOT_NTFY_TOPIC, not ntfy_server)"
+            )
+            raise ValueError(message)
+        if parts.query or parts.fragment:
+            message = "must not include a query string or fragment"
+            raise ValueError(message)
+        return cleaned.rstrip("/")
 
     @field_validator("quiet_hours_start")
     @classmethod
@@ -362,10 +410,6 @@ class NotificationSettings(_Section):
             else ZoneInfo(self.quiet_hours_time_zone)
         )
         return QuietHours.parse(self.quiet_hours_start, self.quiet_hours_end, zone)
-
-
-LOOPBACK_HOSTS: Final[frozenset[str]] = frozenset({"127.0.0.1", "::1", "localhost"})
-PRIVILEGED_PORT_MAX: Final[int] = 1023
 
 
 class WebSettings(_Section):
