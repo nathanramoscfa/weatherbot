@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "source": "geocode-nominatim",
+  "recorded_at": "2026-11-04T15:05:14Z",
+  "recorder": "scripts/record_fixtures.py",
+  "user_agent": "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+  "captures": [
+    {
+      "file": "reverse-miami-dade.json",
+      "url": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=25.7757&lon=-80.1966",
+      "status": 200,
+      "fetched_at": "2026-11-04T15:05:08Z",
+      "sha256": "3f0cff2fa5ccbe88bbc6a3cd1bb65273ca9e61a20c6f02c9d5f9fbb0b9ca0f30",
+      "bytes": 879,
+      "stored_as": "raw",
+      "headers": {
+        "age": "0",
+        "content-length": "491",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Wed, 04 Nov 2026 15:05:14 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "reverse-nassau.json",
+      "url": "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=25.0778&lon=-77.3405",
+      "status": 200,
+      "fetched_at": "2026-11-04T15:05:10Z",
+      "sha256": "02ea8166cd50080391f71fe9d2e9aaf25a9bb4edd013338fb929e8780affaffb",
+      "bytes": 593,
+      "stored_as": "raw",
+      "headers": {
+        "age": "0",
+        "content-length": "386",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Wed, 04 Nov 2026 15:05:15 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "search-nassau.json",
+      "url": "https://nominatim.openstreetmap.org/search?q=Nassau%2C%20Bahamas&format=jsonv2&addressdetails=1&limit=5",
+      "status": 200,
+      "fetched_at": "2026-11-04T15:05:11Z",
+      "sha256": "60a16dd8b4f10f223071876a60a2404ca7a5e31219b294a29d2f4cc3289bb793",
+      "bytes": 520,
+      "stored_as": "raw",
+      "headers": {
+        "age": "0",
+        "content-length": "352",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Wed, 04 Nov 2026 15:05:17 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "search-miami.json",
+      "url": "https://nominatim.openstreetmap.org/search?q=Miami%2C%20Florida&format=jsonv2&addressdetails=1&limit=5",
+      "status": 200,
+      "fetched_at": "2026-11-04T15:05:13Z",
+      "sha256": "86930936b8dff39e6e1fd18bfa8b2475e86abac704d8d3deb7b86cc84832660c",
+      "bytes": 596,
+      "stored_as": "raw",
+      "headers": {
+        "age": "0",
+        "content-length": "395",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Wed, 04 Nov 2026 15:05:18 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    },
+    {
+      "file": "search-none.json",
+      "url": "https://nominatim.openstreetmap.org/search?q=weatherbot-nonexistent-place-query&format=jsonv2&addressdetails=1&limit=5",
+      "status": 200,
+      "fetched_at": "2026-11-04T15:05:14Z",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "bytes": 2,
+      "stored_as": "raw",
+      "headers": {
+        "age": "0",
+        "content-length": "22",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Wed, 04 Nov 2026 15:05:19 GMT"
+      },
+      "origin": "live",
+      "notes": ""
+    }
+  ]
+}

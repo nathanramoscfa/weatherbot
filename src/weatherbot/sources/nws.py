@@ -66,6 +66,8 @@ POINT_FIELDS_READ: Final = frozenset(
     | {f"relativeLocation.properties.{name}" for name in _RELATIVE_FIELDS}
 )
 """The ``/points`` properties the parser reads: the register's "Fields v2 uses"."""
+OPTIONAL_POINT_FIELDS: Final = frozenset({"county"})
+"""Read when present: a marine ``/points`` answer omits ``county``."""
 _POINT_TOP: Final = frozenset({"forecastZone", "county", "cwa", "timeZone", "relativeLocation"})
 
 _GEOCODE_FIELDS: Final = frozenset({"SAME", "UGC"})
@@ -108,6 +110,8 @@ ZONE_FIELDS_READ: Final = frozenset(
     {"id", "type", "name", "state", "cwa", "timeZone", "effectiveDate"}
 )
 """The zone properties the parser reads; the geometry is read as well."""
+OPTIONAL_ZONE_FIELDS: Final = frozenset({"state"})
+"""Read when present: a coastal/marine zone sets ``state`` to ``null``."""
 type ZoneKind = Literal["forecast", "county", "fire"]
 ZONE_KINDS: Final[tuple[ZoneKind, ...]] = ("forecast", "county", "fire")
 MAX_ZONE_BYTES: Final = 4 * 1024 * 1024
@@ -277,10 +281,15 @@ def parse_point(body: bytes, source_id: SourceId = POINTS) -> NwsCoverage:
     relative = _required_child(
         _required_child(fields, "relativeLocation", {"properties"}), "properties", _RELATIVE_FIELDS
     )
+    county_zone = (
+        _zone_of(fields, "county")
+        if fields.has("county") and fields.optional_text("county") is not None
+        else None
+    )
     with model_errors(source_id, what):
         return NwsCoverage(
             forecast_zone=_zone_of(fields, "forecastZone"),
-            county_zone=_zone_of(fields, "county"),
+            county_zone=county_zone,
             cwa=fields.text("cwa"),
             time_zone=fields.text("timeZone"),
             city=relative.text("city"),
@@ -514,9 +523,10 @@ async def fetch_alerts(fetcher: Fetcher, location: Location) -> SourceResult[tup
     point = location.point
     requests: list[tuple[str, SourceId, str | None]] = [
         (point_alerts_url(point.latitude, point.longitude), ALERTS_POINT, None),
-        (zone_alerts_url(coverage.county_zone), ALERTS_ZONE, coverage.county_zone),
-        (zone_alerts_url(coverage.forecast_zone), ALERTS_ZONE, coverage.forecast_zone),
     ]
+    if coverage.county_zone is not None:
+        requests.append((zone_alerts_url(coverage.county_zone), ALERTS_ZONE, coverage.county_zone))
+    requests.append((zone_alerts_url(coverage.forecast_zone), ALERTS_ZONE, coverage.forecast_zone))
     answers: list[tuple[NwsAlert, ...]] = []
     responses: list[FetchResult] = []
     for url, source_id, zone_id in requests:
@@ -556,7 +566,7 @@ def parse_zone(body: bytes, provenance: Provenance, *, zone_id: str) -> NwsZone:
             id=zone_id,
             type=fields.text("type"),
             name=fields.text("name"),
-            state=fields.text("state"),
+            state=fields.optional_text("state") if fields.has("state") else None,
             cwa=fields.texts("cwa"),
             time_zone=fields.texts("timeZone"),
             effective_date=_required_instant(fields, "effectiveDate"),

@@ -5,10 +5,9 @@ import {
   Bell,
   BookOpen,
   FileText,
-  MapPin,
   Sliders,
 } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { useState } from "react";
 import { AiSettingsSection } from "../ai/AiSettingsSection.tsx";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
@@ -22,15 +21,15 @@ import {
   writeBrowserNotificationsEnabled,
 } from "../notifications/notify.ts";
 import {
-  formatBothTimes,
-  formatBreakpointSpan,
-  formatRouteError,
-} from "./format.ts";
+  LocationManager,
+  type PolygonKind,
+} from "../settings/LocationManager.tsx";
+import { formatRouteError } from "./format.ts";
 
 export type SettingsResponse = components["schemas"]["SettingsResponse"];
 export type DisclaimerResponse = components["schemas"]["DisclaimerResponse"];
 export type LocationsResponse = components["schemas"]["LocationsResponse"];
-export type PolygonKind = "county" | "forecast";
+export type { PolygonKind };
 
 export interface BundledLicenseEntry {
   readonly name: string;
@@ -183,16 +182,6 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
       getBrowserNotificationPermission(),
     );
 
-  const [locName, setLocName] = useState("");
-  const [locLat, setLocLat] = useState("");
-  const [locLon, setLocLon] = useState("");
-  const [locPolygon, setLocPolygon] = useState<"" | PolygonKind>("");
-  const [locSubmitting, setLocSubmitting] = useState(false);
-  const [locFeedback, setLocFeedback] = useState<{
-    kind: "success" | "error";
-    text: string;
-  } | null>(null);
-
   const [testNotifSubmitting, setTestNotifSubmitting] = useState(false);
   const [testNotifFeedback, setTestNotifFeedback] = useState<{
     kind: "success" | "error";
@@ -229,81 +218,6 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
       setBrowserPermission(perm);
     } else {
       setBrowserPermission(getBrowserNotificationPermission());
-    }
-  };
-
-  const handleAddLocation = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLocFeedback(null);
-
-    const trimmedName = locName.trim();
-    const latNum = Number(locLat);
-    const lonNum = Number(locLon);
-
-    if (
-      !trimmedName ||
-      locLat.trim() === "" ||
-      locLon.trim() === "" ||
-      !Number.isFinite(latNum) ||
-      !Number.isFinite(lonNum)
-    ) {
-      setLocFeedback({
-        kind: "error",
-        text: "Enter a location name and valid decimal latitude and longitude.",
-      });
-      return;
-    }
-
-    setLocSubmitting(true);
-    try {
-      const { data, response } = await apiClient.POST("/api/locations", {
-        body: {
-          name: trimmedName,
-          latitude: latNum,
-          longitude: lonNum,
-          polygon: locPolygon === "" ? null : locPolygon,
-        },
-      });
-
-      if (response.status === 201 && data) {
-        setLocName("");
-        setLocLat("");
-        setLocLon("");
-        setLocPolygon("");
-        setLocFeedback({
-          kind: "success",
-          text: `Added location "${data.name}".`,
-        });
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: queryKeys.locations() }),
-          queryClient.invalidateQueries({ queryKey: queryKeys.assessments() }),
-        ]);
-        return;
-      }
-
-      if (response.status === 409) {
-        setLocFeedback({
-          kind: "error",
-          text: "A location with that name already exists (/api/locations returned HTTP 409).",
-        });
-      } else if (response.status === 422) {
-        setLocFeedback({
-          kind: "error",
-          text: "Invalid location parameters or zone polygon requested outside NWS coverage (/api/locations returned HTTP 422).",
-        });
-      } else {
-        setLocFeedback({
-          kind: "error",
-          text: formatRouteError("/api/locations", response.status),
-        });
-      }
-    } catch {
-      setLocFeedback({
-        kind: "error",
-        text: formatRouteError("/api/locations"),
-      });
-    } finally {
-      setLocSubmitting(false);
     }
   };
 
@@ -410,169 +324,7 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
         </div>
       )}
 
-      {/* Watched Locations & Add Location Form */}
-      <section
-        aria-labelledby="locations-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
-      >
-        <div className="flex items-center gap-2">
-          <MapPin
-            className="h-5 w-5 shrink-0 text-sky-600 dark:text-sky-400"
-            aria-hidden="true"
-          />
-          <h2
-            id="locations-heading"
-            className="text-base font-bold text-slate-900 dark:text-slate-100"
-          >
-            Watched Locations
-          </h2>
-        </div>
-
-        {locations.length > 0 && (
-          <div className="mt-3 space-y-2">
-            {locations.map((loc) => (
-              <div
-                key={loc.name}
-                className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-bold text-slate-900 dark:text-slate-100">
-                    {loc.name}
-                  </span>
-                  <span className="font-mono text-slate-600 dark:text-slate-300">
-                    {String(loc.latitude)}, {String(loc.longitude)}
-                  </span>
-                </div>
-                <div className="mt-1 text-slate-600 dark:text-slate-400">
-                  {loc.display_name ? `${loc.display_name} · ` : ""}
-                  {loc.nws
-                    ? `NWS ${loc.nws.cwa} (${loc.nws.forecast_zone}, ${loc.nws.county_zone}) · ${loc.nws.time_zone}`
-                    : "Outside NWS coverage"}
-                  {loc.has_polygon ? " · Zone polygon stored" : ""}
-                </div>
-                <div className="mt-1 text-slate-600 dark:text-slate-400">
-                  Breakpoint span: {formatBreakpointSpan(loc.breakpoint_span)} ·
-                  Evacuation order:{" "}
-                  <strong>
-                    {loc.evacuation_order_in_effect ? "On" : "Off"}
-                  </strong>
-                  {loc.evacuation_order_set_at
-                    ? ` (since ${formatBothTimes(loc.evacuation_order_set_at, loc.nws?.time_zone)})`
-                    : ""}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <form
-          onSubmit={(e) => void handleAddLocation(e)}
-          className="mt-4 space-y-3 border-t border-slate-200 pt-4 text-xs dark:border-slate-800"
-        >
-          <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-            Add a watched location
-          </h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-            <div>
-              <label
-                htmlFor="location-name-input"
-                className="block font-medium text-slate-700 dark:text-slate-300"
-              >
-                Location name
-              </label>
-              <input
-                id="location-name-input"
-                aria-label="Location name"
-                type="text"
-                value={locName}
-                onChange={(e) => setLocName(e.target.value)}
-                placeholder="e.g. Miami-Dade County Hall"
-                className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="location-lat-input"
-                className="block font-medium text-slate-700 dark:text-slate-300"
-              >
-                Latitude
-              </label>
-              <input
-                id="location-lat-input"
-                aria-label="Latitude"
-                type="text"
-                inputMode="decimal"
-                value={locLat}
-                onChange={(e) => setLocLat(e.target.value)}
-                placeholder="-90 to 90"
-                className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="location-lon-input"
-                className="block font-medium text-slate-700 dark:text-slate-300"
-              >
-                Longitude
-              </label>
-              <input
-                id="location-lon-input"
-                aria-label="Longitude"
-                type="text"
-                inputMode="decimal"
-                value={locLon}
-                onChange={(e) => setLocLon(e.target.value)}
-                placeholder="-180 to 180"
-                className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="location-polygon-select"
-                className="block font-medium text-slate-700 dark:text-slate-300"
-              >
-                Zone polygon
-              </label>
-              <select
-                id="location-polygon-select"
-                aria-label="Zone polygon"
-                value={locPolygon}
-                onChange={(e) =>
-                  setLocPolygon(e.target.value as "" | PolygonKind)
-                }
-                className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              >
-                <option value="">None (point only)</option>
-                <option value="forecast">Forecast zone</option>
-                <option value="county">County zone</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={locSubmitting}
-              className="inline-flex items-center rounded-md bg-sky-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 dark:bg-sky-500 dark:text-slate-950"
-            >
-              Add location
-            </button>
-          </div>
-
-          {locFeedback && (
-            <div
-              role={locFeedback.kind === "error" ? "alert" : "status"}
-              className={`rounded-md border px-3 py-2 text-xs ${
-                locFeedback.kind === "error"
-                  ? "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
-                  : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
-              }`}
-            >
-              {locFeedback.text}
-            </div>
-          )}
-        </form>
-      </section>
+      <LocationManager locations={locations} />
 
       {/* Browser Notifications & Test Notification */}
       <section

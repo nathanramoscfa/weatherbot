@@ -177,13 +177,21 @@
           "type": "string"
         },
         "county_zone": {
-          "pattern": "^[A-Z]{2}C\\d{3}$",
-          "title": "County Zone",
-          "type": "string"
+          "anyOf": [
+            {
+              "pattern": "^[A-Z]{2}C\\d{3}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "County Zone"
         },
         "cwa": {
           "description": "The forecast office.",
-          "pattern": "^[A-Z]{3}$",
+          "pattern": "^[A-Z0-9]{3}$",
           "title": "Cwa",
           "type": "string"
         },
@@ -206,7 +214,6 @@
       },
       "required": [
         "forecast_zone",
-        "county_zone",
         "cwa",
         "time_zone",
         "city",

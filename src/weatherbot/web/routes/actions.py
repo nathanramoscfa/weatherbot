@@ -9,6 +9,8 @@ from fastapi import APIRouter, HTTPException, Request, status
 
 from weatherbot.services.disclaimer import NOTICE
 from weatherbot.services.locations import (
+    NOMINATIM_SEARCH_ATTRIBUTION,
+    LocationBusyError,
     LocationError,
     LocationNameTakenError,
     LocationService,
@@ -26,7 +28,12 @@ from weatherbot.web.schemas import (
     CreateLocationRequest,
     EvacuationUpdateResponse,
     LocationResponse,
+    LocationSearchCandidateResponse,
     NotificationItemResponse,
+    RemoveLocationRequest,
+    RemoveLocationResponse,
+    SearchLocationsRequest,
+    SearchLocationsResponse,
     TestNotificationRequest,
     TriggerCycleRequest,
     TriggerCycleResponse,
@@ -43,6 +50,7 @@ router = APIRouter()
 MANUAL_TRIGGER: Final[CycleTrigger] = "manual"
 CYCLE_COOLDOWN_S: Final = 60.0
 TEST_NOTIFICATION_COOLDOWN_S: Final = 10.0
+SEARCH_COOLDOWN_S: Final = 2.0
 
 
 @router.post("/api/locations", status_code=status.HTTP_201_CREATED)
@@ -56,6 +64,8 @@ def create_location(
         state.database.engine,
         network=state.network,
         now=state.clock,
+        paths=state.paths,
+        cycle_lock_wait_seconds=state.settings.monitor.cycle_lock_wait_seconds,
     )
     try:
         location = asyncio.run(
@@ -77,9 +87,10 @@ def create_location(
             detail=str(error),
         ) from error
     except SourceError as error:
+        LOGGER.warning("location add source failure: %s", error)
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"{error.source_id} did not answer ({error.kind})",
+            detail=str(error),
         ) from error
 
     state.hub.record_location_change(
@@ -88,6 +99,96 @@ def create_location(
         evacuation_order_set_at=location.evacuation_order_set_at,
     )
     return location_to_response(location)
+
+
+@router.post("/api/locations/search")
+def search_locations(
+    request: Request,
+    body: SearchLocationsRequest,
+) -> SearchLocationsResponse:
+    """Forward-geocode a place query via ``LocationService.search`` in a worker thread."""
+    state = cast("WebState", request.app.state.web)
+    now = state.clock()
+    if state.last_search_at is not None:
+        elapsed = (now - state.last_search_at).total_seconds()
+        if 0 <= elapsed < SEARCH_COOLDOWN_S:
+            remaining = int(SEARCH_COOLDOWN_S - elapsed) + 1
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"wait {remaining} s before searching again",
+                headers={"Retry-After": str(remaining)},
+            )
+    service = LocationService(
+        state.database.engine,
+        network=state.network,
+        now=state.clock,
+        search_cache=state.search_cache,
+    )
+    try:
+        candidates = asyncio.run(service.search(body.query))
+    except LocationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(error),
+        ) from error
+    except SourceError as error:
+        state.mark_search(now)
+        LOGGER.warning("location search source failure: %s", error)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(error),
+        ) from error
+
+    state.mark_search(now)
+    return SearchLocationsResponse(
+        candidates=tuple(
+            LocationSearchCandidateResponse(
+                display_name=candidate.display_name,
+                name=candidate.name or candidate.display_name,
+                latitude=candidate.latitude,
+                longitude=candidate.longitude,
+                country_code=candidate.country_code,
+                category=candidate.category,
+                kind=candidate.kind,
+            )
+            for candidate in candidates
+        ),
+        attribution=NOMINATIM_SEARCH_ATTRIBUTION,
+        notice=NOTICE,
+    )
+
+
+@router.post("/api/locations/remove")
+def remove_location(
+    request: Request,
+    body: RemoveLocationRequest,
+) -> RemoveLocationResponse:
+    """Remove a watched location and its cascades via ``LocationService.remove``."""
+    state = cast("WebState", request.app.state.web)
+    service = LocationService(
+        state.database.engine,
+        now=state.clock,
+        paths=state.paths,
+        cycle_lock_wait_seconds=state.settings.monitor.cycle_lock_wait_seconds,
+    )
+    try:
+        service.remove(body.location)
+    except LocationBusyError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+    except LocationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="no location has that name",
+        ) from error
+
+    state.hub.record_location_removed(body.location)
+    return RemoveLocationResponse(
+        removed=body.location,
+        notice=NOTICE,
+    )
 
 
 @router.put("/api/locations/evacuation")

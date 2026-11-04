@@ -268,6 +268,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/locations/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search Locations
+         * @description Forward-geocode a place query via ``LocationService.search`` in a worker thread.
+         */
+        post: operations["search_locations_api_locations_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/locations/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Remove Location
+         * @description Remove a watched location and its cascades via ``LocationService.remove``.
+         */
+        post: operations["remove_location_api_locations_remove_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/locations/evacuation": {
         parameters: {
             query?: never;
@@ -2165,6 +2205,47 @@ export interface components {
             breakpoint_span: components["schemas"]["BreakpointSpan"] | null;
         };
         /**
+         * LocationSearchCandidateResponse
+         * @description One forward-geocoding candidate returned by ``POST /api/locations/search``.
+         */
+        LocationSearchCandidateResponse: {
+            /**
+             * Display Name
+             * @description Full Nominatim display label for the candidate.
+             */
+            display_name: string;
+            /**
+             * Name
+             * @description Short place name from Nominatim.
+             */
+            name: string;
+            /**
+             * Latitude
+             * @description Latitude in degrees north.
+             */
+            latitude: number;
+            /**
+             * Longitude
+             * @description Longitude in degrees east.
+             */
+            longitude: number;
+            /**
+             * Country Code
+             * @description ISO 3166-1 alpha-2 country code in uppercase, or null.
+             */
+            country_code: string | null;
+            /**
+             * Category
+             * @description Nominatim feature category, such as boundary or place.
+             */
+            category: string;
+            /**
+             * Kind
+             * @description Nominatim feature type, such as administrative or city.
+             */
+            kind: string;
+        };
+        /**
          * LocationsResponse
          * @description Response document for ``GET /api/locations``.
          */
@@ -2557,7 +2638,7 @@ export interface components {
             /** Forecast Zone */
             forecast_zone: string;
             /** County Zone */
-            county_zone: string;
+            county_zone?: string | null;
             /**
              * Cwa
              * @description The forecast office.
@@ -2704,6 +2785,33 @@ export interface components {
         /** @enum {string} */
         QueryKey: "health" | "locations" | "assessments" | "storms" | "alerts" | "map" | "timeline" | "notifications" | "settings" | "ai" | "briefings";
         /**
+         * RemoveLocationRequest
+         * @description Request body for ``POST /api/locations/remove``.
+         */
+        RemoveLocationRequest: {
+            /**
+             * Location
+             * @description Name of the watched location to remove.
+             */
+            location: string;
+        };
+        /**
+         * RemoveLocationResponse
+         * @description Response document for ``POST /api/locations/remove``.
+         */
+        RemoveLocationResponse: {
+            /**
+             * Removed
+             * @description Name of the removed watched location.
+             */
+            removed: string;
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
          * ReplayStormSummaryResponse
          * @description One historical storm available in the configured replay corpus.
          */
@@ -2777,6 +2885,38 @@ export interface components {
              * @description Whether the runner heartbeat is past twice its cadence.
              */
             stale: boolean;
+        };
+        /**
+         * SearchLocationsRequest
+         * @description Request body for ``POST /api/locations/search``.
+         */
+        SearchLocationsRequest: {
+            /**
+             * Query
+             * @description Place query to forward-geocode through Nominatim.
+             */
+            query: string;
+        };
+        /**
+         * SearchLocationsResponse
+         * @description Response document for ``POST /api/locations/search``.
+         */
+        SearchLocationsResponse: {
+            /**
+             * Candidates
+             * @description Up to five Nominatim candidates matching the search query.
+             */
+            candidates: components["schemas"]["LocationSearchCandidateResponse"][];
+            /**
+             * Attribution
+             * @description Required OpenStreetMap Nominatim attribution text.
+             */
+            attribution: string;
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
         };
         /** @enum {string} */
         SectionName: "situation" | "what_it_means_here" | "timeline" | "actions" | "sources";
@@ -4401,6 +4541,72 @@ export interface operations {
                 };
                 content: {
                     "text/event-stream": unknown;
+                };
+            };
+        };
+    };
+    search_locations_api_locations_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchLocationsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchLocationsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_location_api_locations_remove_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveLocationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RemoveLocationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

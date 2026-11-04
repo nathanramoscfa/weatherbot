@@ -28,6 +28,7 @@ async def test_the_miami_dade_landmark_its_alerts_and_its_three_zones() -> None:
         fetcher = Fetcher(client)
         coverage = (await nws.lookup_point(fetcher, lat, lon)).records
         assert isinstance(coverage, NwsCoverage)
+        assert coverage.county_zone is not None
         location = Location(
             name="Miami-Dade landmark", point=LatLon(latitude=lat, longitude=lon), nws=coverage
         )

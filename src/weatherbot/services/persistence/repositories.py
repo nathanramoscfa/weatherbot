@@ -28,7 +28,7 @@ from typing import Final, Literal, cast
 from uuid import UUID
 
 from pydantic import JsonValue
-from sqlalchemy import Engine, Select, select
+from sqlalchemy import Engine, Select, delete, func, select
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.orm import Session
 
@@ -95,6 +95,8 @@ from weatherbot.services.persistence.tables import (
     MonitorCycleRow,
     OutcomeResponseRow,
     ProductGeometryRow,
+    RawResponseRow,
+    ResponseBodyRow,
     SettingRow,
     SnapshotGeometryRow,
     SnapshotProvenanceRow,
@@ -177,7 +179,7 @@ def _location_row(location: Location, now: datetime) -> LocationRow:
         country_code=location.country_code,
         display_name=location.display_name,
         nws_forecast_zone=nws.forecast_zone if nws else None,
-        nws_county_zone=nws.county_zone if nws else None,
+        nws_county_zone=(nws.county_zone or "") if nws else None,
         nws_cwa=nws.cwa if nws else None,
         nws_time_zone=nws.time_zone if nws else None,
         nws_city=nws.city if nws else None,
@@ -200,7 +202,7 @@ def _location(row: LocationRow) -> Location:
     nws = (
         NwsCoverage(
             forecast_zone=row.nws_forecast_zone,
-            county_zone=cast("str", row.nws_county_zone),
+            county_zone=row.nws_county_zone or None,
             cwa=cast("str", row.nws_cwa),
             time_zone=cast("str", row.nws_time_zone),
             city=cast("str", row.nws_city),
@@ -278,7 +280,7 @@ class LocationRepository:
             return _location(row) if row is not None else None
 
     def remove(self, name: str) -> bool:
-        """Remove a location, its alert observations, and its assessments, in one transaction.
+        """Remove a location, its cascades, and its coordinate-bearing raw responses.
 
         Args:
             name: The location's name.
@@ -286,13 +288,30 @@ class LocationRepository:
         Returns:
             Whether a location was removed.
         """
+        suffix = f"<{name}>"
         with writing_session(self._engine) as session:
             row = session.scalar(select(LocationRow).where(LocationRow.name == name))
             if row is None:
                 return False
-            # The database cascades to its alert observations and its assessments, and from
-            # each assessment to its evidence and changes.
+            # The database cascades to its alert observations, assessments, evidence, changes,
+            # notifications, decisions, deliveries, and assessment-linked AI outputs.
             session.delete(row)
+            raw_ids = select(RawResponseRow.id).where(
+                func.substr(RawResponseRow.product_key, -len(suffix)) == suffix
+            )
+            session.execute(
+                delete(OutcomeResponseRow).where(OutcomeResponseRow.raw_response_id.in_(raw_ids))
+            )
+            session.execute(
+                delete(RawResponseRow).where(
+                    func.substr(RawResponseRow.product_key, -len(suffix)) == suffix
+                )
+            )
+            session.execute(
+                delete(ResponseBodyRow).where(
+                    ~ResponseBodyRow.sha256.in_(select(RawResponseRow.sha256))
+                )
+            )
             return True
 
     def set_evacuation_order(

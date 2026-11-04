@@ -1780,6 +1780,49 @@ class CreateLocationRequest(_ApiModel):
     )
 
 
+class SearchLocationsRequest(_ApiModel):
+    """Request body for ``POST /api/locations/search``."""
+
+    query: str = Field(description="Place query to forward-geocode through Nominatim.")
+
+
+class LocationSearchCandidateResponse(_ApiModel):
+    """One forward-geocoding candidate returned by ``POST /api/locations/search``."""
+
+    display_name: str = Field(description="Full Nominatim display label for the candidate.")
+    name: str = Field(description="Short place name from Nominatim.")
+    latitude: float = Field(ge=-90, le=90, description="Latitude in degrees north.")
+    longitude: float = Field(ge=-180, le=180, description="Longitude in degrees east.")
+    country_code: str | None = Field(
+        description="ISO 3166-1 alpha-2 country code in uppercase, or null."
+    )
+    category: str = Field(description="Nominatim feature category, such as boundary or place.")
+    kind: str = Field(description="Nominatim feature type, such as administrative or city.")
+
+
+class SearchLocationsResponse(_ApiModel):
+    """Response document for ``POST /api/locations/search``."""
+
+    candidates: tuple[LocationSearchCandidateResponse, ...] = Field(
+        description="Up to five Nominatim candidates matching the search query."
+    )
+    attribution: str = Field(description="Required OpenStreetMap Nominatim attribution text.")
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class RemoveLocationRequest(_ApiModel):
+    """Request body for ``POST /api/locations/remove``."""
+
+    location: str = Field(description="Name of the watched location to remove.")
+
+
+class RemoveLocationResponse(_ApiModel):
+    """Response document for ``POST /api/locations/remove``."""
+
+    removed: str = Field(description="Name of the removed watched location.")
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
 class UpdateEvacuationRequest(_ApiModel):
     """Request body for ``PUT /api/locations/evacuation``."""
 

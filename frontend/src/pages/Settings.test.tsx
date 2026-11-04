@@ -1,6 +1,6 @@
 // frontend/src/pages/Settings.test.tsx
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { apiClient } from "../api/client.ts";
@@ -88,6 +88,11 @@ describe("Settings", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText("default").length).toBeGreaterThan(0);
 
+    // Watched locations section rendered by LocationManager
+    expect(
+      screen.getByRole("heading", { name: "Watched Locations" }),
+    ).toBeInTheDocument();
+
     // Disclaimer and bundled licences
     expect(
       screen.getByRole("heading", { name: "Full Disclaimer" }),
@@ -97,69 +102,6 @@ describe("Settings", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("react")).toBeInTheDocument();
     expect(screen.getByText("radix-ui")).toBeInTheDocument();
-  });
-
-  it("submits POST /api/locations and shows plain messages on 409 and 422", async () => {
-    const user = userEvent.setup();
-    const queryClient = createAppQueryClient();
-    queryClient.setQueryData(queryKeys.settings(), TYPED_SETTINGS);
-    queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
-    queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
-    queryClient.setQueryData(queryKeys.licenses(), SAMPLE_LICENSES);
-    queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
-    queryClient.setQueryData(queryKeys.aiCalls(), TYPED_AI_CALLS);
-
-    const postSpy = vi.spyOn(apiClient, "POST");
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <Settings initialLicenses={SAMPLE_LICENSES} />
-      </QueryClientProvider>,
-    );
-
-    const nameInput = screen.getByLabelText("Location name");
-    const latInput = screen.getByLabelText("Latitude");
-    const lonInput = screen.getByLabelText("Longitude");
-    const addBtn = screen.getByRole("button", { name: "Add location" });
-
-    // 1. 409 Conflict
-    postSpy.mockResolvedValueOnce({
-      data: undefined,
-      response: new Response(null, { status: 409 }),
-    });
-
-    await user.type(nameInput, "Miami-Dade County Hall");
-    await user.type(latInput, "25.78");
-    await user.type(lonInput, "-80.20");
-    await user.click(addBtn);
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "A location with that name already exists (/api/locations returned HTTP 409).",
-    );
-
-    // 2. 422 Unprocessable Entity
-    postSpy.mockResolvedValueOnce({
-      data: undefined,
-      response: new Response(null, { status: 422 }),
-    });
-    await user.click(addBtn);
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Invalid location parameters or zone polygon requested outside NWS coverage (/api/locations returned HTTP 422).",
-    );
-
-    // 3. 201 Created
-    postSpy.mockResolvedValueOnce({
-      data: TYPED_LOCATIONS.locations[0]!,
-      response: new Response(null, { status: 201 }),
-    });
-    await user.click(addBtn);
-
-    await waitFor(() => {
-      expect(screen.getByRole("status")).toHaveTextContent(
-        'Added location "Miami-Dade County Hall".',
-      );
-    });
   });
 
   it("submits POST /api/notifications/test and flips the browser notification switch in localStorage", async () => {

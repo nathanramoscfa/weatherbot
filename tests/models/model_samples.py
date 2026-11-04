@@ -43,6 +43,7 @@ from weatherbot.models import (
     DomainModel,
     Evidence,
     ForecastTrack,
+    GeocodeCandidate,
     GeocodeResult,
     Geometry,
     GisFeedItem,
@@ -404,6 +405,24 @@ def geocode() -> GeocodeResult:
     )
 
 
+def geocode_candidate() -> GeocodeCandidate:
+    """Return a forward-search candidate at the Nassau landmark."""
+    lon, lat = cast("tuple[float, float]", landmark_point("nassau").coordinates)
+    return GeocodeCandidate(
+        display_name="Nassau, New Providence, The Bahamas",
+        name="Nassau",
+        latitude=lat,
+        longitude=lon,
+        country_code="bs",
+        category="place",
+        kind="city",
+        osm_type="relation",
+        osm_id=14900727,
+        licence="Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+        provenance=provenance("geocode-nominatim"),
+    )
+
+
 def location() -> Location:
     """Return the Miami-Dade landmark as a location."""
     lon, lat = cast("tuple[float, float]", landmark_point().coordinates)
@@ -749,6 +768,7 @@ SAMPLES: dict[type[DomainModel], Callable[[], DomainModel]] = {
     DisplayLayer: display_layer,
     Evidence: evidence,
     ForecastTrack: track,
+    GeocodeCandidate: geocode_candidate,
     GeocodeResult: geocode,
     Geometry: landmark_square,
     GisFeedItem: feed_item,

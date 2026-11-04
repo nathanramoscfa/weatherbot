@@ -56,7 +56,7 @@ from weatherbot.sources.http import DEFAULT_INTERVAL, HEADER_ALLOWLIST, HOST_INT
 from weatherbot.sources.markup import parse_xml
 from weatherbot.sources.nhc_arrival_times import ARRIVAL_KMZ_URL, KINDS, read_kml
 from weatherbot.sources.nhc_text_products import PRODUCT_ID_PATTERN
-from weatherbot.sources.nominatim import REVERSE_URL, reverse_url
+from weatherbot.sources.nominatim import REVERSE_URL, reverse_url, search_url
 from weatherbot.sources.nws import point_alerts_url, points_url
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -1133,8 +1133,15 @@ def _overlay_recorder(source_id: str, workspace: str) -> SourceRecorder:
     return record
 
 
+NOMINATIM_SEARCH_QUERIES: Final[tuple[tuple[str, str], ...]] = (
+    ("search-nassau.json", "Nassau, Bahamas"),
+    ("search-miami.json", "Miami, Florida"),
+    ("search-none.json", "weatherbot-nonexistent-place-query"),
+)
+
+
 def record_nominatim(recorder: Recorder) -> list[Capture]:
-    """Record one reverse lookup per landmark.
+    """Record one reverse lookup per landmark and the fixed forward-search queries.
 
     Args:
         recorder: The run's state.
@@ -1148,6 +1155,11 @@ def record_nominatim(recorder: Recorder) -> list[Capture]:
         fetched = recorder.fetcher.get(url, source="geocode-nominatim")
         parse_json(fetched.body, "a Nominatim response")
         captures.append(capture_of(fetched, f"reverse-{landmark.key}.json"))
+    for filename, query in NOMINATIM_SEARCH_QUERIES:
+        url = search_url(query)
+        fetched = recorder.fetcher.get(url, source="geocode-nominatim")
+        parse_json(fetched.body, "a Nominatim search response")
+        captures.append(capture_of(fetched, filename))
     return captures
 
 

@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 7 — Depth
+- Add multi-location management, Nominatim forward place search, and marine-zone
+  `/points` support (Phase 7 Step 2, closing issues #87 and #71):
+  - Issue #87 fix: make `NwsCoverage.county_zone` optional (`str | None`),
+    widen `NwsCoverage.cwa` to `^[A-Z0-9]{3}$`, declare `OPTIONAL_POINT_FIELDS`
+    (`county`) and `OPTIONAL_ZONE_FIELDS` (`state`) in `weatherbot.sources.nws`
+    so marine forecast zones without a county (`AMZ630`, `state: null`, `type:
+    "coastal"`) parse and fetch alerts from the point and forecast zone only,
+    store `""` in `locations.nws_county_zone` when `county_zone` is `None` so
+    `nws_coverage_whole` holds without a table rebuild, refuse `polygon="county"`
+    when no county exists, and log and return the field-level `SourceError` text
+    on `POST /api/locations` `502`.
+  - Forward search and `--place` (issue #71): add `GeocodeCandidate` (`display_name`,
+    `name`, `latitude`, and `longitude` all `repr=False`), `nominatim.search_url`,
+    `parse_search`, `search`, and `SEARCH_FIELDS_READ`, redact `q` in
+    `COORDINATE_PARAMETERS` and `_COORDINATE_QUERY`, add `LocationService.search`
+    with an in-memory 64-entry 24-hour `SearchCache` (writing no database rows),
+    add `POST /api/locations/search` (with a 2-second cooldown) and `POST
+    /api/locations/remove` (waiting on `cycle.lock` and deleting the location's
+    `<name>` `raw_responses` and unreferenced `response_bodies`), add `--place`
+    and `--pick` to `weatherbot locations add`, extract
+    `frontend/src/settings/LocationManager.tsx` with place search on submit,
+    candidate radio selection, OpenStreetMap attribution, a typed location name,
+    coordinates disclosure, and confirmed removal, record
+    `tests/fixtures/recorded/geocode-nominatim/2026-11-04/`, and prove the
+    Nassau breakpoint path against replayed Dorian advisory 26.
 - Parallelize the CI `test` job with `pytest-xdist` (Phase 7 Step 1, closing
   issue #82): add `pytest-xdist>=3.8.0` (`execnet==2.1.2`) to the `dev`
   dependency group, run `.github/workflows/ci.yml`'s `test` job with `uv run

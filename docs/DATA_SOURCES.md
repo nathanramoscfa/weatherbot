@@ -29,6 +29,11 @@ and [User-Agent and polite use](#user-agent-and-polite-use) (including the NWS
 API documentation's 30-second recommendation). Amended again 2026-10-27, for
 Phase 5 Step 6: the `basemap-osm-tiles` row and its bullet under
 [OpenStreetMap: basemap and geocoding](#openstreetmap-basemap-and-geocoding).
+Amended again 2026-11-04, live, for Phase 7 Step 2: the `nws-points`,
+`nws-zones`, and `geocode-nominatim` rows, optional `county` and alphanumeric
+`cwa` codes under [Points](#points) (issue #87), optional `state` and `coastal`
+zone types under [Zones](#zones), and Nominatim forward search under
+[OpenStreetMap: basemap and geocoding](#openstreetmap-basemap-and-geocoding).
 Every other statement keeps 2026-10-12, or the date its own amendment names.
 
 ## Purpose
@@ -140,14 +145,14 @@ response headers on an allowlist (never `set-cookie`).
 | `nhc-gis-archive` | NHC GIS archive and `gis-at.xml` | `https://www.nhc.noaa.gov/gis/archive_forecast.php?year={yyyy}` | HTML listings; ZIP (shapefiles), KMZ, KML | `replay-corpus` | Static per season | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-text-products` | NHC text products (TCP, TWO) | `https://api.weather.gov/products/types/{TCP,TWO}/locations/{location}` | JSON-LD (`application/ld+json`) | `required` | TCP per advisory; TWO four times a day; `max-age=120` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-outlook-graphics` | NHC outlook graphics | `https://www.nhc.noaa.gov/xgtwo/two_{atl,pac,cpac}_{2d0,7d0}.png` | PNG | `required` | Per outlook, and redrawn with advisories; `max-age=300`, `ETag`, `Last-Modified`, 304 honored | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
-| `nws-points` | NWS API | `https://api.weather.gov/points/{lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Static per point; `max-age=86400` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-17 |
+| `nws-points` | NWS API | `https://api.weather.gov/points/{lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Static per point; `max-age=86400` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-11-04 |
 | `nws-alerts-point` | NWS API | `https://api.weather.gov/alerts/active?point={lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
 | `nws-alerts-zone` | NWS API | `https://api.weather.gov/alerts/active/zone/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
-| `nws-zones` | NWS API | `https://api.weather.gov/zones/{type}/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Static (zones effective 2026-04-16); `max-age` of weeks, `Last-Modified` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
+| `nws-zones` | NWS API | `https://api.weather.gov/zones/{type}/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Static (zones effective 2026-04-16); `max-age` of weeks, `Last-Modified` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-11-04 |
 | `basemap-osm-tiles` | OpenStreetMap tiles | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | PNG tiles | `none — display-only: the browser loads tiles directly and the code never parses one; the OSMF tile policy forbids bulk download` | Cached per the tile's own headers (`max-age` of days) | [OSMF Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/); visible attribution required | 2026-10-27 |
 | `overlay-radar` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/weather_radar/ows` | WMS 1.3.0 capabilities XML; PNG tiles | `required` | Mosaic about every 4 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE` | 2026-10-12 |
 | `overlay-satellite` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/satellite/ows` | WMS 1.3.0 capabilities XML; PNG tiles | `required` | GOES composites every 5 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE` | 2026-10-12 |
-| `geocode-nominatim` | Nominatim reverse geocoding | `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lon}` | JSON | `required` | Once per location at setup, cached for good; at most 1 request per second | [OSMF Nominatim Usage Policy](https://operations.osmfoundation.org/policies/nominatim/); © OpenStreetMap contributors, ODbL 1.0 | 2026-10-12 |
+| `geocode-nominatim` | Nominatim reverse and forward geocoding | `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lon}` and `https://nominatim.openstreetmap.org/search?q={q}&format=jsonv2&addressdetails=1&limit=5` | JSON | `required` | Once per location at setup (reverse cached for good; forward search cached in memory for 24 h); at most 1 request per second | [OSMF Nominatim Usage Policy](https://operations.osmfoundation.org/policies/nominatim/); © OpenStreetMap contributors, ODbL 1.0 | 2026-11-04 |
 
 The `required` overlay rows record each WMS capabilities document, which
 names the layers the map loads. The tiles themselves are display-only.
@@ -667,6 +672,12 @@ s-maxage=86400`.
 - **Fields v2 uses:** `forecastZone` and `county` (the zone id is the last
   path segment), `cwa`, `timeZone`, `relativeLocation.properties.city`, and
   `relativeLocation.properties.state`.
+- **Marine and offshore points** (amended 2026-11-04, issue #87): a point in a
+  coastal-water or offshore marine forecast zone (such as `AMZ630` in Biscayne
+  Bay) returns `forecastZone` and omits `county` and `fireWeatherZone`, and an
+  offshore forecast office such as `NH2` carries a digit in `cwa`. `county` is
+  read when present and non-null; a covered location without a county queries
+  active alerts by point and by forecast zone only.
 - **Precision** (amended 2026-10-17): four decimals. The
   [API documentation](https://www.weather.gov/documentation/services-web-api)
   writes its examples with four decimals but states no rule; the API states
@@ -768,6 +779,9 @@ a MultiPolygon with a `Cache-Control` `max-age` of 24 to 30 days
 - **Fields v2 uses:** `id`, `type`, `name`, `state`, `cwa`, `timeZone`,
   `effectiveDate`, and the geometry (the map, and a location's optional
   polygon).
+- **Marine forecast zones** (amended 2026-11-04): a coastal-water forecast zone
+  such as `zones/forecast/AMZ630` returns `state: null` and `type: "coastal"`;
+  `state` is read as optional.
 
 ### User-Agent and polite use
 
@@ -1114,6 +1128,19 @@ its materials in the public domain and appreciates attribution.
     `address.country`, `licence`, `osm_type`, `osm_id` (amended
     2026-10-17). An answer that holds only an error member (no place at the point) is
     not a place, and the client returns none.
+- **Forward search** (`geocode-nominatim`, amended 2026-11-04):
+  `https://nominatim.openstreetmap.org/search?q={q}&format=jsonv2&addressdetails=1&limit=5`.
+  - Used only on explicit operator submit (`weatherbot locations add --place` or
+    the Settings page's Search button), never on keystroke or background
+    schedule, with a 2-second server cooldown, 1.5-second per-host pacing, a
+    64-entry 24-hour in-memory cache keyed by the SHA-256 of the casefolded
+    query, and visible attribution (`Search by OpenStreetMap Nominatim, ©
+    OpenStreetMap contributors`). Candidate coordinates are never written to
+    `raw_responses` or `response_bodies`; only the chosen candidate's
+    coordinates are reverse-geocoded once and stored with the location.
+  - **Search fields v2 uses:** `lat`, `lon`, `display_name`, `name`, `category`,
+    `type`, `osm_type`, `osm_id`, `licence`, and `address.country_code`
+    (amended 2026-11-04). An empty array means no candidate matched.
   - **Policy:** the
     [usage policy](https://operations.osmfoundation.org/policies/nominatim/)
     sets "an absolute maximum of 1 request per second" and a User-Agent

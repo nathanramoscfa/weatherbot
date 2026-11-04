@@ -81,12 +81,13 @@ _SERVER_ERRORS: Final = range(500, 600)
 PROBLEM_JSON: Final = "application/problem+json"
 
 REDACTED: Final = "<redacted>"
-# Every coordinate form scripts/check_personal_data.py's request_coordinates() recognizes:
-# an NWS /points/{lat},{lon} path, a point parameter, and lat/lon or latitude/longitude.
-COORDINATE_PARAMETERS: Final = frozenset({"point", "lat", "lon", "latitude", "longitude"})
+# Every coordinate form scripts/check_personal_data.py's request_coordinates() recognizes
+# (an NWS /points/{lat},{lon} path, a point parameter, and lat/lon or latitude/longitude),
+# plus Nominatim's forward-search q parameter so place queries never appear above DEBUG.
+COORDINATE_PARAMETERS: Final = frozenset({"point", "lat", "lon", "latitude", "longitude", "q"})
 _POINTS_PATH: Final = re.compile(r"(/points/)[^/?#\s]+", re.IGNORECASE)
 _COORDINATE_QUERY: Final = re.compile(
-    r"(?<![A-Za-z0-9_])(point|lat|lon|latitude|longitude)=[^&#\s]*", re.IGNORECASE
+    r"(?<![A-Za-z0-9_])(point|lat|lon|latitude|longitude|q)=[^&#\s]*", re.IGNORECASE
 )
 _COORDINATE_PAIR: Final = re.compile(r"-?\d{1,3}\.\d+\s*(?:,|%2C)\s*-?\d{1,3}\.\d+", re.IGNORECASE)
 

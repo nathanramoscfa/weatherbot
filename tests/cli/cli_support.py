@@ -48,6 +48,8 @@ from weatherbot.services.persistence.repositories import AssessmentRepository, S
 from weatherbot.services.tasks import CREATE_NO_WINDOW, SubprocessRunner
 from weatherbot.services.toast import DISPLAY_NAME, Identity
 from weatherbot.sources.http import Fetcher, HostPacer, ValidatorStore
+from weatherbot.sources.nominatim import reverse_url
+from weatherbot.sources.nws import points_url
 
 ANSI_ESCAPE: Final = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 SERVED: Final[tuple[SourceId, ...]] = (
@@ -320,6 +322,27 @@ def _any_point(router: respx.MockRouter) -> None:
     points = directory("nws-points")
     alerts = directory("nws-alerts-point")
     geocode = directory("geocode-nominatim")
+    nassau_search: object = json.loads(geocode.payload(entry(geocode, "search-nassau.json")))
+    if isinstance(nassau_search, list) and nassau_search:
+        first: object = nassau_search[0]  # pyright: ignore[reportUnknownVariableType] - a JSON array
+        if isinstance(first, dict):
+            lat = float(str(first["lat"]))  # pyright: ignore[reportUnknownArgumentType] - a JSON object
+            lon = float(str(first["lon"]))  # pyright: ignore[reportUnknownArgumentType] - a JSON object
+            for exact_url, capture, name in (
+                (points_url(lat, lon), points, "points-nassau.json"),
+                (reverse_url(lat, lon), geocode, "reverse-nassau.json"),
+            ):
+                exact_item = entry(capture, name)
+                exact_headers_raw: object = exact_item["headers"]
+                assert isinstance(exact_headers_raw, dict)
+                exact_headers = {"content-type": str(exact_headers_raw["content-type"])}  # pyright: ignore[reportUnknownArgumentType] - a JSON object
+                router.get(exact_url).mock(
+                    return_value=httpx.Response(
+                        int(str(exact_item["status"])),
+                        content=capture.payload(exact_item),
+                        headers=exact_headers,
+                    )
+                )
     for pattern, capture, name in (
         (r"https://api\.weather\.gov/points/.+", points, "points-miami-dade.json"),
         (

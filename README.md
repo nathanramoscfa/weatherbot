@@ -31,9 +31,14 @@ same way. Your locations stay in your local database.
 # Watch a place. The NWS says whether it covers the point; Nominatim names it, once.
 weatherbot locations add "Miami-Dade County Hall" --lat 25.7757 --lon -80.1966
 weatherbot locations add "Parliament Square" --lat 25.0778 --lon -77.3405
+weatherbot locations add "Nassau" --place "Nassau, Bahamas"   # forward search via Nominatim; --pick N when several match
 weatherbot locations add "Miami-Dade County Hall" --lat 25.7757 --lon -80.1966 --polygon county  # also store the county's shape
 weatherbot locations list            # the only command that prints coordinates
 weatherbot locations remove "Parliament Square"
+
+# Two-line recipe for a place outside NWS coverage (assessed via NHC watch-warning segments):
+weatherbot locations add "Nassau" --place "Nassau, Bahamas"
+weatherbot replay AL052019 --location "Nassau" --corpus tests/fixtures/replay
 
 weatherbot fetch                     # fetch every official source once; print each outcome
 weatherbot storms                    # active storms, their products, the outlook, wind probabilities
@@ -243,7 +248,10 @@ reloading the page and provides seven pages:
   2,000 characters, each lookup shown as a chip (`Reading storms`), the answer
   streamed sentence by sentence (`POST /api/ai/chat`), and `New conversation`;
   a withheld or unavailable answer closes the conversation.
-- **Settings (`/settings`)**: add a watched location (`POST /api/locations`),
+- **Settings (`/settings`)**: search for a place (`POST /api/locations/search`)
+  or enter coordinates to add a watched location (`POST /api/locations`) with a
+  short typed label, remove a watched location (`POST /api/locations/remove`)
+  along with its stored history behind a confirmation,
   enable or test browser notifications (`POST /api/notifications/test`), the
   AI section (`#ai`: the state, the credential's source but never its value,
   the models, today's spend against the cap, the recent requests,

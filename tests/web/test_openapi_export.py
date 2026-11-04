@@ -30,6 +30,8 @@ def test_committed_openapi_schema_matches_fresh_export(
     assert "/api/health" in paths
     assert "/api/events" in paths
     assert "/api/locations" in paths
+    assert "/api/locations/search" in paths
+    assert "/api/locations/remove" in paths
     assert "/api/locations/evacuation" in paths
     assert "/api/cycles" in paths
     assert "/api/notifications/test" in paths
