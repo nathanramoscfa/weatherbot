@@ -6,7 +6,7 @@
 > roadmaps and execute their steps; public, because the repository is
 > **Target environment:** Local (the operator's Windows 11 machine); the
 > package is published to PyPI
-> **Last updated:** October 2026
+> **Last updated:** November 2026
 
 This roadmap takes Weatherbot from its first draft to its second. The
 first draft is a Python command-line tool published to PyPI as 1.0.0 in
@@ -80,7 +80,7 @@ calls, which carry a cap.
 | 4     | Scheduler, change detection, Windows toast, Task Scheduler setup | A new advisory raises a toast within one interval, unattended |
 | 5     | FastAPI API with server-sent events, the React SPA, packaging | `weatherbot serve` opens a live dashboard and map in the browser |
 | 6     | Claude Sonnet 5.5 briefing, change summary, grounded chat, cost meter | The dashboard explains the situation in plain language, labeled |
-| 7     | Charts, surge and radar layers, replay scrubber, multi-location UI, ntfy push, quiet hours, export | Nassau joins Miami-Dade; the phone buzzes; a past storm scrubs on the map |
+| 7     | Place search, charts, surge and radar layers, replay scrubber, multi-location UI, ntfy push, quiet hours, retention, export | Nassau joins the operator's place; the phone buzzes; a past storm scrubs on the map |
 | 8     | Documentation, PyPI 2.0.0, always-on guide, optional LAN mode | `pip install weatherbot` gives anyone the whole thing              |
 
 ---
@@ -233,6 +233,34 @@ These gaps drive the phase ordering below.
   evidence, and the chat on its own Ask page beneath the engine's level
   badges, so an AI text is never read apart from the official level it
   explains (`phase06-roadmap.md`, "Design rationale").
+- **The ntfy topic is a secret, like its token.** The brief's §9 and
+  this roadmap's 7.3 put a topic token in configuration. Without an
+  account, ntfy's topic name is itself the password, so v2 reads the
+  topic and the token from the environment only, and configuration
+  holds the on/off switch and the server (`phase07-roadmap.md`, "Design
+  rationale").
+- **The wind-probability chart shows the published band.** The brief's
+  §13 and this roadmap's 7.1 read as a curve over the forecast period.
+  NOAA's map layers publish one cumulative 120-hour band per synoptic
+  time, and a per-forecast-hour curve exists only in the GRIB2 files
+  §5's register rules out, so the chart shows how the location's
+  official band moved from one synoptic time to the next.
+- **The report leaves the location out, and PDF is the browser's
+  print.** The brief's §13 names a report export, and this section's
+  data classification redacts coordinates from exports. So the report
+  holds only what the Claude layer's context may already send: bands,
+  compass points, hours, and titles, with no coordinate, address, zone,
+  URL, or engine sentence, and no map. An AI briefing joins it only
+  when the operator asks, because its words quote alerts and can name a
+  county. A PDF comes from the browser's print, with no PDF dependency.
+- **The tile proxy waits for its condition.** A tile requested with a
+  loopback `Referer` answered 200 on 2026-11-03, and OpenStreetMap's
+  policy recommends against a caching proxy, so 7.1's fallback is an
+  issue and a live test until tiles are refused.
+- **The replay corpus stays a directory.** The brief's §4 asks for
+  replay in the web app; the corpus is 7.6 MiB of test fixtures, so an
+  installed copy reads the directory `[web] corpus` names, and the
+  page says what to set when it names none.
 
 Everything else in the brief applies unchanged: the decisions D1–D10,
 the data sources (with the graphic names, the text-product path, the
@@ -278,8 +306,12 @@ traffic is HTTPS to public NOAA services with a project User-Agent, to
 the Anthropic API with a credential the SDK reads from the environment
 or an `ant auth login` profile (a request carries location names and
 the engine's coarsened outputs, never a coordinate; Phase 6), and, from
-Phase 7, to an ntfy server with a topic token; from Phase 5 the browser
-itself also fetches the map's raster tiles from OpenStreetMap. There is no
+Phase 7, to an ntfy server (the topic and token from the environment; a
+notification's location name, level, and sentences in the body) and to
+Nominatim with a place the operator submitted. From Phase 5 the browser
+itself also fetches the map's raster tiles from OpenStreetMap, and from
+Phase 7, only while a toggle is on, radar and satellite images from
+NOAA's nowCOAST. There is no
 public ingress; an optional LAN mode in Phase 8 is the only widening,
 and it is gated. Loopback is not a trust boundary against the browser:
 any other site's page open in it can send requests to 127.0.0.1, so the
@@ -1083,38 +1115,36 @@ names; Gemini 4 Argon on Antigravity, then GPT-6.1 Sol on Codex, each at
 `Max`, if its pool is short. The conversation is new: the roadmap is
 written once, from this roadmap and `main` as Phase 6 leaves it.
 
-Phase 7 keeps Phase 6's verification green as it grows
-(`docs/phase06-qa-findings.md`). `scripts/verify_phase06.py` was written so new
-routes, OpenAPI paths, query keys, CLI commands, and `phase-verify.yml` matrix
-entries pass by inclusion. Twelve checks are exact and stay live until a Phase
-7 step deliberately changes what they read: check 1 (`anthropic>=2.3.0` in
-dependencies, `httpx2` only in `dev`); check 2 (the two forbidden AI
-`import-linter` contracts); check 3 (`AiSettings`'s six fields and
-`WEATHERBOT_AI_*` overrides); check 4 (`PRICES` three models, `PRICES_AS_OF`,
-`MAX_PROMPT_TOKENS = 100_000`); check 5 (`AI_TABLES = {'ai_calls', 'ai_outputs'}`
-and `set_authorizer`); checks 7 and 16 (`0007_ai_calls.py` and
-`0008_ai_outputs.py` pinned in `FROZEN`); checks 14 and 15 (`context.py` and
-`validate.py` pure imports, `Briefing`'s five fields, no `level` on any AI
-schema); checks 22, 23, and 24 (`TOOL_NAMES` exact nine-tool tuple, strict tool
-schemas, `MAX_TOOL_ROUNDS = 6`, `MAX_CONVERSATIONS = 8`); check 32 (no
-module-level `async def` under `web/routes/` naming a repository, `ai_engine`,
-or `Session`); check 39 (`frontend/package.json` dependency and devDependency
-names equal `v2.0.0-phase-5`'s — convert in the same PR to
-`v2.0.0-phase-6:frontend/package.json` when a Phase 7 step adds a frontend
-library); check 40 (`AppShell.tsx` `NAV_ITEMS` listing `"/ask"` between
-`"/timeline"` and `"/settings"`); and check 44 (`README.md`'s `## Status`
-naming Phase 6 complete and Phase 7 next — convert in the same PR to
-`v2.0.0-phase-6:README.md` when Phase 7 updates `## Status`). Keep `"01"`
+Phase 7 keeps every earlier phase's verification green as it grows.
+`scripts/verify_phase06.py` was written so new routes, OpenAPI paths, CLI
+commands, and `phase-verify.yml` matrix entries pass by inclusion, and it also
+holds exact checks. The list once kept here was incomplete, so
+`phase07-roadmap.md` ("Verification surfaces") holds an audit of all six
+verifiers, their mutation tests, and the pinned tests no verifier names,
+against everything this phase does. One check converts: Phase 6's check 44
+(`README.md`'s `## Status`) reads `v2.0.0-phase-6` from the step that first
+edits that section. Every other collision is kept green by how the work is done,
+which that table states check by check. The phase changes no AI product, so
+Phase 6's checks on the SDK, the contracts, `AiSettings`, the prices,
+`AI_TABLES`, the frozen revisions, the context, the tools, and the chat stand as
+they are; it adds no frontend dependency, so check 39 stands too. Keep `"01"`
 through `"06"` in `phase-verify.yml`.
 
+#### 7.0 The test budget
+- Windows CI's `test` job took 35 of its 40 minutes at Phase 6's close
+  (issue #82), so the phase starts with `pytest-xdist`, which passed
+  the whole suite unchanged at a fifth of its serial time.
+
 #### 7.1 Charts and layers
-- Wind-probability charts per location over the forecast period,
-  arrival-time display, a level-history sparkline; map layers for
-  probabilistic winds, wind radii, past track, peak surge, and radar
-  and satellite overlays from the NOAA or Iowa Environmental Mesonet
-  services confirmed in Phase 1; a time slider over advisories; and the
-  local tile-proxy fallback (with disk caching and a custom `User-Agent`)
-  if OpenStreetMap ever starts refusing loopback `Referer` headers.
+- Wind-probability charts per location across synoptic times (the
+  published 120-hour band, see "Changes from the brief"), arrival-time
+  display, a level-history sparkline; map layers for probabilistic
+  winds, wind radii, past track, peak surge, and radar and satellite
+  overlays from the NOAA services confirmed in Phase 1, with the Iowa
+  Environmental Mesonet as their documented fallback; a time slider
+  over advisories; and the local tile-proxy fallback (with disk caching
+  and a custom `User-Agent`) only if OpenStreetMap ever starts refusing
+  loopback `Referer` headers, which a live test now watches.
 
 #### 7.2 Replay in the UI
 - Pick a storm from the corpus, scrub through advisories, and watch the
@@ -1122,16 +1152,19 @@ through `"06"` in `phase-verify.yml`.
   components as live mode.
 
 #### 7.3 Locations and channels
-- Multi-location management in Settings (including `City, State / Country`
-  forward place search via Nominatim `/search` with candidate disambiguation
+- Issue #87's fix, so a shoreline point can be watched; multi-location
+  management in Settings (including `City, State / Country` forward
+  place search via Nominatim `/search` with candidate disambiguation
   and `weatherbot locations add --place`, issue #71), per-location
   notification preferences, and the Nassau profile exercising the
-  breakpoint path; an ntfy channel (topic token in configuration), quiet
-  hours, and retention settings for history.
+  breakpoint path; an ntfy channel (topic and token in the environment,
+  server in configuration), quiet hours, editing settings from the
+  page, and retention settings for history.
 
 #### 7.4 Export
-- An on-demand static report (HTML, optionally PDF) of the current
-  dashboard for sharing, with the disclaimer and the AI labels intact.
+- An on-demand static report (HTML, printing to PDF from the browser)
+  of the current dashboard for sharing, with the disclaimer and the AI
+  labels intact.
 
 **Acceptance criteria**
 - Dorian 2019 replayed against Nassau shows the watch-and-warning
@@ -1141,10 +1174,18 @@ through `"06"` in `phase-verify.yml`.
   suppress a level-2 repeat while an escalation still arrives.
 - Charts and layers render from recorded fixtures without network, and
   the overlay services are documented with their terms.
-- The exported report opens offline and carries the disclaimer.
-- **Security:** gate green; the ntfy token is stored like the API key
-  and redacted from logs and exports; `npm audit` and `pip-audit`
-  clean after the new dependencies.
+- A prune removes only what its dry run named, and every location's
+  notification state reads the same afterwards.
+- The exported report opens offline, carries the disclaimer, and holds
+  no coordinate.
+- **Deployed & verified:** the operator's `/api/health` reports the
+  upgraded copy at the schema head, with their own location and Nassau
+  watched, a phone delivery confirmed, and a storm scrubbing.
+- **Operations:** the ntfy channel's delivery alarm and the retention
+  worker's heartbeat alarm have each been seen to fire.
+- **Security:** gate green; the ntfy topic and token are stored like
+  the API key and redacted from logs and exports; `npm audit` and
+  `pip-audit` clean after the new dependencies.
 
 ---
 
@@ -1248,7 +1289,7 @@ usage.
 |--------------------------------------------------------------|---------------------|
 | NOAA services (NHC, NWS), OpenStreetMap tiles, GIS archive   | $0 (public, keyless, within usage policies) |
 | GitHub Actions, Dependabot, PyPI, TestPyPI                   | $0 (public repository) |
-| ntfy (public server free tier or self-hosted)                | $0                  |
+| ntfy (public server free tier, 250 messages a day, or self-hosted) | $0            |
 | Claude Sonnet 5.5 at list price ($2 input, $10 output, $2.50 five-minute cache write, $0.10 cache read per million tokens; read 2026-10-30): from the sizes measured for `phase06-roadmap.md`, a briefing is about 6,200 input and 1,500 output tokens, so about $0.03 ($0.05 at worst); a change summary about $0.01; a chat turn $0.02–0.035; an active-storm day of 4 briefings, 12 change summaries, and 10 chat turns $0.45–0.70; a quiet month near $0; the daily cap ($1.00 by default) bounds any month at $31 unless the operator allows more (each allowance raises only its own day) | $0–15 (peak month) |
 | **Total**                                                    | **$0–15**           |
 
@@ -1586,7 +1627,9 @@ the database schema version is the Alembic head and is reported by
 |---------------------------------------|----------|--------------------------------------------------------------------------------------|
 | Operator location coordinates         | Yes      | Local configuration and database only; never in the repository, fixtures, examples, or logs above DEBUG; redacted from exports and bug reports. |
 | Anthropic API key                     | Yes (Phase 6) | Environment variable or OS credential store only; never in source, config files under version control, logs, the database, or the client bundle. |
-| ntfy topic token, LAN bearer token    | Yes (Phases 7–8) | Same handling as the API key; the LAN token is required for any non-loopback bind. |
+| Place text the operator searches for  | Yes (Phase 7) | Sent to Nominatim only on an explicit submit; never in a log above DEBUG, an error, a URL of ours, the browser's console, or the database: an answer is cached in memory only. |
+| Location names                        | Yes      | A label the operator types, never defaulted from a search: it leaves the machine in AI requests, ntfy titles, and reports. |
+| ntfy topic and token, LAN bearer token | Yes (Phases 7–8) | Same handling as the API key: on a public ntfy server the topic is itself the password. The LAN token is required for any non-loopback bind. |
 | Client / user PII                     | No       | Single operator; no accounts, no third-party users.                                 |
 | Payment / financial data              | No       | None.                                                                               |
 | Health / regulated data               | No       | None.                                                                               |
@@ -1735,7 +1778,8 @@ every row.
 | `weatherbot serve`               | `/api/health`: version, scheduler state, last successful fetch per source, Alembic head | `doctor`; the dashboard's staleness banner; the post-upgrade check | Toast and log entry after N consecutive fetch failures (N configurable, default 3, set in Phase 4) |
 | Scheduled `check --once` task    | Last successful run time in the heartbeat table                        | `status`, `doctor`, Task Scheduler history        | Dashboard banner and toast when older than twice the cadence |
 | Claude usage (metered)           | Per-call ledger versus the daily cap; `/api/health`'s `ai` state       | Settings page; `brief --cost`; `doctor`'s `ai` check | The kill switch disables AI calls at the cap and the UI says so; three authentication failures mark AI unavailable |
-| Notification delivery            | Delivery result per notification row                                   | Notification log page; `notify test`              | A failed channel is shown in the log and in `doctor` |
+| Notification delivery            | Delivery result per notification row; `GET /api/notifications/channels` (Phase 7) | Notification log page; the settings page's channels; `notify test`; `doctor`'s `ntfy` check | A failed channel is shown in the log and in `doctor` |
+| History retention (Phase 7, when on) | The `retention` watch heartbeat; `GET /api/retention`             | `doctor`'s `heartbeat` check; the settings page   | The staleness banner when older than twice its cadence; a failed run is logged and shown |
 | CI and release workflows         | Workflow status on `main` and on tags                                  | GitHub Actions; the fresh-install smoke job       | GitHub's failure email to the operator              |
 
 #### Rules
@@ -1764,6 +1808,9 @@ every row.
 | Toast does not appear                     | `notify test`; check the Windows notification settings for the Python executable; the channel's fallback logs the text |
 | Scheduled task silent                     | `doctor`; Task Scheduler history; `install-task` again; the hourly fallback covers a crashed `serve` |
 | API or push token leaked                  | Rotate at the provider, set the new value, prove it with an authenticated round-trip (`brief`, `notify test`); search logs and the database for the old value |
+| ntfy topic exposed                        | Choose a new random topic, set `WEATHERBOT_NTFY_TOPIC`, restart the task, subscribe the phone to it, `notify test` |
+| Phone notification did not arrive         | `notify test`; `doctor`'s `ntfy` check; the channels' last result on the settings page; `docs/NOTIFICATIONS.md` (limits, Android instant delivery) |
+| History pruned further than meant         | Pruning is off by default and a dry run precedes it; stop the task, restore the newest `*-prune.sqlite3` copy from the backup directory (a run makes one at most weekly, before it deletes), and set `[retention] history_days` to 0 |
 | Release regressed                         | Yank on PyPI, pin the previous version locally, publish a patch; record in `CHANGELOG.md`           |
 | Migration failed at start-up              | Restore the pre-migration database copy, downgrade the package, open a `fix/`                        |
 | Claude cap reached during a storm         | The UI says AI is paused; levels and notifications are unaffected; allow more for today in Settings, or raise `[ai] daily_cap_usd` deliberately |
@@ -1779,7 +1826,8 @@ fire once (or a synthetic failure was injected to prove they do). Phases
 |----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
 | NOAA renames layers, changes fields, or retires a service             | Discovery by name, contract tests on recorded fixtures, the "Source drift" triage class, a staleness banner |
 | Most development happens off-season with no live storms             | Fixtures and the replay corpus in Phase 1; golden replays gate the engine; replay mode in the UI   |
-| NWS and Nominatim etiquette (User-Agent, polite intervals)          | A project User-Agent, cadence-aligned scheduling, one geocode per location cached forever           |
+| NWS and Nominatim etiquette (User-Agent, polite intervals)          | A project User-Agent, cadence-aligned scheduling, one geocode per location cached forever, and a place search only on an explicit submit, never per keystroke |
+| CI time outgrows its bound as tests are added                       | Parallel workers on the `test` job (Phase 7), with the bound kept as a ceiling                      |
 | Windows toast libraries churn                                        | One channel interface with a tested fallback; the library is a one-line swap                       |
 | Claude cost spikes during an active storm                            | Sonnet 5.5, prompt caching, a daily cap with a kill switch, the ledger in the UI                    |
 | Personal data leaks into the public repository                      | The personal-data check in the gate and CI, public-landmark coordinates in every example and test  |
