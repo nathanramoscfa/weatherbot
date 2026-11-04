@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 6 Complete — 2026-11-02; PR #88; v2.0.0-phase-6. Phase 7 (depth) is next.
+> **Status:** Phase 6 Complete — 2026-11-02; PR #88; v2.0.0-phase-6. Phase 7 (depth) is in progress.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -1067,7 +1067,7 @@ matrix entries.
 
 ### Phase 7 — Depth
 
-**Status:** Not started
+**Status:** In progress — phase07-roadmap.md
 
 **Goal:** The features that turn a correct monitor into a daily-use
 tool: charts, surge and radar layers, a replay scrubber, the
@@ -1893,5 +1893,5 @@ The following are deliberately deferred to a future version:
 | 4     | Monitoring and notifications                  | Medium     | Complete |
 | 5     | Web app MVP                                   | High       | Complete |
 | 6     | Claude layer                                  | High       | Complete |
-| 7     | Depth                                         | Medium     | Not started |
+| 7     | Depth                                         | Medium     | In progress |
 | 8     | Release 2.0                                   | Medium     | Not started |

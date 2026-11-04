@@ -1,6 +1,6 @@
 # Phase 7 Roadmap — Depth
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -1153,9 +1153,9 @@ concurrent steps.
 
 ---
 
-## Step 1 — The test budget
+## Step 1 — The test budget ✅
 
-**Status:** Not started
+**Status:** Complete — PR #90 (2026-11-03)
 
 > **Goal:** Buy the CI time every later step spends. `pytest-xdist` joins the
 > dev group, and the `test` job in `.github/workflows/ci.yml` runs the same `uv
@@ -1195,6 +1195,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity medium`):
 
 Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
+
+> Ran 2026-11-03: Quality Pick — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6920,7 +6922,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
-| 1    | Test budget (xdist)            | GPT-6.1 Sol    | Not started        |
+| 1    | Test budget (xdist)            | GPT-6.1 Sol    | Complete — PR #90  |
 | 2    | Locations + place search       | Opus 5.5       | Not started        |
 | 3    | ntfy + preferences             | Opus 5.5       | Not started        |
 | 4    | Settings + retention           | Opus 5.5       | Not started        |

@@ -291,6 +291,47 @@ def test_a_changed_deliverable_turns_exactly_its_check_red(
     assert failed == [check]
 
 
+def test_the_live_status_no_longer_moves_check_44(monkeypatch: pytest.MonkeyPatch) -> None:
+    original = verification.read
+
+    def edited(path: str, root: Path = verification.REPO_ROOT) -> str:
+        text = original(path, root)
+        if path == "README.md":
+            assert "## Status" in text
+            return re.sub(
+                r"^## Status$.*?(?=^## )",
+                "## Status\n\nPhase 6 (the Claude layer) is in progress.\n\n",
+                text,
+                count=1,
+                flags=re.MULTILINE | re.DOTALL,
+            )
+        return text
+
+    monkeypatch.setattr(verification, "read", edited)
+    failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
+
+    assert failed == []
+
+
+def test_the_tagged_status_still_decides_check_44(monkeypatch: pytest.MonkeyPatch) -> None:
+    original = verification.tagged
+
+    def edited(
+        relative: str, root: Path = verification.REPO_ROOT, *, tag: str = verification.PHASE_5_TAG
+    ) -> str:
+        text = original(relative, root, tag=tag)
+        if relative == "README.md" and tag == verification.PHASE_6_TAG:
+            old = "and Phase 6\n(the Claude layer) are complete"
+            assert old in text
+            return text.replace(old, "and Phase 6\n(the Claude layer) is in progress; complete")
+        return text
+
+    monkeypatch.setattr(verification, "tagged", edited)
+    failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
+
+    assert failed == ["44"]
+
+
 @pytest.mark.parametrize(
     ("head", "ancestor", "expected"),
     [

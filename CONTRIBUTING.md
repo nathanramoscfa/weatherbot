@@ -32,17 +32,21 @@ uv run ruff check          # lint, every rule family selected
 uv run ruff format --check # formatting (use `uv run ruff format` to fix)
 uv run pyright             # strict type checking
 uv run lint-imports        # layer contracts (see AGENTS.md)
-uv run pytest              # tests: no network, each in a temporary directory
+uv run pytest              # tests: serial default (no network, each in a temporary directory)
+uv run pytest -n auto      # fast parallel local run across CPU cores (pytest-xdist)
 ```
 
-CI's `test` job runs the suite with a coverage floor: at least 90 percent
+A serial run (`uv run pytest`) stays the default so filtered runs (`pytest -k
+...`) and the phase verifiers' `--py` runs stay serial; pass `-n auto` for a
+fast full-suite local run. CI's `test` job runs in parallel (`uv run pytest -n
+auto`) with a coverage floor: at least 90 percent
 branch coverage of `weatherbot.engine`, `weatherbot.services.policy`,
 `weatherbot.services.ai.context`, and `weatherbot.services.ai.validate`, each on
 its own. Run the same locally with the coverage data file in a temporary
 directory, never the checkout:
 
 ```sh
-COVERAGE_FILE="$(mktemp -d)/.coverage" uv run pytest \
+COVERAGE_FILE="$(mktemp -d)/.coverage" uv run pytest -n auto \
   --cov=weatherbot.engine --cov=weatherbot.services.policy \
   --cov=weatherbot.services.ai.context --cov=weatherbot.services.ai.validate \
   --cov-branch --cov-report=term-missing:skip-covered --cov-fail-under=90
