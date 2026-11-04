@@ -28,8 +28,8 @@ class NwsCoverage(DomainModel):
     """What the NWS ``/points`` answer says covers a location (the register's fields)."""
 
     forecast_zone: str = Field(pattern=r"^[A-Z]{2}Z\d{3}$")
-    county_zone: str = Field(pattern=r"^[A-Z]{2}C\d{3}$")
-    cwa: str = Field(pattern=r"^[A-Z]{3}$", description="The forecast office.")
+    county_zone: str | None = Field(default=None, pattern=r"^[A-Z]{2}C\d{3}$")
+    cwa: str = Field(pattern=r"^[A-Z0-9]{3}$", description="The forecast office.")
     time_zone: str = Field(
         pattern=r"^[A-Za-z_]+(?:/[A-Za-z0-9_+-]+)+$", description="An IANA time-zone name."
     )

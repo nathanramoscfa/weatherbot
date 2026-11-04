@@ -592,6 +592,17 @@ class EventHub:
             ("locations", "assessments", "map"),
         )
 
+    def record_location_removed(self, name: str) -> None:
+        """Publish a ``location`` removal event and record it so ``CycleWatcher`` skips it."""
+        self.publish(
+            "location",
+            {
+                "location": name,
+                "_location_state": None,
+            },
+            ("locations", "assessments", "map", "alerts", "timeline"),
+        )
+
     def cycle_listener(self, result: CycleResult) -> None:
         """Publish the events for a ``CycleResult`` completed in this process."""
         self.publish(
@@ -1016,7 +1027,7 @@ class CycleWatcher:
             self._hub.publish(
                 "location",
                 {"location": removed_name, "_location_state": None},
-                ("locations", "assessments", "map"),
+                ("locations", "assessments", "map", "alerts", "timeline"),
                 deduplicate=True,
             )
         self._locations = dict(locations)

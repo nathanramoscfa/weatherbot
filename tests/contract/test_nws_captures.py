@@ -252,7 +252,9 @@ async def test_every_zone_capture_parses(capture: Capture) -> None:
     assert (zone.cwa, zone.time_zone, zone.state) == (("MFL",), ("America/New_York",), "FL")
 
 
-GEOCODE_CAPTURES = _captures("geocode-nominatim")
+GEOCODE_CAPTURES = [
+    c for c in _captures("geocode-nominatim") if str(c[1]["file"]).startswith("reverse-")
+]
 
 
 @pytest.mark.parametrize("capture", GEOCODE_CAPTURES, ids=[_label(c) for c in GEOCODE_CAPTURES])
@@ -263,6 +265,38 @@ def test_every_reverse_lookup_parses(capture: Capture) -> None:
     assert place is not None
     assert place.country_code in {"us", "bs"}
     assert "OpenStreetMap" in place.licence
+
+
+SEARCH_QUERIES: Mapping[str, str] = {
+    "search-nassau.json": "Nassau, Bahamas",
+    "search-miami.json": "Miami, Florida",
+    "search-none.json": "weatherbot-nonexistent-place-query",
+}
+SEARCH_CAPTURES = [
+    c for c in _captures("geocode-nominatim") if str(c[1]["file"]).startswith("search-")
+]
+
+
+@pytest.mark.parametrize("capture", SEARCH_CAPTURES, ids=[_label(c) for c in SEARCH_CAPTURES])
+def test_every_search_capture_parses(capture: Capture) -> None:
+    filename = str(capture[1]["file"])
+    assert nominatim.search_url(SEARCH_QUERIES[filename]) == capture[1]["url"]
+    candidates = nominatim.parse_search(_body(capture), _provenance(capture))
+    if filename == "search-none.json":
+        assert candidates == ()
+    else:
+        assert candidates
+        assert candidates[0].country_code in {"us", "bs"}
+        assert "OpenStreetMap" in candidates[0].licence
+
+
+@pytest.mark.live
+@pytest.mark.enable_socket
+async def test_live_nominatim_search_for_landmark_place() -> None:
+    async with open_client() as client:
+        result = await nominatim.search(Fetcher(client), "Nassau, Bahamas")
+    assert result.records
+    assert result.records[0].country_code == "bs"
 
 
 # The merge ---------------------------------------------------------------------------------
@@ -319,19 +353,25 @@ async def test_the_registers_flc086_alert_merges_into_one_alert_found_by_the_cou
 
 
 @pytest.mark.parametrize(
-    ("heading", "level", "declared"),
+    ("heading", "level", "declared", "label"),
     [
-        ("Points", 3, nws.POINT_FIELDS_READ),
-        ("Alerts for a zone", 3, nws.ALERT_FIELDS_READ),
-        ("Zones", 3, nws.ZONE_FIELDS_READ),
-        ("OpenStreetMap: basemap and geocoding", 2, nominatim.FIELDS_READ),
+        ("Points", 3, nws.POINT_FIELDS_READ, "Fields v2 uses"),
+        ("Alerts for a zone", 3, nws.ALERT_FIELDS_READ, "Fields v2 uses"),
+        ("Zones", 3, nws.ZONE_FIELDS_READ, "Fields v2 uses"),
+        ("OpenStreetMap: basemap and geocoding", 2, nominatim.FIELDS_READ, "Fields v2 uses"),
+        (
+            "OpenStreetMap: basemap and geocoding",
+            2,
+            nominatim.SEARCH_FIELDS_READ,
+            "Search fields v2 uses",
+        ),
     ],
-    ids=["points", "alerts", "zones", "nominatim"],
+    ids=["points", "alerts", "zones", "nominatim", "nominatim-search"],
 )
 def test_each_parser_reads_exactly_the_registers_fields(
-    heading: str, level: int, declared: frozenset[str]
+    heading: str, level: int, declared: frozenset[str], label: str
 ) -> None:
-    assert register_section_fields(heading, level=level) == declared
+    assert register_section_fields(heading, label, level=level) == declared
 
 
 def _delete(container: dict[str, Any], field: str) -> str:
@@ -378,6 +418,7 @@ DOCUMENT_DELETIONS = [
     for source, (fields, _, _) in DOCUMENT_RULES.items()
     for capture in _captures(source)
     if _status(capture) == HTTP_OK
+    and (source != "geocode-nominatim" or str(capture[1]["file"]).startswith("reverse-"))
     for field in sorted(fields)
 ]
 
@@ -391,8 +432,39 @@ def test_deleting_a_field_read_fails_the_parse(capture: Capture, field: str) -> 
     _, root, parse = DOCUMENT_RULES[capture[0].source]
     document = _document(capture)
     name = _delete(document[root] if root else document, field)
+    if capture[0].source == "nws-points" and field in nws.OPTIONAL_POINT_FIELDS:
+        parsed = nws.parse_point(json.dumps(document).encode())
+        assert parsed.county_zone is None
+        return
+    if capture[0].source == "nws-zones" and field in nws.OPTIONAL_ZONE_FIELDS:
+        _, zone_id = _zone_args(capture)
+        parsed_zone = nws.parse_zone(
+            json.dumps(document).encode(), _provenance(capture), zone_id=zone_id
+        )
+        assert parsed_zone.state is None
+        return
     with pytest.raises(SourceSchemaError, match=name):
         parse(document, capture)
+
+
+SEARCH_DELETIONS = [
+    (capture, field)
+    for capture in SEARCH_CAPTURES
+    if str(capture[1]["file"]) != "search-none.json"
+    for field in sorted(nominatim.SEARCH_FIELDS_READ)
+]
+
+
+@pytest.mark.parametrize(
+    ("capture", "field"),
+    SEARCH_DELETIONS,
+    ids=[f"{_label(c)}:{f}" for c, f in SEARCH_DELETIONS],
+)
+def test_deleting_a_search_field_read_fails_the_parse(capture: Capture, field: str) -> None:
+    items = cast("list[dict[str, Any]]", json.loads(_body(capture)))
+    name = _delete(items[0], field)
+    with pytest.raises(SourceSchemaError, match=name):
+        nominatim.parse_search(json.dumps(items).encode(), _provenance(capture))
 
 
 ALERT_FEATURES = _alert_features()

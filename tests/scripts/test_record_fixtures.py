@@ -28,6 +28,7 @@ import respx
 
 import check_personal_data as checker
 import record_fixtures as recorder
+from weatherbot.sources.nominatim import search_url
 from weatherbot.sources.nws import point_alerts_url, points_url
 
 FIXED_NOW = datetime(2026, 10, 20, 15, 2, 11, tzinfo=UTC)
@@ -519,6 +520,8 @@ def test_manifest_urls_carry_only_landmark_coordinates(
             f"{recorder.NOMINATIM_URL}?format=jsonv2&lat={landmark.lat:.4f}&lon={landmark.lon:.4f}",
             {"display_name": "somewhere"},
         )
+    for _, query in recorder.NOMINATIM_SEARCH_QUERIES:
+        noaa.json(search_url(query), [])
 
     captures = [
         *recorder.record_nws_points(run),

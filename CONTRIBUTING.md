@@ -223,7 +223,7 @@ says why, when none is active. The NWS and Nominatim tests send the two
 public landmarks of `scripts/public_landmarks.toml` and no other
 coordinate: the Miami-Dade point, its alerts, and its three zones; the
 Nassau point, which is outside NWS coverage and makes no alert request;
-and one reverse lookup per landmark. The command test adds both landmarks
+and one reverse lookup and forward place search per landmark. The command test adds both landmarks
 through `locations add` in a temporary data directory, then runs `fetch`,
 `storms --json`, `alerts --json` for each landmark, `status --json` (which
 assesses and stores both landmarks in that temporary database, and a

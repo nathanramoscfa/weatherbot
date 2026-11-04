@@ -9,7 +9,14 @@ every geometry its CRS, and every instant is UTC.
 """
 
 from weatherbot.models.advisory_number import AdvisoryNumber
-from weatherbot.models.alerts import AlertQuery, GeocodeResult, NwsAlert, NwsZone
+from weatherbot.models.alerts import (
+    AlertQuery,
+    GeocodeCandidate,
+    GeocodeResult,
+    NwsAlert,
+    NwsZone,
+    OsmType,
+)
 from weatherbot.models.arrivals import ArrivalTimeLine, ArrivalTimeProduct
 from weatherbot.models.assessment import (
     CHANGE_KINDS,
@@ -162,6 +169,7 @@ __all__ = [
     "DomainModel",
     "Evidence",
     "ForecastTrack",
+    "GeocodeCandidate",
     "GeocodeResult",
     "Geometry",
     "GeometryType",
@@ -176,6 +184,7 @@ __all__ = [
     "NwsCoverage",
     "NwsZone",
     "OfficialProduct",
+    "OsmType",
     "OutlookArea",
     "OutlookGraphic",
     "OutlookRisk",

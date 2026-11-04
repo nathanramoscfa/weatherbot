@@ -130,7 +130,10 @@ class LocationRow(Base):
     country_code: Mapped[str | None] = mapped_column(String(2))
     display_name: Mapped[str | None] = mapped_column(Text)
     nws_forecast_zone: Mapped[str | None] = mapped_column(String(6))
-    nws_county_zone: Mapped[str | None] = mapped_column(String(6))
+    nws_county_zone: Mapped[str | None] = mapped_column(
+        String(6),
+        comment="Empty text when NWS names no county, so nws_coverage_whole holds",
+    )
     nws_cwa: Mapped[str | None] = mapped_column(String(3))
     nws_time_zone: Mapped[str | None] = mapped_column(Text)
     nws_city: Mapped[str | None] = mapped_column(Text)

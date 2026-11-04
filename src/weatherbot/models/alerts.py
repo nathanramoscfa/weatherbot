@@ -77,9 +77,9 @@ class NwsZone(DomainModel):
     """An NWS zone's metadata and shape (the register's fields for ``nws-zones``)."""
 
     id: str = Field(pattern=r"^[A-Z]{2}[CZ]\d{3}$")
-    type: str = Field(description="public, county, or fire, as the API names it.")
+    type: str = Field(description="public, county, fire, or coastal, as the API names it.")
     name: str
-    state: str
+    state: str | None = None
     cwa: tuple[str, ...]
     time_zone: tuple[str, ...]
     effective_date: UtcDatetime
@@ -90,6 +90,9 @@ class NwsZone(DomainModel):
     def _areal(self) -> Self:
         require_geometry(self.geometry, ("Polygon", "MultiPolygon"), "a zone")
         return self
+
+
+type OsmType = Literal["node", "way", "relation"]
 
 
 class GeocodeResult(DomainModel):
@@ -105,4 +108,24 @@ class GeocodeResult(DomainModel):
     licence: str
     osm_type: str
     osm_id: int
+    provenance: Provenance
+
+
+class GeocodeCandidate(DomainModel):
+    """One forward-geocoding candidate from Nominatim's ``/search`` endpoint.
+
+    Its ``display_name``, ``name``, ``latitude``, and ``longitude`` carry place and
+    coordinate text and stay out of ``repr``.
+    """
+
+    display_name: str = Field(min_length=1, repr=False)
+    name: str | None = Field(default=None, repr=False)
+    latitude: float = Field(ge=-90.0, le=90.0, repr=False)
+    longitude: float = Field(ge=-180.0, le=180.0, repr=False)
+    country_code: str | None = Field(default=None, pattern=r"^[a-z]{2}$")
+    category: str = Field(min_length=1)
+    kind: str = Field(min_length=1)
+    osm_type: OsmType
+    osm_id: int = Field(ge=1)
+    licence: str = Field(min_length=1)
     provenance: Provenance

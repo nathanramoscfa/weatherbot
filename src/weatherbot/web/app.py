@@ -16,6 +16,7 @@ from starlette.responses import JSONResponse
 from weatherbot import __version__
 from weatherbot.services.config import AppPaths, SettingOrigin, Settings
 from weatherbot.services.events import BrowserChannel, EventHub
+from weatherbot.services.locations import SearchCache
 from weatherbot.services.monitor import CycleResult, CycleTrigger
 from weatherbot.services.network import Network
 from weatherbot.services.notifications import Channel, LogChannel
@@ -57,6 +58,8 @@ class _ActionState:
     cycle_in_flight: bool = False
     last_cycle_at: datetime | None = None
     last_test_notification_at: datetime | None = None
+    last_search_at: datetime | None = None
+    search_cache: SearchCache = field(default_factory=SearchCache)
     cycle_task: asyncio.Task[CycleResult | None] | None = None
     default_schedule: MonitorSchedule | None = None
     ai_streams: asyncio.Semaphore = field(default_factory=lambda: asyncio.Semaphore(MAX_AI_STREAMS))
@@ -116,6 +119,20 @@ class WebState:
     def last_test_notification_at(self) -> datetime | None:
         """UTC instant when the last test notification was sent via ``/api/notifications/test``."""
         return self._actions.last_test_notification_at
+
+    @property
+    def last_search_at(self) -> datetime | None:
+        """UTC instant when the last forward search was requested via ``/api/locations/search``."""
+        return self._actions.last_search_at
+
+    @property
+    def search_cache(self) -> SearchCache:
+        """Shared in-memory Nominatim forward-search cache."""
+        return self._actions.search_cache
+
+    def mark_search(self, at: datetime) -> None:
+        """Record when ``POST /api/locations/search`` last ran."""
+        self._actions.last_search_at = at
 
     @property
     def cycle_task(self) -> asyncio.Task[CycleResult | None] | None:

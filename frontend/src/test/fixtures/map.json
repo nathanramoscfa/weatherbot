@@ -10533,7 +10533,7 @@
           "type": "MultiPolygon"
         },
         "properties": {
-          "display_name": "Miami-Dade County Office, 111, Northwest 1st Street, Torch of Friendship, Miami, Miami-Dade County, Florida, 33128, United States",
+          "display_name": "Miami-Dade County Office, 111, Northwest 1st Street, Downtown Miami, Torch of Friendship, Miami, Miami-Dade County, Florida, 33128, United States",
           "evacuation_order_in_effect": false,
           "feature_kind": "polygon",
           "in_cone": false,
@@ -10570,7 +10570,7 @@
         },
         "properties": {
           "country_code": "US",
-          "display_name": "Miami-Dade County Office, 111, Northwest 1st Street, Torch of Friendship, Miami, Miami-Dade County, Florida, 33128, United States",
+          "display_name": "Miami-Dade County Office, 111, Northwest 1st Street, Downtown Miami, Torch of Friendship, Miami, Miami-Dade County, Florida, 33128, United States",
           "evacuation_order_in_effect": false,
           "feature_kind": "point",
           "has_polygon": true,
@@ -21109,7 +21109,7 @@
           "type": "MultiPolygon"
         },
         "properties": {
-          "display_name": "Miami-Dade County Office, 111, Northwest 1st Street, Torch of Friendship, Miami, Miami-Dade County, Florida, 33128, United States",
+          "display_name": "Miami-Dade County Office, 111, Northwest 1st Street, Downtown Miami, Torch of Friendship, Miami, Miami-Dade County, Florida, 33128, United States",
           "evacuation_order_in_effect": false,
           "feature_kind": "polygon",
           "in_cone": false,

@@ -14,25 +14,39 @@ A location's coordinates are the operator's. No error message, log record, or ``
 here repeats them; they leave the machine only in the NWS and Nominatim request URLs.
 """
 
+import hashlib
 import logging
 import math
+import threading
+import time
+from collections import OrderedDict
 from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Final, Literal
 
 from sqlalchemy import Engine
 
-from weatherbot.models import LatLon, Location
+from weatherbot.models import GeocodeCandidate, LatLon, Location
+from weatherbot.services.config import AppPaths
+from weatherbot.services.locks import LockBusyError, ProcessLock
 from weatherbot.services.network import Network, product_key
 from weatherbot.services.persistence.raw_cache import RawResponseCache
 from weatherbot.services.persistence.repositories import LocationExistsError, LocationRepository
 from weatherbot.sources import nominatim, nws
-from weatherbot.sources.http import FetchResult
+from weatherbot.sources.http import FetchResult, MemoryValidatorStore
 
 LOGGER: Final = logging.getLogger("weatherbot.services.locations")
 
 type PolygonKind = Literal["county", "forecast"]
 NAME_LENGTH: Final = range(1, 65)
+MIN_QUERY_LENGTH: Final = 3
+MAX_QUERY_LENGTH: Final = 200
+QUERY_LENGTH: Final = range(MIN_QUERY_LENGTH, MAX_QUERY_LENGTH + 1)
+SEARCH_CACHE_MAX_ENTRIES: Final = 64
+SEARCH_CACHE_TTL_SECONDS: Final = 86400.0
+NOMINATIM_SEARCH_ATTRIBUTION: Final = (
+    "Search by OpenStreetMap Nominatim, © OpenStreetMap contributors"
+)
 MAX_LATITUDE: Final = 90.0
 MAX_LONGITUDE: Final = 180.0
 
@@ -43,6 +57,10 @@ class LocationError(Exception):
 
 class LocationNameTakenError(LocationError):
     """A location with that name already exists."""
+
+
+class LocationBusyError(LocationError):
+    """Another cycle holds the cycle lock."""
 
 
 def _now() -> datetime:
@@ -65,6 +83,78 @@ def check_name(name: str) -> str:
         message = "a location name is 1 to 64 printable characters"
         raise LocationError(message)
     return name
+
+
+def check_query(query: str) -> str:
+    """Check a forward-geocoding query: 3 to 200 printable characters after stripping.
+
+    Args:
+        query: The place query.
+
+    Returns:
+        The stripped query.
+
+    Raises:
+        LocationError: The query is too short, too long, or not printable; never repeats it.
+    """
+    stripped = query.strip()
+    if (
+        len(query) > MAX_QUERY_LENGTH
+        or len(stripped) not in QUERY_LENGTH
+        or not query.isprintable()
+    ):
+        message = "a search query is 3 to 200 printable characters"
+        raise LocationError(message)
+    return stripped
+
+
+class SearchCache:
+    """A bounded in-memory LRU cache of Nominatim forward-search answers, keyed by SHA-256."""
+
+    def __init__(
+        self,
+        *,
+        max_entries: int = SEARCH_CACHE_MAX_ENTRIES,
+        ttl_seconds: float = SEARCH_CACHE_TTL_SECONDS,
+        monotonic: Callable[[], float] = time.monotonic,
+    ) -> None:
+        """Create a cache of at most ``max_entries`` answers for ``ttl_seconds`` each."""
+        self._max_entries = max_entries
+        self._ttl_seconds = ttl_seconds
+        self._monotonic = monotonic
+        self._lock = threading.Lock()
+        self._entries: OrderedDict[str, tuple[float, tuple[GeocodeCandidate, ...]]] = OrderedDict()
+
+    @staticmethod
+    def key(query: str) -> str:
+        """Return the SHA-256 hex digest of the stripped, casefolded query."""
+        normalized = query.strip().casefold().encode("utf-8")
+        return hashlib.sha256(normalized).hexdigest()
+
+    def get(self, query: str) -> tuple[GeocodeCandidate, ...] | None:
+        """Return the cached candidates for ``query``, or ``None`` if absent or expired."""
+        digest = self.key(query)
+        now = self._monotonic()
+        with self._lock:
+            entry = self._entries.get(digest)
+            if entry is None:
+                return None
+            stored_at, candidates = entry
+            if now - stored_at >= self._ttl_seconds:
+                self._entries.pop(digest, None)
+                return None
+            self._entries.move_to_end(digest)
+            return candidates
+
+    def put(self, query: str, candidates: tuple[GeocodeCandidate, ...]) -> None:
+        """Store ``candidates`` under ``query``'s SHA-256 key, evicting the oldest above the cap."""
+        digest = self.key(query)
+        now = self._monotonic()
+        with self._lock:
+            self._entries[digest] = (now, candidates)
+            self._entries.move_to_end(digest)
+            while len(self._entries) > self._max_entries:
+                self._entries.popitem(last=False)
 
 
 def check_point(lat: float, lon: float) -> LatLon:
@@ -92,12 +182,15 @@ def check_point(lat: float, lon: float) -> LatLon:
 class LocationService:
     """The watched locations, added once with their coverage and geocoding."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 - engine plus network, clock, paths, lock wait, and search cache
         self,
         engine: Engine,
         *,
         network: Network | None = None,
         now: Callable[[], datetime] = _now,
+        paths: AppPaths | None = None,
+        cycle_lock_wait_seconds: float = 60.0,
+        search_cache: SearchCache | None = None,
     ) -> None:
         """Create the service on an open database.
 
@@ -105,11 +198,40 @@ class LocationService:
             engine: The database.
             network: The timeout and the fetcher factory.
             now: The clock.
+            paths: Application paths, so ``remove`` can take the cycle lock.
+            cycle_lock_wait_seconds: How long ``remove`` waits for the cycle lock.
+            search_cache: Shared in-memory forward-search cache.
         """
         self._engine = engine
         self._network = network or Network()
         self._now = now
+        self._paths = paths
+        self._cycle_lock_wait_seconds = cycle_lock_wait_seconds
+        self._search_cache = search_cache
         self._repository = LocationRepository(engine, now=now)
+
+    async def search(self, query: str) -> tuple[GeocodeCandidate, ...]:
+        """Forward-geocode a place query through Nominatim without writing to the database.
+
+        Args:
+            query: The place query (3 to 200 printable characters).
+
+        Returns:
+            Up to five candidates.
+
+        Raises:
+            LocationError: The query is out of bounds or not printable; never repeats it.
+        """
+        checked = check_query(query)
+        if self._search_cache is not None:
+            cached = self._search_cache.get(checked)
+            if cached is not None:
+                return cached
+        async with self._network.fetcher(MemoryValidatorStore()) as fetcher:
+            found = await nominatim.search(fetcher, checked)
+        if self._search_cache is not None:
+            self._search_cache.put(checked, found.records)
+        return found.records
 
     async def add(
         self, name: str, lat: float, lon: float, polygon: PolygonKind | None = None
@@ -127,7 +249,7 @@ class LocationService:
 
         Raises:
             LocationError: The name or the point is wrong, the name is taken, or a polygon
-                was asked for a location outside NWS coverage.
+                was asked for a location outside NWS coverage or without a county.
         """
         check_name(name)
         point = check_point(lat, lon)
@@ -147,7 +269,13 @@ class LocationService:
                 raise LocationError(message)
             shape = None
             if polygon is not None and coverage is not None:
+                if polygon == "county" and coverage.county_zone is None:
+                    message = "the NWS names no county for this location; use forecast or none"
+                    raise LocationError(message)
                 zone_id = coverage.county_zone if polygon == "county" else coverage.forecast_zone
+                if zone_id is None:  # pragma: no cover - guarded above
+                    message = "the NWS names no county for this location; use forecast or none"
+                    raise LocationError(message)
                 zone = await nws.fetch_zone(fetcher, polygon, zone_id)
                 answers.extend(zone.responses)
                 shape = zone.records.geometry
@@ -229,15 +357,29 @@ class LocationService:
         return updated, True
 
     def remove(self, name: str) -> None:
-        """Remove a location, its alert observations, and its assessments.
+        """Remove a location, its cascades, and its coordinate-bearing raw responses.
 
         Args:
             name: The name.
 
         Raises:
+            LocationBusyError: Another cycle held the lock for the whole wait.
             LocationError: No location has that name.
         """
-        if not self._repository.remove(name):
+        if self._paths is not None:
+            lock = ProcessLock(self._paths.cycle_lock_path)
+            try:
+                lock.acquire(self._cycle_lock_wait_seconds)
+            except LockBusyError:
+                message = "another cycle is running; try again"
+                raise LocationBusyError(message) from None
+            try:
+                removed = self._repository.remove(name)
+            finally:
+                lock.release()
+        else:
+            removed = self._repository.remove(name)
+        if not removed:
             message = f"no location is named {name!r}"
             raise LocationError(message)
         LOGGER.info("removed location %r", name)

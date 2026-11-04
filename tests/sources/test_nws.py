@@ -78,6 +78,7 @@ def mock_alerts(
 ) -> list[respx.Route]:
     coverage = location.nws
     assert coverage is not None
+    assert coverage.county_zone is not None
     lat, lon = location.point.latitude, location.point.longitude
     answers = [
         (nws.point_alerts_url(lat, lon), point),

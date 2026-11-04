@@ -686,7 +686,11 @@ def _print_alerts(output: Output, data: AlertsData) -> None:
         output.line(f"{location.name} is outside NWS coverage: the NWS issues no alerts for it.")
         _print_segments(output, data)
         return
-    zones = f"forecast zone {location.forecast_zone}, county {location.county_zone}"
+    zones = (
+        f"forecast zone {location.forecast_zone}, county {location.county_zone}"
+        if location.county_zone
+        else f"forecast zone {location.forecast_zone}"
+    )
     output.line(f"Alerts for {location.name} ({zones}, {location.time_zone}):", style="bold")
     if data.alerts is None:
         output.line(data.note or "No alert list.")

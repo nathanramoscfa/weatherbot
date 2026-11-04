@@ -10,11 +10,15 @@ prints them to the terminal only, and no log record above DEBUG holds one.
 import logging
 import re
 
+import httpx
 import pytest
+import respx
 from cli_support import CORPUS, Ran, history, recorded_services, run, urls
 
 from check_personal_data import load_landmarks, synthetic_coordinates
+from weatherbot.cli.runtime import EXIT_FAILED, EXIT_USAGE
 from weatherbot.services.logs import configure_logging
+from weatherbot.sources.nominatim import search_url
 
 # A standalone decimal with three or more places; dotted ids such as an alert's
 # ``urn:oid:2.49.0.1.840...`` are not numbers.
@@ -174,3 +178,28 @@ def test_httpx_and_alembic_stay_quiet_unless_verbose() -> None:
     ]
     assert len(handlers) == 1
     configure_logging("WARNING")
+
+
+def test_place_search_text_never_appears_in_logs_at_info_or_in_error_messages(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    private_place = "PrivateStreetQuery98765"
+    caplog.set_level(logging.INFO)
+    with respx.mock(assert_all_called=False) as router:
+        router.get(search_url(private_place)).mock(
+            return_value=httpx.Response(
+                200,
+                content=b"[]",
+                headers={"content-type": "application/json; charset=utf-8"},
+            )
+        )
+        not_found = run(["locations", "add", "Home", "--place", private_place])
+        too_short = run(["locations", "add", "Home", "--place", "xy"])
+
+    assert not_found.exit_code == EXIT_FAILED
+    assert too_short.exit_code == EXIT_USAGE
+    assert private_place not in not_found.stdout
+    assert private_place not in not_found.stderr
+    assert "xy" not in too_short.stderr
+    for record in caplog.records:
+        assert private_place not in record.getMessage()

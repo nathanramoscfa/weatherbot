@@ -11,13 +11,16 @@ from typing import cast
 
 import httpx
 import pytest
-from cli_support import CORPUS, history, recorded_services, run
+import respx
+from cli_support import CORPUS, history, quiet_fetcher, recorded_services, run
 from source_support import NOW
 
 from check_personal_data import load_landmarks, synthetic_coordinates
 from weatherbot.services.config import AppPaths, load_settings, setting_origins
+from weatherbot.services.network import Network
 from weatherbot.services.persistence.database import open_database
 from weatherbot.services.replay import ReplayCorpus
+from weatherbot.sources.nominatim import search_url
 from weatherbot.web.app import WebState, create_app
 from weatherbot.web.map_layers import SNAPSHOT_CACHE
 
@@ -198,3 +201,51 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
     assert not [
         (msg, pat.pattern) for msg in above_debug for pat in distance_patterns if pat.search(msg)
     ]
+
+
+def test_place_search_route_never_logs_or_echoes_search_query_in_errors_or_logs(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    private_query = "SecretTypedPlaceQuery54321"
+    paths = AppPaths.resolve()
+    caplog.set_level(logging.INFO)
+    with (
+        open_database(paths, now=lambda: NOW) as database,
+        respx.mock(assert_all_called=False) as router,
+    ):
+        router.get(search_url(private_query)).mock(return_value=httpx.Response(503))
+        state = WebState(
+            database=database,
+            paths=paths,
+            settings=load_settings(paths),
+            clock=lambda: NOW,
+            started_at=NOW,
+            network=Network(make_fetcher=quiet_fetcher),
+        )
+        app = create_app(state)
+
+        async def _exercise() -> tuple[httpx.Response, httpx.Response]:
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(
+                transport=transport, base_url="http://127.0.0.1:8765"
+            ) as client:
+                headers = {"Origin": "http://127.0.0.1:8765"}
+                bad = await client.post(
+                    "/api/locations/search",
+                    json={"query": "ab\n"},
+                    headers=headers,
+                )
+                failed = await client.post(
+                    "/api/locations/search",
+                    json={"query": private_query},
+                    headers=headers,
+                )
+                return failed, bad
+
+        failed_resp, bad_resp = asyncio.run(_exercise())
+
+    assert failed_resp.status_code == HTTPStatus.BAD_GATEWAY
+    assert bad_resp.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert private_query not in failed_resp.text
+    for record in caplog.records:
+        assert private_query not in record.getMessage()

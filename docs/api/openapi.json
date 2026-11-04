@@ -411,6 +411,84 @@
         }
       }
     },
+    "/api/locations/search": {
+      "post": {
+        "summary": "Search Locations",
+        "description": "Forward-geocode a place query via ``LocationService.search`` in a worker thread.",
+        "operationId": "search_locations_api_locations_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchLocationsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchLocationsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/locations/remove": {
+      "post": {
+        "summary": "Remove Location",
+        "description": "Remove a watched location and its cascades via ``LocationService.remove``.",
+        "operationId": "remove_location_api_locations_remove_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveLocationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveLocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/locations/evacuation": {
       "put": {
         "summary": "Update Evacuation",
@@ -4321,6 +4399,69 @@
         "title": "LocationResponse",
         "description": "A watched location with its coordinates, NWS coverage, toggle state, and zone polygon."
       },
+      "LocationSearchCandidateResponse": {
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "description": "Full Nominatim display label for the candidate."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Short place name from Nominatim."
+          },
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude",
+            "description": "Latitude in degrees north."
+          },
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude",
+            "description": "Longitude in degrees east."
+          },
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Code",
+            "description": "ISO 3166-1 alpha-2 country code in uppercase, or null."
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Nominatim feature category, such as boundary or place."
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind",
+            "description": "Nominatim feature type, such as administrative or city."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "display_name",
+          "name",
+          "latitude",
+          "longitude",
+          "country_code",
+          "category",
+          "kind"
+        ],
+        "title": "LocationSearchCandidateResponse",
+        "description": "One forward-geocoding candidate returned by ``POST /api/locations/search``."
+      },
       "LocationsResponse": {
         "properties": {
           "locations": {
@@ -5084,13 +5225,20 @@
             "title": "Forecast Zone"
           },
           "county_zone": {
-            "type": "string",
-            "pattern": "^[A-Z]{2}C\\d{3}$",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}C\\d{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "County Zone"
           },
           "cwa": {
             "type": "string",
-            "pattern": "^[A-Z]{3}$",
+            "pattern": "^[A-Z0-9]{3}$",
             "title": "Cwa",
             "description": "The forecast office."
           },
@@ -5115,7 +5263,6 @@
         "type": "object",
         "required": [
           "forecast_zone",
-          "county_zone",
           "cwa",
           "time_zone",
           "city",
@@ -5382,6 +5529,44 @@
           "briefings"
         ]
       },
+      "RemoveLocationRequest": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Name of the watched location to remove."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location"
+        ],
+        "title": "RemoveLocationRequest",
+        "description": "Request body for ``POST /api/locations/remove``."
+      },
+      "RemoveLocationResponse": {
+        "properties": {
+          "removed": {
+            "type": "string",
+            "title": "Removed",
+            "description": "Name of the removed watched location."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "removed",
+          "notice"
+        ],
+        "title": "RemoveLocationResponse",
+        "description": "Response document for ``POST /api/locations/remove``."
+      },
       "ReplayStormSummaryResponse": {
         "properties": {
           "atcf_id": {
@@ -5501,6 +5686,53 @@
         ],
         "title": "SchedulerHealth",
         "description": "The ``serve`` runner heartbeat summary reported by ``GET /api/health``."
+      },
+      "SearchLocationsRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query",
+            "description": "Place query to forward-geocode through Nominatim."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "SearchLocationsRequest",
+        "description": "Request body for ``POST /api/locations/search``."
+      },
+      "SearchLocationsResponse": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/LocationSearchCandidateResponse"
+            },
+            "type": "array",
+            "title": "Candidates",
+            "description": "Up to five Nominatim candidates matching the search query."
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution",
+            "description": "Required OpenStreetMap Nominatim attribution text."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "candidates",
+          "attribution",
+          "notice"
+        ],
+        "title": "SearchLocationsResponse",
+        "description": "Response document for ``POST /api/locations/search``."
       },
       "SectionName": {
         "type": "string",
