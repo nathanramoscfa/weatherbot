@@ -4146,9 +4146,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 6 — Charts and history
+## Step 6 — Charts and history ✅
 
-**Status:** Not started
+**Status:** Complete — PR #97 (2026-11-05)
 
 > **Goal:** Show how a location's picture has moved. `GET
 > /api/charts?location=&limit=` answers a location's level history from the
@@ -4187,6 +4187,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity medium`):
 
 Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
+
+> Ran 2026-11-05: Quality Pick — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6935,7 +6937,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | ntfy + preferences             | Gemini 4 Argon | Complete — PR #92  |
 | 4    | Settings + retention           | Gemini 4 Argon | Complete — PR #93  |
 | 5    | Map layers + time slider       | Gemini 4 Argon | Complete — PR #96  |
-| 6    | Charts + history               | Gemini 4 Argon | Not started        |
+| 6    | Charts + history               | Gemini 4 Argon | Complete — PR #97  |
 | 7    | Replay scrubber                | Gemini 4 Argon | Not started        |
 | 8    | Report export                  | Gemini 4 Argon | Not started        |
 | 9    | Full smoke + idle + deploy     | Sonnet 5.5     | Not started        |
