@@ -30,7 +30,13 @@ from weatherbot.cli.runtime import (
     fail,
     open_monitor_session,
 )
-from weatherbot.services.config import AppPaths, Settings, WebSettings, setting_origins
+from weatherbot.services.config import (
+    AppPaths,
+    LiveSettings,
+    Settings,
+    WebSettings,
+    setting_origins,
+)
 from weatherbot.services.events import (
     BrowserChannel,
     CycleWatcher,
@@ -45,6 +51,7 @@ from weatherbot.services.notifications import Channel
 from weatherbot.services.persistence.database import Database
 from weatherbot.services.persistence.repositories import CycleRepository
 from weatherbot.services.replay import ReplayCorpus, ReplayError
+from weatherbot.services.retention import RetentionWorker
 from weatherbot.services.schedule import MonitorSchedule, run_monitor
 from weatherbot.services.tasks import TaskSchedulerError, query
 
@@ -159,6 +166,7 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
     check_installed = _make_check_installed(context)
     stop = asyncio.Event()
     _install_stop_signals(stop)
+    live_settings = LiveSettings(paths, context.runtime.environ, context.settings)
 
     if runner != "serve":
         await run_monitor(
@@ -172,6 +180,7 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
             make_fetcher=context.runtime.make_fetcher,
             channels=context.channels,
             check_installed=check_installed,
+            live_settings=live_settings,
         )
         return
 
@@ -196,6 +205,14 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
     channels = serve_channels(context, hub)
     ai = context.ai_service(database, publish=hub.publish)
     summarizer = ChangeSummarizer(ChangeSummaryService(ai), ai, publish=hub.publish)
+    retention_worker = RetentionWorker(
+        database.engine,
+        paths,
+        settings=settings,
+        live_settings=live_settings,
+        clock=rt.now,
+        publish=hub.publish,
+    )
     schedule_holder: list[MonitorSchedule] = []
     schedule_ready = asyncio.Event()
     cycle_lock = asyncio.Lock()
@@ -242,7 +259,14 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
             LOGGER.info("dashboard at %s", address)
             if open_browser:
                 rt.open_browser(address)
-            background = await _start_background(stop, hub, database, summarizer, now=rt.now)
+            background = await _start_background(
+                stop,
+                hub,
+                database,
+                summarizer,
+                now=rt.now,
+                retention_worker=retention_worker,
+            )
         await run_monitor(
             database.engine,
             paths,
@@ -256,6 +280,7 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
             listeners=(hub.cycle_listener,),
             check_installed=check_installed,
             on_schedule=_on_schedule,
+            live_settings=live_settings,
         )
     finally:
         await _shutdown_serve_tasks(
@@ -268,22 +293,26 @@ async def _loop(  # noqa: PLR0913 - runner loop state and optional web/corpus op
         await ai.close()
 
 
-async def _start_background(
+async def _start_background(  # noqa: PLR0913 - background loop dependencies
     stop: asyncio.Event,
     hub: EventHub,
     database: Database,
     summarizer: "ChangeSummarizer",
     *,
     now: Callable[[], datetime],
+    retention_worker: RetentionWorker | None = None,
 ) -> list[asyncio.Task[None]]:
-    """Start the cycle watcher, the staleness timer, and the change summarizer, primed."""
+    """Start the cycle watcher, staleness timer, change summarizer, and retention worker."""
     await asyncio.to_thread(summarizer.prime)
     hub.on_cycle(summarizer.wake)
-    return [
+    tasks = [
         asyncio.create_task(CycleWatcher(database.engine, hub).run(stop)),
         asyncio.create_task(StalenessTimer(database.engine, hub, now=now).run(stop)),
         asyncio.create_task(summarizer.run(stop)),
     ]
+    if retention_worker is not None:
+        tasks.append(asyncio.create_task(retention_worker.run(stop)))
+    return tasks
 
 
 async def _shutdown_serve_tasks(

@@ -87,6 +87,10 @@ export const queryKeys = {
   notificationChannels: () =>
     invalidatableQueryKey("notifications", "channels"),
   settings: () => invalidatableQueryKey("settings"),
+  retention: (days?: number) =>
+    days !== undefined
+      ? invalidatableQueryKey("settings", "retention", days)
+      : invalidatableQueryKey("settings", "retention"),
   ai: () => invalidatableQueryKey("ai"),
   aiCalls: () => invalidatableQueryKey("ai", "calls"),
   briefings: () => invalidatableQueryKey("briefings"),

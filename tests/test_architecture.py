@@ -377,3 +377,35 @@ def test_the_notification_policy_is_pure_and_deterministic() -> None:
     assert imported <= POLICY_ALLOWED_IMPORTS
     assert banned_imports(source) == []
     assert nondeterminism(source) == []
+
+
+SETTINGS_FILE_MODULE = PACKAGE_DIRECTORY / "services" / "settings_file.py"
+
+
+def tomlkit_imports(source: str) -> list[str]:
+    """Return every import of ``tomlkit`` in ``source``."""
+    found: list[str] = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            names = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            names = [node.module]
+        else:
+            continue
+        found.extend(root for name in names if (root := name.split(".")[0]) == "tomlkit")
+    return found
+
+
+def test_only_settings_file_imports_tomlkit() -> None:
+    files = sorted(PACKAGE_DIRECTORY.rglob("*.py"))
+    assert SETTINGS_FILE_MODULE in files
+    assert set(tomlkit_imports(SETTINGS_FILE_MODULE.read_text(encoding="utf-8"))) == {"tomlkit"}
+
+    violations = {
+        path.relative_to(REPOSITORY_ROOT).as_posix(): found
+        for path in files
+        if path != SETTINGS_FILE_MODULE
+        and (found := tomlkit_imports(path.read_text(encoding="utf-8")))
+    }
+
+    assert not violations

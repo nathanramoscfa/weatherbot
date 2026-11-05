@@ -356,9 +356,10 @@ directories. Each must be an absolute path. `weatherbot.toml` holds the
 settings below, and an environment variable overrides each one (environment,
 then file, then default): `WEATHERBOT_LOG_LEVEL`,
 `WEATHERBOT_HTTP_TIMEOUT_SECONDS`, and `WEATHERBOT_<TABLE>_<KEY>` for each key
-of `[engine]`, `[monitor]`, `[notifications]`, and `[web]`, such as
-`WEATHERBOT_ENGINE_COASTAL_REACH_KM`, `WEATHERBOT_NOTIFICATIONS_TOAST`, or
-`WEATHERBOT_WEB_PORT`.
+of `[engine]`, `[monitor]`, `[notifications]`, `[web]`, `[ai]`, and
+`[retention]`, such as `WEATHERBOT_ENGINE_COASTAL_REACH_KM`,
+`WEATHERBOT_NOTIFICATIONS_TOAST`, `WEATHERBOT_WEB_PORT`, or
+`WEATHERBOT_RETENTION_HISTORY_DAYS`.
 `weatherbot config show` prints every effective value and where it came from;
 `weatherbot config path` prints where the files live. The `[engine]`
 values are the alert ladder's calibrated defaults; their outcome intervals and
@@ -405,6 +406,9 @@ toast = true                        # false: notifications go to the in-app log 
 host = "127.0.0.1"                  # "127.0.0.1", "::1", or "localhost" (loopback only)
 port = 8765                         # 1024 to 65535 (or 0 for an ephemeral port in tests)
 corpus = ""                         # replay corpus directory for /api/replay, or "" for none
+
+[retention]
+history_days = 0                    # 0 (keep everything) or 30 to 3650
 ```
 
 An unknown key or a bad value stops the program with a message that names the
@@ -455,8 +459,22 @@ answers therefore adds links and provenances, not products: well under
 (`tests/cli/test_storage_growth.py`). Snapshots stored before the revision
 keep their products in `product_geometries` and load back as they were.
 Removing a snapshot removes its links and provenances; a content row is never
-changed or removed, and one that no snapshot uses any more stays until
-retention arrives (Phase 7).
+changed in place, and one that no snapshot uses any more stays until
+`weatherbot.services.retention.RetentionService` prunes it (`weatherbot prune`,
+`POST /api/retention/run`, or `RetentionWorker`'s daily `03:30` local check when
+`[retention] history_days` is `30` to `3,650`). Revision `0010` indexes the four
+foreign keys (`raw_responses.sha256`, `snapshot_geometries.content_id`,
+`monitor_cycles.snapshot_id`, and `notifications.assessment_id`) so batched
+retention deletes never scan referencing tables.
+
+`weatherbot.services.settings_file` (`apply_changes`, the only module that
+imports `tomlkit`) writes the 12 allowlisted `[notifications]`, `[ai]`, and
+`[retention]` keys (`PUT /api/settings`) to `weatherbot.toml` atomically while
+preserving every comment and unrelated line byte for byte, refusing any key set
+in the environment (`409`) or a stale `file_sha256` (`409`), and
+`LiveSettings` reloads `weatherbot.toml` on `(st_mtime_ns, st_size)` changes so
+quiet hours, cooldown, AI feature toggles, and `history_days` take effect at the
+next cycle without restarting `serve`.
 
 ### The monitor cycle, its lock, and the heartbeat
 

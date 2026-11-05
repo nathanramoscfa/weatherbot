@@ -109,6 +109,7 @@ ROUTE_FIXTURES: Final[tuple[tuple[str, str], ...]] = (
     ("notifications.json", "/api/notifications"),
     ("notification-channels.json", "/api/notifications/channels"),
     ("settings.json", "/api/settings"),
+    ("retention.json", "/api/retention"),
     ("disclaimer.json", "/api/disclaimer"),
     ("map.json", "/api/map"),
     ("replay.json", "/api/replay"),
@@ -140,7 +141,7 @@ def _round_coordinates(value: object) -> object:
     return value
 
 
-def _sanitize_value(
+def _sanitize_value(  # noqa: C901, PLR0911 - recursive JSON fixture sanitizer
     value: object,
     uuid_map: dict[str, str],
     *,
@@ -149,6 +150,10 @@ def _sanitize_value(
     """Replace random UUIDs, filesystem paths, and UI hashes, and round GeoJSON coordinates."""
     if key == "settings_file" and isinstance(value, str):
         return PLACEHOLDER_SETTINGS_FILE
+    if key == "database_bytes" and isinstance(value, int):
+        return 262144
+    if key == "wal_bytes" and isinstance(value, int):
+        return 0
     if key == "ui" and isinstance(value, dict):
         return {
             "index_sha256": PLACEHOLDER_UI_SHA256,

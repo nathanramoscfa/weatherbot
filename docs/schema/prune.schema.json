@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/nathanramoscfa/weatherbot/main/docs/schema/prune.schema.json",
+  "$defs": {
+    "PruneData": {
+      "additionalProperties": false,
+      "description": "What ``weatherbot prune`` planned or deleted, with its cutoff and backup.",
+      "properties": {
+        "mode": {
+          "enum": [
+            "disabled",
+            "dry_run",
+            "pruned"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "history_days": {
+          "anyOf": [
+            {
+              "maximum": 3650,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "History Days"
+        },
+        "cutoff": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cutoff"
+        },
+        "status": {
+          "enum": [
+            "disabled",
+            "dry_run",
+            "complete",
+            "partial"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "batches": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Batches",
+          "type": "integer"
+        },
+        "total_rows": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Rows",
+          "type": "integer"
+        },
+        "estimated_bytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estimated Bytes"
+        },
+        "counts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "kept": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Kept",
+          "type": "array"
+        },
+        "backup_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Backup File"
+        },
+        "vacuumed": {
+          "default": false,
+          "title": "Vacuumed",
+          "type": "boolean"
+        },
+        "database_bytes_after_vacuum": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Database Bytes After Vacuum"
+        }
+      },
+      "required": [
+        "mode",
+        "status",
+        "counts"
+      ],
+      "title": "PruneData",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "``weatherbot prune --json``.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "disclaimer": {
+      "description": "Weatherbot's one-line disclaimer notice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "command": {
+      "const": "prune",
+      "default": "prune",
+      "title": "Command",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/PruneData"
+    }
+  },
+  "required": [
+    "generated_at",
+    "disclaimer",
+    "data"
+  ],
+  "title": "PruneDocument",
+  "type": "object"
+}

@@ -185,11 +185,13 @@ class MonitorSchedule:
         channels: Sequence[Channel] | None = None,
         listeners: Sequence[CycleListener] = (),
         run_startup: bool = True,
+        live_settings: Callable[[], Settings] | None = None,
     ) -> None:
         """Create the monitor schedule and its jobs."""
         self._engine = engine
         self._paths = paths
         self._settings = settings or Settings()
+        self._live_settings = live_settings
         self._runner: CycleRunner = runner
         self._clock = clock
         self._sleep = sleep
@@ -464,8 +466,12 @@ class MonitorSchedule:
                         include_toast=degraded_toasted and not quiet_holds_toast,
                     )
 
-    async def execute_cycle(self, trigger: CycleTrigger) -> CycleResult:
+    async def execute_cycle(  # noqa: C901 - cycle execution and schedule state update
+        self, trigger: CycleTrigger
+    ) -> CycleResult:
         """Run one monitor cycle for ``trigger`` and update schedule state."""
+        if self._live_settings is not None:
+            self._settings = self._live_settings()
         for row in self._heartbeats().rows():
             if (
                 row.kind == "source"
@@ -845,6 +851,7 @@ async def run_heartbeat_task(  # noqa: PLR0913 - heartbeat loop parameters
     clock: Callable[[], datetime] = _utc_now,
     sleep: Callable[[float], Awaitable[None]] | None = None,
     settings: Settings | None = None,
+    live_settings: Callable[[], Settings] | None = None,
     channels: Sequence[Channel] | None = None,
     check_installed: Callable[[], bool] | bool | None = None,
 ) -> None:
@@ -854,6 +861,7 @@ async def run_heartbeat_task(  # noqa: PLR0913 - heartbeat loop parameters
     settings_repo = SettingsRepository(engine)
     while not stop.is_set():
         now = clock()
+        current_settings = live_settings() if live_settings is not None else settings
         heartbeats.record(
             "runner",
             runner,
@@ -868,7 +876,7 @@ async def run_heartbeat_task(  # noqa: PLR0913 - heartbeat loop parameters
                 engine,
                 now,
                 clock=clock,
-                settings=settings,
+                settings=current_settings,
                 channels=channels,
                 check_installed=check_installed,
             )
@@ -1114,6 +1122,7 @@ async def run_monitor(  # noqa: PLR0913 - top-level monitor loop entry point
     max_sleep_s: float = MAX_SLEEP_S,
     check_installed: Callable[[], bool] | bool | None = None,
     on_schedule: Callable[[MonitorSchedule], None] | None = None,
+    live_settings: Callable[[], Settings] | None = None,
 ) -> None:
     """Run the process heartbeat task and the ``MonitorSchedule`` loop until ``stop``."""
     clock_moved = asyncio.Event()
@@ -1155,6 +1164,7 @@ async def run_monitor(  # noqa: PLR0913 - top-level monitor loop entry point
         make_fetcher=make_fetcher,
         channels=channels,
         listeners=listeners,
+        live_settings=live_settings,
     )
     if on_schedule is not None:
         on_schedule(schedule)
@@ -1168,6 +1178,7 @@ async def run_monitor(  # noqa: PLR0913 - top-level monitor loop entry point
             clock=clock,
             sleep=_heartbeat_sleep if sleep is not None else None,
             settings=settings,
+            live_settings=live_settings,
             channels=channels,
             check_installed=check_installed,
         )

@@ -281,6 +281,133 @@
             }
           }
         }
+      },
+      "put": {
+        "summary": "Put Settings",
+        "description": "Validate and atomically apply allowlisted setting changes to ``weatherbot.toml``.",
+        "operationId": "put_settings_api_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSettingsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/retention": {
+      "get": {
+        "summary": "Get Retention",
+        "description": "Return database and WAL sizes, row counts, retention setting, last run, and preview plan.",
+        "operationId": "get_retention_api_retention_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 3650,
+                  "minimum": 30
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Preview retention plan for this many days (30..3650).",
+              "title": "Days"
+            },
+            "description": "Preview retention plan for this many days (30..3650)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/retention/run": {
+      "post": {
+        "summary": "Run Retention",
+        "description": "Validate ``cutoff`` and run one retention prune as a single-flight background task.",
+        "operationId": "run_retention_api_retention_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunRetentionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunRetentionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/disclaimer": {
@@ -5842,6 +5969,331 @@
         "title": "ReplayStormsResponse",
         "description": "Response document for ``GET /api/replay``."
       },
+      "RetentionLastRunResponse": {
+        "properties": {
+          "ran_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ran At",
+            "description": "UTC instant when the prune completed."
+          },
+          "cutoff": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Cutoff",
+            "description": "UTC cutoff instant used by the prune."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "partial"
+            ],
+            "title": "Status",
+            "description": "Whether the prune finished every batch or stopped early on cycle.lock."
+          },
+          "batches": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Batches",
+            "description": "Number of delete batches committed."
+          },
+          "total_deleted": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Deleted",
+            "description": "Total rows deleted across all tables."
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts",
+            "description": "Rows deleted per table."
+          },
+          "backup_file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backup File",
+            "description": "Basename of the pre-prune SQLite backup file, or null if none was needed."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ran_at",
+          "cutoff",
+          "status",
+          "batches",
+          "total_deleted",
+          "counts",
+          "backup_file"
+        ],
+        "title": "RetentionLastRunResponse",
+        "description": "Summary of the most recent retention run recorded in the database."
+      },
+      "RetentionPlanResponse": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "maximum": 3650.0,
+            "minimum": 30.0,
+            "title": "Days",
+            "description": "Retention window in days used for this plan."
+          },
+          "cutoff": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Cutoff",
+            "description": "Explicit UTC cutoff instant for this plan."
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts",
+            "description": "Row counts to delete in each deletable table."
+          },
+          "total_rows": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Rows",
+            "description": "Total rows across all tables that would be deleted."
+          },
+          "estimated_bytes": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Estimated Bytes",
+            "description": "Estimated payload bytes freed by deleting those rows."
+          },
+          "kept": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Kept",
+            "description": "Summary of records protected by the retention keep-list."
+          },
+          "kept_snapshots": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Kept Snapshots",
+            "description": "Number of snapshots protected by the keep-list."
+          },
+          "kept_assessments": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Kept Assessments",
+            "description": "Number of assessments protected by the keep-list."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "days",
+          "cutoff",
+          "counts",
+          "total_rows",
+          "estimated_bytes",
+          "kept",
+          "kept_snapshots",
+          "kept_assessments"
+        ],
+        "title": "RetentionPlanResponse",
+        "description": "Read-only retention preview for a requested day count or cutoff."
+      },
+      "RetentionResponse": {
+        "properties": {
+          "database_bytes": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Database Bytes",
+            "description": "Size of weatherbot.sqlite3 in bytes."
+          },
+          "wal_bytes": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Wal Bytes",
+            "description": "Size of weatherbot.sqlite3-wal in bytes."
+          },
+          "oldest_snapshot_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oldest Snapshot At",
+            "description": "UTC completion instant of the oldest stored snapshot, or null."
+          },
+          "newest_snapshot_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newest Snapshot At",
+            "description": "UTC completion instant of the newest stored snapshot, or null."
+          },
+          "row_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Row Counts",
+            "description": "Current row counts for key database tables."
+          },
+          "setting": {
+            "$ref": "#/components/schemas/RetentionSettingResponse",
+            "description": "Effective [retention] history_days setting and origin."
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetentionLastRunResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Most recent retention run summary, or null if never run."
+          },
+          "plan": {
+            "$ref": "#/components/schemas/RetentionPlanResponse",
+            "description": "Read-only preview plan for the requested ?days= parameter (or default)."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "database_bytes",
+          "wal_bytes",
+          "oldest_snapshot_at",
+          "newest_snapshot_at",
+          "row_counts",
+          "setting",
+          "last_run",
+          "plan",
+          "notice"
+        ],
+        "title": "RetentionResponse",
+        "description": "Response document for ``GET /api/retention``."
+      },
+      "RetentionSettingResponse": {
+        "properties": {
+          "history_days": {
+            "type": "integer",
+            "maximum": 3650.0,
+            "minimum": 0.0,
+            "title": "History Days",
+            "description": "Configured retention window in days (0 = keep everything, or 30..3650)."
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "default",
+              "file",
+              "environment"
+            ],
+            "title": "Origin",
+            "description": "Where history_days came from: default, weatherbot.toml, or environment."
+          },
+          "variable": {
+            "type": "string",
+            "title": "Variable",
+            "description": "Environment variable that overrides history_days."
+          },
+          "editable": {
+            "type": "boolean",
+            "title": "Editable",
+            "description": "Whether history_days can be edited in weatherbot.toml."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "history_days",
+          "origin",
+          "variable",
+          "editable"
+        ],
+        "title": "RetentionSettingResponse",
+        "description": "Effective ``[retention] history_days`` setting and its origin."
+      },
+      "RunRetentionRequest": {
+        "properties": {
+          "cutoff": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Cutoff",
+            "description": "Explicit UTC cutoff instant from a retention plan (30..3650 days ago)."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cutoff"
+        ],
+        "title": "RunRetentionRequest",
+        "description": "Request body for ``POST /api/retention/run``."
+      },
+      "RunRetentionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "accepted",
+            "title": "Status",
+            "description": "Confirmation that the background retention prune has started.",
+            "default": "accepted"
+          },
+          "cutoff": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Cutoff",
+            "description": "Validated UTC cutoff instant being pruned."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At",
+            "description": "UTC instant when the prune was accepted."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cutoff",
+          "started_at",
+          "notice"
+        ],
+        "title": "RunRetentionResponse",
+        "description": "Response document for ``POST /api/retention/run``."
+      },
       "SchedulerHealth": {
         "properties": {
           "last_success_at": {
@@ -5942,6 +6394,49 @@
           "sources"
         ]
       },
+      "SettingChangeRequest": {
+        "properties": {
+          "table": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Table",
+            "description": "TOML section name, such as notifications."
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Key",
+            "description": "Setting key within the TOML table."
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ],
+            "title": "Value",
+            "description": "New value to write to weatherbot.toml."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "table",
+          "key",
+          "value"
+        ],
+        "title": "SettingChangeRequest",
+        "description": "One setting change in ``PUT /api/settings``."
+      },
       "SettingOriginResponse": {
         "properties": {
           "table": {
@@ -5986,6 +6481,22 @@
             "type": "string",
             "title": "Variable",
             "description": "Environment variable name that overrides this setting."
+          },
+          "editable": {
+            "type": "boolean",
+            "title": "Editable",
+            "description": "Whether this setting can be edited from the Settings page.",
+            "default": false
+          },
+          "applies": {
+            "type": "string",
+            "enum": [
+              "next_cycle",
+              "next_start"
+            ],
+            "title": "Applies",
+            "description": "When a file change to this setting takes effect: next_cycle or next_start.",
+            "default": "next_start"
           }
         },
         "additionalProperties": false,
@@ -5998,7 +6509,7 @@
           "variable"
         ],
         "title": "SettingOriginResponse",
-        "description": "Effective value and origin of one configuration setting."
+        "description": "Effective value, origin, and editability of one configuration setting."
       },
       "SettingsResponse": {
         "properties": {
@@ -6012,10 +6523,37 @@
             "title": "Settings File Exists",
             "description": "Whether weatherbot.toml exists on disk."
           },
+          "settings_file_sha256": {
+            "type": "string",
+            "title": "Settings File Sha256",
+            "description": "Hex SHA-256 digest of weatherbot.toml bytes (or of empty bytes when absent).",
+            "default": ""
+          },
           "file_modified_since_start": {
             "type": "boolean",
             "title": "File Modified Since Start",
             "description": "Whether weatherbot.toml has been modified on disk since the web server started."
+          },
+          "restart_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Restart Keys",
+            "description": "Next-start keys (such as '[ai] daily_cap_usd') whose current effective value differs from the value when the server started.",
+            "default": []
+          },
+          "settings_file_problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settings File Problem",
+            "description": "Parse or validation problem in weatherbot.toml (line/column only, never file text), or null when valid."
           },
           "settings": {
             "items": {
@@ -8153,6 +8691,92 @@
         ],
         "title": "UpdateLocationPreferencesRequest",
         "description": "Request body for ``PUT /api/locations/preferences``."
+      },
+      "UpdateSettingsRequest": {
+        "properties": {
+          "expected_sha256": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Expected Sha256",
+            "description": "Expected SHA-256 hex digest of weatherbot.toml before writing."
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/SettingChangeRequest"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Changes",
+            "description": "One or more allowlisted setting changes to apply atomically."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_sha256",
+          "changes"
+        ],
+        "title": "UpdateSettingsRequest",
+        "description": "Request body for ``PUT /api/settings``."
+      },
+      "UpdateSettingsResponse": {
+        "properties": {
+          "settings_file_sha256": {
+            "type": "string",
+            "title": "Settings File Sha256",
+            "description": "New SHA-256 hex digest of weatherbot.toml after writing."
+          },
+          "applied_next_cycle": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Applied Next Cycle",
+            "description": "Changed keys that take effect on the next monitor cycle."
+          },
+          "applied_next_start": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Applied Next Start",
+            "description": "Changed keys that take effect the next time weatherbot serve starts."
+          },
+          "restart_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Restart Keys",
+            "description": "All next-start keys whose current value differs from server startup."
+          },
+          "settings": {
+            "items": {
+              "$ref": "#/components/schemas/SettingOriginResponse"
+            },
+            "type": "array",
+            "title": "Settings",
+            "description": "Updated effective settings in table and key order."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "settings_file_sha256",
+          "applied_next_cycle",
+          "applied_next_start",
+          "restart_keys",
+          "settings",
+          "notice"
+        ],
+        "title": "UpdateSettingsResponse",
+        "description": "Response document for ``PUT /api/settings``."
       },
       "ValidationError": {
         "properties": {
