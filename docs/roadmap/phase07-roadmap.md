@@ -4647,8 +4647,6 @@ Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
 
-> Ran 2026-11-04: Balanced Pick / Quality Runner-up — Gemini 4 Argon · High.
-
 **Conversation:** New
 
 **Model rationale:** Step 7 is coding with a multimodal secondary category — a
@@ -5153,8 +5151,6 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
-
-> Ran 2026-11-04: Balanced Pick / Quality Runner-up — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6938,7 +6934,7 @@ workflow above maps directly to the corresponding row below.
 | 2    | Locations + place search       | Gemini 4 Argon | Complete — PR #91  |
 | 3    | ntfy + preferences             | Gemini 4 Argon | Complete — PR #92  |
 | 4    | Settings + retention           | Gemini 4 Argon | Complete — PR #93  |
-| 5    | Map layers + time slider       | Gemini 4 Argon | Not started        |
+| 5    | Map layers + time slider       | Gemini 4 Argon | Complete — PR #96  |
 | 6    | Charts + history               | Gemini 4 Argon | Not started        |
 | 7    | Replay scrubber                | Gemini 4 Argon | Not started        |
 | 8    | Report export                  | Gemini 4 Argon | Not started        |
