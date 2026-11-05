@@ -47,10 +47,18 @@ def _app_with_write_route(tmp_path: Path) -> tuple[FastAPI, Database]:
 
 def _assert_security_headers(headers: httpx.Headers, *, is_api: bool) -> None:
     csp = headers["content-security-policy"]
-    assert "default-src 'self'" in csp
-    assert "script-src 'self'" in csp
-    assert "https://tile.openstreetmap.org" in csp
-    assert "frame-ancestors 'none'" in csp
+    assert csp == (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self'; "
+        "img-src 'self' data: https://tile.openstreetmap.org https://nowcoast.noaa.gov; "
+        "connect-src 'self'; "
+        "font-src 'self'; "
+        "object-src 'none'; "
+        "base-uri 'none'; "
+        "form-action 'self'; "
+        "frame-ancestors 'none'"
+    )
     assert headers["x-content-type-options"] == "nosniff"
     assert headers["x-frame-options"] == "DENY"
     assert headers["referrer-policy"] == "strict-origin-when-cross-origin"

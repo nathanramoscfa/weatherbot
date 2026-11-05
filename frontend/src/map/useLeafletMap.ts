@@ -6,19 +6,35 @@ import {
   type AnnotatedLeafletLayer,
   buildMapLayers,
   type BuiltMapLayers,
+  createPopupElement,
+  createTooltipElement,
   DEFAULT_ATLANTIC_CENTER,
   DEFAULT_ATLANTIC_ZOOM,
+  extractMultiLineLatLngs,
+  extractMultiPolygonLatLngs,
   fitMapToPayload,
+  formatCrs,
+  type GeoJsonFeatureResponse,
   isLayerVisible,
   type LayerVisibility,
   MAP_LEGEND_SECTIONS,
+  type MapDepthResponse,
   type MapLayerKey,
   type MapResponse,
+  NOWCOAST_ATTRIBUTION_TEXT,
+  NOWCOAST_RADAR_LAYER,
+  NOWCOAST_RADAR_WMS_URL,
+  NOWCOAST_SATELLITE_LAYER,
+  NOWCOAST_SATELLITE_WMS_URL,
+  NOWCOAST_WMS_OPACITY,
   OSM_ATTRIBUTION_HTML,
   OSM_MAX_ZOOM,
   OSM_REFERRER_POLICY,
   OSM_TILE_OPTIONS,
   OSM_TILE_URL,
+  windProbabilityBandStyle,
+  windProbabilityCoverageStyle,
+  type WindProbabilityResponse,
 } from "./layers.ts";
 
 export {
@@ -53,9 +69,19 @@ export function getLeafletMapForContainer(
   return containerMapRegistry.get(container) ?? null;
 }
 
+export interface UseLeafletMapOverlays {
+  readonly windProbabilities?: WindProbabilityResponse | null;
+  readonly showWindProbabilities?: boolean;
+  readonly radar?: boolean;
+  readonly satellite?: boolean;
+  readonly onOverlayError?: (layer: "radar" | "satellite") => void;
+}
+
 export interface UseLeafletMapOptions {
   readonly mapData: MapResponse | null | undefined;
+  readonly depthData?: MapDepthResponse | null;
   readonly visibility: LayerVisibility;
+  readonly overlays?: UseLeafletMapOverlays;
   readonly timeZone?: string | null;
   readonly viewModeKey?: string;
 }
@@ -85,9 +111,44 @@ function getCategoryItems(
       return byCategory.watches_warnings;
     case "outlook":
       return byCategory.outlook;
+    case "wind_radii":
+      return byCategory.wind_radii;
+    case "past_track":
+      return byCategory.past_track;
+    case "peak_surge":
+      return byCategory.peak_surge;
+    case "wind_probabilities":
+      return byCategory.wind_probabilities;
+    case "radar":
+      return byCategory.radar;
+    case "satellite":
+      return byCategory.satellite;
     case "locations":
       return byCategory.locations;
   }
+}
+
+function createCanvasPolygon(
+  feature: GeoJsonFeatureResponse,
+  style: L.PathOptions,
+  renderer: L.Canvas,
+): L.Polygon | null {
+  const { type, coordinates } = feature.geometry;
+  if (type === "Polygon") {
+    const rings = extractMultiLineLatLngs(coordinates);
+    if (rings.length === 0) {
+      return null;
+    }
+    return L.polygon(rings, { ...style, renderer });
+  }
+  if (type === "MultiPolygon") {
+    const polys = extractMultiPolygonLatLngs(coordinates);
+    if (polys.length === 0) {
+      return null;
+    }
+    return L.polygon(polys, { ...style, renderer });
+  }
+  return null;
 }
 
 function syncLayersOnMap(
@@ -121,7 +182,9 @@ function syncLayersOnMap(
 
 export function useLeafletMap({
   mapData,
+  depthData = null,
   visibility,
+  overlays,
   timeZone,
   viewModeKey = "live",
 }: UseLeafletMapOptions): UseLeafletMapResult {
@@ -129,17 +192,26 @@ export function useLeafletMap({
   const mapRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const overlayLayersRef = useRef<AnnotatedLeafletLayer[]>([]);
+  const canvasRendererRef = useRef<L.Canvas | null>(null);
+  const probLayersRef = useRef<L.Layer[]>([]);
+  const radarLayerRef = useRef<L.TileLayer.WMS | null>(null);
+  const satelliteLayerRef = useRef<L.TileLayer.WMS | null>(null);
+  const onOverlayErrorRef = useRef(overlays?.onOverlayError);
   const programmaticMoveRef = useRef(false);
   const userMovedRef = useRef(false);
   const lastFittedModeKeyRef = useRef<string | null>(null);
   const latestMapDataRef = useRef<MapResponse | null | undefined>(mapData);
 
+  useEffect(() => {
+    onOverlayErrorRef.current = overlays?.onOverlayError;
+  }, [overlays?.onOverlayError]);
+
   const builtLayers = useMemo(() => {
     if (!mapData) {
       return null;
     }
-    return buildMapLayers(mapData, { timeZone });
-  }, [mapData, timeZone]);
+    return buildMapLayers(mapData, { timeZone, depthData });
+  }, [mapData, depthData, timeZone]);
 
   const latestBuiltRef = useRef<BuiltMapLayers | null>(builtLayers);
   const latestVisibilityRef = useRef<LayerVisibility>(visibility);
@@ -218,6 +290,30 @@ export function useLeafletMap({
         }
       }
       overlayLayersRef.current = [];
+      for (const layer of probLayersRef.current) {
+        if (map.hasLayer(layer)) {
+          map.removeLayer(layer);
+        }
+      }
+      probLayersRef.current = [];
+      if (canvasRendererRef.current && map.hasLayer(canvasRendererRef.current)) {
+        map.removeLayer(canvasRendererRef.current);
+      }
+      canvasRendererRef.current = null;
+      if (radarLayerRef.current) {
+        radarLayerRef.current.off();
+        if (map.hasLayer(radarLayerRef.current)) {
+          map.removeLayer(radarLayerRef.current);
+        }
+        radarLayerRef.current = null;
+      }
+      if (satelliteLayerRef.current) {
+        satelliteLayerRef.current.off();
+        if (map.hasLayer(satelliteLayerRef.current)) {
+          map.removeLayer(satelliteLayerRef.current);
+        }
+        satelliteLayerRef.current = null;
+      }
       map.off("dragstart", handleInteractionStart);
       map.off("zoomstart", handleInteractionStart);
       map.off();
@@ -242,6 +338,163 @@ export function useLeafletMap({
     }
     syncLayersOnMap(map, overlayLayersRef, builtLayers, visibility);
   }, [builtLayers, visibility]);
+
+  // Sync canvas wind probability bands and WMS raster overlays independently.
+  const windProbabilities = overlays?.windProbabilities ?? null;
+  const showWindProbabilities = overlays?.showWindProbabilities === true;
+  const showRadar = overlays?.radar === true;
+  const showSatellite = overlays?.satellite === true;
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    for (const existing of probLayersRef.current) {
+      if (map.hasLayer(existing)) {
+        map.removeLayer(existing);
+      }
+    }
+    probLayersRef.current = [];
+
+    if (showWindProbabilities && windProbabilities) {
+      canvasRendererRef.current ??= L.canvas({ padding: 0.5 });
+      const renderer = canvasRendererRef.current;
+      const crsText = formatCrs(windProbabilities.bands.crs);
+      const thresholdKt = windProbabilities.threshold_kt;
+      const sortedBands = [...windProbabilities.bands.features].sort((a, b) => {
+        const aLower =
+          typeof a.properties.lower_pct === "number"
+            ? a.properties.lower_pct
+            : 0;
+        const bLower =
+          typeof b.properties.lower_pct === "number"
+            ? b.properties.lower_pct
+            : 0;
+        return aLower - bLower;
+      });
+
+      for (const feature of sortedBands) {
+        const lowerPct =
+          typeof feature.properties.lower_pct === "number"
+            ? feature.properties.lower_pct
+            : 0;
+        const label =
+          typeof feature.properties.label === "string" &&
+          feature.properties.label.length > 0
+            ? feature.properties.label
+            : `${String(lowerPct)}%`;
+        const style = windProbabilityBandStyle(lowerPct);
+        const poly = createCanvasPolygon(feature, style, renderer);
+        if (!poly) {
+          continue;
+        }
+        const popupLines: string[] = [
+          "Chance of winds at this speed within 120 hours",
+          `Band: ${label}`,
+          `Threshold: ${String(thresholdKt)} kt`,
+        ];
+        if (
+          typeof feature.properties.geometry_note === "string" &&
+          feature.properties.geometry_note.length > 0
+        ) {
+          popupLines.push(`Geometry: ${feature.properties.geometry_note}`);
+        }
+        popupLines.push(`CRS: ${crsText}`);
+        poly.bindPopup(() =>
+          createPopupElement(
+            `Wind Speed Probability (${String(thresholdKt)} kt): ${label}`,
+            popupLines,
+          ),
+        );
+        poly.addTo(map);
+        probLayersRef.current.push(poly);
+      }
+
+      if (windProbabilities.coverage) {
+        const covFeature = windProbabilities.coverage;
+        const covPoly = createCanvasPolygon(
+          covFeature,
+          windProbabilityCoverageStyle(),
+          renderer,
+        );
+        if (covPoly) {
+          const covNote =
+            typeof covFeature.properties.note === "string" &&
+            covFeature.properties.note.length > 0
+              ? covFeature.properties.note
+              : "Extract coverage window";
+          covPoly.bindPopup(() =>
+            createPopupElement("Wind Probability Extract Coverage", [
+              covNote,
+              `Threshold: ${String(thresholdKt)} kt`,
+              `CRS: ${crsText}`,
+            ]),
+          );
+          covPoly.bindTooltip(createTooltipElement(covNote), {
+            sticky: true,
+            direction: "top",
+          });
+          covPoly.addTo(map);
+          probLayersRef.current.push(covPoly);
+        }
+      }
+    } else if (
+      canvasRendererRef.current &&
+      map.hasLayer(canvasRendererRef.current)
+    ) {
+      map.removeLayer(canvasRendererRef.current);
+    }
+
+    if (showRadar) {
+      if (!radarLayerRef.current) {
+        const wms = L.tileLayer.wms(NOWCOAST_RADAR_WMS_URL, {
+          layers: NOWCOAST_RADAR_LAYER,
+          version: "1.3.0",
+          format: "image/png",
+          transparent: true,
+          opacity: NOWCOAST_WMS_OPACITY,
+          attribution: NOWCOAST_ATTRIBUTION_TEXT,
+        });
+        wms.on("tileerror", () => {
+          onOverlayErrorRef.current?.("radar");
+        });
+        wms.addTo(map);
+        radarLayerRef.current = wms;
+      }
+    } else if (radarLayerRef.current) {
+      radarLayerRef.current.off();
+      if (map.hasLayer(radarLayerRef.current)) {
+        map.removeLayer(radarLayerRef.current);
+      }
+      radarLayerRef.current = null;
+    }
+
+    if (showSatellite) {
+      if (!satelliteLayerRef.current) {
+        const wms = L.tileLayer.wms(NOWCOAST_SATELLITE_WMS_URL, {
+          layers: NOWCOAST_SATELLITE_LAYER,
+          version: "1.3.0",
+          format: "image/png",
+          transparent: true,
+          opacity: NOWCOAST_WMS_OPACITY,
+          attribution: NOWCOAST_ATTRIBUTION_TEXT,
+        });
+        wms.on("tileerror", () => {
+          onOverlayErrorRef.current?.("satellite");
+        });
+        wms.addTo(map);
+        satelliteLayerRef.current = wms;
+      }
+    } else if (satelliteLayerRef.current) {
+      satelliteLayerRef.current.off();
+      if (map.hasLayer(satelliteLayerRef.current)) {
+        map.removeLayer(satelliteLayerRef.current);
+      }
+      satelliteLayerRef.current = null;
+    }
+  }, [showWindProbabilities, windProbabilities, showRadar, showSatellite]);
 
   // Fit bounds on first load and when switching viewModeKey (replay advisory or back to live),
   // never on background refetches after the user has moved the map.

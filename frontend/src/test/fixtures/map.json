@@ -1,5 +1,19 @@
 {
   "as_of": "2026-10-13T01:31:00Z",
+  "available_layers": [
+    "cone",
+    "track",
+    "points",
+    "watches_warnings",
+    "outlook",
+    "locations",
+    "wind_radii",
+    "past_track",
+    "peak_surge",
+    "wind_probabilities",
+    "radar",
+    "satellite"
+  ],
   "location_polygons": {
     "crs": {
       "datum": null,

@@ -91,7 +91,10 @@ export const test = base.extend<{ guard: void }>({
       await page.route("**/*", async (route) => {
         const rawUrl = route.request().url();
         const parsed = new URL(rawUrl);
-        if (parsed.origin === "https://tile.openstreetmap.org") {
+        if (
+          parsed.origin === "https://tile.openstreetmap.org" ||
+          parsed.origin === "https://nowcoast.noaa.gov"
+        ) {
           await route.fulfill({
             status: 200,
             contentType: "image/png",

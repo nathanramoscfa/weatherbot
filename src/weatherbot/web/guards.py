@@ -20,7 +20,7 @@ SAFE_API_FETCH_SITES: Final[frozenset[str]] = frozenset({"same-origin", "none"})
 
 CSP_DEFAULT_STYLE: Final = "style-src 'self'"
 CSP_SUFFIX: Final = (
-    "img-src 'self' data: https://tile.openstreetmap.org; "
+    "img-src 'self' data: https://tile.openstreetmap.org https://nowcoast.noaa.gov; "
     "connect-src 'self'; "
     "font-src 'self'; "
     "object-src 'none'; "

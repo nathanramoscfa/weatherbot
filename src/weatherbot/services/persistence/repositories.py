@@ -157,6 +157,19 @@ class DriftWarning:
     message: str
 
 
+@dataclass(frozen=True)
+class AdvisoryStep:
+    """One stored storm advisory step, pointing at the newest snapshot that carried it."""
+
+    snapshot_id: UUID
+    as_of: datetime
+    atcf_id: str
+    storm_name: str
+    classification: str
+    advisory: str
+    issued_at: datetime | None
+
+
 @contextmanager
 def _writing(engine: Engine, session: Session | None) -> Generator[Session]:
     """Join the caller's transaction, or open one that commits when the block ends."""
@@ -863,6 +876,61 @@ class SnapshotRepository:
         with Session(self._engine) as session:
             return _load(session, snapshot_id)
 
+    def advisory_steps(self, limit: int = 96) -> tuple[AdvisoryStep, ...]:
+        """Return the newest stored snapshot for each ``(atcf_id, advisory)``, newest first.
+
+        Reads ``storm_observations`` and ``snapshots`` without decoding any product geometry.
+
+        Args:
+            limit: Maximum number of distinct ``(atcf_id, advisory)`` steps to return.
+
+        Returns:
+            The advisory steps, ordered newest snapshot first.
+
+        Raises:
+            ValueError: The limit is below one.
+        """
+        if limit < 1:
+            message = "an advisory step list holds at least one step"
+            raise ValueError(message)
+        with Session(self._engine) as session:
+            rows = session.execute(
+                select(
+                    SnapshotRow.id,
+                    SnapshotRow.completed_at,
+                    StormObservationRow.summary,
+                )
+                .join(StormObservationRow, StormObservationRow.snapshot_id == SnapshotRow.id)
+                .order_by(
+                    SnapshotRow.completed_at.desc(),
+                    SnapshotRow.started_at.desc(),
+                    StormObservationRow.position.asc(),
+                )
+            )
+            seen: set[tuple[str, str]] = set()
+            steps: list[AdvisoryStep] = []
+            for snapshot_id, completed_at, raw_summary in rows:
+                summary = validated(StormSummary, raw_summary)
+                advisory_num = str(summary.public_advisory.advisory)
+                key = (summary.atcf_id, advisory_num)
+                if key in seen:
+                    continue
+                seen.add(key)
+                steps.append(
+                    AdvisoryStep(
+                        snapshot_id=snapshot_id,
+                        as_of=completed_at,
+                        atcf_id=summary.atcf_id,
+                        storm_name=summary.name,
+                        classification=summary.classification.raw,
+                        advisory=advisory_num,
+                        issued_at=summary.public_advisory.issued_at,
+                    )
+                )
+                if len(steps) >= limit:
+                    break
+            return tuple(steps)
+
 
 def _decoded(row: ProductGeometryRow) -> DomainModel:
     return decode_product(
@@ -1296,6 +1364,38 @@ class AssessmentRepository:
         with _reading(self._engine, session) as active:
             row = active.scalar(statement.limit(1))
             return _stored(active, row) if row is not None else None
+
+    def for_snapshot(
+        self,
+        snapshot_id: UUID,
+        *,
+        session: Session | None = None,
+    ) -> dict[str, StoredAssessment]:
+        """Return each stored location's assessment for ``snapshot_id``, keyed by location name.
+
+        Locations with no assessment stored for ``snapshot_id`` are absent from the mapping.
+
+        Args:
+            snapshot_id: The snapshot's id.
+            session: A transaction to read in; a session of its own without one.
+
+        Returns:
+            Stored assessments keyed by location name.
+        """
+        statement = (
+            select(AssessmentRow, LocationRow.name)
+            .join(LocationRow, LocationRow.id == AssessmentRow.location_id)
+            .where(AssessmentRow.snapshot_id == snapshot_id)
+            .order_by(LocationRow.name.asc(), AssessmentRow.id.desc())
+        )
+        with _reading(self._engine, session) as active:
+            rows = active.execute(statement).all()
+            by_name: dict[str, StoredAssessment] = {}
+            for row, loc_name in rows:
+                name_str = str(loc_name)
+                if name_str not in by_name:
+                    by_name[name_str] = _stored(active, row)
+            return by_name
 
     def latest_levels(self) -> dict[str, int]:
         """Return each stored location's latest stored alert level without decoding JSON."""

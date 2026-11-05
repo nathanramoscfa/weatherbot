@@ -15,7 +15,9 @@ import {
   forecastPointStyle,
   formatCrs,
   MAP_LEGEND_SECTIONS,
+  type MapDepthResponse,
   type MapResponse,
+  NEUTRAL_SURGE_COLOR,
   NHC_WATCH_WARNING_COLORS,
   OSM_ATTRIBUTION_HTML,
   OSM_REFERRER_POLICY,
@@ -23,8 +25,14 @@ import {
   OSM_TILE_URL,
   OUTLOOK_RISK_COLORS,
   outlookStyle,
+  parsePeakSurgeRange,
+  pastTrackLineStyle,
+  PEAK_SURGE_RANGE_COLORS,
+  peakSurgeStyle,
   watchWarningColor,
   watchWarningStyle,
+  windProbabilityBandStyle,
+  windRadiiStyle,
 } from "./layers.ts";
 
 const TYPED_MAP = asSchema<MapResponse>(
@@ -131,15 +139,204 @@ describe("map/layers", () => {
     }
     expect(codesSeen).toEqual(new Set(["HWR", "HWA", "TWR"]));
 
-    // Legend covers all six layer categories
+    // Legend covers all twelve layer categories with new depth/overlay sections before locations
     expect(MAP_LEGEND_SECTIONS.map((s) => s.category)).toEqual([
       "cone",
       "track",
       "points",
       "watches_warnings",
       "outlook",
+      "wind_radii",
+      "past_track",
+      "peak_surge",
+      "wind_probabilities",
+      "radar",
+      "satellite",
       "locations",
     ]);
+  });
+
+  it("styles wind radii, past track, peak surge (known range, unknown range neutral, and markup in name), and probability bands with crsText on every built item", () => {
+    expect(windRadiiStyle(64).color).toBe("#dc2626");
+    expect(windRadiiStyle(50).color).toBe("#d97706");
+    expect(windRadiiStyle(34).color).toBe("#0284c7");
+
+    expect(pastTrackLineStyle({ ss: 4, stormtype: "MH" }).color).toBe("#7f1d1d");
+    expect(pastTrackLineStyle({ ss: 1, stormtype: "HU" }).color).toBe("#b91c1c");
+    expect(pastTrackLineStyle({ ss: 0, stormtype: "TS" }).color).toBe("#c2410c");
+    expect(pastTrackLineStyle({ ss: 0, stormtype: "TD" }).color).toBe("#334155");
+
+    expect(parsePeakSurgeRange("Tampa Bay...8-12 ft")).toBe("8-12 ft");
+    expect(parsePeakSurgeRange("No Ellipsis Name")).toBeNull();
+
+    const knownSurge = peakSurgeStyle("Tampa Bay...8-12 ft");
+    expect(knownSurge.recognized).toBe(true);
+    expect(knownSurge.color).toBe(PEAK_SURGE_RANGE_COLORS["8-12 ft"]!.color);
+    expect(knownSurge.fillColor).toBe(
+      PEAK_SURGE_RANGE_COLORS["8-12 ft"]!.fillColor,
+    );
+
+    const unknownSurge = peakSurgeStyle("Outer Bank...99-105 ft");
+    expect(unknownSurge.recognized).toBe(false);
+    expect(unknownSurge.parsedRange).toBe("99-105 ft");
+    expect(unknownSurge.color).toBe(NEUTRAL_SURGE_COLOR.color);
+    expect(unknownSurge.fillColor).toBe(NEUTRAL_SURGE_COLOR.fillColor);
+
+    expect(windProbabilityBandStyle(5).fillColor).toBe("#86efac");
+    expect(windProbabilityBandStyle(50).fillColor).toBe("#f97316");
+    expect(windProbabilityBandStyle(90).fillColor).toBe("#7e22ce");
+
+    const syntheticDepth: MapDepthResponse = {
+      snapshot_id: TYPED_MAP.snapshot_id,
+      as_of: TYPED_MAP.as_of,
+      storms: [
+        {
+          atcf_id: TYPED_MAP.storms[0]!.atcf_id,
+          wind_radii: {
+            type: "FeatureCollection",
+            crs: { name: "EPSG:4326", datum: null },
+            features: [
+              {
+                type: "Feature",
+                crs: { name: "EPSG:4326", datum: null },
+                properties: {
+                  threshold_kt: 64,
+                  tau_h: 0,
+                  valid_at: "2026-10-12T18:00:00Z",
+                  ne_extent_nmi: 30,
+                  se_extent_nmi: 25,
+                  sw_extent_nmi: 20,
+                  nw_extent_nmi: 25,
+                  advisory: "15",
+                },
+                geometry: {
+                  type: "Polygon",
+                  crs: { name: "EPSG:4326", datum: null },
+                  coordinates: [
+                    [
+                      [-80.2, 25.5],
+                      [-79.8, 25.5],
+                      [-79.8, 25.9],
+                      [-80.2, 25.5],
+                    ],
+                  ],
+                },
+              },
+            ],
+          },
+          past_track: {
+            type: "FeatureCollection",
+            crs: { name: "EPSG:4326", datum: null },
+            features: [
+              {
+                type: "Feature",
+                crs: { name: "EPSG:4326", datum: null },
+                properties: { stormtype: "HU", ss: 2 },
+                geometry: {
+                  type: "LineString",
+                  crs: { name: "EPSG:4326", datum: null },
+                  coordinates: [
+                    [-81.5, 24.5],
+                    [-80.5, 25.2],
+                  ],
+                },
+              },
+            ],
+          },
+          past_points: {
+            type: "FeatureCollection",
+            crs: { name: "EPSG:4326", datum: null },
+            features: [
+              {
+                type: "Feature",
+                crs: { name: "EPSG:4326", datum: null },
+                properties: {
+                  stormtype: "HU",
+                  ss: 2,
+                  intensity: 85,
+                  mslp: 972,
+                  dtg: "2026-10-12 18:00 UTC",
+                },
+                geometry: {
+                  type: "Point",
+                  crs: { name: "EPSG:4326", datum: null },
+                  coordinates: [-80.5, 25.2],
+                },
+              },
+            ],
+          },
+        },
+      ],
+      peak_surge: {
+        type: "FeatureCollection",
+        crs: { name: "EPSG:4326", datum: null },
+        features: [
+          {
+            type: "Feature",
+            crs: { name: "EPSG:4326", datum: null },
+            properties: {
+              name: "Tampa Bay <b><script>x</script></b>...8-12 ft",
+              layer: "Polygons",
+            },
+            geometry: {
+              type: "Polygon",
+              crs: { name: "EPSG:4326", datum: null },
+              coordinates: [
+                [
+                  [-82.75, 27.55],
+                  [-82.42, 27.55],
+                  [-82.42, 27.95],
+                  [-82.75, 27.55],
+                ],
+              ],
+            },
+          },
+          {
+            type: "Feature",
+            crs: { name: "EPSG:4326", datum: null },
+            properties: {
+              name: "Unknown Stretch...99-105 ft",
+              layer: "Lines",
+            },
+            geometry: {
+              type: "LineString",
+              crs: { name: "EPSG:4326", datum: null },
+              coordinates: [
+                [-82.85, 28.18],
+                [-82.74, 27.6],
+              ],
+            },
+          },
+        ],
+      },
+      notice: TYPED_MAP.notice,
+    };
+
+    const built = buildMapLayers(TYPED_MAP, {
+      timeZone: "America/New_York",
+      depthData: syntheticDepth,
+    });
+
+    expect(built.byCategory.wind_radii.length).toBe(1);
+    expect(built.byCategory.past_track.length).toBe(2);
+    expect(built.byCategory.peak_surge.length).toBe(2);
+
+    for (const item of built.items) {
+      expect(item.crsText).toBe("EPSG:4326");
+    }
+
+    const markupSurgeItem = built.byCategory.peak_surge[0]!;
+    const popupContent = markupSurgeItem.layer.getPopup()?.getContent() as HTMLElement;
+    expect(popupContent).toBeInstanceOf(HTMLElement);
+    expect(popupContent.querySelector("b")).toBeNull();
+    expect(popupContent.querySelector("script")).toBeNull();
+    expect(popupContent.textContent).toContain(
+      "Tampa Bay <b><script>x</script></b>...8-12 ft",
+    );
+
+    const unknownRangeItem = built.byCategory.peak_surge[1]!;
+    expect(unknownRangeItem.style.color).toBe(NEUTRAL_SURGE_COLOR.color);
+    expect(unknownRangeItem.popupLines.join(" ")).toContain("unrecognized");
   });
 
   it("maps NHC watch-warning codes, forecast point classifications, and outlook chances to their canonical colours", () => {
