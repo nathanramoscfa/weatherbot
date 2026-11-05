@@ -35,6 +35,7 @@ from sqlalchemy.orm import Session
 from weatherbot.models import (
     Advisory,
     AdvisoryNumber,
+    AlertLevel,
     ArrivalTimeProduct,
     Assessment,
     Breakpoint,
@@ -48,10 +49,12 @@ from weatherbot.models import (
     LatLon,
     Location,
     LocationPreferences,
+    LocationWindProbability,
     NwsAlert,
     NwsCoverage,
     OutlookArea,
     OutlookGraphic,
+    RuleId,
     Snapshot,
     SourceId,
     SourceOutcome,
@@ -1176,6 +1179,17 @@ class AssessmentHead:
     thresholds: Thresholds
 
 
+@dataclass(frozen=True)
+class LevelPoint:
+    """One stored assessment's level point, read from its columns without decoding JSON."""
+
+    id: int
+    as_of: datetime
+    level: AlertLevel
+    rule: RuleId
+    complete: bool
+
+
 def _evidence_rows(assessment_id: int, assessment: Assessment) -> list[AssessmentEvidenceRow]:
     rows = [
         AssessmentEvidenceRow(
@@ -1481,12 +1495,103 @@ class AssessmentRepository:
                     )
             return heads
 
-    def history(self, location_name: str, limit: int) -> tuple[StoredAssessment, ...]:
+    def level_points(self, location_name: str, limit: int = 200) -> tuple[LevelPoint, ...]:
+        """Return a location's stored level points, newest first, without decoding JSON.
+
+        Args:
+            location_name: The location's name.
+            limit: At most this many points.
+
+        Returns:
+            The level points, newest first.
+
+        Raises:
+            ValueError: The limit is below one.
+        """
+        if limit < 1:
+            message = "a level point series holds at least one assessment"
+            raise ValueError(message)
+        with Session(self._engine) as session:
+            rows = session.execute(
+                select(
+                    AssessmentRow.id,
+                    AssessmentRow.as_of,
+                    AssessmentRow.level,
+                    AssessmentRow.rule,
+                    AssessmentRow.complete,
+                )
+                .join(LocationRow, LocationRow.id == AssessmentRow.location_id)
+                .where(LocationRow.name == location_name)
+                .order_by(AssessmentRow.as_of.desc(), AssessmentRow.id.desc())
+                .limit(limit)
+            ).all()
+            return tuple(
+                LevelPoint(
+                    id=int(row_id),
+                    as_of=as_of,
+                    level=AlertLevel(int(level)),
+                    rule=cast("RuleId", str(rule)),
+                    complete=bool(complete),
+                )
+                for row_id, as_of, level, rule, complete in rows
+            )
+
+    def wind_series(
+        self, location_name: str, limit: int = 200
+    ) -> tuple[LocationWindProbability, ...]:
+        """Return stored wind-probability readings, one per ``(threshold_kt, synoptic_at)``.
+
+        Reads up to ``limit`` assessments for ``location_name``, newest first, and keeps the
+        newest assessment's reading for each distinct ``(threshold_kt, synoptic_at)``.
+
+        Args:
+            location_name: The location's name.
+            limit: At most this many assessments to inspect.
+
+        Returns:
+            The deduplicated wind-probability readings, newest first.
+
+        Raises:
+            ValueError: The limit is below one.
+        """
+        if limit < 1:
+            message = "a wind series holds at least one assessment"
+            raise ValueError(message)
+        with Session(self._engine) as session:
+            raw_rows = session.scalars(
+                select(AssessmentRow.assessment)
+                .join(LocationRow, LocationRow.id == AssessmentRow.location_id)
+                .where(LocationRow.name == location_name)
+                .order_by(AssessmentRow.as_of.desc(), AssessmentRow.id.desc())
+                .limit(limit)
+            ).all()
+            seen: set[tuple[int, datetime]] = set()
+            series: list[LocationWindProbability] = []
+            for raw_assessment in raw_rows:
+                assessment = validated(Assessment, raw_assessment)
+                for reading in assessment.wind_probabilities:
+                    key = (int(reading.threshold_kt), reading.synoptic_at)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    series.append(reading)
+            return tuple(series)
+
+    def history(
+        self,
+        location_name: str,
+        limit: int,
+        *,
+        before: tuple[datetime, int] | datetime | None = None,
+    ) -> tuple[StoredAssessment, ...]:
         """Return a location's stored assessments, newest first.
 
         Args:
             location_name: The location's name.
             limit: At most this many.
+            before: Optional upper bound: either ``(as_of, id)`` for strict cursor
+                pagination in ``(as_of desc, id desc)`` order, or an instant ``as_of``
+                before which to read.
 
         Returns:
             The stored assessments.
@@ -1497,8 +1602,17 @@ class AssessmentRepository:
         if limit < 1:
             message = "a history holds at least one assessment"
             raise ValueError(message)
+        statement = _of_location(location_name)
+        if isinstance(before, tuple):
+            before_at, before_id = before
+            statement = statement.where(
+                (AssessmentRow.as_of < before_at)
+                | ((AssessmentRow.as_of == before_at) & (AssessmentRow.id < before_id))
+            )
+        elif before is not None:
+            statement = statement.where(AssessmentRow.as_of < before)
         with Session(self._engine) as session:
-            rows = session.scalars(_of_location(location_name).limit(limit)).all()
+            rows = session.scalars(statement.limit(limit)).all()
             return tuple(_stored(session, row) for row in rows)
 
     def load(self, assessment_id: int) -> StoredAssessment | None:

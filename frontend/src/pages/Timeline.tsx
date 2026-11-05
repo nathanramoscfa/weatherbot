@@ -8,6 +8,8 @@ import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { ThreatLevelBadge } from "../app/ThreatLevelBadge.tsx";
+import { LevelHistoryChart } from "../charts/LevelHistoryChart.tsx";
+import { WindProbabilityChart } from "../charts/WindProbabilityChart.tsx";
 import { formatBothTimes, formatRouteError, formatUtc } from "./format.ts";
 
 export type TimelineResponse = components["schemas"]["TimelineResponse"];
@@ -17,11 +19,35 @@ export type NotificationsResponse =
   components["schemas"]["NotificationsResponse"];
 export type NotificationItemResponse =
   components["schemas"]["NotificationItemResponse"];
+export type ChartsResponse = components["schemas"]["ChartsResponse"];
 
-async function fetchTimeline(): Promise<TimelineResponse> {
-  const { data, response } = await apiClient.GET("/api/timeline");
+async function fetchTimeline(params?: {
+  readonly location?: string;
+  readonly before?: string;
+}): Promise<TimelineResponse> {
+  const query: { location?: string; before?: string } = {};
+  if (params?.location !== undefined && params.location !== "") {
+    query.location = params.location;
+  }
+  if (params?.before !== undefined && params.before !== "") {
+    query.before = params.before;
+  }
+  const hasQuery = Object.keys(query).length > 0;
+  const { data, response } = hasQuery
+    ? await apiClient.GET("/api/timeline", { params: { query } })
+    : await apiClient.GET("/api/timeline");
   if (!response.ok || !data) {
     throw new ApiRequestError("/api/timeline", response.status);
+  }
+  return data;
+}
+
+async function fetchLocationCharts(location: string): Promise<ChartsResponse> {
+  const { data, response } = await apiClient.GET("/api/charts", {
+    params: { query: { location } },
+  });
+  if (!response.ok || !data) {
+    throw new ApiRequestError("/api/charts", response.status);
   }
   return data;
 }
@@ -36,10 +62,13 @@ async function fetchNotifications(): Promise<NotificationsResponse> {
 
 export function Timeline() {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [olderPages, setOlderPages] = useState<readonly TimelineResponse[]>([]);
+  const [loadingOlder, setLoadingOlder] = useState<boolean>(false);
+  const [olderError, setOlderError] = useState<string | null>(null);
 
   const timelineQuery = useQuery({
     queryKey: queryKeys.timeline(),
-    queryFn: fetchTimeline,
+    queryFn: () => fetchTimeline(),
   });
 
   const notificationsQuery = useQuery({
@@ -52,10 +81,59 @@ export function Timeline() {
     queryFn: fetchSummaries,
   });
 
-  const entries = useMemo(
-    () => timelineQuery.data?.entries ?? [],
-    [timelineQuery.data],
-  );
+  const chartsQuery = useQuery({
+    queryKey: queryKeys.charts(selectedLocation),
+    queryFn: () => fetchLocationCharts(selectedLocation),
+    enabled: selectedLocation !== "",
+  });
+
+  const entries = useMemo(() => {
+    const base = timelineQuery.data?.entries ?? [];
+    if (olderPages.length === 0) {
+      return base;
+    }
+    const merged: TimelineEntryResponse[] = [...base];
+    const seen = new Set<string>(
+      base.map((item) => `${item.kind}-${String(item.id)}`),
+    );
+    for (const page of olderPages) {
+      for (const item of page.entries) {
+        const key = `${item.kind}-${String(item.id)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          merged.push(item);
+        }
+      }
+    }
+    return merged;
+  }, [timelineQuery.data, olderPages]);
+
+  const nextBefore = useMemo(() => {
+    if (olderPages.length > 0) {
+      const lastPage = olderPages[olderPages.length - 1];
+      return lastPage?.next_before ?? null;
+    }
+    return timelineQuery.data?.next_before ?? null;
+  }, [timelineQuery.data, olderPages]);
+
+  async function handleShowOlder() {
+    if (nextBefore === null || loadingOlder) {
+      return;
+    }
+    setLoadingOlder(true);
+    setOlderError(null);
+    try {
+      const nextPage = await fetchTimeline({
+        before: nextBefore,
+      });
+      setOlderPages((prev) => [...prev, nextPage]);
+    } catch (err) {
+      const status = err instanceof ApiRequestError ? err.status : undefined;
+      setOlderError(formatRouteError("/api/timeline", status));
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
   const notifications = useMemo(
     () => notificationsQuery.data?.notifications ?? [],
     [notificationsQuery.data],
@@ -178,6 +256,33 @@ export function Timeline() {
         </div>
       </section>
 
+      {selectedLocation !== "" ? (
+        <div
+          className="grid grid-cols-1 gap-4 lg:grid-cols-2"
+          data-testid="timeline-location-charts"
+        >
+          <LevelHistoryChart
+            location={selectedLocation}
+            timeZone={chartsQuery.data?.time_zone ?? null}
+            points={chartsQuery.data?.levels ?? []}
+          />
+          <WindProbabilityChart
+            location={selectedLocation}
+            readings={chartsQuery.data?.wind ?? []}
+          />
+        </div>
+      ) : (
+        <section
+          aria-label="Location charts prompt"
+          data-testid="timeline-charts-prompt"
+          className="rounded-lg border border-dashed border-slate-300 bg-slate-50/70 px-4 py-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300"
+        >
+          Choose a watched location in <strong>Filter by location</strong> above
+          to display its stepped threat-level history chart and 34/50/64 kt
+          wind-speed probability bands.
+        </section>
+      )}
+
       <section
         aria-labelledby="timeline-entries-heading"
         className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
@@ -197,7 +302,9 @@ export function Timeline() {
 
         {filteredEntries.length === 0 ? (
           <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
-            No timeline entries match the current filter.
+            No timeline entries match the current filter. Stored assessments,
+            level changes, and notification decisions will appear here after
+            monitor cycles run.
           </p>
         ) : (
           <div className="mt-4 space-y-3">
@@ -212,6 +319,29 @@ export function Timeline() {
                 }
               />
             ))}
+          </div>
+        )}
+
+        {olderError !== null && (
+          <div
+            role="alert"
+            className="mt-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
+          >
+            {olderError}
+          </div>
+        )}
+
+        {nextBefore !== null && (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => void handleShowOlder()}
+              disabled={loadingOlder}
+              data-testid="timeline-show-older"
+              className="inline-flex items-center rounded-md border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            >
+              {loadingOlder ? "Loading older…" : "Show older"}
+            </button>
           </div>
         )}
       </section>

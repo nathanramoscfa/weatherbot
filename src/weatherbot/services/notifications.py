@@ -670,11 +670,19 @@ class NotificationService:
             )
         return found is not None
 
-    def recent(self, limit: int = 20) -> tuple[StoredNotification, ...]:
+    def recent(
+        self,
+        limit: int = 20,
+        *,
+        before: tuple[datetime, int] | datetime | None = None,
+    ) -> tuple[StoredNotification, ...]:
         """Return up to ``limit`` stored notifications, newest first.
 
         Args:
             limit: Maximum number of notifications to return (at least 1).
+            before: Optional upper bound: either ``(created_at, id)`` for strict cursor
+                pagination in ``(created_at desc, id desc)`` order, or an instant
+                ``created_at`` before which to read.
 
         Returns:
             The notifications, with their deliveries and decisions.
@@ -686,10 +694,19 @@ class NotificationService:
             message = "limit must be at least 1"
             raise ValueError(message)
         with Session(self._engine) as session:
+            statement = select(NotificationRow)
+            if isinstance(before, tuple):
+                before_at, before_id = before
+                statement = statement.where(
+                    (NotificationRow.created_at < before_at)
+                    | ((NotificationRow.created_at == before_at) & (NotificationRow.id < before_id))
+                )
+            elif before is not None:
+                statement = statement.where(NotificationRow.created_at < before)
             rows = session.scalars(
-                select(NotificationRow)
-                .order_by(NotificationRow.created_at.desc(), NotificationRow.id.desc())
-                .limit(limit)
+                statement.order_by(
+                    NotificationRow.created_at.desc(), NotificationRow.id.desc()
+                ).limit(limit)
             ).all()
             results: list[StoredNotification] = []
             for row in rows:

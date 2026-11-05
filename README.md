@@ -223,11 +223,17 @@ to expose a historical replay corpus on `/map`.
 The dashboard refreshes live over Server-Sent Events (`GET /api/events`) without
 reloading the page and provides seven pages:
 
-- **Dashboard (`/`)**: each watched location's current threat level (`1` to `5`,
-  or `At least Level N` when an input was unavailable), deciding rule and
+- **Dashboard (`/`)**: when two or more locations are watched, a location
+  comparison strip above the cards lists every location's level, stepped
+  `LevelSparkline` (`GET /api/charts`), and deciding rule, linking to its card;
+  each watched location's card shows its current threat level (`1` to `5`,
+  or `At least Level N` when an input was unavailable) beside its
+  `LevelSparkline`, deciding rule and
   evidence, recommended actions, covering official products and county-zone
   context alerts, per-storm threats (category, cone status, distance, bearing,
-  closest approach, and 34-kt wind arrival times), 5 km wind-speed probabilities,
+  closest approach, 34-kt wind arrival times, and an SVG `ArrivalTimeline` bar
+  from the assessment's `as_of` to the earliest reasonable and most likely
+  arrival windows), 5 km wind-speed probabilities,
   changes since the previous assessment, the evacuation-order toggle, and a
   `Check now` button (`POST /api/cycles`) to run an on-demand manual cycle.
   Beneath the evidence, each card's **AI briefing** panel shows the stored
@@ -260,7 +266,10 @@ reloading the page and provides seven pages:
 - **Alerts (`/alerts`)**: per-location covering NWS alerts, county-zone context
   alerts, and NHC coastal watch and warning segments.
 - **Timeline (`/timeline`)**: chronological assessment and notification history
-  with a location filter, change events (each with its labeled AI change
+  with a location filter (choosing a location shows its stepped
+  `LevelHistoryChart` and 34/50/64 kt `WindProbabilityChart` bands above the
+  feed via `GET /api/charts`), cursor-based `"Show older"` pagination (`GET
+  /api/timeline?before=`), change events (each with its labeled AI change
   summary when one is stored), and per-channel delivery outcomes (`log`,
   `toast`, `browser`, `ntfy`, including `muted` deliveries).
 - **Ask (`/ask`)**: a grounded chat with Claude beneath the engine's level

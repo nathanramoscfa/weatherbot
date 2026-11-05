@@ -90,6 +90,8 @@ export const queryKeys = {
     location !== undefined
       ? invalidatableQueryKey("timeline", location)
       : invalidatableQueryKey("timeline"),
+  charts: (location: string) =>
+    invalidatableQueryKey("timeline", "charts", location),
   notifications: () => invalidatableQueryKey("notifications"),
   notificationChannels: () =>
     invalidatableQueryKey("notifications", "channels"),

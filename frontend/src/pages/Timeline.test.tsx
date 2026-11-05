@@ -2,11 +2,13 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { createAppQueryClient } from "../main.tsx";
 import { TYPED_SUMMARIES } from "../test/ai.ts";
+import chartsFixture from "../test/fixtures/charts.json";
 import notificationsFixture from "../test/fixtures/notifications.json";
 import timelineFixture from "../test/fixtures/timeline.json";
 import { asSchema, type JsonFixture } from "./format.ts";
@@ -16,6 +18,9 @@ const TYPED_TIMELINE = asSchema<components["schemas"]["TimelineResponse"]>(
   timelineFixture satisfies JsonFixture<
     components["schemas"]["TimelineResponse"]
   >,
+);
+const TYPED_CHARTS = asSchema<components["schemas"]["ChartsResponse"]>(
+  chartsFixture satisfies JsonFixture<components["schemas"]["ChartsResponse"]>,
 );
 const TYPED_NOTIFICATIONS = asSchema<
   components["schemas"]["NotificationsResponse"]
@@ -30,6 +35,15 @@ describe("Timeline", () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
     queryClient.setQueryData(queryKeys.timeline(), TYPED_TIMELINE);
+    queryClient.setQueryData(
+      queryKeys.charts("Miami-Dade County Hall"),
+      TYPED_CHARTS,
+    );
+    queryClient.setQueryData(queryKeys.charts("Parliament Square"), {
+      ...TYPED_CHARTS,
+      location: "Parliament Square",
+      levels: [TYPED_CHARTS.levels[0]!],
+    });
     queryClient.setQueryData(queryKeys.notifications(), TYPED_NOTIFICATIONS);
     queryClient.setQueryData(queryKeys.aiSummaries(), {
       ...TYPED_SUMMARIES,
@@ -66,15 +80,74 @@ describe("Timeline", () => {
 
     expect(screen.getAllByText("Parliament Square").length).toBeGreaterThan(0);
     expect(
+      screen.getByTestId("timeline-location-charts"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("level-history-chart")).toBeInTheDocument();
+    expect(screen.getByTestId("wind-probability-chart")).toBeInTheDocument();
+    expect(
       screen.queryByText(
         "Miami-Dade County Hall: level 4, Warning / Watch / Evacuation",
       ),
     ).not.toBeInTheDocument();
   });
 
+  it("pages older entries through next_before when Show older is clicked", async () => {
+    const user = userEvent.setup();
+    const queryClient = createAppQueryClient();
+    const firstEntry = TYPED_TIMELINE.entries[0]!;
+    const secondEntry = TYPED_TIMELINE.entries[1]!;
+
+    queryClient.setQueryData(queryKeys.timeline(), {
+      ...TYPED_TIMELINE,
+      entries: [firstEntry],
+      next_before: "2026-10-13T01:31:00Z|assessment|3",
+    });
+    queryClient.setQueryData(queryKeys.notifications(), TYPED_NOTIFICATIONS);
+    queryClient.setQueryData(queryKeys.aiSummaries(), {
+      ...TYPED_SUMMARIES,
+      summaries: [],
+    });
+
+    const getSpy = vi.spyOn(apiClient, "GET").mockResolvedValue({
+      data: {
+        ...TYPED_TIMELINE,
+        entries: [secondEntry],
+        next_before: null,
+      },
+      response: new Response(null, { status: 200 }),
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Timeline />
+      </QueryClientProvider>,
+    );
+
+    const showOlderBtn = screen.getByTestId("timeline-show-older");
+    expect(showOlderBtn).toBeInTheDocument();
+    await user.click(showOlderBtn);
+
+    expect(getSpy).toHaveBeenCalledWith("/api/timeline", {
+      params: {
+        query: { before: "2026-10-13T01:31:00Z|assessment|3" },
+      },
+    });
+    expect(screen.queryByTestId("timeline-show-older")).toBeNull();
+    getSpy.mockRestore();
+  });
+
   it("shows each change entry's stored summary, labeled, and a withheld summary's reason", () => {
     const queryClient = createAppQueryClient();
     queryClient.setQueryData(queryKeys.timeline(), TYPED_TIMELINE);
+    queryClient.setQueryData(
+      queryKeys.charts("Miami-Dade County Hall"),
+      TYPED_CHARTS,
+    );
+    queryClient.setQueryData(queryKeys.charts("Parliament Square"), {
+      ...TYPED_CHARTS,
+      location: "Parliament Square",
+      levels: [TYPED_CHARTS.levels[0]!],
+    });
     queryClient.setQueryData(queryKeys.notifications(), TYPED_NOTIFICATIONS);
     const summary = TYPED_SUMMARIES.summaries[0]!;
     queryClient.setQueryData(queryKeys.aiSummaries(), {
