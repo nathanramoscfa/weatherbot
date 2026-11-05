@@ -1,5 +1,14 @@
 {
   "as_of": "2017-09-08T03:00:00Z",
+  "available_layers": [
+    "cone",
+    "track",
+    "points",
+    "watches_warnings",
+    "outlook",
+    "locations",
+    "wind_probabilities"
+  ],
   "location_polygons": {
     "crs": {
       "datum": null,

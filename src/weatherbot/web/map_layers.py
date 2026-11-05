@@ -21,22 +21,28 @@ every request so newly added locations and evacuation-order changes appear immed
 
 from collections import OrderedDict
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Final, cast
+from typing import Final, Literal, cast
 from uuid import UUID
+
+from shapely.geometry import mapping as shapely_mapping
 
 from weatherbot.models import (
     Breakpoint,
     ConeGeometry,
+    DisplayLayer,
     ForecastTrack,
     Geometry,
+    GeometryType,
     Location,
     OutlookArea,
     Snapshot,
     StormProducts,
     TrackPoint,
     WatchWarningSegment,
+    WindProbabilityBand,
+    WindRadii,
 )
 from weatherbot.services.assessments import segment_breakpoint_names
 from weatherbot.services.disclaimer import NOTICE
@@ -46,18 +52,25 @@ from weatherbot.services.persistence.repositories import (
     StoredAssessment,
 )
 from weatherbot.web.schemas import (
+    ALL_MAP_LAYERS,
+    REPLAY_MAP_LAYERS,
+    STORED_ADVISORY_MAP_LAYERS,
     ArrivalProductSummaryResponse,
     DriftWarningResponse,
     GeoJsonCrsResponse,
     GeoJsonFeatureCollectionResponse,
     GeoJsonFeatureResponse,
     GeoJsonGeometryResponse,
+    MapDepthResponse,
+    MapLayerKeyLiteral,
     MapResponse,
     OutlookAreaSummaryResponse,
     SnapshotSummaryResponse,
+    StormMapDepthResponse,
     StormMapLayersResponse,
     StormProductsSummaryResponse,
     StormSummaryResponse,
+    WindProbabilityResponse,
     WindProbabilitySummaryResponse,
 )
 
@@ -65,6 +78,16 @@ MAX_SNAPSHOT_CACHE_SIZE: Final[int] = 8
 ANTIMERIDIAN_HALF_TURN_DEG: Final[float] = 180.0
 FULL_TURN_DEG: Final[float] = 360.0
 DEFAULT_WGS84_CRS: Final = GeoJsonCrsResponse(name="EPSG:4326", datum=None)
+PAST_FEATURE_PROPERTIES: Final[tuple[str, ...]] = (
+    "stormtype",
+    "ss",
+    "intensity",
+    "mslp",
+    "dtg",
+)
+SURGE_LAYER_NAMES: Final[tuple[str, ...]] = ("Polygons", "Lines")
+WIND_PROBABILITY_SIMPLIFY_TOLERANCE_DEG: Final[float] = 0.03
+WIND_PROBABILITY_SIMPLIFY_NOTE: Final[str] = "Simplified for display (tolerance 0.03 deg)"
 
 
 def crs_to_response(geometry: Geometry) -> GeoJsonCrsResponse:
@@ -447,6 +470,313 @@ def build_wind_probability_summaries(
     )
 
 
+def _wind_radii_feature(
+    radii: WindRadii,
+    storm_name: str,
+    *,
+    ref_lon: float | None,
+) -> GeoJsonFeatureResponse:
+    return _feature(
+        radii.geometry,
+        {
+            "atcf_id": radii.atcf_id,
+            "storm_name": storm_name,
+            "advisory": str(radii.advisory),
+            "threshold_kt": radii.threshold_kt,
+            "is_advisory_field": radii.is_advisory_field,
+            "tau_h": radii.tau_h,
+            "valid_at": _iso(radii.valid_at),
+            "synoptic_at": _iso(radii.synoptic_at),
+            "ne_extent_nmi": radii.ne_extent_nmi,
+            "se_extent_nmi": radii.se_extent_nmi,
+            "sw_extent_nmi": radii.sw_extent_nmi,
+            "nw_extent_nmi": radii.nw_extent_nmi,
+        },
+        ref_lon=ref_lon,
+    )
+
+
+def _parse_storm_number(atcf_id: str) -> int | None:
+    if len(atcf_id) < 4:  # noqa: PLR2004
+        return None
+    digits = atcf_id[2:4]
+    return int(digits) if digits.isdigit() else None
+
+
+def _matches_slot_and_stormnum(
+    props: Mapping[str, object],
+    slot: str,
+    storm_num: int,
+) -> bool:
+    raw_bin = props.get("binnumber")
+    if not isinstance(raw_bin, str) or raw_bin.strip().upper() != slot.strip().upper():
+        return False
+    raw_num = props.get("stormnum")
+    if isinstance(raw_num, bool):
+        return False
+    if isinstance(raw_num, int):
+        return raw_num == storm_num
+    if isinstance(raw_num, str) and raw_num.strip().isdigit():
+        return int(raw_num.strip()) == storm_num
+    return False
+
+
+def _raw_geometry_to_response(
+    raw_geom: object,
+    crs: GeoJsonCrsResponse,
+    *,
+    ref_lon: float | None = None,
+) -> GeoJsonGeometryResponse | None:
+    if not isinstance(raw_geom, Mapping):
+        return None
+    geom_map = cast("Mapping[str, object]", raw_geom)
+    geom_type = geom_map.get("type")
+    raw_coords = geom_map.get("coordinates")
+    if not isinstance(geom_type, str) or raw_coords is None:
+        return None
+    coordinates = (
+        unwrap_coordinates(raw_coords, ref_lon)
+        if ref_lon is not None
+        else _json_coordinates(raw_coords)
+    )
+    return GeoJsonGeometryResponse(
+        type=cast("GeometryType", geom_type),
+        coordinates=coordinates,
+        crs=crs,
+    )
+
+
+def _past_display_features(
+    display_layers: Sequence[DisplayLayer],
+    layer_name: str,
+    storm: StormProducts,
+    *,
+    default_crs: GeoJsonCrsResponse,
+) -> GeoJsonFeatureCollectionResponse:
+    slot = storm.summary.slot if storm.summary is not None else None
+    storm_num = _parse_storm_number(storm.atcf_id)
+    if slot is None or storm_num is None:
+        return _feature_collection((), default_crs=default_crs)
+    ref_lon = storm_reference_longitude(storm)
+    features: list[GeoJsonFeatureResponse] = []
+    collection_crs = default_crs
+    for layer in display_layers:
+        if layer.layer_name != layer_name:
+            continue
+        layer_crs = GeoJsonCrsResponse(name=layer.crs.name, datum=layer.crs.datum)
+        collection_crs = layer_crs
+        raw_features = layer.feature_collection.get("features")
+        if not isinstance(raw_features, Sequence):
+            continue
+        for item in raw_features:
+            if not isinstance(item, Mapping):
+                continue
+            feat_map = cast("Mapping[str, object]", item)
+            raw_props = feat_map.get("properties")
+            if not isinstance(raw_props, Mapping):
+                continue
+            props_map = cast("Mapping[str, object]", raw_props)
+            if not _matches_slot_and_stormnum(props_map, slot, storm_num):
+                continue
+            geom_resp = _raw_geometry_to_response(
+                feat_map.get("geometry"),
+                layer_crs,
+                ref_lon=ref_lon,
+            )
+            if geom_resp is None:
+                continue
+            filtered_props = {
+                key: props_map[key] for key in PAST_FEATURE_PROPERTIES if key in props_map
+            }
+            features.append(
+                GeoJsonFeatureResponse(
+                    geometry=geom_resp,
+                    properties=filtered_props,
+                    crs=layer_crs,
+                )
+            )
+    return _feature_collection(features, default_crs=collection_crs)
+
+
+def build_storm_map_depth(
+    storm: StormProducts,
+    display_layers: Sequence[DisplayLayer] = (),
+) -> StormMapDepthResponse:
+    """Build per-storm wind radii, past track, and past points layers."""
+    ref_lon = storm_reference_longitude(storm)
+    storm_name = storm.name
+    radii_features = [_wind_radii_feature(r, storm_name, ref_lon=ref_lon) for r in storm.wind_radii]
+    storm_crs = (
+        radii_features[0].crs
+        if radii_features
+        else (crs_to_response(storm.cone.geometry) if storm.cone is not None else DEFAULT_WGS84_CRS)
+    )
+    past_track = _past_display_features(
+        display_layers,
+        "Past Track",
+        storm,
+        default_crs=storm_crs,
+    )
+    past_points = _past_display_features(
+        display_layers,
+        "Past Points",
+        storm,
+        default_crs=storm_crs,
+    )
+    return StormMapDepthResponse(
+        atcf_id=storm.atcf_id,
+        wind_radii=_feature_collection(radii_features, default_crs=storm_crs),
+        past_track=past_track,
+        past_points=past_points,
+    )
+
+
+def build_peak_surge_layer(
+    display_layers: Sequence[DisplayLayer],
+) -> GeoJsonFeatureCollectionResponse:
+    """Build the ``peak_surge`` collection from ``Polygons`` and ``Lines`` display layers."""
+    features: list[GeoJsonFeatureResponse] = []
+    collection_crs = DEFAULT_WGS84_CRS
+    for layer in display_layers:
+        if layer.layer_name not in SURGE_LAYER_NAMES:
+            continue
+        layer_crs = GeoJsonCrsResponse(name=layer.crs.name, datum=layer.crs.datum)
+        collection_crs = layer_crs
+        raw_features = layer.feature_collection.get("features")
+        if not isinstance(raw_features, Sequence):
+            continue
+        for item in raw_features:
+            if not isinstance(item, Mapping):
+                continue
+            feat_map = cast("Mapping[str, object]", item)
+            raw_props = feat_map.get("properties")
+            props_map: Mapping[str, object] = (
+                cast("Mapping[str, object]", raw_props) if isinstance(raw_props, Mapping) else {}
+            )
+            geom_resp = _raw_geometry_to_response(feat_map.get("geometry"), layer_crs)
+            if geom_resp is None:
+                continue
+            raw_name = props_map.get("name")
+            name_str = str(raw_name) if isinstance(raw_name, (str, int, float)) else ""
+            features.append(
+                GeoJsonFeatureResponse(
+                    geometry=geom_resp,
+                    properties={
+                        "name": name_str,
+                        "layer": layer.layer_name,
+                    },
+                    crs=layer_crs,
+                )
+            )
+    return _feature_collection(features, default_crs=collection_crs)
+
+
+def _compute_map_depth_response(snapshot: Snapshot) -> MapDepthResponse:
+    storms = tuple(
+        build_storm_map_depth(storm, snapshot.display_layers) for storm in snapshot.storms
+    )
+    peak_surge = build_peak_surge_layer(snapshot.display_layers)
+    return MapDepthResponse(
+        snapshot_id=snapshot.snapshot_id,
+        as_of=snapshot.completed_at,
+        storms=storms,
+        peak_surge=peak_surge,
+        notice=NOTICE,
+    )
+
+
+def _simplified_band_feature(
+    band: WindProbabilityBand,
+    threshold_kt: Literal[34, 50, 64],
+) -> GeoJsonFeatureResponse:
+    crs = crs_to_response(band.geometry)
+    shape_obj = band.geometry.to_shapely()
+    simplified = shape_obj.simplify(
+        WIND_PROBABILITY_SIMPLIFY_TOLERANCE_DEG,
+        preserve_topology=True,
+    )
+    if simplified.is_empty or not simplified.is_valid:
+        simplified = shape_obj
+    mapped = cast("Mapping[str, object]", shapely_mapping(simplified))
+    geom_type = cast("GeometryType", str(mapped["type"]))
+    coordinates = _json_coordinates(mapped["coordinates"])
+    note = (
+        f"{band.geometry_note}; {WIND_PROBABILITY_SIMPLIFY_NOTE.lower()}"
+        if band.geometry_note
+        else WIND_PROBABILITY_SIMPLIFY_NOTE
+    )
+    geom_resp = GeoJsonGeometryResponse(
+        type=geom_type,
+        coordinates=coordinates,
+        crs=crs,
+    )
+    return GeoJsonFeatureResponse(
+        geometry=geom_resp,
+        properties={
+            "threshold_kt": threshold_kt,
+            "lower_pct": band.lower_pct,
+            "upper_pct": band.upper_pct,
+            "label": band.label,
+            "geometry_note": note,
+        },
+        crs=crs,
+    )
+
+
+def _compute_wind_probability_response(
+    snapshot: Snapshot,
+    threshold_kt: Literal[34, 50, 64],
+) -> WindProbabilityResponse:
+    product = next(
+        (item for item in snapshot.wind_probabilities if item.threshold_kt == threshold_kt),
+        None,
+    )
+    if product is None:
+        return WindProbabilityResponse(
+            snapshot_id=snapshot.snapshot_id,
+            threshold_kt=threshold_kt,
+            synoptic_at=None,
+            bands=_feature_collection(()),
+            coverage=None,
+            notice=NOTICE,
+        )
+    sorted_bands = sorted(product.bands, key=lambda b: (b.lower_pct, b.upper_pct))
+    band_features = [_simplified_band_feature(band, threshold_kt) for band in sorted_bands]
+    default_crs = band_features[0].crs if band_features else DEFAULT_WGS84_CRS
+    coverage_feature = (
+        _feature(
+            product.coverage,
+            {
+                "kind": "coverage",
+                "threshold_kt": threshold_kt,
+            },
+        )
+        if product.coverage is not None
+        else None
+    )
+    return WindProbabilityResponse(
+        snapshot_id=snapshot.snapshot_id,
+        threshold_kt=threshold_kt,
+        synoptic_at=product.synoptic_at,
+        bands=_feature_collection(band_features, default_crs=default_crs),
+        coverage=coverage_feature,
+        notice=NOTICE,
+    )
+
+
+def available_map_layers(
+    snapshot: Snapshot | None,
+    *,
+    is_historical_advisory: bool = False,
+) -> tuple[MapLayerKeyLiteral, ...]:
+    """Return the ``MapLayerKeyLiteral`` keys supported by ``snapshot``."""
+    if snapshot is not None and snapshot.origin == "replay":
+        return REPLAY_MAP_LAYERS
+    if is_historical_advisory:
+        return STORED_ADVISORY_MAP_LAYERS
+    return ALL_MAP_LAYERS
+
+
 @dataclass(frozen=True)
 class SnapshotMapLayers:
     """Cached per-snapshot GeoJSON layers (excluding per-request watched locations)."""
@@ -459,6 +789,14 @@ class SnapshotMapLayers:
     outlook_areas: GeoJsonFeatureCollectionResponse
 
 
+def _empty_depth_cache() -> list[MapDepthResponse]:
+    return []
+
+
+def _empty_wind_prob_cache() -> dict[Literal[34, 50, 64], WindProbabilityResponse]:
+    return {}
+
+
 @dataclass(frozen=True)
 class CachedSnapshotBundle:
     """Cached snapshot, drift warnings, GeoJSON map layers, and geometry-free storm summaries."""
@@ -469,6 +807,12 @@ class CachedSnapshotBundle:
     storm_summaries: tuple[StormSummaryResponse, ...]
     outlook_summaries: tuple[OutlookAreaSummaryResponse, ...]
     wind_probability_summaries: tuple[WindProbabilitySummaryResponse, ...]
+    _depth_cache: list[MapDepthResponse] = field(
+        default_factory=_empty_depth_cache, repr=False, compare=False
+    )
+    _wind_prob_cache: dict[Literal[34, 50, 64], WindProbabilityResponse] = field(
+        default_factory=_empty_wind_prob_cache, repr=False, compare=False
+    )
 
     def summary(self, now: datetime) -> SnapshotSummaryResponse:
         """Build a ``SnapshotSummaryResponse`` with age computed at ``now``."""
@@ -485,6 +829,20 @@ class CachedSnapshotBundle:
                 for w in self.drift_warnings
             ),
         )
+
+    def depth(self) -> MapDepthResponse:
+        """Return the cached ``MapDepthResponse`` for this snapshot, building it once."""
+        if not self._depth_cache:
+            self._depth_cache.append(_compute_map_depth_response(self.snapshot))
+        return self._depth_cache[0]
+
+    def wind_probabilities(self, threshold_kt: Literal[34, 50, 64]) -> WindProbabilityResponse:
+        """Return the cached ``WindProbabilityResponse`` for ``threshold_kt``."""
+        cached = self._wind_prob_cache.get(threshold_kt)
+        if cached is None:
+            cached = _compute_wind_probability_response(self.snapshot, threshold_kt)
+            self._wind_prob_cache[threshold_kt] = cached
+        return cached
 
 
 def _compute_snapshot_map_layers(snapshot: Snapshot) -> SnapshotMapLayers:
@@ -566,18 +924,23 @@ class SnapshotLayerCache:
         )
         return self.put(bundle)
 
-    def get_or_load(self, repository: SnapshotRepository) -> CachedSnapshotBundle | None:
-        """Return the latest stored snapshot's bundle, loading from SQLite only on cache miss."""
-        snapshot_id = repository.latest_id()
-        if snapshot_id is None:
+    def get_or_load(
+        self,
+        repository: SnapshotRepository,
+        *,
+        snapshot_id: UUID | None = None,
+    ) -> CachedSnapshotBundle | None:
+        """Return the requested (or latest) stored snapshot's bundle via cache."""
+        target_id = snapshot_id if snapshot_id is not None else repository.latest_id()
+        if target_id is None:
             return None
-        cached = self.get(snapshot_id)
+        cached = self.get(target_id)
         if cached is not None:
             return cached
-        snapshot = repository.load(snapshot_id)
+        snapshot = repository.load(target_id)
         if snapshot is None:
             return None
-        warnings = repository.drift_warnings(snapshot_id)
+        warnings = repository.drift_warnings(target_id)
         return self.get_or_build(snapshot, drift_warnings=warnings)
 
 
@@ -587,10 +950,11 @@ SNAPSHOT_CACHE: Final = SnapshotLayerCache(max_size=MAX_SNAPSHOT_CACHE_SIZE)
 def get_cached_snapshot_bundle(
     repository: SnapshotRepository,
     *,
+    snapshot_id: UUID | None = None,
     cache: SnapshotLayerCache = SNAPSHOT_CACHE,
 ) -> CachedSnapshotBundle | None:
-    """Return the latest snapshot's cached bundle through ``cache``."""
-    return cache.get_or_load(repository)
+    """Return the requested (or latest) snapshot's cached bundle through ``cache``."""
+    return cache.get_or_load(repository, snapshot_id=snapshot_id)
 
 
 def build_snapshot_map_layers(
@@ -600,6 +964,42 @@ def build_snapshot_map_layers(
 ) -> SnapshotMapLayers:
     """Build or retrieve cached ``SnapshotMapLayers`` for ``snapshot``."""
     return cache.get_or_build(snapshot).map_layers
+
+
+def build_map_depth_response(
+    snapshot: Snapshot | None,
+    *,
+    cache: SnapshotLayerCache = SNAPSHOT_CACHE,
+) -> MapDepthResponse:
+    """Build or retrieve cached ``MapDepthResponse`` for ``snapshot``."""
+    if snapshot is None:
+        return MapDepthResponse(
+            snapshot_id=None,
+            as_of=None,
+            storms=(),
+            peak_surge=_feature_collection(()),
+            notice=NOTICE,
+        )
+    return cache.get_or_build(snapshot).depth()
+
+
+def build_wind_probability_response(
+    snapshot: Snapshot | None,
+    threshold_kt: Literal[34, 50, 64],
+    *,
+    cache: SnapshotLayerCache = SNAPSHOT_CACHE,
+) -> WindProbabilityResponse:
+    """Build or retrieve cached ``WindProbabilityResponse`` for ``threshold_kt``."""
+    if snapshot is None:
+        return WindProbabilityResponse(
+            snapshot_id=None,
+            threshold_kt=threshold_kt,
+            synoptic_at=None,
+            bands=_feature_collection(()),
+            coverage=None,
+            notice=NOTICE,
+        )
+    return cache.get_or_build(snapshot).wind_probabilities(threshold_kt)
 
 
 def build_locations_layers(
@@ -672,10 +1072,12 @@ def build_map_response(
     locations: Sequence[Location],
     *,
     assessments: Mapping[str, StoredAssessment | None] | None = None,
+    is_historical_advisory: bool = False,
     cache: SnapshotLayerCache = SNAPSHOT_CACHE,
 ) -> MapResponse:
     """Assemble a full ``MapResponse`` from ``snapshot`` (cached) and ``locations`` (fresh)."""
     locations_fc, polygons_fc = build_locations_layers(locations, assessments)
+    available = available_map_layers(snapshot, is_historical_advisory=is_historical_advisory)
     if snapshot is None:
         empty = _feature_collection(())
         return MapResponse(
@@ -683,6 +1085,7 @@ def build_map_response(
             as_of=None,
             status=None,
             origin=None,
+            available_layers=available,
             storms=(),
             outlook_areas=empty,
             locations=locations_fc,
@@ -695,6 +1098,7 @@ def build_map_response(
         as_of=layers.as_of,
         status=snapshot.status,
         origin=snapshot.origin,
+        available_layers=available,
         storms=layers.storms,
         outlook_areas=layers.outlook_areas,
         locations=locations_fc,

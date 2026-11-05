@@ -236,10 +236,22 @@ reloading the page and provides seven pages:
   reason, and a briefing written for an older assessment says so and offers
   `Brief me again`.
 - **Map (`/map`)**: an interactive Leaflet map over OpenStreetMap tiles showing
-  toggleable storm cones, forecast tracks, forecast points, coastal watch and
-  warning segments, Tropical Weather Outlook areas, and watched locations (with
-  each geometry's CRS in its popup), plus the historical storm and advisory
-  replay picker (`not live` banner) when `serve --corpus DIR` is configured.
+  six default-on layers (storm cones, forecast tracks, forecast points, coastal
+  watch and warning segments, Tropical Weather Outlook areas, and watched
+  locations, with each geometry's CRS in its popup) and six off-by-default depth
+  layers fetched only when toggled on: wind radii and past track/points (`GET
+  /api/map/depth`), peak storm surge polygons and lines coloured by surge range,
+  cumulative 120-hour wind-speed probability bands at 34, 50, or 64 kt (`GET
+  /api/map/wind-probabilities`, simplified for display and rendered on a Leaflet
+  canvas), and live NOAA nowCOAST radar (`conus_base_reflectivity_mosaic`) and
+  GOES longwave satellite (`goes_longwave_imagery`) WMS overlays. When more than
+  one stored advisory exists (`GET /api/map/advisories`), an advisory slider
+  steps through stored past advisories (`GET /api/map?snapshot_id=`) with a
+  `"Stored advisory: … — not the latest"` banner and `"Back to latest"`; when
+  `serve --corpus DIR` is configured, the historical storm and advisory replay
+  picker (`not live` banner) renders replayed advisories and their landmark
+  wind-probability windows (`GET
+  /api/replay/{atcf_id}/{advisory}/wind-probabilities`).
 - **Storms (`/storms`)**: active cyclones and their advisories, graphical
   Tropical Weather Outlook areas with NHC's six official outlook graphics from
   the stored snapshot (and, with `[ai] outlook_narration` on, an

@@ -88,6 +88,12 @@ from simulate_advisory import (  # noqa: E402
     hurricane_warning_response,
     next_advisory_roster,
 )
+from synthetic_surge import (  # noqa: E402
+    PEAK_SURGE_LINES_URL,
+    PEAK_SURGE_POLYGONS_URL,
+    synthetic_surge_lines_response,
+    synthetic_surge_polygons_response,
+)
 from weatherbot.cli.runtime import EXIT_OK, Context  # noqa: E402
 from weatherbot.cli.serve import _loop  # noqa: E402  # pyright: ignore[reportPrivateUsage]
 from weatherbot.services.config import AppPaths, Settings, load_settings  # noqa: E402
@@ -522,6 +528,10 @@ def main(argv: list[str] | None = None) -> int:
             with recorded_services() as router:
                 router.get(ROSTER_URL).mock(side_effect=_roster_side_effect)
                 router.get(FORECAST_ALERTS_URL).mock(side_effect=_alerts_side_effect)
+                router.get(PEAK_SURGE_POLYGONS_URL).mock(
+                    return_value=synthetic_surge_polygons_response()
+                )
+                router.get(PEAK_SURGE_LINES_URL).mock(return_value=synthetic_surge_lines_response())
 
                 ran_miami = add_landmark(SIMULATED_MIAMI, "miami-dade", "--polygon", "forecast")
                 if ran_miami.exit_code != EXIT_OK:

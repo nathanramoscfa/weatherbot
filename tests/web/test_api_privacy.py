@@ -116,8 +116,12 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
             "/api/retention",
             "/api/disclaimer",
             "/api/map",
+            "/api/map/advisories",
+            "/api/map/depth",
+            "/api/map/wind-probabilities?threshold_kt=34",
             "/api/replay",
             "/api/replay/AL112017/026A",
+            "/api/replay/AL112017/026A/wind-probabilities?threshold_kt=34",
         )
 
         async def _fetch_all() -> dict[str, httpx.Response]:
@@ -150,6 +154,15 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
         stripped_text = json.dumps(stripped)
         assert not _leaks_coordinate(stripped_text, coordinates), map_url
 
+    # The new map depth, advisories, and wind-probability routes carry no location coordinates.
+    for map_sub_url in (
+        "/api/map/advisories",
+        "/api/map/depth",
+        "/api/map/wind-probabilities?threshold_kt=34",
+        "/api/replay/AL112017/026A/wind-probabilities?threshold_kt=34",
+    ):
+        assert not _leaks_coordinate(responses[map_sub_url].text, coordinates), map_sub_url
+
     # Every other read route holds no coordinate rendering and no 3+-decimal coordinate.
     non_coordinate_routes = (
         "/api/health",
@@ -162,6 +175,7 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
         "/api/settings",
         "/api/retention",
         "/api/disclaimer",
+        "/api/map/advisories",
         "/api/replay",
     )
     for url in non_coordinate_routes:

@@ -8,6 +8,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 7 — Depth
+- Add map depth layers, wind-speed probability bands, nowCOAST radar and
+  satellite WMS overlays, and the stored advisory slider (Phase 7 Step 5):
+  - Vector depth and wind-probability routes (`weatherbot.web.map_layers`,
+    `weatherbot.web.routes.map`, `weatherbot.web.routes.replay`,
+    `weatherbot.web.schemas`): add `MapResponse.available_layers`
+    (`ALL_MAP_LAYERS`, `STORED_ADVISORY_MAP_LAYERS`, and `REPLAY_MAP_LAYERS`,
+    keeping `/api/map`'s recorded payload growth under 1 KB), `GET
+    /api/map/depth?snapshot_id=` returning `MapDepthResponse` (`wind_radii`,
+    `past_track`, and `past_points` matched by `binnumber == summary.slot` and
+    `stormnum == int(atcf_id[2:4])`, antimeridian-unwrapped, with raw `lat` and
+    `lon` stripped from `Past Points`, plus `peak_surge` `Polygons` and `Lines`
+    reduced to `name` and `layer`), and `GET
+    /api/map/wind-probabilities?threshold_kt=34|50|64&snapshot_id=` alongside
+    `GET /api/replay/{atcf_id}/{advisory}/wind-probabilities?threshold_kt=34|50|64`
+    returning `WindProbabilityResponse` (bands ordered ascending by `lower_pct`,
+    simplified with `shapely.simplify(0.03, preserve_topology=True)` and noted in
+    `geometry_note` so the recorded 34-kt payload drops from 565 KB to 232 KB,
+    well under the 400 KB budget, plus the replay window `coverage` polygon).
+  - Stored advisory history (`SnapshotRepository.advisory_steps`,
+    `AssessmentRepository.for_snapshot`, `GET /api/map/advisories`, and `GET
+    /api/map?snapshot_id=`): deduplicate stored snapshots by `(atcf_id,
+    advisory)` newest first from `storm_observations` without decoding product
+    geometry, serve historical snapshots through the 8-entry
+    `SnapshotLayerCache` with each location's assessment at that snapshot, and
+    return a generic 404 on unknown `snapshot_id`.
+  - Frontend map layers, WMS overlays, and `AdvisorySlider`
+    (`frontend/src/map/layers.ts`, `useLeafletMap.ts`, `AdvisorySlider.tsx`,
+    `MapView.tsx`, and `weatherbot.web.guards.CSP_SUFFIX`): add six
+    off-by-default layer toggles (`wind_radii`, `past_track`, `peak_surge`,
+    `wind_probabilities` with a `34 kt` / `50 kt` / `64 kt` radio selector on a
+    shared `L.canvas()` renderer, and browser-loaded NOAA nowCOAST `radar` and
+    `satellite` `L.tileLayer.wms` overlays with `https://nowcoast.noaa.gov` added
+    to `img-src`), colour tables and legend swatches before `locations`,
+    `textContent`-only popups, disabled-toggle explanations on replay (`"not in
+    this corpus"`) and stored advisories (`"live only"`), `AdvisorySlider` with
+    commit-on-release and `"Back to latest"`, the labelled two-decimal synthetic
+    surge fixture (`scripts/synthetic_surge.py`) wired into `scripts/serve_demo.py`,
+    the live OpenStreetMap loopback `Referer` test
+    (`tests/live/test_osm_referer_live.py`), and issue #95 recording the
+    conditional OpenStreetMap caching tile-proxy design in `docs/DATA_SOURCES.md`.
 - Add settings editing and database history retention (Phase 7 Step 4):
   - Comment-preserving TOML writer (`weatherbot.services.settings_file`, the
     only importer of `tomlkit==0.15.2`): `EDITABLE` allowlist of 12

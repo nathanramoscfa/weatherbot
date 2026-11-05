@@ -34,6 +34,17 @@ Amended again 2026-11-04, live, for Phase 7 Step 2: the `nws-points`,
 `cwa` codes under [Points](#points) (issue #87), optional `state` and `coastal`
 zone types under [Zones](#zones), and Nominatim forward search under
 [OpenStreetMap: basemap and geocoding](#openstreetmap-basemap-and-geocoding).
+Amended again 2026-11-04, for Phase 7 Step 5: the `nhc-map-peak-surge`,
+`nhc-map-surge-risk`, `basemap-osm-tiles`, `overlay-radar`, and
+`overlay-satellite` rows and their sections
+([`tropical/NHC_PeakStormSurge`](#tropicalnhc_peakstormsurge),
+[`tropical/StormSurgeRisk`](#tropicalstormsurgerisk), [Overlays](#overlays),
+and [OpenStreetMap: basemap and geocoding](#openstreetmap-basemap-and-geocoding)),
+including peak-surge drawing from `name` and its first-capture rule,
+`StormSurgeRisk` not drawn, browser-loaded nowCOAST WMS overlays off by default
+with the Iowa Environmental Mesonet as a documented fallback, and the
+conditional OpenStreetMap caching tile-proxy design in issue
+[#95](https://github.com/nathanramoscfa/weatherbot/issues/95).
 Every other statement keeps 2026-10-12, or the date its own amendment names.
 
 ## Purpose
@@ -139,8 +150,8 @@ response headers on an allowlist (never `set-cookie`).
 | `nhc-map-tropical-weather` | MapServer `tropical/NHC_tropical_weather` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | Per advisory for storm slots, per outlook for the outlook layers, per synoptic time (6 h) for probabilistic winds; queries `max-age=0,must-revalidate` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-map-tropical-summary` | MapServer `tropical/NHC_tropical_weather_summary` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather_summary/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | As `nhc-map-tropical-weather` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
 | `nhc-map-breakpoints` | MapServers `NHC_Breakpoints`, `NHC_PeakStormSurge`, `StormSurgeRisk` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_Breakpoints/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | Static catalogue; loaded 2026-04-30 | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
-| `nhc-map-peak-surge` | MapServers `NHC_Breakpoints`, `NHC_PeakStormSurge`, `StormSurgeRisk` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_PeakStormSurge/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | Per advisory when NHC issues a peak-surge forecast; empty otherwise | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
-| `nhc-map-surge-risk` | MapServers `NHC_Breakpoints`, `NHC_PeakStormSurge`, `StormSurgeRisk` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/StormSurgeRisk/MapServer` | ArcGIS JSON catalog; PNG from `export` | `required` | Static hazard maps | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
+| `nhc-map-peak-surge` | MapServers `NHC_Breakpoints`, `NHC_PeakStormSurge`, `StormSurgeRisk` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_PeakStormSurge/MapServer` | ArcGIS JSON catalog; GeoJSON queries | `required` | Per advisory when NHC issues a peak-surge forecast; empty otherwise | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-11-04 |
+| `nhc-map-surge-risk` | MapServers `NHC_Breakpoints`, `NHC_PeakStormSurge`, `StormSurgeRisk` | `https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/StormSurgeRisk/MapServer` | ArcGIS JSON catalog (not drawn; catalog read by `doctor` only) | `required` | Static hazard maps (not drawn in 2.0) | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-11-04 |
 | `nhc-gis-rss` | NHC GIS archive and `gis-at.xml` | `https://www.nhc.noaa.gov/gis-{at,ep,cp}.xml` | RSS 2.0 XML | `required` | Items per advisory; feed rewritten periodically; `max-age=300`, `ETag`, `Last-Modified` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-gis-archive` | NHC GIS archive and `gis-at.xml` | `https://www.nhc.noaa.gov/gis/archive_forecast.php?year={yyyy}` | HTML listings; ZIP (shapefiles), KMZ, KML | `replay-corpus` | Static per season | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
 | `nhc-text-products` | NHC text products (TCP, TWO) | `https://api.weather.gov/products/types/{TCP,TWO}/locations/{location}` | JSON-LD (`application/ld+json`) | `required` | TCP per advisory; TWO four times a day; `max-age=120` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-12 |
@@ -149,9 +160,9 @@ response headers on an allowlist (never `set-cookie`).
 | `nws-alerts-point` | NWS API | `https://api.weather.gov/alerts/active?point={lat},{lon}` | GeoJSON (`application/geo+json`); `application/problem+json` on error | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
 | `nws-alerts-zone` | NWS API | `https://api.weather.gov/alerts/active/zone/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Any time; `max-age=5` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-10-23 |
 | `nws-zones` | NWS API | `https://api.weather.gov/zones/{type}/{zoneId}` | GeoJSON (`application/geo+json`) | `required` | Static (zones effective 2026-04-16); `max-age` of weeks, `Last-Modified` | Public domain ([NWS disclaimer](https://www.weather.gov/disclaimer)) | 2026-11-04 |
-| `basemap-osm-tiles` | OpenStreetMap tiles | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | PNG tiles | `none — display-only: the browser loads tiles directly and the code never parses one; the OSMF tile policy forbids bulk download` | Cached per the tile's own headers (`max-age` of days) | [OSMF Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/); visible attribution required | 2026-10-27 |
-| `overlay-radar` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/weather_radar/ows` | WMS 1.3.0 capabilities XML; PNG tiles | `required` | Mosaic about every 4 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE` | 2026-10-12 |
-| `overlay-satellite` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/satellite/ows` | WMS 1.3.0 capabilities XML; PNG tiles | `required` | GOES composites every 5 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE` | 2026-10-12 |
+| `basemap-osm-tiles` | OpenStreetMap tiles | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | PNG tiles | `none — display-only: the browser loads tiles directly and the code never parses one; the OSMF tile policy forbids bulk download` | Cached per the tile's own headers (`max-age` of days) | [OSMF Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/); visible attribution required | 2026-11-04 |
+| `overlay-radar` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/weather_radar/ows` | WMS 1.3.0 capabilities XML; PNG tiles (browser-loaded when toggled on, off by default) | `required` | Mosaic about every 4 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE`; attribution `NOAA nowCOAST` | 2026-11-04 |
+| `overlay-satellite` | NOAA or Iowa Environmental Mesonet radar and GOES WMS layers | `https://nowcoast.noaa.gov/geoserver/satellite/ows` | WMS 1.3.0 capabilities XML; PNG tiles (browser-loaded when toggled on, off by default) | `required` | GOES composites every 5 min; tiles `max-age=240` | Public domain (NOAA); WMS `Fees` and `AccessConstraints` read `NONE`; attribution `NOAA nowCOAST` | 2026-11-04 |
 | `geocode-nominatim` | Nominatim reverse and forward geocoding | `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lon}` and `https://nominatim.openstreetmap.org/search?q={q}&format=jsonv2&addressdetails=1&limit=5` | JSON | `required` | Once per location at setup (reverse cached for good; forward search cached in memory for 24 h); at most 1 request per second | [OSMF Nominatim Usage Policy](https://operations.osmfoundation.org/policies/nominatim/); © OpenStreetMap contributors, ODbL 1.0 | 2026-11-04 |
 
 The `required` overlay rows record each WMS capabilities document, which
@@ -512,34 +523,40 @@ catalogue's load date.
 
 ### `tropical/NHC_PeakStormSurge`
 
-`nhc-map-peak-surge`. The peak storm-surge forecast. All three layers
-were empty on the verification date, matching the roster's `null`
-`peakSurgeKML` for Simon. The archived Milton forecast
-(`AL142024_PeakStormSurge_008adv.kml`, read on 2026-10-12) holds folders
-`Polygons`, `Lines`, `Breakpoints`, `Line Labels`, and `Polygon Labels`.
+`nhc-map-peak-surge` (amended 2026-11-04). The peak storm-surge forecast. All
+three layers were empty on 2026-10-12 and again on 2026-11-03, matching the
+roster's `null` `peakSurgeKML` for Simon. The archived Milton forecast
+(`AL142024_PeakStormSurge_008adv.kml`, read on 2026-10-12 and 2026-11-03) holds
+folders `Polygons`, `Lines`, `Breakpoints`, `Line Labels`, and `Polygon Labels`.
 Placemark names read `<segment>...<range>` (`Tampa Bay...8-12 ft`), and
-descriptions are JSON with `peak_surge_range` and `color`. How the
-service's `name` and `popupinfo` fields carry these stays open until a
-live capture has features. The recorder records the catalog and all three
-layers, empty or not.
+descriptions are JSON with `peak_surge_range` and `color`. `GET /api/map/depth`
+passes through the `Polygons` and `Lines` display layers with only their `name`
+and geometry (`layer` `"Polygons"` or `"Lines"`), and `/map` colours each
+feature by the range after `...` through a fixed table (showing any
+unrecognized range in a neutral colour with its literal text). Until a live
+storm populates the service, unit tests and the offline demonstration server
+(`scripts/synthetic_surge.py`) exercise that path with a labelled synthetic
+two-decimal fixture built in code; the first live capture with features
+re-records under Source drift and replaces the synthetic fixture. The recorder
+records the catalog and all three layers, empty or not.
 
 | Layer name | Geometry | Fields present | Fields v2 uses | Notes |
 | --- | --- | --- | --- | --- |
-| `Points` | point | `idp_source`, `idp_subset`, `idp_filedate`, `idp_ingestdate`, `objectid`, `name`, `folderpath`, `symbolid`, `altmode`, `base`, `snippet`, `popupinfo`, `haslabel`, `labelid`, `shape` | — | No features on 2026-10-12; fields are set at the first capture with features. |
-| `Lines` | polyline | `objectid`, `name`, `folderpath`, `symbolid`, `altmode`, `base`, `clamped`, `extruded`, `snippet`, `popupinfo`, `shape`, `idp_source`, `idp_subset`, `idp_filedate`, `idp_ingestdate`, `st_length(shape)`, `shape_leng` | — | No features on 2026-10-12; fields are set at the first capture with features. |
-| `Polygons` | polygon | `objectid`, `name`, `folderpath`, `symbolid`, `altmode`, `base`, `clamped`, `extruded`, `snippet`, `popupinfo`, `shape`, `idp_source`, `idp_subset`, `idp_filedate`, `idp_ingestdate`, `st_area(shape)`, `st_perimeter(shape)`, `shape_leng` | — | No features on 2026-10-12; fields are set at the first capture with features. |
+| `Points` | point | `idp_source`, `idp_subset`, `idp_filedate`, `idp_ingestdate`, `objectid`, `name`, `folderpath`, `symbolid`, `altmode`, `base`, `snippet`, `popupinfo`, `haslabel`, `labelid`, `shape` | — | Not drawn in 2.0; no features on 2026-10-12. |
+| `Lines` | polyline | `objectid`, `name`, `folderpath`, `symbolid`, `altmode`, `base`, `clamped`, `extruded`, `snippet`, `popupinfo`, `shape`, `idp_source`, `idp_subset`, `idp_filedate`, `idp_ingestdate`, `st_length(shape)`, `shape_leng` | `name` | Drawn on `/map` from `name` (`<segment>...<range>`); first live capture with features replaces the synthetic test fixture under Source drift. |
+| `Polygons` | polygon | `objectid`, `name`, `folderpath`, `symbolid`, `altmode`, `base`, `clamped`, `extruded`, `snippet`, `popupinfo`, `shape`, `idp_source`, `idp_subset`, `idp_filedate`, `idp_ingestdate`, `st_area(shape)`, `st_perimeter(shape)`, `shape_leng` | `name` | Drawn on `/map` from `name` (`<segment>...<range>`); first live capture with features replaces the synthetic test fixture under Source drift. |
 
 ### `tropical/StormSurgeRisk`
 
-`nhc-map-surge-risk`. National storm-surge hazard rasters by category,
-static. Names repeat in every region (`Category 1`, `Boundary`), so each
-layer is named here by its group path, with segments separated by ` / `.
+`nhc-map-surge-risk` (amended 2026-11-04). National storm-surge hazard rasters
+by category, static. Names repeat in every region (`Category 1`, `Boundary`), so
+each layer is named here by its group path, with segments separated by ` / `.
 `{n}` stands for each category in its region's row. NOAA spells the region
 `Hispanola`. No region covers the Bahamas.
 
-v2 draws `Atlantic / US East and Gulf Coast / Category {n} / Image` for US
-Atlantic and Gulf locations through `export`. It queries no layer here,
-and the recorder records only this service's catalog.
+v2 does not draw `StormSurgeRisk`: the map draws peak storm surge from
+`NHC_PeakStormSurge` instead, it queries no layer here, and only `doctor` and
+the recorder read this service's catalog.
 
 | Layer name | Geometry | Fields present | Fields v2 uses | Notes |
 | --- | --- | --- | --- | --- |
@@ -548,7 +565,7 @@ and the recorder records only this service's catalog.
 | `Atlantic / US East and Gulf Coast / Category {n}` | mosaic | — | — | |
 | `Atlantic / US East and Gulf Coast / Category {n} / Boundary` | polygon | `OBJECTID`, `Shape`, `Shape_Length`, `Shape_Area` | — | Mosaic boundary. |
 | `Atlantic / US East and Gulf Coast / Category {n} / Footprint` | polygon | `OBJECTID`, `Shape`, `Raster`, `Name`, `MinPS`, `MaxPS`, `LowPS`, `HighPS`, `Category`, `Tag`, `GroupName`, `ProductName`, `CenterX`, `CenterY`, `ZOrder`, `TypeID`, `ItemTS`, `UriHash`, `Uri`, `Shape_Length`, `Shape_Area` | — | Mosaic footprints. |
-| `Atlantic / US East and Gulf Coast / Category {n} / Image` | raster | — | — | Rendered with `export`. |
+| `Atlantic / US East and Gulf Coast / Category {n} / Image` | raster | — | — | Not drawn in 2.0; catalog checked by `doctor` only. |
 | `Atlantic / Puerto Rico and USVI` | group | — | — | Categories 1–5. |
 | `Atlantic / Puerto Rico and USVI / Category {n}` | mosaic | — | — | |
 | `Atlantic / Puerto Rico and USVI / Category {n} / Boundary` | polygon | `OBJECTID`, `Shape`, `Shape_Length`, `Shape_Area` | — | Mosaic boundary. |
@@ -1067,21 +1084,35 @@ failure alarm after verification and tests have passed.
 
 ## Overlays
 
-Both overlays come from NOAA's nowCOAST, so the Iowa Environmental
-Mesonet is the fallback. Each is a WMS 1.3.0 service whose capabilities
-read `Fees` `NONE` and `AccessConstraints` `NONE`. A 256×256 `GetMap`
-(`crs=EPSG:3857`, `format=image/png`, `transparent=true`) over the
-Miami-Dade landmark's zoom-5 tile returned a PNG for every layer below,
-with `Cache-Control: max-age=240, public`. Each layer has a `time`
-dimension whose default is the latest image.
+Both overlays come from NOAA's nowCOAST (amended 2026-11-04). Each is a WMS
+1.3.0 service whose capabilities read `Fees` `NONE` and `AccessConstraints`
+`NONE` (public domain). A 256×256 `GetMap` (`crs=EPSG:3857`, `format=image/png`,
+`transparent=true`) over the Miami-Dade landmark's zoom-5 tile returned a PNG
+for every layer below on 2026-10-12 and again on 2026-11-03, with
+`Cache-Control: max-age=240, public`. Each layer has a `time` dimension whose
+default is the latest image.
+
+On `/map` (`frontend/src/map/layers.ts` and `frontend/src/map/useLeafletMap.ts`),
+both overlays are **off by default** and loaded directly in the browser via
+`L.tileLayer.wms` (`format: "image/png"`, `transparent: true`,
+`version: "1.3.0"`, `opacity: 0.6`, `attribution: "NOAA nowCOAST"`) only while
+toggled on (removing the layer on toggle off, with no polling timer; `img-src`
+in `weatherbot.web.guards.CSP_SUFFIX` allows `https://nowcoast.noaa.gov`). When
+enabled, the legend shows the attribution `NOAA nowCOAST`, a note that an image
+can be several minutes old (`~4–5 min`), and `"Radar unavailable"` or
+`"Satellite unavailable"` on `tileerror`. Because today's imagery must not sit
+over a past storm, both overlays are disabled (`"live only"`) when viewing a
+replay or a stored past advisory.
 
 | Source id | Service | Layer | Content | Cadence |
 | --- | --- | --- | --- | --- |
 | `overlay-radar` | `https://nowcoast.noaa.gov/geoserver/weather_radar/ows` | `conus_base_reflectivity_mosaic` (style `weather_radar_base_reflectivity`) | MRMS base-reflectivity mosaic, 1 km. The layer's extent covers both landmarks. | "updated approximately every 4 minutes"; image times were 3–4 min apart |
-| `overlay-satellite` | `https://nowcoast.noaa.gov/geoserver/satellite/ows` | `goes_longwave_imagery` (day and night), `goes_visible_imagery` (daylight) | GOES-East and GOES-West composites | "updated with new GOES-EAST and GOES-WEST composite images every 5 minutes" |
+| `overlay-satellite` | `https://nowcoast.noaa.gov/geoserver/satellite/ows` | `goes_longwave_imagery` (day and night; drawn by `/map`), `goes_visible_imagery` (daylight) | GOES-East and GOES-West composites | "updated with new GOES-EAST and GOES-WEST composite images every 5 minutes" |
 
-The fallback is the Iowa Environmental Mesonet. Its capabilities were
-read on 2026-10-12, but no `GetMap` was sent:
+The Iowa Environmental Mesonet is a documented fallback only and is **not
+wired** in code (wiring a second host would require a second `img-src` CSP
+entry for a failure that has not occurred). Its capabilities were read on
+2026-10-12 (and a sample tile answered 200 on 2026-11-03):
 
 - radar: `https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0q.cgi`,
   layer `nexrad-n0q-900913`;
@@ -1093,7 +1124,7 @@ its materials in the public domain and appreciates attribution.
 
 ## OpenStreetMap: basemap and geocoding
 
-- **Tiles** (`basemap-osm-tiles`, amended 2026-10-27):
+- **Tiles** (`basemap-osm-tiles`, amended 2026-10-27 and 2026-11-04):
   `https://tile.openstreetmap.org/{z}/{x}/{y}.png`. One tile (`0/0/0`)
   returned 200 with `max-age=528077, stale-while-revalidate=604800` and an
   `ETag`. The
@@ -1110,9 +1141,15 @@ its materials in the public domain and appreciates attribution.
   visible attribution `"© OpenStreetMap contributors"` linking to
   `https://www.openstreetmap.org/copyright` (never behind a toggle or covered
   at phone width), never prefetches tiles or sets `keepBuffer` above Leaflet's
-  default, and relies on browser caching. Loopback `Referer` acceptance on
-  `tile.openstreetmap.org` is unproven outside the operator's browser; Phase 7's
-  server-side caching tile proxy is the fallback if tiles ever return `403` or
+  default, and relies on browser caching. `tests/live/test_osm_referer_live.py`
+  (`pytest -m live`) requests a single tile (`3/2/3.png`) with
+  `Referer: http://127.0.0.1:8765/` and `weatherbot.sources.USER_AGENT` (verified
+  200 OK on 2026-11-03 and 2026-11-04). Because the OSMF policy advises against
+  running a caching proxy unless needed, the server-side caching tile proxy
+  stays unbuilt; issue
+  [#95](https://github.com/nathanramoscfa/weatherbot/issues/95) holds its
+  conditional design (upstream policy headers honoured, 7-day disk cache,
+  contactable User-Agent) if `tile.openstreetmap.org` ever returns `403` or
   `418`.
 - **Reverse geocoding** (`geocode-nominatim`):
   `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lon}`.

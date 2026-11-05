@@ -432,8 +432,27 @@
     "/api/map": {
       "get": {
         "summary": "Get Map",
-        "description": "Return GeoJSON map layers for the latest stored snapshot and watched locations.",
+        "description": "Return GeoJSON map layers for the requested (or latest) stored snapshot and locations.",
         "operationId": "get_map_api_map_get",
+        "parameters": [
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -441,6 +460,170 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/map/depth": {
+      "get": {
+        "summary": "Get Map Depth",
+        "description": "Return wind radii, past track, past points, and peak surge for the requested snapshot.",
+        "operationId": "get_map_depth_api_map_depth_get",
+        "parameters": [
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapDepthResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/map/wind-probabilities": {
+      "get": {
+        "summary": "Get Map Wind Probabilities",
+        "description": "Return cumulative 120-hour wind probability bands for one threshold and snapshot.",
+        "operationId": "get_map_wind_probabilities_api_map_wind_probabilities_get",
+        "parameters": [
+          {
+            "name": "threshold_kt",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                34,
+                50,
+                64
+              ],
+              "type": "integer",
+              "default": 34,
+              "title": "Threshold Kt"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WindProbabilityResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/map/advisories": {
+      "get": {
+        "summary": "Get Map Advisories",
+        "description": "Return the newest stored snapshot per storm and advisory, newest first.",
+        "operationId": "get_map_advisories_api_map_advisories_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 96,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapAdvisoriesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -499,6 +682,70 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/replay/{atcf_id}/{advisory}/wind-probabilities": {
+      "get": {
+        "summary": "Get Replay Advisory Wind Probabilities",
+        "description": "Build cumulative 120-hour wind probability bands for one replayed advisory.",
+        "operationId": "get_replay_advisory_wind_probabilities_api_replay__atcf_id___advisory__wind_probabilities_get",
+        "parameters": [
+          {
+            "name": "atcf_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Atcf Id"
+            }
+          },
+          {
+            "name": "advisory",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Advisory"
+            }
+          },
+          {
+            "name": "threshold_kt",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                34,
+                50,
+                64
+              ],
+              "type": "integer",
+              "default": 34,
+              "title": "Threshold Kt"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WindProbabilityResponse"
                 }
               }
             }
@@ -1396,6 +1643,67 @@
   },
   "components": {
     "schemas": {
+      "AdvisoryStepResponse": {
+        "properties": {
+          "snapshot_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "description": "Newest stored snapshot identifier that carried this storm and advisory."
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of",
+            "description": "UTC completion instant of that snapshot."
+          },
+          "atcf_id": {
+            "type": "string",
+            "title": "Atcf Id",
+            "description": "Storm ATCF identifier."
+          },
+          "storm_name": {
+            "type": "string",
+            "title": "Storm Name",
+            "description": "Storm name."
+          },
+          "classification": {
+            "type": "string",
+            "title": "Classification",
+            "description": "Storm classification code."
+          },
+          "advisory": {
+            "type": "string",
+            "title": "Advisory",
+            "description": "Advisory number, such as 22A."
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At",
+            "description": "UTC issuance instant of the public advisory, or null."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "as_of",
+          "atcf_id",
+          "storm_name",
+          "classification",
+          "advisory"
+        ],
+        "title": "AdvisoryStepResponse",
+        "description": "One stored storm advisory step returned by ``GET /api/map/advisories``."
+      },
       "AiAreaResponse": {
         "properties": {
           "description": {
@@ -4716,6 +5024,114 @@
         "title": "LocationsResponse",
         "description": "Response document for ``GET /api/locations``."
       },
+      "MapAdvisoriesResponse": {
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Maximum number of advisory steps requested."
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/AdvisoryStepResponse"
+            },
+            "type": "array",
+            "title": "Steps",
+            "description": "Stored storm advisory steps ordered newest snapshot first."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "limit",
+          "steps",
+          "notice"
+        ],
+        "title": "MapAdvisoriesResponse",
+        "description": "Response document for ``GET /api/map/advisories``."
+      },
+      "MapDepthResponse": {
+        "properties": {
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id",
+            "description": "Identifier of the rendered snapshot, or null when no snapshot is stored."
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of",
+            "description": "UTC completion instant of the snapshot, or null."
+          },
+          "storms": {
+            "items": {
+              "$ref": "#/components/schemas/StormMapDepthResponse"
+            },
+            "type": "array",
+            "title": "Storms",
+            "description": "Per-storm wind radii, past track, and past points layers."
+          },
+          "peak_surge": {
+            "$ref": "#/components/schemas/GeoJsonFeatureCollectionResponse",
+            "description": "Peak storm surge Polygons and Lines display features reduced to name and layer."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "as_of",
+          "storms",
+          "peak_surge",
+          "notice"
+        ],
+        "title": "MapDepthResponse",
+        "description": "Response document for ``GET /api/map/depth``."
+      },
+      "MapLayerKeyLiteral": {
+        "type": "string",
+        "enum": [
+          "cone",
+          "track",
+          "points",
+          "watches_warnings",
+          "outlook",
+          "locations",
+          "wind_radii",
+          "past_track",
+          "peak_surge",
+          "wind_probabilities",
+          "radar",
+          "satellite"
+        ]
+      },
       "MapResponse": {
         "properties": {
           "snapshot_id": {
@@ -4776,6 +5192,28 @@
             ],
             "title": "Origin",
             "description": "Whether the map payload comes from a live snapshot or a replay advisory."
+          },
+          "available_layers": {
+            "items": {
+              "$ref": "#/components/schemas/MapLayerKeyLiteral"
+            },
+            "type": "array",
+            "title": "Available Layers",
+            "description": "Map layer keys supported by this payload (live latest, stored advisory, or replay).",
+            "default": [
+              "cone",
+              "track",
+              "points",
+              "watches_warnings",
+              "outlook",
+              "locations",
+              "wind_radii",
+              "past_track",
+              "peak_surge",
+              "wind_probabilities",
+              "radar",
+              "satellite"
+            ]
           },
           "storms": {
             "items": {
@@ -7376,6 +7814,37 @@
         "title": "StormClassificationCode",
         "description": "Storm classifications, from NHC's Tropical Cyclone Status JSON File Reference."
       },
+      "StormMapDepthResponse": {
+        "properties": {
+          "atcf_id": {
+            "type": "string",
+            "title": "Atcf Id",
+            "description": "Storm ATCF identifier."
+          },
+          "wind_radii": {
+            "$ref": "#/components/schemas/GeoJsonFeatureCollectionResponse",
+            "description": "Forecast and advisory wind radii polygons (antimeridian-unwrapped)."
+          },
+          "past_track": {
+            "$ref": "#/components/schemas/GeoJsonFeatureCollectionResponse",
+            "description": "Past track LineString/MultiLineString features (antimeridian-unwrapped)."
+          },
+          "past_points": {
+            "$ref": "#/components/schemas/GeoJsonFeatureCollectionResponse",
+            "description": "Past track Point features without raw lat/lon attributes (antimeridian-unwrapped)."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "atcf_id",
+          "wind_radii",
+          "past_track",
+          "past_points"
+        ],
+        "title": "StormMapDepthResponse",
+        "description": "Per-storm vector depth layers (wind radii, past track, and past points)."
+      },
       "StormMapLayersResponse": {
         "properties": {
           "atcf_id": {
@@ -8971,6 +9440,77 @@
         ],
         "title": "WatchWarningType",
         "description": "A watch-warning segment's ``tcww``."
+      },
+      "WindProbabilityResponse": {
+        "properties": {
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id",
+            "description": "Identifier of the rendered snapshot, or null when no snapshot is stored."
+          },
+          "threshold_kt": {
+            "type": "integer",
+            "enum": [
+              34,
+              50,
+              64
+            ],
+            "title": "Threshold Kt",
+            "description": "Sustained wind-speed threshold in knots (34, 50, or 64)."
+          },
+          "synoptic_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Synoptic At",
+            "description": "UTC synoptic instant of the 120-hour cumulative wind probability product, or null."
+          },
+          "bands": {
+            "$ref": "#/components/schemas/GeoJsonFeatureCollectionResponse",
+            "description": "Cumulative 120-hour probability contour bands ordered ascending by lower_pct."
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GeoJsonFeatureResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Extract coverage bounding polygon for a replay advisory, or null for full-grid live products."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "threshold_kt",
+          "synoptic_at",
+          "bands",
+          "notice"
+        ],
+        "title": "WindProbabilityResponse",
+        "description": "Response document for ``GET /api/map/wind-probabilities`` and replay sibling."
       },
       "WindProbabilitySummaryResponse": {
         "properties": {

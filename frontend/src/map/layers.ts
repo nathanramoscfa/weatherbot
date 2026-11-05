@@ -4,6 +4,13 @@ import type { components } from "../api/schema.ts";
 import { formatBothTimes, formatUtc } from "../pages/format.ts";
 
 export type MapResponse = components["schemas"]["MapResponse"];
+export type MapDepthResponse = components["schemas"]["MapDepthResponse"];
+export type WindProbabilityResponse =
+  components["schemas"]["WindProbabilityResponse"];
+export type MapAdvisoriesResponse =
+  components["schemas"]["MapAdvisoriesResponse"];
+export type AdvisoryStepResponse =
+  components["schemas"]["AdvisoryStepResponse"];
 export type StormMapLayersResponse =
   components["schemas"]["StormMapLayersResponse"];
 export type GeoJsonFeatureResponse =
@@ -21,6 +28,20 @@ export const OSM_ATTRIBUTION_TEXT = "© OpenStreetMap contributors" as const;
 export const OSM_ATTRIBUTION_HTML =
   '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>' as const;
 export const OSM_MAX_ZOOM = 19;
+
+export const NOWCOAST_RADAR_WMS_URL =
+  "https://nowcoast.noaa.gov/geoserver/weather_radar/ows" as const;
+export const NOWCOAST_RADAR_LAYER =
+  "conus_base_reflectivity_mosaic" as const;
+export const NOWCOAST_SATELLITE_WMS_URL =
+  "https://nowcoast.noaa.gov/geoserver/satellite/ows" as const;
+export const NOWCOAST_SATELLITE_LAYER = "goes_longwave_imagery" as const;
+export const NOWCOAST_ATTRIBUTION_TEXT = "NOAA nowCOAST" as const;
+export const NOWCOAST_WMS_OPACITY = 0.6;
+export const NOWCOAST_AGE_NOTE =
+  "NOAA nowCOAST imagery may be several minutes old." as const;
+export const WIND_PROBABILITY_NOTE =
+  "Chance of winds at this speed within 120 hours" as const;
 
 export interface OsmTileLayerOptions extends L.TileLayerOptions {
   readonly referrerPolicy: typeof OSM_REFERRER_POLICY;
@@ -42,7 +63,13 @@ export type MapLayerKey =
   | "points"
   | "watches_warnings"
   | "outlook"
-  | "locations";
+  | "locations"
+  | "wind_radii"
+  | "past_track"
+  | "peak_surge"
+  | "wind_probabilities"
+  | "radar"
+  | "satellite";
 
 export type LayerVisibility = Readonly<Record<MapLayerKey, boolean>>;
 
@@ -51,6 +78,15 @@ export interface LayerToggleItem {
   readonly label: string;
 }
 
+export const DEFAULT_ON_LAYER_KEYS: readonly MapLayerKey[] = [
+  "cone",
+  "track",
+  "points",
+  "watches_warnings",
+  "outlook",
+  "locations",
+] as const;
+
 export const LAYER_TOGGLE_ITEMS: readonly LayerToggleItem[] = [
   { key: "cone", label: "Storm cones" },
   { key: "track", label: "Forecast tracks" },
@@ -58,6 +94,12 @@ export const LAYER_TOGGLE_ITEMS: readonly LayerToggleItem[] = [
   { key: "watches_warnings", label: "Watches & warnings" },
   { key: "outlook", label: "Outlook areas" },
   { key: "locations", label: "Locations" },
+  { key: "wind_radii", label: "Wind radii" },
+  { key: "past_track", label: "Past track" },
+  { key: "peak_surge", label: "Peak surge" },
+  { key: "wind_probabilities", label: "Wind probabilities" },
+  { key: "radar", label: "Radar (nowCOAST)" },
+  { key: "satellite", label: "Satellite IR (nowCOAST)" },
 ] as const;
 
 export const DEFAULT_LAYER_VISIBILITY: LayerVisibility = {
@@ -67,6 +109,12 @@ export const DEFAULT_LAYER_VISIBILITY: LayerVisibility = {
   watches_warnings: true,
   outlook: true,
   locations: true,
+  wind_radii: false,
+  past_track: false,
+  peak_surge: false,
+  wind_probabilities: false,
+  radar: false,
+  satellite: false,
 };
 
 export function isLayerVisible(
@@ -86,6 +134,18 @@ export function isLayerVisible(
       return visibility.outlook;
     case "locations":
       return visibility.locations;
+    case "wind_radii":
+      return visibility.wind_radii;
+    case "past_track":
+      return visibility.past_track;
+    case "peak_surge":
+      return visibility.peak_surge;
+    case "wind_probabilities":
+      return visibility.wind_probabilities;
+    case "radar":
+      return visibility.radar;
+    case "satellite":
+      return visibility.satellite;
   }
 }
 
@@ -235,6 +295,156 @@ export const MAP_LEGEND_SECTIONS: readonly LegendSection[] = [
         shape: "polygon",
         swatchClass:
           "h-3 w-3.5 rounded-xs border-2 border-yellow-600 bg-yellow-400/50",
+      },
+    ],
+  },
+  {
+    category: "wind_radii",
+    title: "Forecast & advisory wind radii",
+    items: [
+      {
+        label: "64 kt hurricane-force wind radii",
+        color: "#dc2626",
+        fillColor: "#f87171",
+        shape: "polygon",
+        swatchClass: "h-3 w-3.5 rounded-xs border-2 border-red-600 bg-red-400/40",
+      },
+      {
+        label: "50 kt storm-force wind radii",
+        color: "#d97706",
+        fillColor: "#fbbf24",
+        shape: "polygon",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border-2 border-amber-600 bg-amber-400/35",
+      },
+      {
+        label: "34 kt tropical-storm-force wind radii",
+        color: "#0284c7",
+        fillColor: "#38bdf8",
+        shape: "polygon",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border-2 border-dashed border-sky-600 bg-sky-400/25",
+      },
+    ],
+  },
+  {
+    category: "past_track",
+    title: "Past track & positions",
+    items: [
+      {
+        label: "Past center track (solid line)",
+        color: "#334155",
+        shape: "line",
+        swatchClass: "h-1 w-4 rounded-xs bg-slate-700 dark:bg-slate-300",
+      },
+      {
+        label: "Past position (styled by Saffir-Simpson category)",
+        color: "#b91c1c",
+        fillColor: "#ef4444",
+        shape: "circle",
+        swatchClass:
+          "h-2.5 w-2.5 rounded-full border-2 border-red-700 bg-red-500",
+      },
+    ],
+  },
+  {
+    category: "peak_surge",
+    title: "Peak storm surge (NHC)",
+    items: [
+      {
+        label: "High surge (8–12 ft / >9 ft)",
+        color: "#991b1b",
+        fillColor: "#ef4444",
+        shape: "polygon",
+        swatchClass: "h-3 w-3.5 rounded-xs border-2 border-red-800 bg-red-500/60",
+      },
+      {
+        label: "Moderate surge (5–10 ft / 6–9 ft)",
+        color: "#9a3412",
+        fillColor: "#f97316",
+        shape: "polygon",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border-2 border-orange-800 bg-orange-500/60",
+      },
+      {
+        label: "Lower surge (1–4 ft / 3–5 ft)",
+        color: "#854d0e",
+        fillColor: "#facc15",
+        shape: "polygon",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border-2 border-yellow-800 bg-yellow-400/60",
+      },
+      {
+        label: "Unrecognized surge range (neutral)",
+        color: "#475569",
+        fillColor: "#94a3b8",
+        shape: "polygon",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border-2 border-slate-600 bg-slate-400/50",
+      },
+    ],
+  },
+  {
+    category: "wind_probabilities",
+    title: "120-h wind speed probabilities",
+    items: [
+      {
+        label: "High probability (≥60%)",
+        color: "#7e22ce",
+        fillColor: "#a855f7",
+        shape: "polygon",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border border-purple-700 bg-purple-500/70",
+      },
+      {
+        label: "Moderate probability (30–60%)",
+        color: "#c2410c",
+        fillColor: "#fb923c",
+        shape: "polygon",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border border-orange-700 bg-orange-400/70",
+      },
+      {
+        label: "Low probability (5–30%)",
+        color: "#15803d",
+        fillColor: "#4ade80",
+        shape: "polygon",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border border-green-700 bg-green-400/70",
+      },
+      {
+        label: "Archive extract coverage boundary",
+        color: "#475569",
+        shape: "line",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border-2 border-dashed border-slate-600 bg-transparent",
+      },
+    ],
+  },
+  {
+    category: "radar",
+    title: "Weather radar (NOAA nowCOAST)",
+    items: [
+      {
+        label: "CONUS base reflectivity mosaic (WMS)",
+        color: "#0284c7",
+        fillColor: "#38bdf8",
+        shape: "polygon",
+        swatchClass: "h-3 w-3.5 rounded-xs border border-sky-700 bg-sky-500/60",
+      },
+    ],
+  },
+  {
+    category: "satellite",
+    title: "GOES longwave IR (NOAA nowCOAST)",
+    items: [
+      {
+        label: "GOES longwave infrared imagery (WMS)",
+        color: "#475569",
+        fillColor: "#94a3b8",
+        shape: "polygon",
+        swatchClass:
+          "h-3 w-3.5 rounded-xs border border-slate-600 bg-slate-400/60",
       },
     ],
   },
@@ -490,6 +700,191 @@ export function locationLevelColors(level: number | null): {
   }
 }
 
+export function windRadiiStyle(thresholdKt: number | null): L.PathOptions {
+  switch (thresholdKt) {
+    case 64:
+      return {
+        color: "#dc2626",
+        fillColor: "#f87171",
+        weight: 2,
+        opacity: 0.9,
+        fillOpacity: 0.16,
+      };
+    case 50:
+      return {
+        color: "#d97706",
+        fillColor: "#fbbf24",
+        weight: 1.8,
+        opacity: 0.85,
+        fillOpacity: 0.12,
+      };
+    default:
+      return {
+        color: "#0284c7",
+        fillColor: "#38bdf8",
+        weight: 1.5,
+        opacity: 0.8,
+        fillOpacity: 0.08,
+        dashArray: "4 2",
+      };
+  }
+}
+
+export function pastTrackLineStyle(
+  props: Readonly<Record<string, unknown>>,
+): L.PathOptions {
+  const ss = typeof props.ss === "number" ? props.ss : null;
+  const stormType =
+    typeof props.stormtype === "string" ? props.stormtype : null;
+  if ((ss !== null && ss >= 3) || stormType === "MH") {
+    return {
+      color: "#7f1d1d",
+      weight: 2.5,
+      opacity: 0.85,
+    };
+  }
+  if ((ss !== null && ss >= 1) || stormType === "HU") {
+    return {
+      color: "#b91c1c",
+      weight: 2.5,
+      opacity: 0.85,
+    };
+  }
+  if (stormType === "TS" || stormType === "SS") {
+    return {
+      color: "#c2410c",
+      weight: 2.2,
+      opacity: 0.85,
+    };
+  }
+  return {
+    color: "#334155",
+    weight: 2,
+    opacity: 0.8,
+  };
+}
+
+export function pastPointStyle(
+  props: Readonly<Record<string, unknown>>,
+): L.CircleMarkerOptions & { readonly classificationLabel: string } {
+  const ss = typeof props.ss === "number" ? props.ss : null;
+  const stormType =
+    typeof props.stormtype === "string" ? props.stormtype : null;
+  return forecastPointStyle({
+    saffir_simpson: ss,
+    storm_type: stormType,
+  });
+}
+
+export const NEUTRAL_SURGE_COLOR = {
+  color: "#475569",
+  fillColor: "#94a3b8",
+} as const;
+
+export const PEAK_SURGE_RANGE_COLORS: Readonly<
+  Record<string, { readonly color: string; readonly fillColor: string }>
+> = {
+  "1-3 ft": { color: "#0369a1", fillColor: "#38bdf8" },
+  "2-4 ft": { color: "#0369a1", fillColor: "#38bdf8" },
+  "3-5 ft": { color: "#854d0e", fillColor: "#facc15" },
+  "4-6 ft": { color: "#854d0e", fillColor: "#facc15" },
+  "4-7 ft": { color: "#854d0e", fillColor: "#facc15" },
+  "5-8 ft": { color: "#9a3412", fillColor: "#f97316" },
+  "5-10 ft": { color: "#9a3412", fillColor: "#f97316" },
+  "6-9 ft": { color: "#9a3412", fillColor: "#f97316" },
+  "6-10 ft": { color: "#9a3412", fillColor: "#f97316" },
+  "8-12 ft": { color: "#991b1b", fillColor: "#ef4444" },
+  "9-13 ft": { color: "#991b1b", fillColor: "#ef4444" },
+  "10-15 ft": { color: "#581c87", fillColor: "#a855f7" },
+  ">10 ft": { color: "#581c87", fillColor: "#a855f7" },
+  ">15 ft": { color: "#581c87", fillColor: "#a855f7" },
+} as const;
+
+export function parsePeakSurgeRange(name: string): string | null {
+  const idx = name.lastIndexOf("...");
+  if (idx === -1) {
+    return null;
+  }
+  const raw = name.slice(idx + 3).trim().toLowerCase();
+  return raw.length > 0 ? raw : null;
+}
+
+export function peakSurgeStyle(name: string): L.PathOptions & {
+  readonly parsedRange: string | null;
+  readonly recognized: boolean;
+} {
+  const parsedRange = parsePeakSurgeRange(name);
+  let palette: { readonly color: string; readonly fillColor: string } | null =
+    null;
+  if (parsedRange !== null) {
+    for (const [k, v] of Object.entries(PEAK_SURGE_RANGE_COLORS)) {
+      if (k === parsedRange) {
+        palette = v;
+        break;
+      }
+    }
+  }
+  const effective = palette ?? NEUTRAL_SURGE_COLOR;
+  return {
+    color: effective.color,
+    fillColor: effective.fillColor,
+    weight: 2.5,
+    opacity: 0.9,
+    fillOpacity: 0.4,
+    parsedRange,
+    recognized: palette !== null,
+  };
+}
+
+// NHC 120-hour cumulative wind speed probability ramp as Tailwind-free hex constants.
+export const WIND_PROBABILITY_RAMP: readonly {
+  readonly lowerPct: number;
+  readonly label: string;
+  readonly color: string;
+  readonly fillColor: string;
+}[] = [
+  { lowerPct: 0, label: "<5%", color: "#86efac", fillColor: "#dcfce7" },
+  { lowerPct: 5, label: "5-10%", color: "#4ade80", fillColor: "#86efac" },
+  { lowerPct: 10, label: "10-20%", color: "#22c55e", fillColor: "#4ade80" },
+  { lowerPct: 20, label: "20-30%", color: "#eab308", fillColor: "#fde047" },
+  { lowerPct: 30, label: "30-40%", color: "#ca8a04", fillColor: "#facc15" },
+  { lowerPct: 40, label: "40-50%", color: "#ea580c", fillColor: "#fb923c" },
+  { lowerPct: 50, label: "50-60%", color: "#c2410c", fillColor: "#f97316" },
+  { lowerPct: 60, label: "60-70%", color: "#b91c1c", fillColor: "#ef4444" },
+  { lowerPct: 70, label: "70-80%", color: "#991b1b", fillColor: "#dc2626" },
+  { lowerPct: 80, label: "80-90%", color: "#7e22ce", fillColor: "#a855f7" },
+  { lowerPct: 90, label: ">90%", color: "#581c87", fillColor: "#7e22ce" },
+] as const;
+
+export function windProbabilityBandStyle(lowerPct: number): L.PathOptions {
+  let matched = WIND_PROBABILITY_RAMP[0];
+  for (const entry of WIND_PROBABILITY_RAMP) {
+    if (lowerPct >= entry.lowerPct) {
+      matched = entry;
+    }
+  }
+  const color = matched ? matched.color : "#475569";
+  const fillColor = matched ? matched.fillColor : "#94a3b8";
+  return {
+    color,
+    fillColor,
+    weight: 1,
+    opacity: 0.85,
+    fillOpacity: 0.45,
+  };
+}
+
+export function windProbabilityCoverageStyle(): L.PathOptions {
+  return {
+    color: "#475569",
+    fillColor: "#94a3b8",
+    weight: 1.5,
+    opacity: 0.85,
+    fillOpacity: 0.04,
+    dashArray: "6 4",
+  };
+}
+
 // Coordinate conversion: GeoJSON [lon, lat] -> Leaflet [lat, lon] with no
 // transformation, wrapping, or rounding.
 export function toLatLngTuple(position: unknown): L.LatLngTuple | null {
@@ -626,6 +1021,7 @@ export interface BuiltMapLayers {
 
 export interface BuildMapLayersOptions {
   readonly timeZone?: string | null;
+  readonly depthData?: MapDepthResponse | null;
 }
 
 function attachPopupAndTooltip(
@@ -804,11 +1200,15 @@ export function buildMapLayers(
   options?: BuildMapLayersOptions,
 ): BuiltMapLayers {
   const effectiveTimeZone = options?.timeZone ?? "America/New_York";
+  const depthData = options?.depthData ?? null;
   const coneItems: MapLayerItem[] = [];
   const trackItems: MapLayerItem[] = [];
   const pointItems: MapLayerItem[] = [];
   const wwItems: MapLayerItem[] = [];
   const outlookItems: MapLayerItem[] = [];
+  const windRadiiItems: MapLayerItem[] = [];
+  const pastTrackItems: MapLayerItem[] = [];
+  const peakSurgeItems: MapLayerItem[] = [];
   const locationItems: MapLayerItem[] = [];
 
   for (const storm of mapData.storms) {
@@ -1174,12 +1574,202 @@ export function buildMapLayers(
     });
   });
 
+  if (depthData) {
+    for (const stormDepth of depthData.storms) {
+      stormDepth.wind_radii.features.forEach((radiiFeature, idx) => {
+        const thresholdKt = numberProp(radiiFeature.properties, "threshold_kt");
+        const tauH = numberProp(radiiFeature.properties, "tau_h");
+        const advisory = stringProp(radiiFeature.properties, "advisory");
+        const stormName =
+          stringProp(radiiFeature.properties, "storm_name") ??
+          stormDepth.atcf_id;
+        const isAdvField = booleanProp(
+          radiiFeature.properties,
+          "is_advisory_field",
+        );
+        const ne = numberProp(radiiFeature.properties, "ne_extent_nmi");
+        const se = numberProp(radiiFeature.properties, "se_extent_nmi");
+        const sw = numberProp(radiiFeature.properties, "sw_extent_nmi");
+        const nw = numberProp(radiiFeature.properties, "nw_extent_nmi");
+        const validAt = stringProp(radiiFeature.properties, "valid_at");
+
+        const style = windRadiiStyle(thresholdKt);
+        const layer = createGeometryLayer(radiiFeature, style);
+        if (!layer) {
+          return;
+        }
+        const crsText = formatCrs(radiiFeature.crs);
+        const thresholdLabel =
+          thresholdKt !== null ? `${String(thresholdKt)} kt` : "Wind";
+        const kindLabel = isAdvField ? "Advisory wind field" : "Forecast radii";
+        const popupTitle = `${stormName} (${stormDepth.atcf_id}) — ${thresholdLabel} ${kindLabel}`;
+        const extentParts = [
+          ne !== null ? `NE ${String(ne)}` : null,
+          se !== null ? `SE ${String(se)}` : null,
+          sw !== null ? `SW ${String(sw)}` : null,
+          nw !== null ? `NW ${String(nw)}` : null,
+        ].filter((part): part is string => part !== null);
+        const popupLines = [
+          `Advisory: ${advisory ?? "—"}${
+            tauH !== null ? ` (+${String(tauH)} h)` : ""
+          }`,
+          ...(extentParts.length > 0
+            ? [`Extents: ${extentParts.join(" · ")} nmi`]
+            : []),
+          ...(validAt
+            ? [`Valid: ${formatBothTimes(validAt, effectiveTimeZone)}`]
+            : []),
+          `CRS: ${crsText}`,
+        ];
+        const meta: WeatherbotLayerMetadata = {
+          id: `radii-${stormDepth.atcf_id}-${String(idx)}`,
+          category: "wind_radii",
+          crsText,
+          popupTitle,
+          popupLines,
+          tooltipText: `${stormDepth.atcf_id} · ${thresholdLabel} (${
+            tauH !== null ? `+${String(tauH)} h` : kindLabel
+          })`,
+        };
+        attachPopupAndTooltip(layer, meta);
+        windRadiiItems.push({
+          ...meta,
+          layer,
+          latLngs: collectFeatureLatLngs(radiiFeature),
+          style,
+        });
+      });
+
+      stormDepth.past_track.features.forEach((trackFeature, idx) => {
+        const style = pastTrackLineStyle(trackFeature.properties);
+        const layer = createGeometryLayer(trackFeature, style);
+        if (!layer) {
+          return;
+        }
+        const crsText = formatCrs(trackFeature.crs);
+        const stormType =
+          stringProp(trackFeature.properties, "stormtype") ?? "Cyclone";
+        const ss = numberProp(trackFeature.properties, "ss");
+        const popupTitle = `${stormDepth.atcf_id} — Past track`;
+        const popupLines = [
+          `Stage: ${stormType}${
+            ss !== null && ss > 0 ? ` (Category ${String(ss)})` : ""
+          }`,
+          `CRS: ${crsText}`,
+        ];
+        const meta: WeatherbotLayerMetadata = {
+          id: `past-track-${stormDepth.atcf_id}-${String(idx)}`,
+          category: "past_track",
+          crsText,
+          popupTitle,
+          popupLines,
+          tooltipText: `${stormDepth.atcf_id} past track (${stormType})`,
+        };
+        attachPopupAndTooltip(layer, meta);
+        pastTrackItems.push({
+          ...meta,
+          layer,
+          latLngs: collectFeatureLatLngs(trackFeature),
+          style,
+        });
+      });
+
+      stormDepth.past_points.features.forEach((ptFeature, idx) => {
+        const ptStyle = pastPointStyle(ptFeature.properties);
+        const layer = createGeometryLayer(ptFeature, ptStyle, 4.5);
+        if (!layer) {
+          return;
+        }
+        const crsText = formatCrs(ptFeature.crs);
+        const stormType =
+          stringProp(ptFeature.properties, "stormtype") ??
+          ptStyle.classificationLabel;
+        const ss = numberProp(ptFeature.properties, "ss");
+        const intensity = numberProp(ptFeature.properties, "intensity");
+        const mslp = numberProp(ptFeature.properties, "mslp");
+        const dtg =
+          numberProp(ptFeature.properties, "dtg") ??
+          stringProp(ptFeature.properties, "dtg");
+        const popupTitle = `${stormDepth.atcf_id} — Past position`;
+        const popupLines = [
+          `Stage: ${stormType}${
+            ss !== null && ss > 0 ? ` (Category ${String(ss)})` : ""
+          }`,
+          ...(intensity !== null ? [`Intensity: ${String(intensity)} kt`] : []),
+          ...(mslp !== null && mslp > 0
+            ? [`Pressure: ${String(mslp)} mb`]
+            : []),
+          ...(dtg !== null ? [`Synoptic time: ${String(dtg)}`] : []),
+          `CRS: ${crsText}`,
+        ];
+        const meta: WeatherbotLayerMetadata = {
+          id: `past-point-${stormDepth.atcf_id}-${String(idx)}`,
+          category: "past_track",
+          crsText,
+          popupTitle,
+          popupLines,
+          tooltipText: `${stormDepth.atcf_id} past position${
+            intensity !== null ? ` (${String(intensity)} kt)` : ""
+          }`,
+        };
+        attachPopupAndTooltip(layer, meta);
+        pastTrackItems.push({
+          ...meta,
+          layer,
+          latLngs: collectFeatureLatLngs(ptFeature),
+          style: ptStyle,
+        });
+      });
+    }
+
+    depthData.peak_surge.features.forEach((surgeFeature, idx) => {
+      const surgeName =
+        stringProp(surgeFeature.properties, "name") ??
+        `Peak surge ${String(idx + 1)}`;
+      const sourceLayer =
+        stringProp(surgeFeature.properties, "layer") ?? "Polygons";
+      const surgeStyle = peakSurgeStyle(surgeName);
+      const layer = createGeometryLayer(surgeFeature, surgeStyle);
+      if (!layer) {
+        return;
+      }
+      const crsText = formatCrs(surgeFeature.crs);
+      const rangeText = surgeStyle.recognized
+        ? (surgeStyle.parsedRange ?? "—")
+        : `${surgeStyle.parsedRange ?? "unknown"} (unrecognized range — neutral style)`;
+      const popupTitle = surgeName;
+      const popupLines = [
+        `Peak surge range: ${rangeText}`,
+        `Source layer: ${sourceLayer}`,
+        `CRS: ${crsText}`,
+      ];
+      const meta: WeatherbotLayerMetadata = {
+        id: `surge-${String(idx)}`,
+        category: "peak_surge",
+        crsText,
+        popupTitle,
+        popupLines,
+        tooltipText: surgeName,
+      };
+      attachPopupAndTooltip(layer, meta);
+      peakSurgeItems.push({
+        ...meta,
+        layer,
+        latLngs: collectFeatureLatLngs(surgeFeature),
+        style: surgeStyle,
+      });
+    });
+  }
+
   const items: MapLayerItem[] = [
     ...coneItems,
     ...trackItems,
     ...pointItems,
     ...wwItems,
     ...outlookItems,
+    ...windRadiiItems,
+    ...pastTrackItems,
+    ...peakSurgeItems,
     ...locationItems,
   ];
 
@@ -1191,6 +1781,12 @@ export function buildMapLayers(
       points: pointItems,
       watches_warnings: wwItems,
       outlook: outlookItems,
+      wind_radii: windRadiiItems,
+      past_track: pastTrackItems,
+      peak_surge: peakSurgeItems,
+      wind_probabilities: [],
+      radar: [],
+      satellite: [],
       locations: locationItems,
     },
     bounds: computeMapBounds(mapData),

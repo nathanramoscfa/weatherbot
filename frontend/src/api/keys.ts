@@ -79,6 +79,13 @@ export const queryKeys = {
   storms: () => invalidatableQueryKey("storms"),
   alerts: () => invalidatableQueryKey("alerts"),
   map: () => invalidatableQueryKey("map"),
+  mapSnapshot: (snapshotId: string) =>
+    invalidatableQueryKey("map", "snapshot", snapshotId),
+  mapAdvisories: () => invalidatableQueryKey("map", "advisories"),
+  mapDepth: (snapshotId: string | null) =>
+    invalidatableQueryKey("map", "depth", snapshotId ?? "latest"),
+  mapWindProbabilities: (scopeKey: string, thresholdKt: 34 | 50 | 64) =>
+    invalidatableQueryKey("map", "wind-probabilities", scopeKey, thresholdKt),
   timeline: (location?: string) =>
     location !== undefined
       ? invalidatableQueryKey("timeline", location)

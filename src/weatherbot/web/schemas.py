@@ -9,7 +9,7 @@ text at all, and a source's ``url`` is only ever a public NOAA page that names n
 """
 
 from datetime import datetime
-from typing import Literal
+from typing import Final, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -1318,6 +1318,59 @@ class DisclaimerResponse(_ApiModel):
 
 # Map & Replay (GET /api/map, GET /api/replay, GET /api/replay/{atcf_id}/{advisory}) --------
 
+type MapLayerKeyLiteral = Literal[
+    "cone",
+    "track",
+    "points",
+    "watches_warnings",
+    "outlook",
+    "locations",
+    "wind_radii",
+    "past_track",
+    "peak_surge",
+    "wind_probabilities",
+    "radar",
+    "satellite",
+]
+
+ALL_MAP_LAYERS: Final[tuple[MapLayerKeyLiteral, ...]] = (
+    "cone",
+    "track",
+    "points",
+    "watches_warnings",
+    "outlook",
+    "locations",
+    "wind_radii",
+    "past_track",
+    "peak_surge",
+    "wind_probabilities",
+    "radar",
+    "satellite",
+)
+
+STORED_ADVISORY_MAP_LAYERS: Final[tuple[MapLayerKeyLiteral, ...]] = (
+    "cone",
+    "track",
+    "points",
+    "watches_warnings",
+    "outlook",
+    "locations",
+    "wind_radii",
+    "past_track",
+    "peak_surge",
+    "wind_probabilities",
+)
+
+REPLAY_MAP_LAYERS: Final[tuple[MapLayerKeyLiteral, ...]] = (
+    "cone",
+    "track",
+    "points",
+    "watches_warnings",
+    "outlook",
+    "locations",
+    "wind_probabilities",
+)
+
 
 class StormMapLayersResponse(_ApiModel):
     """GeoJSON map layers for one storm in a live or replayed snapshot."""
@@ -1366,6 +1419,12 @@ class MapResponse(_ApiModel):
     origin: Literal["live", "replay"] | None = Field(
         description="Whether the map payload comes from a live snapshot or a replay advisory."
     )
+    available_layers: tuple[MapLayerKeyLiteral, ...] = Field(
+        default=ALL_MAP_LAYERS,
+        description=(
+            "Map layer keys supported by this payload (live latest, stored advisory, or replay)."
+        ),
+    )
     storms: tuple[StormMapLayersResponse, ...] = Field(
         description=(
             "Per-storm GeoJSON layers (cones, tracks, forecast points, and watches/warnings)."
@@ -1385,6 +1444,95 @@ class MapResponse(_ApiModel):
         description=(
             "Stored county or forecast zone Polygon/MultiPolygon features for watched locations."
         )
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class StormMapDepthResponse(_ApiModel):
+    """Per-storm vector depth layers (wind radii, past track, and past points)."""
+
+    atcf_id: str = Field(description="Storm ATCF identifier.")
+    wind_radii: GeoJsonFeatureCollectionResponse = Field(
+        description="Forecast and advisory wind radii polygons (antimeridian-unwrapped)."
+    )
+    past_track: GeoJsonFeatureCollectionResponse = Field(
+        description="Past track LineString/MultiLineString features (antimeridian-unwrapped)."
+    )
+    past_points: GeoJsonFeatureCollectionResponse = Field(
+        description=(
+            "Past track Point features without raw lat/lon attributes (antimeridian-unwrapped)."
+        )
+    )
+
+
+class MapDepthResponse(_ApiModel):
+    """Response document for ``GET /api/map/depth``."""
+
+    snapshot_id: UUID | None = Field(
+        description="Identifier of the rendered snapshot, or null when no snapshot is stored."
+    )
+    as_of: datetime | None = Field(description="UTC completion instant of the snapshot, or null.")
+    storms: tuple[StormMapDepthResponse, ...] = Field(
+        description="Per-storm wind radii, past track, and past points layers."
+    )
+    peak_surge: GeoJsonFeatureCollectionResponse = Field(
+        description=(
+            "Peak storm surge Polygons and Lines display features reduced to name and layer."
+        )
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class WindProbabilityResponse(_ApiModel):
+    """Response document for ``GET /api/map/wind-probabilities`` and replay sibling."""
+
+    snapshot_id: UUID | None = Field(
+        description="Identifier of the rendered snapshot, or null when no snapshot is stored."
+    )
+    threshold_kt: Literal[34, 50, 64] = Field(
+        description="Sustained wind-speed threshold in knots (34, 50, or 64)."
+    )
+    synoptic_at: datetime | None = Field(
+        description=(
+            "UTC synoptic instant of the 120-hour cumulative wind probability product, or null."
+        )
+    )
+    bands: GeoJsonFeatureCollectionResponse = Field(
+        description="Cumulative 120-hour probability contour bands ordered ascending by lower_pct."
+    )
+    coverage: GeoJsonFeatureResponse | None = Field(
+        default=None,
+        description=(
+            "Extract coverage bounding polygon for a replay advisory, "
+            "or null for full-grid live products."
+        ),
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class AdvisoryStepResponse(_ApiModel):
+    """One stored storm advisory step returned by ``GET /api/map/advisories``."""
+
+    snapshot_id: UUID = Field(
+        description="Newest stored snapshot identifier that carried this storm and advisory."
+    )
+    as_of: datetime = Field(description="UTC completion instant of that snapshot.")
+    atcf_id: str = Field(description="Storm ATCF identifier.")
+    storm_name: str = Field(description="Storm name.")
+    classification: str = Field(description="Storm classification code.")
+    advisory: str = Field(description="Advisory number, such as 22A.")
+    issued_at: datetime | None = Field(
+        default=None,
+        description="UTC issuance instant of the public advisory, or null.",
+    )
+
+
+class MapAdvisoriesResponse(_ApiModel):
+    """Response document for ``GET /api/map/advisories``."""
+
+    limit: int = Field(ge=1, le=200, description="Maximum number of advisory steps requested.")
+    steps: tuple[AdvisoryStepResponse, ...] = Field(
+        description="Stored storm advisory steps ordered newest snapshot first."
     )
     notice: str = Field(description="One-line informational-only disclaimer notice.")
 

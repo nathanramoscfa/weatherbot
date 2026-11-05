@@ -261,9 +261,69 @@ export interface paths {
         };
         /**
          * Get Map
-         * @description Return GeoJSON map layers for the latest stored snapshot and watched locations.
+         * @description Return GeoJSON map layers for the requested (or latest) stored snapshot and locations.
          */
         get: operations["get_map_api_map_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/map/depth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Map Depth
+         * @description Return wind radii, past track, past points, and peak surge for the requested snapshot.
+         */
+        get: operations["get_map_depth_api_map_depth_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/map/wind-probabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Map Wind Probabilities
+         * @description Return cumulative 120-hour wind probability bands for one threshold and snapshot.
+         */
+        get: operations["get_map_wind_probabilities_api_map_wind_probabilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/map/advisories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Map Advisories
+         * @description Return the newest stored snapshot per storm and advisory, newest first.
+         */
+        get: operations["get_map_advisories_api_map_advisories_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -304,6 +364,26 @@ export interface paths {
          * @description Build the GeoJSON map layer payload for one replayed advisory without decoding others.
          */
         get: operations["get_replay_advisory_map_api_replay__atcf_id___advisory__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/replay/{atcf_id}/{advisory}/wind-probabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Replay Advisory Wind Probabilities
+         * @description Build cumulative 120-hour wind probability bands for one replayed advisory.
+         */
+        get: operations["get_replay_advisory_wind_probabilities_api_replay__atcf_id___advisory__wind_probabilities_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -664,6 +744,49 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AdvisoryStepResponse
+         * @description One stored storm advisory step returned by ``GET /api/map/advisories``.
+         */
+        AdvisoryStepResponse: {
+            /**
+             * Snapshot Id
+             * Format: uuid
+             * @description Newest stored snapshot identifier that carried this storm and advisory.
+             */
+            snapshot_id: string;
+            /**
+             * As Of
+             * Format: date-time
+             * @description UTC completion instant of that snapshot.
+             */
+            as_of: string;
+            /**
+             * Atcf Id
+             * @description Storm ATCF identifier.
+             */
+            atcf_id: string;
+            /**
+             * Storm Name
+             * @description Storm name.
+             */
+            storm_name: string;
+            /**
+             * Classification
+             * @description Storm classification code.
+             */
+            classification: string;
+            /**
+             * Advisory
+             * @description Advisory number, such as 22A.
+             */
+            advisory: string;
+            /**
+             * Issued At
+             * @description UTC issuance instant of the public advisory, or null.
+             */
+            issued_at?: string | null;
+        };
         /**
          * AiAreaResponse
          * @description One area an outlook graphic marks, in plain words, with its chance as the TWO states it.
@@ -2386,6 +2509,57 @@ export interface components {
             notice: string;
         };
         /**
+         * MapAdvisoriesResponse
+         * @description Response document for ``GET /api/map/advisories``.
+         */
+        MapAdvisoriesResponse: {
+            /**
+             * Limit
+             * @description Maximum number of advisory steps requested.
+             */
+            limit: number;
+            /**
+             * Steps
+             * @description Stored storm advisory steps ordered newest snapshot first.
+             */
+            steps: components["schemas"]["AdvisoryStepResponse"][];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
+         * MapDepthResponse
+         * @description Response document for ``GET /api/map/depth``.
+         */
+        MapDepthResponse: {
+            /**
+             * Snapshot Id
+             * @description Identifier of the rendered snapshot, or null when no snapshot is stored.
+             */
+            snapshot_id: string | null;
+            /**
+             * As Of
+             * @description UTC completion instant of the snapshot, or null.
+             */
+            as_of: string | null;
+            /**
+             * Storms
+             * @description Per-storm wind radii, past track, and past points layers.
+             */
+            storms: components["schemas"]["StormMapDepthResponse"][];
+            /** @description Peak storm surge Polygons and Lines display features reduced to name and layer. */
+            peak_surge: components["schemas"]["GeoJsonFeatureCollectionResponse"];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /** @enum {string} */
+        MapLayerKeyLiteral: "cone" | "track" | "points" | "watches_warnings" | "outlook" | "locations" | "wind_radii" | "past_track" | "peak_surge" | "wind_probabilities" | "radar" | "satellite";
+        /**
          * MapResponse
          * @description Response document for ``GET /api/map`` and ``GET /api/replay/{atcf_id}/{advisory}``.
          */
@@ -2410,6 +2584,25 @@ export interface components {
              * @description Whether the map payload comes from a live snapshot or a replay advisory.
              */
             origin: ("live" | "replay") | null;
+            /**
+             * Available Layers
+             * @description Map layer keys supported by this payload (live latest, stored advisory, or replay).
+             * @default [
+             *       "cone",
+             *       "track",
+             *       "points",
+             *       "watches_warnings",
+             *       "outlook",
+             *       "locations",
+             *       "wind_radii",
+             *       "past_track",
+             *       "peak_surge",
+             *       "wind_probabilities",
+             *       "radar",
+             *       "satellite"
+             *     ]
+             */
+            available_layers: components["schemas"]["MapLayerKeyLiteral"][];
             /**
              * Storms
              * @description Per-storm GeoJSON layers (cones, tracks, forecast points, and watches/warnings).
@@ -3845,6 +4038,23 @@ export interface components {
          */
         StormClassificationCode: "TD" | "STD" | "TS" | "HU" | "STS" | "PTC" | "TY" | "PC";
         /**
+         * StormMapDepthResponse
+         * @description Per-storm vector depth layers (wind radii, past track, and past points).
+         */
+        StormMapDepthResponse: {
+            /**
+             * Atcf Id
+             * @description Storm ATCF identifier.
+             */
+            atcf_id: string;
+            /** @description Forecast and advisory wind radii polygons (antimeridian-unwrapped). */
+            wind_radii: components["schemas"]["GeoJsonFeatureCollectionResponse"];
+            /** @description Past track LineString/MultiLineString features (antimeridian-unwrapped). */
+            past_track: components["schemas"]["GeoJsonFeatureCollectionResponse"];
+            /** @description Past track Point features without raw lat/lon attributes (antimeridian-unwrapped). */
+            past_points: components["schemas"]["GeoJsonFeatureCollectionResponse"];
+        };
+        /**
          * StormMapLayersResponse
          * @description GeoJSON map layers for one storm in a live or replayed snapshot.
          */
@@ -4641,6 +4851,37 @@ export interface components {
             code: components["schemas"]["WatchWarningCode"] | null;
         };
         /**
+         * WindProbabilityResponse
+         * @description Response document for ``GET /api/map/wind-probabilities`` and replay sibling.
+         */
+        WindProbabilityResponse: {
+            /**
+             * Snapshot Id
+             * @description Identifier of the rendered snapshot, or null when no snapshot is stored.
+             */
+            snapshot_id: string | null;
+            /**
+             * Threshold Kt
+             * @description Sustained wind-speed threshold in knots (34, 50, or 64).
+             * @enum {integer}
+             */
+            threshold_kt: 34 | 50 | 64;
+            /**
+             * Synoptic At
+             * @description UTC synoptic instant of the 120-hour cumulative wind probability product, or null.
+             */
+            synoptic_at: string | null;
+            /** @description Cumulative 120-hour probability contour bands ordered ascending by lower_pct. */
+            bands: components["schemas"]["GeoJsonFeatureCollectionResponse"];
+            /** @description Extract coverage bounding polygon for a replay advisory, or null for full-grid live products. */
+            coverage?: components["schemas"]["GeoJsonFeatureResponse"] | null;
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
          * WindProbabilitySummaryResponse
          * @description Summary of one wind-speed-probability product in the latest snapshot.
          */
@@ -5070,7 +5311,9 @@ export interface operations {
     };
     get_map_api_map_get: {
         parameters: {
-            query?: never;
+            query?: {
+                snapshot_id?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -5084,6 +5327,109 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MapResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_map_depth_api_map_depth_get: {
+        parameters: {
+            query?: {
+                snapshot_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapDepthResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_map_wind_probabilities_api_map_wind_probabilities_get: {
+        parameters: {
+            query?: {
+                threshold_kt?: 34 | 50 | 64;
+                snapshot_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WindProbabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_map_advisories_api_map_advisories_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapAdvisoriesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -5127,6 +5473,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MapResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_replay_advisory_wind_probabilities_api_replay__atcf_id___advisory__wind_probabilities_get: {
+        parameters: {
+            query?: {
+                threshold_kt?: 34 | 50 | 64;
+            };
+            header?: never;
+            path: {
+                atcf_id: string;
+                advisory: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WindProbabilityResponse"];
                 };
             };
             /** @description Validation Error */
