@@ -13,6 +13,7 @@ import disclaimerFixture from "../test/fixtures/disclaimer.json";
 import locationsFixture from "../test/fixtures/locations.json";
 import notificationChannelsFixture from "../test/fixtures/notification-channels.json";
 import notificationsFixture from "../test/fixtures/notifications.json";
+import retentionFixture from "../test/fixtures/retention.json";
 import settingsFixture from "../test/fixtures/settings.json";
 import { asSchema, type JsonFixture } from "./format.ts";
 import { type BundledLicenseEntry, Settings } from "./Settings.tsx";
@@ -20,6 +21,11 @@ import { type BundledLicenseEntry, Settings } from "./Settings.tsx";
 const TYPED_SETTINGS = asSchema<components["schemas"]["SettingsResponse"]>(
   settingsFixture satisfies JsonFixture<
     components["schemas"]["SettingsResponse"]
+  >,
+);
+const TYPED_RETENTION = asSchema<components["schemas"]["RetentionResponse"]>(
+  retentionFixture satisfies JsonFixture<
+    components["schemas"]["RetentionResponse"]
   >,
 );
 const TYPED_DISCLAIMER = asSchema<components["schemas"]["DisclaimerResponse"]>(
@@ -62,12 +68,14 @@ describe("Settings", () => {
     window.localStorage.clear();
   });
 
-  it("renders effective settings with origins, the reload banner when file_modified_since_start is true, the disclaimer, and bundled dependency licences", () => {
+  it("renders effective settings with origins, the reload banner when restart_keys is non-empty, the disclaimer, and bundled dependency licences", () => {
     const queryClient = createAppQueryClient();
     queryClient.setQueryData(queryKeys.settings(), {
       ...TYPED_SETTINGS,
       file_modified_since_start: true,
+      restart_keys: ["[ai] daily_cap_usd"],
     });
+    queryClient.setQueryData(queryKeys.retention(), TYPED_RETENTION);
     queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);
@@ -85,10 +93,13 @@ describe("Settings", () => {
       screen.getByRole("heading", { name: "Settings" }),
     ).toBeInTheDocument();
 
-    // Reload banner when file_modified_since_start is true
+    // Reload banner when restart_keys is non-empty
     expect(
       screen.getByText(/Configuration file modified since monitor start/i),
     ).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/\[ai\] daily_cap_usd/).length,
+    ).toBeGreaterThan(0);
 
     // Effective settings and origins
     expect(screen.getByText("[engine] coastal_reach_km")).toBeInTheDocument();
@@ -113,10 +124,41 @@ describe("Settings", () => {
     expect(screen.getByText("radix-ui")).toBeInTheDocument();
   });
 
+  it("hides the reload banner when file_modified_since_start is true but restart_keys is empty, and shows settings_file_problem when present", () => {
+    const queryClient = createAppQueryClient();
+    queryClient.setQueryData(queryKeys.settings(), {
+      ...TYPED_SETTINGS,
+      file_modified_since_start: true,
+      restart_keys: [],
+      settings_file_problem: "weatherbot.toml has invalid TOML at line 4, column 1",
+    });
+    queryClient.setQueryData(queryKeys.retention(), TYPED_RETENTION);
+    queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
+    queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
+    queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);
+    queryClient.setQueryData(queryKeys.licenses(), SAMPLE_LICENSES);
+    queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
+    queryClient.setQueryData(queryKeys.aiCalls(), TYPED_AI_CALLS);
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Settings initialLicenses={SAMPLE_LICENSES} />
+      </QueryClientProvider>,
+    );
+
+    expect(
+      screen.queryByText(/Configuration file modified since monitor start/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("weatherbot.toml has invalid TOML at line 4, column 1"),
+    ).toBeInTheDocument();
+  });
+
   it("submits POST /api/notifications/test and flips the browser notification switch in localStorage", async () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
     queryClient.setQueryData(queryKeys.settings(), TYPED_SETTINGS);
+    queryClient.setQueryData(queryKeys.retention(), TYPED_RETENTION);
     queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);
@@ -165,6 +207,7 @@ describe("Settings", () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
     queryClient.setQueryData(queryKeys.settings(), TYPED_SETTINGS);
+    queryClient.setQueryData(queryKeys.retention(), TYPED_RETENTION);
     queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);
@@ -297,6 +340,7 @@ describe("Settings", () => {
   it("disables the AI controls when [ai] enabled is false", () => {
     const queryClient = createAppQueryClient();
     queryClient.setQueryData(queryKeys.settings(), TYPED_SETTINGS);
+    queryClient.setQueryData(queryKeys.retention(), TYPED_RETENTION);
     queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);

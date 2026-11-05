@@ -23,6 +23,7 @@ from weatherbot.services.notifications import Channel, LogChannel
 from weatherbot.services.ntfy import ntfy_channel
 from weatherbot.services.persistence.database import Database
 from weatherbot.services.replay import ReplayCorpus
+from weatherbot.services.retention import RetentionService
 from weatherbot.services.schedule import MonitorSchedule
 from weatherbot.services.tasks import ON_WINDOWS
 from weatherbot.services.toast import TOAST_OFF, NullChannel, system_identity
@@ -66,6 +67,8 @@ class _ActionState:
     default_schedule: MonitorSchedule | None = None
     ai_streams: asyncio.Semaphore = field(default_factory=lambda: asyncio.Semaphore(MAX_AI_STREAMS))
     chat: "ChatService | None" = None
+    last_setting_origins: tuple[SettingOrigin, ...] | None = None
+    retention_in_flight: bool = False
 
 
 @dataclass(frozen=True)
@@ -187,6 +190,39 @@ class WebState:
 
             self._actions.chat = ChatService(ai)
         return self._actions.chat
+
+    @property
+    def last_setting_origins(self) -> tuple[SettingOrigin, ...] | None:
+        """Last successfully parsed setting origins, or ``None`` before the first read."""
+        return self._actions.last_setting_origins
+
+    def set_last_setting_origins(self, origins: tuple[SettingOrigin, ...]) -> None:
+        """Record the latest successfully parsed setting origins."""
+        self._actions.last_setting_origins = origins
+
+    @property
+    def retention_in_flight(self) -> bool:
+        """Whether a manual retention prune from ``POST /api/retention/run`` is running."""
+        return self._actions.retention_in_flight
+
+    def mark_retention_in_flight(self, *, in_flight: bool) -> None:
+        """Update the in-flight flag for ``POST /api/retention/run``."""
+        self._actions.retention_in_flight = in_flight
+
+    def run_retention_prune(self, cutoff: datetime) -> None:
+        """Execute a background retention prune for ``cutoff`` and publish ``settings``."""
+        try:
+            service = RetentionService(
+                self.database.engine,
+                self.paths,
+                now=self.clock,
+            )
+            service.run(cutoff)
+        except Exception as error:  # noqa: BLE001 - background prune logs and clears flag
+            LOGGER.warning("manual retention prune failed (%s)", type(error).__name__)
+        finally:
+            self._actions.retention_in_flight = False
+            self.hub.publish("health", None, ("settings", "health"))
 
     def start_manual_cycle(
         self,

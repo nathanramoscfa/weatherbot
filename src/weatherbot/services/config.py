@@ -6,14 +6,15 @@ and ``WEATHERBOT_DATA_DIR`` when set, else the operating system's user directori
 through ``platformdirs``. The database, its backups, and the lock files live in the data
 directory; ``weatherbot.toml`` lives in the configuration directory.
 
-``Settings`` holds the logging, HTTP, engine, monitor, notification, web, and AI keys,
-with the precedence environment, then file, then default; ``setting_origins`` says where
-each effective value came from. A setting is never a secret, a location, or a coordinate:
-locations live in the database, and the Anthropic credential is the SDK's to resolve from
-its own environment variables or profile, never a setting. An error names the key that is
-wrong and never repeats its value.
+``Settings`` holds the logging, HTTP, engine, monitor, notification, web, AI, and
+retention keys, with the precedence environment, then file, then default;
+``setting_origins`` says where each effective value came from. A setting is never a
+secret, a location, or a coordinate: locations live in the database, and the Anthropic
+credential is the SDK's to resolve from its own environment variables or profile, never a
+setting. An error names the key that is wrong and never repeats its value.
 """
 
+import logging
 import os
 import re
 import sys
@@ -43,6 +44,8 @@ from weatherbot.models.ladder import (
 from weatherbot.services.ai.pricing import PRICES
 from weatherbot.services.policy import PolicySettings, QuietHours, parse_wall_time
 
+LOGGER: Final = logging.getLogger("weatherbot.services.config")
+
 APP_NAME: Final = "weatherbot"
 CONFIG_DIR_VARIABLE: Final = "WEATHERBOT_CONFIG_DIR"
 DATA_DIR_VARIABLE: Final = "WEATHERBOT_DATA_DIR"
@@ -52,6 +55,7 @@ BACKUP_DIRECTORY: Final = "backups"
 CYCLE_LOCK_FILE: Final = "cycle.lock"
 MIGRATE_LOCK_FILE: Final = "migrate.lock"
 MONITOR_LOCK_FILE: Final = "monitor.lock"
+RETENTION_LOCK_FILE: Final = "retention.lock"
 LOG_DIRECTORY: Final = "logs"
 LOG_FILE: Final = "weatherbot.log"
 OWNER_ONLY: Final = 0o700
@@ -99,6 +103,7 @@ ENVIRONMENT_OVERRIDES: Final[Mapping[tuple[str, str], str]] = {
     ("ai", "daily_cap_usd"): "WEATHERBOT_AI_DAILY_CAP_USD",
     ("ai", "change_summaries"): "WEATHERBOT_AI_CHANGE_SUMMARIES",
     ("ai", "outlook_narration"): "WEATHERBOT_AI_OUTLOOK_NARRATION",
+    ("retention", "history_days"): "WEATHERBOT_RETENTION_HISTORY_DAYS",
 }
 _TOML_POSITION: Final = re.compile(r"\(at line \d+, column \d+\)|\(at end of document\)")
 
@@ -195,6 +200,11 @@ class AppPaths:
     def monitor_lock_path(self) -> Path:
         """The lock the one running monitor process (``serve`` or ``check``) holds."""
         return self.data_dir / MONITOR_LOCK_FILE
+
+    @property
+    def retention_lock_path(self) -> Path:
+        """The lock a prune run holds so only one prune runs at a time."""
+        return self.data_dir / RETENTION_LOCK_FILE
 
     @property
     def log_file_path(self) -> Path:
@@ -486,8 +496,28 @@ class AiSettings(_Section):
         return _priced_model(value, "summary_model")
 
 
+RETENTION_MIN_DAYS: Final = 30
+RETENTION_MAX_DAYS: Final = 3650
+
+
+class RetentionSettings(_Section):
+    """``[retention]``: how many days of history to keep (``0`` keeps everything)."""
+
+    history_days: int = 0
+
+    @field_validator("history_days")
+    @classmethod
+    def _days(cls, value: int) -> int:
+        if value != 0 and not (RETENTION_MIN_DAYS <= value <= RETENTION_MAX_DAYS):
+            message = (
+                f"[retention] history_days must be 0 or {RETENTION_MIN_DAYS}..{RETENTION_MAX_DAYS}"
+            )
+            raise ValueError(message)
+        return value
+
+
 class Settings(_Section):
-    """The settings: ``[logging]``, ``[http]``, ``[engine]``, ``[monitor]``, ``[notifications]``, ``[web]``, and ``[ai]``."""  # noqa: E501 - list of all seven config tables
+    """The settings: ``[logging]``, ``[http]``, ``[engine]``, ``[monitor]``, ``[notifications]``, ``[web]``, ``[ai]``, and ``[retention]``."""  # noqa: E501 - list of all eight config tables
 
     logging: LoggingSettings = LoggingSettings()
     http: HttpSettings = HttpSettings()
@@ -496,6 +526,7 @@ class Settings(_Section):
     notifications: NotificationSettings = NotificationSettings()
     web: WebSettings = WebSettings()
     ai: AiSettings = AiSettings()
+    retention: RetentionSettings = RetentionSettings()
 
     def policy_settings(self, *, local_zone: tzinfo | None = None) -> PolicySettings:
         """Build the notification policy's settings for a cycle."""
@@ -526,19 +557,50 @@ def _describe(error: ValidationError, origin: Mapping[tuple[str, str], str], sou
     return "; ".join(problems)
 
 
-def _read_file(path: Path) -> dict[str, object]:
-    try:
-        text = path.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        return {}
+def parse_settings_toml(text: str, *, source: str = SETTINGS_FILE) -> dict[str, object]:
+    """Parse ``weatherbot.toml`` text with ``tomllib``, reporting only position on error."""
     try:
         return tomllib.loads(text)
     except tomllib.TOMLDecodeError as error:
         # The position only: a decoder message could quote the text around it.
         position = _TOML_POSITION.search(str(error))
         where = f" {position.group(0)}" if position else ""
-        message = f"{path.name} is not valid TOML{where}"
+        message = f"{source} is not valid TOML{where}"
         raise ConfigError(message) from None
+
+
+def validate_settings_document(
+    document: Mapping[str, object],
+    environ: Mapping[str, str] | None = None,
+    *,
+    source: str = SETTINGS_FILE,
+) -> Settings:
+    """Validate a parsed TOML document and merge ``WEATHERBOT_*`` environment overrides."""
+    env = os.environ if environ is None else environ
+    try:
+        Settings.model_validate(document)
+    except ValidationError as error:
+        raise ConfigError(_describe(error, {}, source)) from None
+    # Validated above: every top-level value is one of the known tables.
+    merged = {name: dict(cast("Mapping[str, object]", table)) for name, table in document.items()}
+    origin: dict[tuple[str, str], str] = {}
+    for (table, key), variable in ENVIRONMENT_OVERRIDES.items():
+        value = env.get(variable, "").strip()
+        if value:
+            merged.setdefault(table, {})[key] = value
+            origin[table, key] = variable
+    try:
+        return Settings.model_validate(merged)
+    except ValidationError as error:
+        raise ConfigError(_describe(error, origin, source)) from None
+
+
+def _read_file(path: Path) -> dict[str, object]:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return {}
+    return parse_settings_toml(text, source=path.name)
 
 
 def load_settings(paths: AppPaths, environ: Mapping[str, str] | None = None) -> Settings:
@@ -558,25 +620,54 @@ def load_settings(paths: AppPaths, environ: Mapping[str, str] | None = None) -> 
         ConfigError: The file is not TOML, names an unknown key, or holds a bad value, or
             an override holds a bad value. The message names the key, never the value.
     """
-    env = os.environ if environ is None else environ
     source = paths.settings_path.name
     document = _read_file(paths.settings_path)
-    try:
-        Settings.model_validate(document)
-    except ValidationError as error:
-        raise ConfigError(_describe(error, {}, source)) from None
-    # Validated above: every top-level value is one of the known tables.
-    merged = {name: dict(cast("Mapping[str, object]", table)) for name, table in document.items()}
-    origin: dict[tuple[str, str], str] = {}
-    for (table, key), variable in ENVIRONMENT_OVERRIDES.items():
-        value = env.get(variable, "").strip()
-        if value:
-            merged.setdefault(table, {})[key] = value
-            origin[table, key] = variable
-    try:
-        return Settings.model_validate(merged)
-    except ValidationError as error:
-        raise ConfigError(_describe(error, origin, source)) from None
+    return validate_settings_document(document, environ, source=source)
+
+
+class LiveSettings:
+    """Reload ``[notifications]`` and ``[retention]`` from disk while keeping startup keys.
+
+    On ``ConfigError``, ``OSError``, or ``UnicodeDecodeError``, logs one ``WARNING``
+    (without echoing file text) and returns the last good ``Settings`` until the file
+    parses again.
+    """
+
+    def __init__(
+        self,
+        paths: AppPaths,
+        environ: Mapping[str, str] | None = None,
+        first: Settings | None = None,
+    ) -> None:
+        """Bind the settings path, environment, and initial startup ``Settings``."""
+        initial = first if first is not None else Settings()
+        self._paths = paths
+        self._environ = environ
+        self._first = initial
+        self._last_good = initial
+        self._warned = False
+
+    def __call__(self) -> Settings:
+        """Return ``first`` with its ``notifications`` and ``retention`` tables updated."""
+        try:
+            loaded = load_settings(self._paths, self._environ)
+        except (ConfigError, OSError, UnicodeDecodeError) as error:
+            if not self._warned:
+                self._warned = True
+                LOGGER.warning(
+                    "keeping last good settings; %s could not be reloaded (%s)",
+                    self._paths.settings_path.name,
+                    type(error).__name__,
+                )
+            return self._last_good
+        self._warned = False
+        self._last_good = self._first.model_copy(
+            update={
+                "notifications": loaded.notifications,
+                "retention": loaded.retention,
+            }
+        )
+        return self._last_good
 
 
 type SettingOriginKind = Literal["default", "file", "environment"]

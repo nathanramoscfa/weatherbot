@@ -8,6 +8,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 7 — Depth
+- Add settings editing and database history retention (Phase 7 Step 4):
+  - Comment-preserving TOML writer (`weatherbot.services.settings_file`, the
+    only importer of `tomlkit==0.15.2`): `EDITABLE` allowlist of 12
+    `[notifications]`, `[ai]`, and `[retention]` keys, `apply_changes` with
+    optimistic `file_sha256` locking (`StaleSettingsFileError`), environment
+    override refusal (`EnvironmentOverrideError`), full-document validation
+    through `validate_settings_document`, atomic sibling tempfile replace, and
+    `restart_keys` reporting only keys whose running component is constructed at
+    startup (`[ai] enabled`, `[ai] daily_cap_usd`, `[notifications] ntfy`, and
+    `[notifications] ntfy_server`).
+  - `LiveSettings` (`weatherbot.services.config`): reloads `weatherbot.toml` on
+    `(st_mtime_ns, st_size)` changes and falls back to the last valid `Settings`
+    with a single `WARNING` per broken file signature, wired into
+    `MonitorSchedule`, `run_heartbeat_task`, `run_monitor`, and `cli/serve.py` so
+    quiet hours, cooldown, AI feature toggles, and `history_days` apply at the
+    next cycle without restarting `serve`.
+  - Alembic revision `0010_retention_indexes` (`FROZEN`) and `RetentionService`
+    (`weatherbot.services.retention`): adds non-unique indexes on
+    `raw_responses.sha256`, `snapshot_geometries.content_id`,
+    `monitor_cycles.snapshot_id`, and `notifications.assessment_id` (keeping
+    second-cycle storage growth under 128 KiB), computes the retention keep-list
+    preserving the newest snapshot, every location's latest assessment and
+    notification-policy anchor snapshots (so `NotificationService._load_state`
+    and `AssessmentService._assess_one` produce identical state and decisions
+    before and after pruning), conditional HTTP validator `raw_responses`,
+    `/api/outlook` PNGs, today's AI ledger and newest pause control row, and
+    `locations`/`settings`/`heartbeats`, creates one pre-prune online SQLite
+    backup (`backups/weatherbot-<UTC stamp>-prune.sqlite3`, keeping at most 3
+    prune backups), deletes in batches of 50 snapshots under `cycle.lock` with a
+    `sleep(0)` yield between batches, and runs `RetentionWorker` daily at `03:30`
+    local in `serve` (skipping while any location is at level 3 or above and
+    clearing the `watch`/`retention` heartbeat cadence when `history_days = 0`).
+  - CLI, web API, and UI: `weatherbot prune [--dry-run] [--days N] [--cutoff
+    INSTANT] [--vacuum] [--json]` (`docs/schema/prune.schema.json`, 18 CLI
+    documents), `PUT /api/settings`, `GET /api/retention`, and `POST
+    /api/retention/run`, `QuietHoursForm.tsx`, editable AI cap and feature
+    switches in `AiSettingsSection.tsx`, and `RetentionPanel.tsx` with a
+    confirmed `Prune now` dialog on `/settings`.
 - Add the `ntfy` phone notification channel and per-location notification
   preferences (Phase 7 Step 3):
   - `weatherbot.services.ntfy` (`NtfyChannel` and `ntfy_channel`): HTTPS root

@@ -168,6 +168,15 @@ at or below level 2 are held back during quiet hours, while escalations and
 levels 3–5 always deliver immediately through every interrupting channel,
 including `ntfy`.
 
+You can edit `quiet_hours_start`, `quiet_hours_end`, `quiet_hours_time_zone`,
+and `cooldown_hours` directly in the **Quiet Hours & Cooldown** section on the
+Settings page (`PUT /api/settings`) as well as in `weatherbot.toml`. Saving
+writes `weatherbot.toml` atomically while preserving comments, and `serve`
+reloads the file automatically so quiet-hours and cooldown changes take effect
+at the next monitor cycle (including degraded-source and fallback alarms)
+without a restart. Any field overridden by a `WEATHERBOT_NOTIFICATIONS_*`
+environment variable displays the variable name and is read-only in the UI.
+
 Each `ntfy` delivery uses a 5-second timeout and retries at most once (after 3
 seconds, or `Retry-After` up to 5 seconds on HTTP 429) on a timeout, connection
 error, HTTP 429, or HTTP 5xx, so a slow or failing server holds the monitor

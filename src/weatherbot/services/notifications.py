@@ -379,6 +379,17 @@ class NotificationService:
         )
         self.confirm_at: datetime | None = None
 
+    def _load_state(self, location: str | int) -> PolicyState:
+        """Load the current ``PolicyState`` for ``location`` (by name or primary key)."""
+        with Session(self._engine) as session:
+            if isinstance(location, str):
+                loc_id = session.scalar(select(LocationRow.id).where(LocationRow.name == location))
+                if loc_id is None:
+                    return PolicyState()
+            else:
+                loc_id = location
+            return _load_state(session, loc_id)
+
     def _muted_delivery(
         self,
         channel_name: str,

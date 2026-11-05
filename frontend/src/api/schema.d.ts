@@ -180,8 +180,52 @@ export interface paths {
          * @description Return every setting's effective value, origin, and whether weatherbot.toml changed.
          */
         get: operations["get_settings_api_settings_get"];
+        /**
+         * Put Settings
+         * @description Validate and atomically apply allowlisted setting changes to ``weatherbot.toml``.
+         */
+        put: operations["put_settings_api_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/retention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Retention
+         * @description Return database and WAL sizes, row counts, retention setting, last run, and preview plan.
+         */
+        get: operations["get_retention_api_retention_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/retention/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Retention
+         * @description Validate ``cutoff`` and run one retention prune as a single-flight background task.
+         */
+        post: operations["run_retention_api_retention_run_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2995,6 +3039,214 @@ export interface components {
             notice: string;
         };
         /**
+         * RetentionLastRunResponse
+         * @description Summary of the most recent retention run recorded in the database.
+         */
+        RetentionLastRunResponse: {
+            /**
+             * Ran At
+             * Format: date-time
+             * @description UTC instant when the prune completed.
+             */
+            ran_at: string;
+            /**
+             * Cutoff
+             * Format: date-time
+             * @description UTC cutoff instant used by the prune.
+             */
+            cutoff: string;
+            /**
+             * Status
+             * @description Whether the prune finished every batch or stopped early on cycle.lock.
+             * @enum {string}
+             */
+            status: "complete" | "partial";
+            /**
+             * Batches
+             * @description Number of delete batches committed.
+             */
+            batches: number;
+            /**
+             * Total Deleted
+             * @description Total rows deleted across all tables.
+             */
+            total_deleted: number;
+            /**
+             * Counts
+             * @description Rows deleted per table.
+             */
+            counts: {
+                [key: string]: number;
+            };
+            /**
+             * Backup File
+             * @description Basename of the pre-prune SQLite backup file, or null if none was needed.
+             */
+            backup_file: string | null;
+        };
+        /**
+         * RetentionPlanResponse
+         * @description Read-only retention preview for a requested day count or cutoff.
+         */
+        RetentionPlanResponse: {
+            /**
+             * Days
+             * @description Retention window in days used for this plan.
+             */
+            days: number;
+            /**
+             * Cutoff
+             * Format: date-time
+             * @description Explicit UTC cutoff instant for this plan.
+             */
+            cutoff: string;
+            /**
+             * Counts
+             * @description Row counts to delete in each deletable table.
+             */
+            counts: {
+                [key: string]: number;
+            };
+            /**
+             * Total Rows
+             * @description Total rows across all tables that would be deleted.
+             */
+            total_rows: number;
+            /**
+             * Estimated Bytes
+             * @description Estimated payload bytes freed by deleting those rows.
+             */
+            estimated_bytes: number;
+            /**
+             * Kept
+             * @description Summary of records protected by the retention keep-list.
+             */
+            kept: string[];
+            /**
+             * Kept Snapshots
+             * @description Number of snapshots protected by the keep-list.
+             */
+            kept_snapshots: number;
+            /**
+             * Kept Assessments
+             * @description Number of assessments protected by the keep-list.
+             */
+            kept_assessments: number;
+        };
+        /**
+         * RetentionResponse
+         * @description Response document for ``GET /api/retention``.
+         */
+        RetentionResponse: {
+            /**
+             * Database Bytes
+             * @description Size of weatherbot.sqlite3 in bytes.
+             */
+            database_bytes: number;
+            /**
+             * Wal Bytes
+             * @description Size of weatherbot.sqlite3-wal in bytes.
+             */
+            wal_bytes: number;
+            /**
+             * Oldest Snapshot At
+             * @description UTC completion instant of the oldest stored snapshot, or null.
+             */
+            oldest_snapshot_at: string | null;
+            /**
+             * Newest Snapshot At
+             * @description UTC completion instant of the newest stored snapshot, or null.
+             */
+            newest_snapshot_at: string | null;
+            /**
+             * Row Counts
+             * @description Current row counts for key database tables.
+             */
+            row_counts: {
+                [key: string]: number;
+            };
+            /** @description Effective [retention] history_days setting and origin. */
+            setting: components["schemas"]["RetentionSettingResponse"];
+            /** @description Most recent retention run summary, or null if never run. */
+            last_run: components["schemas"]["RetentionLastRunResponse"] | null;
+            /** @description Read-only preview plan for the requested ?days= parameter (or default). */
+            plan: components["schemas"]["RetentionPlanResponse"];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
+         * RetentionSettingResponse
+         * @description Effective ``[retention] history_days`` setting and its origin.
+         */
+        RetentionSettingResponse: {
+            /**
+             * History Days
+             * @description Configured retention window in days (0 = keep everything, or 30..3650).
+             */
+            history_days: number;
+            /**
+             * Origin
+             * @description Where history_days came from: default, weatherbot.toml, or environment.
+             * @enum {string}
+             */
+            origin: "default" | "file" | "environment";
+            /**
+             * Variable
+             * @description Environment variable that overrides history_days.
+             */
+            variable: string;
+            /**
+             * Editable
+             * @description Whether history_days can be edited in weatherbot.toml.
+             */
+            editable: boolean;
+        };
+        /**
+         * RunRetentionRequest
+         * @description Request body for ``POST /api/retention/run``.
+         */
+        RunRetentionRequest: {
+            /**
+             * Cutoff
+             * Format: date-time
+             * @description Explicit UTC cutoff instant from a retention plan (30..3650 days ago).
+             */
+            cutoff: string;
+        };
+        /**
+         * RunRetentionResponse
+         * @description Response document for ``POST /api/retention/run``.
+         */
+        RunRetentionResponse: {
+            /**
+             * Status
+             * @description Confirmation that the background retention prune has started.
+             * @default accepted
+             * @constant
+             */
+            status: "accepted";
+            /**
+             * Cutoff
+             * Format: date-time
+             * @description Validated UTC cutoff instant being pruned.
+             */
+            cutoff: string;
+            /**
+             * Started At
+             * Format: date-time
+             * @description UTC instant when the prune was accepted.
+             */
+            started_at: string;
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
          * SchedulerHealth
          * @description The ``serve`` runner heartbeat summary reported by ``GET /api/health``.
          */
@@ -3050,8 +3302,29 @@ export interface components {
         /** @enum {string} */
         SectionName: "situation" | "what_it_means_here" | "timeline" | "actions" | "sources";
         /**
+         * SettingChangeRequest
+         * @description One setting change in ``PUT /api/settings``.
+         */
+        SettingChangeRequest: {
+            /**
+             * Table
+             * @description TOML section name, such as notifications.
+             */
+            table: string;
+            /**
+             * Key
+             * @description Setting key within the TOML table.
+             */
+            key: string;
+            /**
+             * Value
+             * @description New value to write to weatherbot.toml.
+             */
+            value: string | number | boolean;
+        };
+        /**
          * SettingOriginResponse
-         * @description Effective value and origin of one configuration setting.
+         * @description Effective value, origin, and editability of one configuration setting.
          */
         SettingOriginResponse: {
             /**
@@ -3080,6 +3353,19 @@ export interface components {
              * @description Environment variable name that overrides this setting.
              */
             variable: string;
+            /**
+             * Editable
+             * @description Whether this setting can be edited from the Settings page.
+             * @default false
+             */
+            editable: boolean;
+            /**
+             * Applies
+             * @description When a file change to this setting takes effect: next_cycle or next_start.
+             * @default next_start
+             * @enum {string}
+             */
+            applies: "next_cycle" | "next_start";
         };
         /**
          * SettingsResponse
@@ -3097,10 +3383,27 @@ export interface components {
              */
             settings_file_exists: boolean;
             /**
+             * Settings File Sha256
+             * @description Hex SHA-256 digest of weatherbot.toml bytes (or of empty bytes when absent).
+             * @default
+             */
+            settings_file_sha256: string;
+            /**
              * File Modified Since Start
              * @description Whether weatherbot.toml has been modified on disk since the web server started.
              */
             file_modified_since_start: boolean;
+            /**
+             * Restart Keys
+             * @description Next-start keys (such as '[ai] daily_cap_usd') whose current effective value differs from the value when the server started.
+             * @default []
+             */
+            restart_keys: string[];
+            /**
+             * Settings File Problem
+             * @description Parse or validation problem in weatherbot.toml (line/column only, never file text), or null when valid.
+             */
+            settings_file_problem?: string | null;
             /**
              * Settings
              * @description All effective settings in table and key order.
@@ -4197,6 +4500,58 @@ export interface components {
             /** @description Per-location notification channel preferences. */
             preferences: components["schemas"]["LocationPreferencesResponse"];
         };
+        /**
+         * UpdateSettingsRequest
+         * @description Request body for ``PUT /api/settings``.
+         */
+        UpdateSettingsRequest: {
+            /**
+             * Expected Sha256
+             * @description Expected SHA-256 hex digest of weatherbot.toml before writing.
+             */
+            expected_sha256: string;
+            /**
+             * Changes
+             * @description One or more allowlisted setting changes to apply atomically.
+             */
+            changes: components["schemas"]["SettingChangeRequest"][];
+        };
+        /**
+         * UpdateSettingsResponse
+         * @description Response document for ``PUT /api/settings``.
+         */
+        UpdateSettingsResponse: {
+            /**
+             * Settings File Sha256
+             * @description New SHA-256 hex digest of weatherbot.toml after writing.
+             */
+            settings_file_sha256: string;
+            /**
+             * Applied Next Cycle
+             * @description Changed keys that take effect on the next monitor cycle.
+             */
+            applied_next_cycle: string[];
+            /**
+             * Applied Next Start
+             * @description Changed keys that take effect the next time weatherbot serve starts.
+             */
+            applied_next_start: string[];
+            /**
+             * Restart Keys
+             * @description All next-start keys whose current value differs from server startup.
+             */
+            restart_keys: string[];
+            /**
+             * Settings
+             * @description Updated effective settings in table and key order.
+             */
+            settings: components["schemas"]["SettingOriginResponse"][];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -4591,6 +4946,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SettingsResponse"];
+                };
+            };
+        };
+    };
+    put_settings_api_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateSettingsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_retention_api_retention_get: {
+        parameters: {
+            query?: {
+                /** @description Preview retention plan for this many days (30..3650). */
+                days?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetentionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_retention_api_retention_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunRetentionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunRetentionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -1,8 +1,11 @@
 {
   "file_modified_since_start": false,
   "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "restart_keys": [],
   "settings": [
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "level",
       "origin": "default",
       "table": "logging",
@@ -10,6 +13,8 @@
       "variable": "WEATHERBOT_LOG_LEVEL"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "timeout_seconds",
       "origin": "default",
       "table": "http",
@@ -17,6 +22,8 @@
       "variable": "WEATHERBOT_HTTP_TIMEOUT_SECONDS"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "coastal_reach_km",
       "origin": "default",
       "table": "engine",
@@ -24,6 +31,8 @@
       "variable": "WEATHERBOT_ENGINE_COASTAL_REACH_KM"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "segment_end_tolerance_km",
       "origin": "default",
       "table": "engine",
@@ -31,6 +40,8 @@
       "variable": "WEATHERBOT_ENGINE_SEGMENT_END_TOLERANCE_KM"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "cone_horizon_h",
       "origin": "default",
       "table": "engine",
@@ -38,6 +49,8 @@
       "variable": "WEATHERBOT_ENGINE_CONE_HORIZON_H"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "hurricane_wind_floor_pct",
       "origin": "default",
       "table": "engine",
@@ -45,6 +58,8 @@
       "variable": "WEATHERBOT_ENGINE_HURRICANE_WIND_FLOOR_PCT"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "tropical_storm_wind_floor_pct",
       "origin": "default",
       "table": "engine",
@@ -52,6 +67,8 @@
       "variable": "WEATHERBOT_ENGINE_TROPICAL_STORM_WIND_FLOOR_PCT"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "development_chance_floor_pct",
       "origin": "default",
       "table": "engine",
@@ -59,6 +76,8 @@
       "variable": "WEATHERBOT_ENGINE_DEVELOPMENT_CHANCE_FLOOR_PCT"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "cycle_lock_wait_seconds",
       "origin": "default",
       "table": "monitor",
@@ -66,6 +85,8 @@
       "variable": "WEATHERBOT_MONITOR_CYCLE_LOCK_WAIT_SECONDS"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "confirm_after_minutes",
       "origin": "default",
       "table": "monitor",
@@ -73,6 +94,8 @@
       "variable": "WEATHERBOT_MONITOR_CONFIRM_AFTER_MINUTES"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "window_offset_minutes",
       "origin": "default",
       "table": "monitor",
@@ -80,6 +103,8 @@
       "variable": "WEATHERBOT_MONITOR_WINDOW_OFFSET_MINUTES"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "window_jitter_seconds",
       "origin": "default",
       "table": "monitor",
@@ -87,6 +112,8 @@
       "variable": "WEATHERBOT_MONITOR_WINDOW_JITTER_SECONDS"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "window_close_minutes",
       "origin": "default",
       "table": "monitor",
@@ -94,6 +121,8 @@
       "variable": "WEATHERBOT_MONITOR_WINDOW_CLOSE_MINUTES"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "roster_poll_minutes",
       "origin": "default",
       "table": "monitor",
@@ -101,6 +130,8 @@
       "variable": "WEATHERBOT_MONITOR_ROSTER_POLL_MINUTES"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "roster_interval_minutes",
       "origin": "default",
       "table": "monitor",
@@ -108,6 +139,8 @@
       "variable": "WEATHERBOT_MONITOR_ROSTER_INTERVAL_MINUTES"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "roster_interval_relevant_minutes",
       "origin": "default",
       "table": "monitor",
@@ -115,6 +148,8 @@
       "variable": "WEATHERBOT_MONITOR_ROSTER_INTERVAL_RELEVANT_MINUTES"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "alert_interval_minutes",
       "origin": "default",
       "table": "monitor",
@@ -122,6 +157,8 @@
       "variable": "WEATHERBOT_MONITOR_ALERT_INTERVAL_MINUTES"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "retry_base_minutes",
       "origin": "default",
       "table": "monitor",
@@ -129,6 +166,8 @@
       "variable": "WEATHERBOT_MONITOR_RETRY_BASE_MINUTES"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "retry_count",
       "origin": "default",
       "table": "monitor",
@@ -136,6 +175,8 @@
       "variable": "WEATHERBOT_MONITOR_RETRY_COUNT"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "degraded_after_failures",
       "origin": "default",
       "table": "monitor",
@@ -143,6 +184,8 @@
       "variable": "WEATHERBOT_MONITOR_DEGRADED_AFTER_FAILURES"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "heartbeat_minutes",
       "origin": "default",
       "table": "monitor",
@@ -150,6 +193,8 @@
       "variable": "WEATHERBOT_MONITOR_HEARTBEAT_MINUTES"
     },
     {
+      "applies": "next_cycle",
+      "editable": true,
       "key": "cooldown_hours",
       "origin": "default",
       "table": "notifications",
@@ -157,6 +202,8 @@
       "variable": "WEATHERBOT_NOTIFICATIONS_COOLDOWN_HOURS"
     },
     {
+      "applies": "next_cycle",
+      "editable": true,
       "key": "quiet_hours_start",
       "origin": "default",
       "table": "notifications",
@@ -164,6 +211,8 @@
       "variable": "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_START"
     },
     {
+      "applies": "next_cycle",
+      "editable": true,
       "key": "quiet_hours_end",
       "origin": "default",
       "table": "notifications",
@@ -171,6 +220,8 @@
       "variable": "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_END"
     },
     {
+      "applies": "next_cycle",
+      "editable": true,
       "key": "quiet_hours_time_zone",
       "origin": "default",
       "table": "notifications",
@@ -178,6 +229,8 @@
       "variable": "WEATHERBOT_NOTIFICATIONS_QUIET_HOURS_TIME_ZONE"
     },
     {
+      "applies": "next_start",
+      "editable": true,
       "key": "toast",
       "origin": "default",
       "table": "notifications",
@@ -185,6 +238,8 @@
       "variable": "WEATHERBOT_NOTIFICATIONS_TOAST"
     },
     {
+      "applies": "next_start",
+      "editable": true,
       "key": "browser",
       "origin": "default",
       "table": "notifications",
@@ -192,6 +247,8 @@
       "variable": "WEATHERBOT_NOTIFICATIONS_BROWSER"
     },
     {
+      "applies": "next_start",
+      "editable": true,
       "key": "ntfy",
       "origin": "default",
       "table": "notifications",
@@ -199,6 +256,8 @@
       "variable": "WEATHERBOT_NOTIFICATIONS_NTFY"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "ntfy_server",
       "origin": "default",
       "table": "notifications",
@@ -206,6 +265,8 @@
       "variable": "WEATHERBOT_NOTIFICATIONS_NTFY_SERVER"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "host",
       "origin": "default",
       "table": "web",
@@ -213,6 +274,8 @@
       "variable": "WEATHERBOT_WEB_HOST"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "port",
       "origin": "default",
       "table": "web",
@@ -220,6 +283,8 @@
       "variable": "WEATHERBOT_WEB_PORT"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "corpus",
       "origin": "default",
       "table": "web",
@@ -227,6 +292,8 @@
       "variable": "WEATHERBOT_WEB_CORPUS"
     },
     {
+      "applies": "next_start",
+      "editable": true,
       "key": "enabled",
       "origin": "default",
       "table": "ai",
@@ -234,6 +301,8 @@
       "variable": "WEATHERBOT_AI_ENABLED"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "model",
       "origin": "default",
       "table": "ai",
@@ -241,6 +310,8 @@
       "variable": "WEATHERBOT_AI_MODEL"
     },
     {
+      "applies": "next_start",
+      "editable": false,
       "key": "summary_model",
       "origin": "default",
       "table": "ai",
@@ -248,6 +319,8 @@
       "variable": "WEATHERBOT_AI_SUMMARY_MODEL"
     },
     {
+      "applies": "next_start",
+      "editable": true,
       "key": "daily_cap_usd",
       "origin": "default",
       "table": "ai",
@@ -255,6 +328,8 @@
       "variable": "WEATHERBOT_AI_DAILY_CAP_USD"
     },
     {
+      "applies": "next_start",
+      "editable": true,
       "key": "change_summaries",
       "origin": "default",
       "table": "ai",
@@ -262,13 +337,26 @@
       "variable": "WEATHERBOT_AI_CHANGE_SUMMARIES"
     },
     {
+      "applies": "next_start",
+      "editable": true,
       "key": "outlook_narration",
       "origin": "default",
       "table": "ai",
       "value": false,
       "variable": "WEATHERBOT_AI_OUTLOOK_NARRATION"
+    },
+    {
+      "applies": "next_cycle",
+      "editable": true,
+      "key": "history_days",
+      "origin": "default",
+      "table": "retention",
+      "value": 0,
+      "variable": "WEATHERBOT_RETENTION_HISTORY_DAYS"
     }
   ],
   "settings_file": "/placeholder/config/weatherbot.toml",
-  "settings_file_exists": false
+  "settings_file_exists": false,
+  "settings_file_problem": null,
+  "settings_file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 }

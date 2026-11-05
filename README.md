@@ -91,6 +91,8 @@ weatherbot ask "What would raise the level here?" --location "Miami-Dade County 
 
 weatherbot config show               # every setting's value, and whether it came from the default, weatherbot.toml, or the environment
 weatherbot config path               # where the settings file, the database, its backups, the log file, and the lock files live
+weatherbot prune --dry-run --days 90 # preview how many rows per table a 90-day retention run would remove and its UTC cutoff
+weatherbot prune --cutoff 2026-08-05T12:00:00Z --vacuum  # execute that exact plan in batches and compact the database (while serve/check is stopped)
 ```
 
 `status` prints, for each location, the level and its deciding rule with each
@@ -155,7 +157,7 @@ costs.
 
 `locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, `doctor`,
 `check --once`, `install-task`, `uninstall-task`, `notify log`, `notify setup`,
-`notify test`, `config show`, `config path`, `brief`, and `ask` take `--json`
+`notify test`, `config show`, `config path`, `prune`, `brief`, and `ask` take `--json`
 and print one JSON document whose schema is in [docs/schema/](docs/schema/).
 `--verbose` (before the command: `weatherbot --verbose fetch`) logs at DEBUG
 to standard error. The exit status is 0 when everything answered, 1 when a
@@ -262,10 +264,15 @@ reloading the page and provides seven pages:
   along with its stored history behind a confirmation,
   inspect notification channel states (`GET /api/notifications/channels`) and
   enable or test browser, toast, and phone notifications (`POST
-  /api/notifications/test`), the AI section (`#ai`: the state, the credential's
-  source but never its value,
-  the models, today's spend against the cap, the recent requests,
+  /api/notifications/test`), edit quiet hours and notification cooldown (`PUT
+  /api/settings`, applied at the next cycle without a restart), the AI section
+  (`#ai`: the state, the credential's source but never its value,
+  the models, today's spend against the cap, editable daily cap and feature
+  switches, the recent requests,
   `Pause AI`/`Resume AI`, and `Allow $X more today` behind a confirmation),
+  configure database history retention (`GET /api/retention`: database and WAL
+  sizes, oldest and newest snapshots, `[retention] history_days`, dry-run plan
+  preview, and `Prune now` via `POST /api/retention/run` behind a confirmation),
   inspect effective settings and their origins (`default`, `file`,
   `environment`), read the 11-rule alert ladder, read the full disclaimer
   (`#disclaimer`), and view bundled frontend package licences

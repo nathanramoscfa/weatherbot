@@ -567,8 +567,9 @@ class SnapshotRepository:
     SHA-256 and shared by every snapshot that holds it, each distinct provenance once per
     snapshot, and one link per product (revision 0004); a snapshot stored before keeps its
     products in ``product_geometries`` and loads back as it was. A content row is never
-    updated or deleted: removing a snapshot removes its provenances and their links, and a
-    content that no snapshot links any more stays until Phase 7's retention.
+    updated in place: removing a snapshot removes its provenances and their links, and a
+    content that no snapshot links any more stays until ``RetentionService`` prunes
+    unreferenced rows.
     """
 
     def __init__(self, engine: Engine) -> None:

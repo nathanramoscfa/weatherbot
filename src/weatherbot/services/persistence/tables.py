@@ -214,7 +214,7 @@ class RawResponseRow(Base):
     url: Mapped[str] = mapped_column(Text)
     status: Mapped[int]
     fetched_at: Mapped[datetime]
-    sha256: Mapped[str] = mapped_column(ForeignKey("response_bodies.sha256"))
+    sha256: Mapped[str] = mapped_column(ForeignKey("response_bodies.sha256"), index=True)
     headers: Mapped[dict[str, Any]]
     etag: Mapped[str | None] = mapped_column(Text)
     last_modified: Mapped[str | None] = mapped_column(Text)
@@ -305,8 +305,8 @@ class GeometryContentRow(Base):
     other fields (``codec.canonical_content``): everything but its provenance, which
     carries the fetch's instant. Links name a content by its integer ``id``, not its
     64-character hash, because a snapshot links some 600 products. A content row is never
-    updated or deleted; one that no snapshot links any more stays until Phase 7's
-    retention.
+    updated in place; one that no snapshot links any more stays until
+    ``RetentionService`` prunes unreferenced rows.
     """
 
     __tablename__ = "geometry_contents"
@@ -358,7 +358,7 @@ class SnapshotGeometryRow(Base):
     advisory_id: Mapped[int | None] = mapped_column(ForeignKey("advisories.id"), index=True)
     product_kind: Mapped[str] = mapped_column(String(20))
     position: Mapped[int]
-    content_id: Mapped[int] = mapped_column(ForeignKey("geometry_contents.id"))
+    content_id: Mapped[int] = mapped_column(ForeignKey("geometry_contents.id"), index=True)
 
 
 class TextProductRow(Base):
@@ -601,7 +601,7 @@ class MonitorCycleRow(Base):
     started_at: Mapped[datetime] = mapped_column(index=True)
     completed_at: Mapped[datetime | None]
     snapshot_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("snapshots.id", ondelete="SET NULL")
+        ForeignKey("snapshots.id", ondelete="SET NULL"), index=True
     )
     status: Mapped[str] = mapped_column(String(8))
     detail: Mapped[str | None] = mapped_column(Text, comment="A reason or an exception class")
@@ -625,7 +625,7 @@ class NotificationRow(Base):
         ForeignKey("locations.id", ondelete="CASCADE"), index=True
     )
     assessment_id: Mapped[int | None] = mapped_column(
-        ForeignKey("assessments.id", ondelete="CASCADE")
+        ForeignKey("assessments.id", ondelete="CASCADE"), index=True
     )
     cycle_id: Mapped[int | None] = mapped_column(
         ForeignKey("monitor_cycles.id", ondelete="SET NULL"), index=True

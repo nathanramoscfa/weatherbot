@@ -478,3 +478,54 @@ def test_ntfy_settings_and_overrides_load_and_validate_loopback_http() -> None:
     )
     assert overridden.notifications.ntfy is False
     assert overridden.notifications.ntfy_server == "http://127.0.0.1:8080"
+
+
+# The [retention] table ----------------------------------------------------------------------
+
+
+def test_retention_settings_load_default_and_override() -> None:
+    paths = AppPaths.resolve()
+    assert paths.retention_lock_path == paths.data_dir / "retention.lock"
+    assert load_settings(paths, {}).retention.history_days == 0
+
+    _write(paths, "[retention]\nhistory_days = 30\n")
+    assert load_settings(paths, {}).retention.history_days == 30  # noqa: PLR2004
+
+    _write(paths, "[retention]\nhistory_days = 3650\n")
+    assert load_settings(paths, {}).retention.history_days == 3650  # noqa: PLR2004
+
+    overridden = load_settings(paths, {"WEATHERBOT_RETENTION_HISTORY_DAYS": "365"})
+    assert overridden.retention.history_days == 365  # noqa: PLR2004
+    assert (
+        load_settings(paths, {"WEATHERBOT_RETENTION_HISTORY_DAYS": "0"}).retention.history_days == 0
+    )
+
+
+@pytest.mark.parametrize(
+    ("toml_literal", "env_value"),
+    [
+        ("1", "1"),
+        ("29", "29"),
+        ("-1", "-1"),
+        ("3651", "3651"),
+        ("true", "true"),
+        ("30.5", "30.5"),
+        (f'"{UNECHOED}"', UNECHOED),
+    ],
+)
+def test_bad_retention_history_days_are_refused(toml_literal: str, env_value: str) -> None:
+    paths = AppPaths.resolve()
+    _write(paths, f"[retention]\nhistory_days = {toml_literal}\n")
+
+    with pytest.raises(ConfigError) as failure:
+        load_settings(paths, {})
+
+    assert "history_days" in str(failure.value)
+    assert UNECHOED not in str(failure.value)
+
+    paths.settings_path.unlink(missing_ok=True)
+    with pytest.raises(ConfigError) as env_failure:
+        load_settings(paths, {"WEATHERBOT_RETENTION_HISTORY_DAYS": env_value})
+
+    assert "WEATHERBOT_RETENTION_HISTORY_DAYS" in str(env_failure.value)
+    assert UNECHOED not in str(env_failure.value)

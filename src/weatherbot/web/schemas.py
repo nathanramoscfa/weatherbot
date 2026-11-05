@@ -1106,11 +1106,11 @@ class TimelineResponse(_ApiModel):
     notice: str = Field(description="One-line informational-only disclaimer notice.")
 
 
-# Settings (GET /api/settings) --------------------------------------------------------------
+# Settings & Retention (GET/PUT /api/settings, GET /api/retention, POST /api/retention/run) --
 
 
 class SettingOriginResponse(_ApiModel):
-    """Effective value and origin of one configuration setting."""
+    """Effective value, origin, and editability of one configuration setting."""
 
     table: str = Field(description="TOML table name, such as logging, engine, monitor, or web.")
     key: str = Field(description="Setting key within the TOML table.")
@@ -1121,6 +1121,14 @@ class SettingOriginResponse(_ApiModel):
         )
     )
     variable: str = Field(description="Environment variable name that overrides this setting.")
+    editable: bool = Field(
+        default=False,
+        description="Whether this setting can be edited from the Settings page.",
+    )
+    applies: Literal["next_cycle", "next_start"] = Field(
+        default="next_start",
+        description="When a file change to this setting takes effect: next_cycle or next_start.",
+    )
 
 
 class SettingsResponse(_ApiModel):
@@ -1128,14 +1136,169 @@ class SettingsResponse(_ApiModel):
 
     settings_file: str = Field(description="Filesystem path to weatherbot.toml as a string.")
     settings_file_exists: bool = Field(description="Whether weatherbot.toml exists on disk.")
+    settings_file_sha256: str = Field(
+        default="",
+        description="Hex SHA-256 digest of weatherbot.toml bytes (or of empty bytes when absent).",
+    )
     file_modified_since_start: bool = Field(
         description=(
             "Whether weatherbot.toml has been modified on disk since the web server started."
         )
     )
+    restart_keys: tuple[str, ...] = Field(
+        default=(),
+        description=(
+            "Next-start keys (such as '[ai] daily_cap_usd') whose current effective value "
+            "differs from the value when the server started."
+        ),
+    )
+    settings_file_problem: str | None = Field(
+        default=None,
+        description=(
+            "Parse or validation problem in weatherbot.toml (line/column only, never file text), "
+            "or null when valid."
+        ),
+    )
     settings: tuple[SettingOriginResponse, ...] = Field(
         description="All effective settings in table and key order."
     )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class SettingChangeRequest(_ApiModel):
+    """One setting change in ``PUT /api/settings``."""
+
+    table: str = Field(min_length=1, description="TOML section name, such as notifications.")
+    key: str = Field(min_length=1, description="Setting key within the TOML table.")
+    value: str | int | float | bool = Field(description="New value to write to weatherbot.toml.")
+
+
+class UpdateSettingsRequest(_ApiModel):
+    """Request body for ``PUT /api/settings``."""
+
+    expected_sha256: str = Field(
+        min_length=64,
+        max_length=64,
+        description="Expected SHA-256 hex digest of weatherbot.toml before writing.",
+    )
+    changes: tuple[SettingChangeRequest, ...] = Field(
+        min_length=1,
+        description="One or more allowlisted setting changes to apply atomically.",
+    )
+
+
+class UpdateSettingsResponse(_ApiModel):
+    """Response document for ``PUT /api/settings``."""
+
+    settings_file_sha256: str = Field(
+        description="New SHA-256 hex digest of weatherbot.toml after writing."
+    )
+    applied_next_cycle: tuple[str, ...] = Field(
+        description="Changed keys that take effect on the next monitor cycle."
+    )
+    applied_next_start: tuple[str, ...] = Field(
+        description="Changed keys that take effect the next time weatherbot serve starts."
+    )
+    restart_keys: tuple[str, ...] = Field(
+        description="All next-start keys whose current value differs from server startup."
+    )
+    settings: tuple[SettingOriginResponse, ...] = Field(
+        description="Updated effective settings in table and key order."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class RetentionSettingResponse(_ApiModel):
+    """Effective ``[retention] history_days`` setting and its origin."""
+
+    history_days: int = Field(
+        ge=0,
+        le=3650,
+        description="Configured retention window in days (0 = keep everything, or 30..3650).",
+    )
+    origin: Literal["default", "file", "environment"] = Field(
+        description="Where history_days came from: default, weatherbot.toml, or environment."
+    )
+    variable: str = Field(description="Environment variable that overrides history_days.")
+    editable: bool = Field(description="Whether history_days can be edited in weatherbot.toml.")
+
+
+class RetentionPlanResponse(_ApiModel):
+    """Read-only retention preview for a requested day count or cutoff."""
+
+    days: int = Field(ge=30, le=3650, description="Retention window in days used for this plan.")
+    cutoff: datetime = Field(description="Explicit UTC cutoff instant for this plan.")
+    counts: dict[str, int] = Field(description="Row counts to delete in each deletable table.")
+    total_rows: int = Field(ge=0, description="Total rows across all tables that would be deleted.")
+    estimated_bytes: int = Field(
+        ge=0, description="Estimated payload bytes freed by deleting those rows."
+    )
+    kept: tuple[str, ...] = Field(
+        description="Summary of records protected by the retention keep-list."
+    )
+    kept_snapshots: int = Field(ge=0, description="Number of snapshots protected by the keep-list.")
+    kept_assessments: int = Field(
+        ge=0, description="Number of assessments protected by the keep-list."
+    )
+
+
+class RetentionLastRunResponse(_ApiModel):
+    """Summary of the most recent retention run recorded in the database."""
+
+    ran_at: datetime = Field(description="UTC instant when the prune completed.")
+    cutoff: datetime = Field(description="UTC cutoff instant used by the prune.")
+    status: Literal["complete", "partial"] = Field(
+        description="Whether the prune finished every batch or stopped early on cycle.lock."
+    )
+    batches: int = Field(ge=0, description="Number of delete batches committed.")
+    total_deleted: int = Field(ge=0, description="Total rows deleted across all tables.")
+    counts: dict[str, int] = Field(description="Rows deleted per table.")
+    backup_file: str | None = Field(
+        description="Basename of the pre-prune SQLite backup file, or null if none was needed."
+    )
+
+
+class RetentionResponse(_ApiModel):
+    """Response document for ``GET /api/retention``."""
+
+    database_bytes: int = Field(ge=0, description="Size of weatherbot.sqlite3 in bytes.")
+    wal_bytes: int = Field(ge=0, description="Size of weatherbot.sqlite3-wal in bytes.")
+    oldest_snapshot_at: datetime | None = Field(
+        description="UTC completion instant of the oldest stored snapshot, or null."
+    )
+    newest_snapshot_at: datetime | None = Field(
+        description="UTC completion instant of the newest stored snapshot, or null."
+    )
+    row_counts: dict[str, int] = Field(description="Current row counts for key database tables.")
+    setting: RetentionSettingResponse = Field(
+        description="Effective [retention] history_days setting and origin."
+    )
+    last_run: RetentionLastRunResponse | None = Field(
+        description="Most recent retention run summary, or null if never run."
+    )
+    plan: RetentionPlanResponse = Field(
+        description="Read-only preview plan for the requested ?days= parameter (or default)."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class RunRetentionRequest(_ApiModel):
+    """Request body for ``POST /api/retention/run``."""
+
+    cutoff: datetime = Field(
+        description="Explicit UTC cutoff instant from a retention plan (30..3650 days ago)."
+    )
+
+
+class RunRetentionResponse(_ApiModel):
+    """Response document for ``POST /api/retention/run``."""
+
+    status: Literal["accepted"] = Field(
+        default="accepted",
+        description="Confirmation that the background retention prune has started.",
+    )
+    cutoff: datetime = Field(description="Validated UTC cutoff instant being pruned.")
+    started_at: datetime = Field(description="UTC instant when the prune was accepted.")
     notice: str = Field(description="One-line informational-only disclaimer notice.")
 
 

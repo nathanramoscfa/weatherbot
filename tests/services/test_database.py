@@ -57,6 +57,9 @@ FROZEN = {
     "0009_location_preferences.py": (
         "c8e69121ec8e4f0f3a957bd30917829ba5a32bd3f4f43d4d776ab9e618daa93f"
     ),
+    "0010_retention_indexes.py": (
+        "a735b1599ff122201b56118a91f40c842b0a9b50b25ce94b0a2fa4865f0e6012"
+    ),
 }
 SNAPSHOT_HEX = "8f0c4d1e5b7a4c2e9d3f1a2b3c4d5e6f"
 PROBE = "probe"
@@ -888,4 +891,40 @@ def test_0009_upgrade_populates_preference_defaults_and_downgrade_preserves_chil
     engine.dispose()
 
     assert _revision_of(paths.database_path) == "0008"
+    assert _every_row(paths.database_path, tables) == before
+
+
+# Revision 0010 -------------------------------------------------------------------------------
+
+
+def test_0010_upgrade_creates_four_retention_indexes_and_downgrade_drops_them(
+    paths: AppPaths, engine: Engine
+) -> None:
+    tables = _seed_0008(paths, engine)
+    _migrate(engine, "0009")
+    before = _every_row(paths.database_path, tables)
+
+    _migrate(engine, "0010")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0010"
+    inspector = inspect(engine)
+    assert "ix_snapshot_geometries_content_id" in {
+        idx["name"] for idx in inspector.get_indexes("snapshot_geometries")
+    }
+    assert "ix_raw_responses_sha256" in {
+        idx["name"] for idx in inspector.get_indexes("raw_responses")
+    }
+    assert "ix_monitor_cycles_snapshot_id" in {
+        idx["name"] for idx in inspector.get_indexes("monitor_cycles")
+    }
+    assert "ix_notifications_assessment_id" in {
+        idx["name"] for idx in inspector.get_indexes("notifications")
+    }
+    engine.dispose()
+
+    _migrate(engine, "0009")
+    engine.dispose()
+
+    assert _revision_of(paths.database_path) == "0009"
     assert _every_row(paths.database_path, tables) == before

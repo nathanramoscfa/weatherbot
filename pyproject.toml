@@ -40,6 +40,7 @@ dependencies = [
     "shapely>=2.2.0",
     "sqlalchemy>=2.1.5,<3",
     "starlette>=1.10.0",
+    "tomlkit>=0.15.2",
     "typer>=0.27.3",
     "tzdata>=2026.5 ; sys_platform == 'win32'",
     "uvicorn>=0.54.0",

@@ -16,6 +16,8 @@ import {
   type PolygonKind,
 } from "../settings/LocationManager.tsx";
 import { NotificationChannels } from "../settings/NotificationChannels.tsx";
+import { QuietHoursForm } from "../settings/QuietHoursForm.tsx";
+import { RetentionPanel } from "../settings/RetentionPanel.tsx";
 import { formatRouteError } from "./format.ts";
 
 export type SettingsResponse = components["schemas"]["SettingsResponse"];
@@ -217,7 +219,21 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
         </p>
       </section>
 
-      {settingsData?.file_modified_since_start && (
+      {settingsData?.settings_file_problem && (
+        <div
+          role="alert"
+          className="rounded-lg border border-red-300 bg-red-50 p-4 text-xs text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
+        >
+          <p className="font-semibold">
+            Configuration file problem — running on last valid settings
+          </p>
+          <p className="mt-0.5 font-mono">
+            {settingsData.settings_file_problem}
+          </p>
+        </div>
+      )}
+
+      {(settingsData?.restart_keys?.length ?? 0) > 0 && (
         <div
           role="alert"
           className="rounded-lg border border-amber-400 bg-amber-50 p-4 text-xs text-amber-950 dark:border-amber-600 dark:bg-amber-950/70 dark:text-amber-100"
@@ -232,11 +248,9 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
                 Configuration file modified since monitor start
               </p>
               <p className="mt-0.5">
-                <code>weatherbot.toml</code> has changed on disk since{" "}
-                <code>weatherbot serve</code> started. Restart{" "}
-                <code>weatherbot serve</code> (or the{" "}
-                <code>\Weatherbot\serve</code> scheduled task) to apply the new
-                settings.
+                Restart <code>weatherbot serve</code> (or the{" "}
+                <code>\Weatherbot\serve</code> scheduled task) to apply:{" "}
+                <code>{settingsData?.restart_keys.join(", ")}</code>.
               </p>
             </div>
           </div>
@@ -247,7 +261,11 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
 
       <NotificationChannels />
 
+      <QuietHoursForm />
+
       <AiSettingsSection />
+
+      <RetentionPanel />
 
       {/* Effective Settings */}
       <section

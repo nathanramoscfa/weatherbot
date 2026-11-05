@@ -113,6 +113,7 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
             "/api/notifications",
             "/api/notifications/channels",
             "/api/settings",
+            "/api/retention",
             "/api/disclaimer",
             "/api/map",
             "/api/replay",
@@ -159,6 +160,7 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
         "/api/notifications",
         "/api/notifications/channels",
         "/api/settings",
+        "/api/retention",
         "/api/disclaimer",
         "/api/replay",
     )

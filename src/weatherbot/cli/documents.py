@@ -1078,6 +1078,33 @@ class AskDocument(_Envelope):
     data: AskData
 
 
+# prune -------------------------------------------------------------------------------------
+
+
+class PruneData(_Document):
+    """What ``weatherbot prune`` planned or deleted, with its cutoff and backup."""
+
+    mode: Literal["disabled", "dry_run", "pruned"]
+    history_days: int | None = Field(default=None, ge=0, le=3650)
+    cutoff: datetime | None = None
+    status: Literal["disabled", "dry_run", "complete", "partial"]
+    batches: int = Field(default=0, ge=0)
+    total_rows: int = Field(default=0, ge=0)
+    estimated_bytes: int | None = Field(default=None, ge=0)
+    counts: dict[str, int]
+    kept: tuple[str, ...] = ()
+    backup_file: str | None = None
+    vacuumed: bool = False
+    database_bytes_after_vacuum: int | None = Field(default=None, ge=0)
+
+
+class PruneDocument(_Envelope):
+    """``weatherbot prune --json``."""
+
+    command: Literal["prune"] = "prune"
+    data: PruneData
+
+
 DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "locations": LocationsDocument,
     "fetch": FetchDocument,
@@ -1096,6 +1123,7 @@ DOCUMENTS: Final[dict[str, type[_Envelope]]] = {
     "uninstall-task": UninstallTaskDocument,
     "brief": BriefDocument,
     "ask": AskDocument,
+    "prune": PruneDocument,
 }
 """Each schema's file stem and its document model."""
 
