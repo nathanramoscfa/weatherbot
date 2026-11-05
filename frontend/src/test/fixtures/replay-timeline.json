@@ -1,0 +1,2505 @@
+{
+  "atcf_id": "AL052019",
+  "location": "Parliament Square",
+  "name": "Dorian",
+  "notes": [
+    "Replayed assessments lack arrival-time products and the tropical weather outlook, so a level they show reads as at least that level."
+  ],
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "ruleset": "c241a7ff882909314d943f1a18c64f056fd3a8fed706f5328bb7fe9a6a404226",
+  "steps": [
+    {
+      "advisory": "1",
+      "advisory_id": "001",
+      "changes": [
+        {
+          "detail": "The first assessment is at level 1 (All Clear), by the rule all_clear.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 1 for Five, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-24T15:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "2",
+      "advisory_id": "002",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 2 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-24T21:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "3",
+      "advisory_id": "003",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 3 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-25T03:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "4",
+      "advisory_id": "004",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 4 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-25T09:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "4A",
+      "advisory_id": "004A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 4A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-25T12:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "5",
+      "advisory_id": "005",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 5 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-25T15:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "5A",
+      "advisory_id": "005A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 5A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-25T18:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "6",
+      "advisory_id": "006",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 6 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-25T21:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "6A",
+      "advisory_id": "006A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 6A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-26T00:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "7",
+      "advisory_id": "007",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 7 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-26T03:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "7A",
+      "advisory_id": "007A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 7A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-26T06:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "8",
+      "advisory_id": "008",
+      "changes": [
+        {
+          "detail": "The level rose from 1 (All Clear) to level 3 (Watch / Hurricane Threat), by the rule hurricane_cone.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 8 for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        },
+        {
+          "detail": "The location entered the cone of Dorian, advisory 8.",
+          "kind": "cone_entered"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-26T09:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "8A",
+      "advisory_id": "008A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 8A for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-26T12:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "9",
+      "advisory_id": "009",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 9 for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-26T15:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "9A",
+      "advisory_id": "009A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 9A for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-26T18:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "10",
+      "advisory_id": "010",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 10 for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-26T21:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "10A",
+      "advisory_id": "010A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 10A for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-27T00:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "11",
+      "advisory_id": "011",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 11 for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-27T03:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "11A",
+      "advisory_id": "011A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 11A for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-27T06:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "12",
+      "advisory_id": "012",
+      "changes": [
+        {
+          "detail": "The level fell from 3 (Watch / Hurricane Threat) to level 2 (Tropical Storm Threat), by the rule storm_cone.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 12 for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-27T09:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "storm_cone",
+      "rule_trigger": "The location is inside the cone of any active storm."
+    },
+    {
+      "advisory": "12A",
+      "advisory_id": "012A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 12A for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-27T12:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "storm_cone",
+      "rule_trigger": "The location is inside the cone of any active storm."
+    },
+    {
+      "advisory": "13",
+      "advisory_id": "013",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 13 for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-27T15:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "storm_cone",
+      "rule_trigger": "The location is inside the cone of any active storm."
+    },
+    {
+      "advisory": "13A",
+      "advisory_id": "013A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 13A for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-27T18:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "storm_cone",
+      "rule_trigger": "The location is inside the cone of any active storm."
+    },
+    {
+      "advisory": "14",
+      "advisory_id": "014",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 14 for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-27T21:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "storm_cone",
+      "rule_trigger": "The location is inside the cone of any active storm."
+    },
+    {
+      "advisory": "14A",
+      "advisory_id": "014A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 14A for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-28T00:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "storm_cone",
+      "rule_trigger": "The location is inside the cone of any active storm."
+    },
+    {
+      "advisory": "15",
+      "advisory_id": "015",
+      "changes": [
+        {
+          "detail": "The level rose from 2 (Tropical Storm Threat) to level 3 (Watch / Hurricane Threat), by the rule hurricane_cone.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 15 for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-28T03:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "15A",
+      "advisory_id": "015A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 15A for Dorian, whose cone covers the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-28T06:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_cone",
+      "rule_trigger": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon."
+    },
+    {
+      "advisory": "16",
+      "advisory_id": "016",
+      "changes": [
+        {
+          "detail": "The level fell from 3 (Watch / Hurricane Threat) to level 2 (Tropical Storm Threat), by the rule tropical_storm_wind_probability.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 16 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        },
+        {
+          "detail": "The location left the cone of Dorian, advisory 16.",
+          "kind": "cone_left"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-28T09:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "tropical_storm_wind_probability",
+      "rule_trigger": "The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor."
+    },
+    {
+      "advisory": "16A",
+      "advisory_id": "016A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 16A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-28T12:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "tropical_storm_wind_probability",
+      "rule_trigger": "The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor."
+    },
+    {
+      "advisory": "17",
+      "advisory_id": "017",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 17 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-28T15:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "tropical_storm_wind_probability",
+      "rule_trigger": "The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor."
+    },
+    {
+      "advisory": "17A",
+      "advisory_id": "017A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 17A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-28T18:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "tropical_storm_wind_probability",
+      "rule_trigger": "The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor."
+    },
+    {
+      "advisory": "18",
+      "advisory_id": "018",
+      "changes": [
+        {
+          "detail": "The level rose from 2 (Tropical Storm Threat) to level 3 (Watch / Hurricane Threat), by the rule hurricane_wind_probability.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 18 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-28T21:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_wind_probability",
+      "rule_trigger": "The location's 64-kt wind-speed probability band starts at or above the hurricane wind floor."
+    },
+    {
+      "advisory": "18A",
+      "advisory_id": "018A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 18A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-29T00:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_wind_probability",
+      "rule_trigger": "The location's 64-kt wind-speed probability band starts at or above the hurricane wind floor."
+    },
+    {
+      "advisory": "19",
+      "advisory_id": "019",
+      "changes": [
+        {
+          "detail": "The level fell from 3 (Watch / Hurricane Threat) to level 2 (Tropical Storm Threat), by the rule tropical_storm_wind_probability.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 19 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-29T03:00:00Z",
+      "level": {
+        "actions": "Monitor daily; review plans",
+        "label": "Tropical Storm Threat",
+        "number": 2
+      },
+      "official_codes": [],
+      "rule": "tropical_storm_wind_probability",
+      "rule_trigger": "The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor."
+    },
+    {
+      "advisory": "20",
+      "advisory_id": "020",
+      "changes": [
+        {
+          "detail": "The level rose from 2 (Tropical Storm Threat) to level 3 (Watch / Hurricane Threat), by the rule hurricane_wind_probability.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 20 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-29T09:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_wind_probability",
+      "rule_trigger": "The location's 64-kt wind-speed probability band starts at or above the hurricane wind floor."
+    },
+    {
+      "advisory": "21",
+      "advisory_id": "021",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 21 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-29T15:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_wind_probability",
+      "rule_trigger": "The location's 64-kt wind-speed probability band starts at or above the hurricane wind floor."
+    },
+    {
+      "advisory": "22",
+      "advisory_id": "022",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 22 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-29T21:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_wind_probability",
+      "rule_trigger": "The location's 64-kt wind-speed probability band starts at or above the hurricane wind floor."
+    },
+    {
+      "advisory": "23",
+      "advisory_id": "023",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 23 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-30T03:00:00Z",
+      "level": {
+        "actions": "Stock supplies; pack; set an exit plan",
+        "label": "Watch / Hurricane Threat",
+        "number": 3
+      },
+      "official_codes": [],
+      "rule": "hurricane_wind_probability",
+      "rule_trigger": "The location's 64-kt wind-speed probability band starts at or above the hurricane wind floor."
+    },
+    {
+      "advisory": "24",
+      "advisory_id": "024",
+      "changes": [
+        {
+          "detail": "The level rose from 3 (Watch / Hurricane Threat) to level 4 (Warning / Watch / Evacuation), by the rule hurricane_watch.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 24 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        },
+        {
+          "detail": "NHC issued the Hurricane Watch (HWA) that covers the location for Dorian, advisory 24.",
+          "kind": "official_added"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-30T09:00:00Z",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "official_codes": [
+        "HWA"
+      ],
+      "rule": "hurricane_watch",
+      "rule_trigger": "A Hurricane Watch covers the location."
+    },
+    {
+      "advisory": "24A",
+      "advisory_id": "024A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 24A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-30T12:00:00Z",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "official_codes": [
+        "HWA"
+      ],
+      "rule": "hurricane_watch",
+      "rule_trigger": "A Hurricane Watch covers the location."
+    },
+    {
+      "advisory": "25",
+      "advisory_id": "025",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 25 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-30T15:00:00Z",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "official_codes": [
+        "HWA"
+      ],
+      "rule": "hurricane_watch",
+      "rule_trigger": "A Hurricane Watch covers the location."
+    },
+    {
+      "advisory": "25A",
+      "advisory_id": "025A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 25A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-30T18:00:00Z",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "official_codes": [
+        "HWA"
+      ],
+      "rule": "hurricane_watch",
+      "rule_trigger": "A Hurricane Watch covers the location."
+    },
+    {
+      "advisory": "26",
+      "advisory_id": "026",
+      "changes": [
+        {
+          "detail": "The level rose from 4 (Warning / Watch / Evacuation) to level 5 (Hurricane Warning), by the rule hurricane_warning.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 26 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        },
+        {
+          "detail": "NHC replaced the Hurricane Watch (HWA) with the Hurricane Warning (HWR) that covers the location for Dorian, advisory 26.",
+          "kind": "official_changed"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-30T21:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "26A",
+      "advisory_id": "026A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 26A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-31T00:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "27",
+      "advisory_id": "027",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 27 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-31T03:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "27A",
+      "advisory_id": "027A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 27A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-31T06:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "28",
+      "advisory_id": "028",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 28 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-31T09:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "28A",
+      "advisory_id": "028A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 28A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-31T12:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "29",
+      "advisory_id": "029",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 29 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-31T15:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "29A",
+      "advisory_id": "029A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 29A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-31T18:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "30",
+      "advisory_id": "030",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 30 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-08-31T21:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "30A",
+      "advisory_id": "030A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 30A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-01T00:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "31",
+      "advisory_id": "031",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 31 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-01T03:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "31A",
+      "advisory_id": "031A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 31A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-01T06:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "32",
+      "advisory_id": "032",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 32 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-01T09:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "32A",
+      "advisory_id": "032A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 32A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-01T12:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "33",
+      "advisory_id": "033",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 33 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-01T15:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "33A",
+      "advisory_id": "033A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 33A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-01T18:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "34",
+      "advisory_id": "034",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 34 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-01T21:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "34A",
+      "advisory_id": "034A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 34A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-02T00:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "35",
+      "advisory_id": "035",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 35 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-02T03:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "35A",
+      "advisory_id": "035A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 35A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-02T06:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "36",
+      "advisory_id": "036",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 36 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-02T09:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "36A",
+      "advisory_id": "036A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 36A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-02T12:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "37",
+      "advisory_id": "037",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 37 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-02T15:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "37A",
+      "advisory_id": "037A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 37A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-02T18:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "38",
+      "advisory_id": "038",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 38 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-02T21:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "38A",
+      "advisory_id": "038A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 38A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-03T00:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "39",
+      "advisory_id": "039",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 39 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-03T03:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "39A",
+      "advisory_id": "039A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 39A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-03T06:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "40",
+      "advisory_id": "040",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 40 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-03T09:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "40A",
+      "advisory_id": "040A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 40A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-03T12:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "41",
+      "advisory_id": "041",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 41 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-03T15:00:00Z",
+      "level": {
+        "actions": "Shelter if not evacuated; expect outages; follow local orders",
+        "label": "Hurricane Warning",
+        "number": 5
+      },
+      "official_codes": [
+        "HWR"
+      ],
+      "rule": "hurricane_warning",
+      "rule_trigger": "A Hurricane Warning covers the location."
+    },
+    {
+      "advisory": "41A",
+      "advisory_id": "041A",
+      "changes": [
+        {
+          "detail": "The level fell from 5 (Hurricane Warning) to level 4 (Warning / Watch / Evacuation), by the rule tropical_storm_warning.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 41A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        },
+        {
+          "detail": "NHC replaced the Hurricane Warning (HWR) with the Tropical Storm Warning (TWR) that covers the location for Dorian, advisory 41A.",
+          "kind": "official_changed"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-03T18:00:00Z",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "official_codes": [
+        "TWR"
+      ],
+      "rule": "tropical_storm_warning",
+      "rule_trigger": "A Tropical Storm Warning covers the location."
+    },
+    {
+      "advisory": "42",
+      "advisory_id": "042",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 42 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-03T21:00:00Z",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "official_codes": [
+        "TWR"
+      ],
+      "rule": "tropical_storm_warning",
+      "rule_trigger": "A Tropical Storm Warning covers the location."
+    },
+    {
+      "advisory": "42A",
+      "advisory_id": "042A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 42A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-04T00:00:00Z",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "official_codes": [
+        "TWR"
+      ],
+      "rule": "tropical_storm_warning",
+      "rule_trigger": "A Tropical Storm Warning covers the location."
+    },
+    {
+      "advisory": "43",
+      "advisory_id": "043",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 43 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-04T03:00:00Z",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "official_codes": [
+        "TWR"
+      ],
+      "rule": "tropical_storm_warning",
+      "rule_trigger": "A Tropical Storm Warning covers the location."
+    },
+    {
+      "advisory": "43A",
+      "advisory_id": "043A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 43A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-04T06:00:00Z",
+      "level": {
+        "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+        "label": "Warning / Watch / Evacuation",
+        "number": 4
+      },
+      "official_codes": [
+        "TWR"
+      ],
+      "rule": "tropical_storm_warning",
+      "rule_trigger": "A Tropical Storm Warning covers the location."
+    },
+    {
+      "advisory": "44",
+      "advisory_id": "044",
+      "changes": [
+        {
+          "detail": "The level fell from 4 (Warning / Watch / Evacuation) to level 1 (All Clear), by the rule all_clear.",
+          "kind": "level_changed"
+        },
+        {
+          "detail": "NHC issued advisory 44 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        },
+        {
+          "detail": "NHC no longer has the Tropical Storm Warning (TWR) that covers the location for Dorian, advisory 44.",
+          "kind": "official_removed"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-04T09:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "44A",
+      "advisory_id": "044A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 44A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-04T12:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "45",
+      "advisory_id": "045",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 45 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-04T15:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "45A",
+      "advisory_id": "045A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 45A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-04T18:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "46",
+      "advisory_id": "046",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 46 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-04T21:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "46A",
+      "advisory_id": "046A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 46A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-05T00:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "47",
+      "advisory_id": "047",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 47 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-05T03:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "47A",
+      "advisory_id": "047A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 47A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-05T06:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "48",
+      "advisory_id": "048",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 48 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-05T09:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "48A",
+      "advisory_id": "048A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 48A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-05T12:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "49",
+      "advisory_id": "049",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 49 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-05T15:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "49A",
+      "advisory_id": "049A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 49A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-05T18:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "50",
+      "advisory_id": "050",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 50 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-05T21:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "50A",
+      "advisory_id": "050A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 50A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-06T00:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "51",
+      "advisory_id": "051",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 51 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-06T03:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "51A",
+      "advisory_id": "051A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 51A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-06T06:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "52",
+      "advisory_id": "052",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 52 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-06T09:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "52A",
+      "advisory_id": "052A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 52A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-06T12:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "53",
+      "advisory_id": "053",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 53 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-06T15:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "53A",
+      "advisory_id": "053A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 53A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-06T18:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "54",
+      "advisory_id": "054",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 54 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-06T21:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "54A",
+      "advisory_id": "054A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 54A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-07T00:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "55",
+      "advisory_id": "055",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 55 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-07T03:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "55A",
+      "advisory_id": "055A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 55A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-07T06:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "56",
+      "advisory_id": "056",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 56 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-07T09:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "56A",
+      "advisory_id": "056A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 56A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-07T12:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "57",
+      "advisory_id": "057",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 57 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-07T15:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "58",
+      "advisory_id": "058",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 58 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-07T18:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "59",
+      "advisory_id": "059",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 59 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-07T21:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "59A",
+      "advisory_id": "059A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 59A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-08T00:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "60",
+      "advisory_id": "060",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 60 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-08T03:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "60A",
+      "advisory_id": "060A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 60A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-08T06:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "61",
+      "advisory_id": "061",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 61 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-08T09:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "61A",
+      "advisory_id": "061A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 61A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-08T12:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "62",
+      "advisory_id": "062",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 62 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-08T15:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "62A",
+      "advisory_id": "062A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 62A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-08T18:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "63",
+      "advisory_id": "063",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 63 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-08T21:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "63A",
+      "advisory_id": "063A",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 63A for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-09T00:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    },
+    {
+      "advisory": "64",
+      "advisory_id": "064",
+      "changes": [
+        {
+          "detail": "NHC issued advisory 64 for Dorian, whose cone does not cover the location.",
+          "kind": "advisory_issued"
+        }
+      ],
+      "complete": false,
+      "issued_at": "2019-09-09T03:00:00Z",
+      "level": {
+        "actions": "Normal activities",
+        "label": "All Clear",
+        "number": 1
+      },
+      "official_codes": [],
+      "rule": "all_clear",
+      "rule_trigger": "No other rule matches."
+    }
+  ],
+  "time_zone": null
+}

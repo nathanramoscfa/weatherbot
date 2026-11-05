@@ -9,6 +9,7 @@ import { MapView } from "../map/MapView.tsx";
 import { Alerts } from "../pages/Alerts.tsx";
 import { Ask } from "../pages/Ask.tsx";
 import { Dashboard } from "../pages/Dashboard.tsx";
+import { Replay } from "../pages/Replay.tsx";
 import { Settings } from "../pages/Settings.tsx";
 import { Storms } from "../pages/Storms.tsx";
 import { Timeline } from "../pages/Timeline.tsx";
@@ -48,6 +49,10 @@ export function createAppRoutes(shellProps?: AppShellProps): RouteObject[] {
         {
           path: "map",
           element: <MapView />,
+        },
+        {
+          path: "replay",
+          element: <Replay />,
         },
         {
           path: "storms",

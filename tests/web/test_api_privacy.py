@@ -64,7 +64,7 @@ def _distance_renderings(value: float) -> set[str]:
     return written | ({whole} if len(whole) >= 3 else set())  # noqa: PLR2004
 
 
-def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_clean(
+def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_clean(  # noqa: PLR0915
     coordinates: tuple[str, str], caplog: pytest.LogCaptureFixture
 ) -> None:
     lat, lon = coordinates
@@ -105,6 +105,8 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
         )
         app = create_app(state)
         charts_url = f"/api/charts?location={quote(NAME)}"
+        replay_timeline_url = f"/api/replay/AL112017/timeline?location={quote(NAME)}"
+        replay_assessment_url = f"/api/replay/AL112017/026A/assessment?location={quote(NAME)}"
         routes = (
             "/api/health",
             "/api/locations",
@@ -123,7 +125,9 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
             "/api/map/depth",
             "/api/map/wind-probabilities?threshold_kt=34",
             "/api/replay",
+            replay_timeline_url,
             "/api/replay/AL112017/026A",
+            replay_assessment_url,
             "/api/replay/AL112017/026A/wind-probabilities?threshold_kt=34",
         )
 
@@ -181,6 +185,8 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
         "/api/disclaimer",
         "/api/map/advisories",
         "/api/replay",
+        replay_timeline_url,
+        replay_assessment_url,
     )
     for url in non_coordinate_routes:
         text = responses[url].text

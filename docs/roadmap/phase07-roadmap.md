@@ -4605,7 +4605,7 @@ phase-boundary hygiene.
 
 ## Step 7 — Replay in the UI
 
-**Status:** Not started
+**Status:** Complete
 
 > **Goal:** Let a past storm scrub advisory by advisory through the same engine
 > and the same components. `services/replay.py` gains `ReplayTimelines`, an
@@ -4648,6 +4648,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-05: Balanced Pick / Quality Runner-up — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6938,7 +6940,7 @@ workflow above maps directly to the corresponding row below.
 | 4    | Settings + retention           | Gemini 4 Argon | Complete — PR #93  |
 | 5    | Map layers + time slider       | Gemini 4 Argon | Complete — PR #96  |
 | 6    | Charts + history               | Gemini 4 Argon | Complete — PR #97  |
-| 7    | Replay scrubber                | Gemini 4 Argon | Not started        |
+| 7    | Replay scrubber                | Gemini 4 Argon | Complete — PR #98  |
 | 8    | Report export                  | Gemini 4 Argon | Not started        |
 | 9    | Full smoke + idle + deploy     | Sonnet 5.5     | Not started        |
 | 10   | QA + verify_phase07.py         | GPT-6.1 Sol    | Not started        |

@@ -10545,9 +10545,9 @@
           "display_name": "Miami-Dade County Office, 111, Northwest 1st Street, Downtown Miami, Torch of Friendship, Miami, Miami-Dade County, Florida, 33128, United States",
           "evacuation_order_in_effect": false,
           "feature_kind": "polygon",
-          "in_cone": false,
-          "label": "All Clear",
-          "level": 1,
+          "in_cone": null,
+          "label": null,
+          "level": null,
           "name": "Miami-Dade County Hall"
         },
         "type": "Feature"
@@ -10583,10 +10583,10 @@
           "evacuation_order_in_effect": false,
           "feature_kind": "point",
           "has_polygon": true,
-          "in_cone": false,
+          "in_cone": null,
           "inside_nws_coverage": true,
-          "label": "All Clear",
-          "level": 1,
+          "label": null,
+          "level": null,
           "name": "Miami-Dade County Hall"
         },
         "type": "Feature"
@@ -21121,9 +21121,9 @@
           "display_name": "Miami-Dade County Office, 111, Northwest 1st Street, Downtown Miami, Torch of Friendship, Miami, Miami-Dade County, Florida, 33128, United States",
           "evacuation_order_in_effect": false,
           "feature_kind": "polygon",
-          "in_cone": false,
-          "label": "All Clear",
-          "level": 1,
+          "in_cone": null,
+          "label": null,
+          "level": null,
           "name": "Miami-Dade County Hall"
         },
         "type": "Feature"
@@ -21150,10 +21150,10 @@
           "evacuation_order_in_effect": false,
           "feature_kind": "point",
           "has_polygon": false,
-          "in_cone": false,
+          "in_cone": null,
           "inside_nws_coverage": false,
-          "label": "All Clear",
-          "level": 1,
+          "label": null,
+          "level": null,
           "name": "Parliament Square"
         },
         "type": "Feature"

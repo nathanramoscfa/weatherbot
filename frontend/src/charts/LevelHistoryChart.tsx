@@ -17,6 +17,7 @@ export interface LevelHistoryChartProps {
   readonly location: string;
   readonly timeZone?: string | null;
   readonly points: readonly ChartLevelPoint[];
+  readonly activeAsOf?: string | null;
 }
 
 const VIEW_WIDTH = 560;
@@ -62,8 +63,13 @@ export function LevelHistoryChart({
   location,
   timeZone,
   points,
+  activeAsOf = null,
 }: LevelHistoryChartProps) {
   const ordered = sortLevelPointsChronological(points);
+  const activePoint =
+    activeAsOf !== null
+      ? ordered.find((pt) => pt.as_of === activeAsOf)
+      : undefined;
   if (ordered.length === 0) {
     return (
       <section
@@ -231,6 +237,38 @@ export function LevelHistoryChart({
             </g>
           );
         })}
+        {activePoint !== undefined ? (
+          <g data-testid="level-history-active-marker">
+            <line
+              x1={
+                ordered.length === 1
+                  ? roundSvg((PLOT_LEFT + PLOT_RIGHT) / 2)
+                  : roundSvg(xScale(activePoint.as_of))
+              }
+              y1={PLOT_TOP}
+              x2={
+                ordered.length === 1
+                  ? roundSvg((PLOT_LEFT + PLOT_RIGHT) / 2)
+                  : roundSvg(xScale(activePoint.as_of))
+              }
+              y2={PLOT_BOTTOM}
+              strokeWidth={1.5}
+              strokeDasharray="3 2"
+              className="stroke-amber-500 dark:stroke-amber-400"
+            />
+            <circle
+              cx={
+                ordered.length === 1
+                  ? roundSvg((PLOT_LEFT + PLOT_RIGHT) / 2)
+                  : roundSvg(xScale(activePoint.as_of))
+              }
+              cy={roundSvg(yScale(activePoint.level))}
+              r={6}
+              strokeWidth={2}
+              className="fill-amber-400 stroke-slate-900 dark:stroke-slate-100"
+            />
+          </g>
+        ) : null}
       </svg>
 
       <table className="sr-only">

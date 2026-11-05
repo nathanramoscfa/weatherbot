@@ -725,6 +725,59 @@
         }
       }
     },
+    "/api/replay/{atcf_id}/timeline": {
+      "get": {
+        "summary": "Get Replay Timeline",
+        "description": "Return every replayed advisory step and notes for ``atcf_id`` at ``location``.",
+        "operationId": "get_replay_timeline_api_replay__atcf_id__timeline_get",
+        "parameters": [
+          {
+            "name": "atcf_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Atcf Id"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "description": "Stored location name to replay the storm at.",
+              "title": "Location"
+            },
+            "description": "Stored location name to replay the storm at."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayTimelineResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/replay/{atcf_id}/{advisory}": {
       "get": {
         "summary": "Get Replay Advisory Map",
@@ -757,6 +810,68 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/replay/{atcf_id}/{advisory}/assessment": {
+      "get": {
+        "summary": "Get Replay Assessment",
+        "description": "Return the full replayed assessment for ``atcf_id`` at ``advisory`` and ``location``.",
+        "operationId": "get_replay_assessment_api_replay__atcf_id___advisory__assessment_get",
+        "parameters": [
+          {
+            "name": "atcf_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Atcf Id"
+            }
+          },
+          {
+            "name": "advisory",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Advisory"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "description": "Stored location name to replay the advisory at.",
+              "title": "Location"
+            },
+            "description": "Stored location name to replay the advisory at."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayAssessmentResponse"
                 }
               }
             }
@@ -6528,6 +6643,186 @@
         "title": "RemoveLocationResponse",
         "description": "Response document for ``POST /api/locations/remove``."
       },
+      "ReplayAssessmentResponse": {
+        "properties": {
+          "origin": {
+            "type": "string",
+            "const": "replay",
+            "title": "Origin",
+            "description": "Origin of the assessment: always 'replay'.",
+            "default": "replay"
+          },
+          "atcf_id": {
+            "type": "string",
+            "title": "Atcf Id",
+            "description": "Storm ATCF identifier."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Storm name in the replay corpus."
+          },
+          "advisory_id": {
+            "type": "string",
+            "title": "Advisory Id",
+            "description": "Zero-padded corpus advisory identifier, such as '026' or '026A'."
+          },
+          "advisory": {
+            "type": "string",
+            "title": "Advisory",
+            "description": "Printed advisory number from the cone product, such as '26' or '26A'."
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Watched location name."
+          },
+          "inside_nws_coverage": {
+            "type": "boolean",
+            "title": "Inside Nws Coverage",
+            "description": "Whether the location is inside NWS coverage."
+          },
+          "time_zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Zone",
+            "description": "IANA time zone of the location, or null outside NWS coverage."
+          },
+          "snapshot_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "description": "Deterministic UUID5 identifier of the replayed snapshot."
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of",
+            "description": "UTC issuance instant of the replayed advisory."
+          },
+          "level": {
+            "$ref": "#/components/schemas/ThreatLevelResponse",
+            "description": "Decided threat level, label, and recommended actions."
+          },
+          "rule": {
+            "type": "string",
+            "title": "Rule",
+            "description": "Identifier of the first ladder rule that matched."
+          },
+          "rule_trigger": {
+            "type": "string",
+            "title": "Rule Trigger",
+            "description": "Human-readable summary of what triggers that rule."
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete",
+            "description": "False when one or more inputs were unavailable, making the level a floor."
+          },
+          "unavailable": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentUnavailableResponse"
+            },
+            "type": "array",
+            "title": "Unavailable",
+            "description": "Inputs that were unavailable when the replayed assessment was computed."
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentEvidenceResponse"
+            },
+            "type": "array",
+            "title": "Evidence",
+            "description": "Evidence items supporting the deciding rule."
+          },
+          "official": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentOfficialProductResponse"
+            },
+            "type": "array",
+            "title": "Official",
+            "description": "Covering official products evaluated at the location."
+          },
+          "wind_probabilities": {
+            "items": {
+              "$ref": "#/components/schemas/WindReadingResponse"
+            },
+            "type": "array",
+            "title": "Wind Probabilities",
+            "description": "34, 50, and 64 kt wind-speed-probability readings at the location."
+          },
+          "threats": {
+            "items": {
+              "$ref": "#/components/schemas/StormThreatResponse"
+            },
+            "type": "array",
+            "title": "Threats",
+            "description": "Per-storm threat readings for the replayed storm."
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentChangeResponse"
+            },
+            "type": "array",
+            "title": "Changes",
+            "description": "Change events compared with the preceding advisory in the replay."
+          },
+          "breakpoint_span": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BreakpointSpan"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nearest coastal breakpoint span for the location, or null."
+          },
+          "ruleset": {
+            "type": "string",
+            "title": "Ruleset",
+            "description": "Fingerprint of the ladder ruleset and thresholds."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "atcf_id",
+          "name",
+          "advisory_id",
+          "advisory",
+          "location",
+          "inside_nws_coverage",
+          "snapshot_id",
+          "as_of",
+          "level",
+          "rule",
+          "rule_trigger",
+          "complete",
+          "unavailable",
+          "evidence",
+          "official",
+          "wind_probabilities",
+          "threats",
+          "changes",
+          "breakpoint_span",
+          "ruleset",
+          "notice"
+        ],
+        "title": "ReplayAssessmentResponse",
+        "description": "Response document for ``GET /api/replay/{atcf_id}/{advisory}/assessment``."
+      },
       "ReplayStormSummaryResponse": {
         "properties": {
           "atcf_id": {
@@ -6604,6 +6899,146 @@
         ],
         "title": "ReplayStormsResponse",
         "description": "Response document for ``GET /api/replay``."
+      },
+      "ReplayTimelineResponse": {
+        "properties": {
+          "atcf_id": {
+            "type": "string",
+            "title": "Atcf Id",
+            "description": "Storm ATCF identifier."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Storm name in the replay corpus."
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Watched location name."
+          },
+          "time_zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Zone",
+            "description": "IANA time zone of the location, or null outside NWS coverage."
+          },
+          "ruleset": {
+            "type": "string",
+            "title": "Ruleset",
+            "description": "Fingerprint of the ladder ruleset and thresholds."
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes",
+            "description": "Operator-facing notes on missing archive inputs or ignored present-day toggles."
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ReplayTimelineStepResponse"
+            },
+            "type": "array",
+            "title": "Steps",
+            "description": "Replayed advisory steps in chronological issuance order."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "atcf_id",
+          "name",
+          "location",
+          "ruleset",
+          "notes",
+          "steps",
+          "notice"
+        ],
+        "title": "ReplayTimelineResponse",
+        "description": "Response document for ``GET /api/replay/{atcf_id}/timeline``."
+      },
+      "ReplayTimelineStepResponse": {
+        "properties": {
+          "advisory_id": {
+            "type": "string",
+            "title": "Advisory Id",
+            "description": "Zero-padded corpus advisory identifier, such as '026' or '026A'."
+          },
+          "advisory": {
+            "type": "string",
+            "title": "Advisory",
+            "description": "Printed advisory number from the cone product, such as '26' or '26A'."
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At",
+            "description": "UTC issuance instant of the advisory."
+          },
+          "level": {
+            "$ref": "#/components/schemas/ThreatLevelResponse",
+            "description": "Decided threat level, label, and recommended actions."
+          },
+          "rule": {
+            "type": "string",
+            "title": "Rule",
+            "description": "Identifier of the first ladder rule that matched."
+          },
+          "rule_trigger": {
+            "type": "string",
+            "title": "Rule Trigger",
+            "description": "Human-readable summary of what triggers that rule."
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete",
+            "description": "False when one or more inputs were unavailable, making the level a floor."
+          },
+          "official_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Official Codes",
+            "description": "Sorted codes of covering watches and warnings at this step."
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentChangeResponse"
+            },
+            "type": "array",
+            "title": "Changes",
+            "description": "Change events compared with the preceding advisory in the replay."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "advisory_id",
+          "advisory",
+          "issued_at",
+          "level",
+          "rule",
+          "rule_trigger",
+          "complete",
+          "official_codes",
+          "changes"
+        ],
+        "title": "ReplayTimelineStepResponse",
+        "description": "One replayed advisory step in ``GET /api/replay/{atcf_id}/timeline``."
       },
       "RetentionLastRunResponse": {
         "properties": {

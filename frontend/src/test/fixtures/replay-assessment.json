@@ -1,0 +1,170 @@
+{
+  "advisory": "26",
+  "advisory_id": "026",
+  "as_of": "2019-08-30T21:00:00Z",
+  "atcf_id": "AL052019",
+  "breakpoint_span": {
+    "catalog_loaded_at": "2026-04-30T18:42:35Z",
+    "country": "The Bahamas",
+    "is_region": true,
+    "names": [
+      "Bahamas (NW)"
+    ]
+  },
+  "changes": [
+    {
+      "detail": "The level rose from 4 (Warning / Watch / Evacuation) to level 5 (Hurricane Warning), by the rule hurricane_warning.",
+      "kind": "level_changed"
+    },
+    {
+      "detail": "NHC issued advisory 26 for Dorian, whose cone does not cover the location.",
+      "kind": "advisory_issued"
+    },
+    {
+      "detail": "NHC replaced the Hurricane Watch (HWA) with the Hurricane Warning (HWR) that covers the location for Dorian, advisory 26.",
+      "kind": "official_changed"
+    }
+  ],
+  "complete": false,
+  "evidence": [
+    {
+      "advisory": "26",
+      "at_end": false,
+      "atcf_id": "AL052019",
+      "closest_approach_at": null,
+      "code": "HWR",
+      "crs": "native (D_Sphere)",
+      "detail": "NHC Hurricane Warning (HWR) segment for Dorian, advisory 26: its nearest point is 3.8 km away, inside the segment.",
+      "distance_km": 3.8,
+      "issued_at": "2019-08-30T21:00:00Z",
+      "lead_h": null,
+      "product": "watch_warning_segment",
+      "source_id": "nhc-gis-archive",
+      "storm_name": "Dorian",
+      "test": "segment_distance"
+    }
+  ],
+  "inside_nws_coverage": false,
+  "level": {
+    "actions": "Shelter if not evacuated; expect outages; follow local orders",
+    "label": "Hurricane Warning",
+    "number": 5
+  },
+  "location": "Parliament Square",
+  "name": "Dorian",
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "official": [
+    {
+      "advisory": "26",
+      "alert_id": null,
+      "atcf_id": "AL052019",
+      "breakpoints": [],
+      "code": "HWR",
+      "covers": true,
+      "distance_km": 3.8,
+      "expires_at": null,
+      "is_county_context": false,
+      "issued_at": "2019-08-30T21:00:00Z",
+      "issuer": null,
+      "kind": "watch_warning_segment",
+      "reason": "its nearest point is 3.8 km away, inside the segment",
+      "rule": "hurricane_warning",
+      "storm_name": "Dorian",
+      "zones": []
+    }
+  ],
+  "origin": "replay",
+  "rule": "hurricane_warning",
+  "rule_trigger": "A Hurricane Warning covers the location.",
+  "ruleset": "c241a7ff882909314d943f1a18c64f056fd3a8fed706f5328bb7fe9a6a404226",
+  "snapshot_id": "00000000-0000-4000-8000-000000000004",
+  "threats": [
+    {
+      "advisory": "26",
+      "atcf_id": "AL052019",
+      "bearing_deg": 272,
+      "category": 3,
+      "closest_approach_at": "2019-09-01T20:33:05.005903Z",
+      "closest_approach_km": 195.5,
+      "development": "Major Hurricane",
+      "distance_km": 669.0,
+      "earliest_arrival": {
+        "advisory": "26",
+        "approach_at": "2019-09-01T20:33:05.005903Z",
+        "end": null,
+        "kind": "earliest_reasonable",
+        "label": "track closest approach, not a wind arrival",
+        "origin": "track",
+        "reading": "track",
+        "reason": null,
+        "start": null
+      },
+      "hurricane_by_approach": true,
+      "in_cone": false,
+      "issued_at": "2019-08-30T21:00:00Z",
+      "lead_h": 47.6,
+      "most_likely_arrival": {
+        "advisory": "26",
+        "approach_at": "2019-09-01T20:33:05.005903Z",
+        "end": null,
+        "kind": "most_likely",
+        "label": "track closest approach, not a wind arrival",
+        "origin": "track",
+        "reading": "track",
+        "reason": null,
+        "start": null
+      },
+      "storm_name": "Dorian"
+    }
+  ],
+  "time_zone": null,
+  "unavailable": [
+    {
+      "kind": "outlook_areas",
+      "reason": "a replay snapshot holds no tropical weather outlook",
+      "source_id": null,
+      "storm_name": null,
+      "threshold_kt": null
+    },
+    {
+      "kind": "arrival_times",
+      "reason": "the snapshot holds no earliest-reasonable arrival-time product for Dorian (the corpus holds no arrival-time products), so that arrival reads the forecast track's closest approach",
+      "source_id": "nhc-arrival-times",
+      "storm_name": "Dorian",
+      "threshold_kt": null
+    },
+    {
+      "kind": "arrival_times",
+      "reason": "the snapshot holds no most-likely arrival-time product for Dorian (the corpus holds no arrival-time products), so that arrival reads the forecast track's closest approach",
+      "source_id": "nhc-arrival-times",
+      "storm_name": "Dorian",
+      "threshold_kt": null
+    }
+  ],
+  "wind_probabilities": [
+    {
+      "label": "70-80%",
+      "lower_pct": 70,
+      "reading": "band",
+      "synoptic_at": "2019-08-30T18:00:00Z",
+      "threshold_kt": 34,
+      "upper_pct": 80
+    },
+    {
+      "label": "30-40%",
+      "lower_pct": 30,
+      "reading": "band",
+      "synoptic_at": "2019-08-30T18:00:00Z",
+      "threshold_kt": 50,
+      "upper_pct": 40
+    },
+    {
+      "label": "10-20%",
+      "lower_pct": 10,
+      "reading": "band",
+      "synoptic_at": "2019-08-30T18:00:00Z",
+      "threshold_kt": 64,
+      "upper_pct": 20
+    }
+  ]
+}

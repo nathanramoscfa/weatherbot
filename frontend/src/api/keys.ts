@@ -110,6 +110,10 @@ export const queryKeys = {
   replay: () => staticQueryKey("replay"),
   replayAdvisory: (atcfId: string, advisory: string) =>
     staticQueryKey("replay", atcfId, advisory),
+  replayTimeline: (atcfId: string, location: string) =>
+    staticQueryKey("replay", "timeline", atcfId, location),
+  replayAssessment: (atcfId: string, advisory: string, location: string) =>
+    staticQueryKey("replay", "assessment", atcfId, advisory, location),
   disclaimer: () => staticQueryKey("disclaimer"),
   licenses: () => staticQueryKey("licenses"),
 } as const;

@@ -22,7 +22,7 @@ from weatherbot.services.network import Network
 from weatherbot.services.notifications import Channel, LogChannel
 from weatherbot.services.ntfy import ntfy_channel
 from weatherbot.services.persistence.database import Database
-from weatherbot.services.replay import ReplayCorpus
+from weatherbot.services.replay import ReplayCorpus, ReplayTimelines
 from weatherbot.services.retention import RetentionService
 from weatherbot.services.schedule import MonitorSchedule
 from weatherbot.services.tasks import ON_WINDOWS
@@ -70,6 +70,7 @@ class _ActionState:
     chat: "ChatService | None" = None
     last_setting_origins: tuple[SettingOrigin, ...] | None = None
     retention_in_flight: bool = False
+    replay_timelines: ReplayTimelines | None = None
 
 
 @dataclass(frozen=True)
@@ -153,6 +154,18 @@ class WebState:
     def mark_search(self, at: datetime) -> None:
         """Record when ``POST /api/locations/search`` last ran."""
         self._actions.last_search_at = at
+
+    @property
+    def replay_timelines(self) -> ReplayTimelines | None:
+        """Return or construct the bounded replay-timeline cache when a corpus is configured."""
+        if self.corpus is None:
+            return None
+        if self._actions.replay_timelines is None:
+            self._actions.replay_timelines = ReplayTimelines(
+                self.corpus,
+                self.settings.engine.thresholds(),
+            )
+        return self._actions.replay_timelines
 
     @property
     def cycle_task(self) -> asyncio.Task[CycleResult | None] | None:
