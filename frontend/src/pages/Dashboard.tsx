@@ -8,6 +8,11 @@ import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { ThreatLevelBadge } from "../app/ThreatLevelBadge.tsx";
+import { ArrivalTimeline } from "../charts/ArrivalTimeline.tsx";
+import {
+  type ChartLevelPoint,
+  LevelSparkline,
+} from "../charts/LevelSparkline.tsx";
 import {
   STREAM_EVENT_DOM_NAME,
   type StreamEvent,
@@ -32,9 +37,54 @@ export type HealthResponse = components["schemas"]["HealthResponse"];
 export type DisclaimerResponse = components["schemas"]["DisclaimerResponse"];
 export type LocationAssessmentResponse =
   components["schemas"]["LocationAssessmentResponse"];
+export type ChartsResponse = components["schemas"]["ChartsResponse"];
 
 const FALLBACK_ESSENTIALS =
   "Weatherbot is informational only. It is never a substitute for official guidance from the National Hurricane Center (NHC), your local National Weather Service (NWS) Weather Forecast Office, or your local emergency management agency.";
+
+export function locationCardId(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `location-${slug}`;
+}
+
+async function fetchLocationCharts(location: string): Promise<ChartsResponse> {
+  const { data, response } = await apiClient.GET("/api/charts", {
+    params: { query: { location } },
+  });
+  if (!response.ok || !data) {
+    throw new ApiRequestError("/api/charts", response.status);
+  }
+  return data;
+}
+
+function useLocationLevelPoints(
+  item: LocationAssessmentResponse,
+): readonly ChartLevelPoint[] {
+  const chartsQuery = useQuery({
+    queryKey: queryKeys.charts(item.name),
+    queryFn: () => fetchLocationCharts(item.name),
+  });
+  if (chartsQuery.data !== undefined && chartsQuery.data.levels.length > 0) {
+    return chartsQuery.data.levels;
+  }
+  if (item.assessment !== null) {
+    return [
+      {
+        id: item.assessment.id,
+        as_of: item.assessment.as_of,
+        as_of_local: null,
+        level: item.assessment.level.number,
+        label: item.assessment.level.label,
+        rule: item.assessment.rule,
+        complete: item.assessment.complete,
+      },
+    ];
+  }
+  return [];
+}
 
 async function fetchAssessments(): Promise<AssessmentsResponse> {
   const { data, response } = await apiClient.GET("/api/assessments");
@@ -367,6 +417,10 @@ export function Dashboard() {
         )}
       </section>
 
+      {locationCards.length >= 2 && (
+        <LocationComparisonStrip locations={locationCards} />
+      )}
+
       <div className="space-y-5">
         {locationCards.map((loc) => (
           <LocationLevelCard
@@ -383,6 +437,78 @@ export function Dashboard() {
   );
 }
 
+interface LocationComparisonStripProps {
+  readonly locations: readonly LocationAssessmentResponse[];
+}
+
+function LocationComparisonStrip({ locations }: LocationComparisonStripProps) {
+  return (
+    <section
+      aria-label="Location comparison"
+      data-testid="location-comparison-strip"
+      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
+    >
+      <h2 className="text-xs font-semibold tracking-wide text-slate-600 uppercase dark:text-slate-400">
+        Location comparison
+      </h2>
+      <ul className="mt-2.5 divide-y divide-slate-200 dark:divide-slate-800">
+        {locations.map((loc) => (
+          <LocationComparisonRow key={loc.name} item={loc} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function LocationComparisonRow({
+  item,
+}: {
+  readonly item: LocationAssessmentResponse;
+}) {
+  const points = useLocationLevelPoints(item);
+  const { assessment } = item;
+  const cardHref = `#${locationCardId(item.name)}`;
+
+  return (
+    <li
+      data-testid={`comparison-row-${item.name}`}
+      className="flex flex-wrap items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
+    >
+      <div className="flex flex-wrap items-center gap-2.5">
+        <a
+          href={cardHref}
+          className="text-sm font-semibold text-sky-700 underline decoration-sky-400/70 underline-offset-2 hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200"
+        >
+          {item.name}
+        </a>
+        {assessment ? (
+          <ThreatLevelBadge
+            level={assessment.level.number}
+            atLeast={!assessment.complete}
+            size="sm"
+          />
+        ) : (
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            No stored assessment
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-700 dark:text-slate-300">
+        <LevelSparkline location={item.name} points={points} />
+        {assessment ? (
+          <span>
+            Rule:{" "}
+            <code className="rounded bg-slate-100 px-1 py-0.5 font-mono dark:bg-slate-800">
+              {assessment.rule}
+            </code>
+          </span>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
 interface LocationLevelCardProps {
   readonly item: LocationAssessmentResponse;
   readonly evacPending: boolean;
@@ -395,6 +521,7 @@ function LocationLevelCard({
   onToggleEvacuation,
 }: LocationLevelCardProps) {
   const { assessment, time_zone: timeZone } = item;
+  const levelPoints = useLocationLevelPoints(item);
   const coveringOfficial =
     assessment?.official.filter((p) => p.covers && !p.is_county_context) ?? [];
   const contextAlerts =
@@ -402,6 +529,7 @@ function LocationLevelCard({
 
   return (
     <article
+      id={locationCardId(item.name)}
       aria-label={item.name}
       className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
     >
@@ -427,10 +555,13 @@ function LocationLevelCard({
 
         {assessment && (
           <div className="flex flex-col items-start gap-1 sm:items-end">
-            <ThreatLevelBadge
-              level={assessment.level.number}
-              atLeast={!assessment.complete}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <ThreatLevelBadge
+                level={assessment.level.number}
+                atLeast={!assessment.complete}
+              />
+              <LevelSparkline location={item.name} points={levelPoints} />
+            </div>
             <span className="text-xs text-slate-600 dark:text-slate-400">
               Assessed: {formatBothTimes(assessment.as_of, timeZone)}
             </span>
@@ -721,6 +852,12 @@ function LocationLevelCard({
                         )}
                       </div>
                     </div>
+                    <ArrivalTimeline
+                      asOf={assessment.as_of}
+                      stormName={threat.storm_name}
+                      earliest={threat.earliest_arrival}
+                      mostLikely={threat.most_likely_arrival}
+                    />
                   </div>
                 ))}
               </div>

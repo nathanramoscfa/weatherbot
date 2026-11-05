@@ -33,6 +33,7 @@ from collections.abc import Sequence
 from datetime import UTC, timedelta
 from pathlib import Path
 from typing import Final, cast
+from urllib.parse import quote
 
 import httpx
 
@@ -103,6 +104,7 @@ ROUTE_FIXTURES: Final[tuple[tuple[str, str], ...]] = (
     ("health.json", "/api/health"),
     ("locations.json", "/api/locations"),
     ("assessments.json", "/api/assessments"),
+    ("charts.json", f"/api/charts?location={quote(MIAMI)}"),
     ("storms.json", "/api/storms"),
     ("alerts.json", "/api/alerts"),
     ("timeline.json", "/api/timeline"),

@@ -7,6 +7,59 @@ export interface ThreatLevelDescriptor {
   readonly badgeClassName: string;
 }
 
+export interface ThreatLevelSvgClasses {
+  readonly stroke: string;
+  readonly fill: string;
+}
+
+export const LEVEL_SVG_CLASSES: Readonly<
+  Record<ThreatLevelNumber, ThreatLevelSvgClasses>
+> = {
+  1: {
+    stroke: "stroke-emerald-600 dark:stroke-emerald-400",
+    fill: "fill-emerald-600 dark:fill-emerald-400",
+  },
+  2: {
+    stroke: "stroke-sky-600 dark:stroke-sky-400",
+    fill: "fill-sky-600 dark:fill-sky-400",
+  },
+  3: {
+    stroke: "stroke-amber-500 dark:stroke-amber-400",
+    fill: "fill-amber-500 dark:fill-amber-400",
+  },
+  4: {
+    stroke: "stroke-orange-600 dark:stroke-orange-400",
+    fill: "fill-orange-600 dark:fill-orange-400",
+  },
+  5: {
+    stroke: "stroke-red-600 dark:stroke-red-400",
+    fill: "fill-red-600 dark:fill-red-400",
+  },
+};
+
+export function clampThreatLevel(level: number): ThreatLevelNumber {
+  if (level >= 5) return 5;
+  if (level === 4) return 4;
+  if (level === 3) return 3;
+  if (level === 2) return 2;
+  return 1;
+}
+
+export function levelSvgClasses(level: number): ThreatLevelSvgClasses {
+  switch (clampThreatLevel(level)) {
+    case 5:
+      return LEVEL_SVG_CLASSES[5];
+    case 4:
+      return LEVEL_SVG_CLASSES[4];
+    case 3:
+      return LEVEL_SVG_CLASSES[3];
+    case 2:
+      return LEVEL_SVG_CLASSES[2];
+    default:
+      return LEVEL_SVG_CLASSES[1];
+  }
+}
+
 export function describeThreatLevel(
   level: number,
   customLabel?: string,

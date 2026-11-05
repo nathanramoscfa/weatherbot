@@ -110,7 +110,8 @@ def _official_response(product: OfficialProduct) -> AssessmentOfficialProductRes
     )
 
 
-def _wind_response(reading: LocationWindProbability) -> WindReadingResponse:
+def wind_reading_response(reading: LocationWindProbability) -> WindReadingResponse:
+    """Convert a ``LocationWindProbability`` into its API response shape."""
     return WindReadingResponse(
         threshold_kt=reading.threshold_kt,
         synoptic_at=reading.synoptic_at,
@@ -119,6 +120,9 @@ def _wind_response(reading: LocationWindProbability) -> WindReadingResponse:
         lower_pct=reading.lower_pct,
         upper_pct=reading.upper_pct,
     )
+
+
+_wind_response = wind_reading_response
 
 
 def _arrival_response(reading: ArrivalReading) -> ArrivalReadingResponse:

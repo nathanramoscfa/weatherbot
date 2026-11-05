@@ -8,6 +8,7 @@ import re
 from datetime import timedelta
 from http import HTTPStatus
 from typing import cast
+from urllib.parse import quote
 
 import httpx
 import pytest
@@ -103,10 +104,12 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
             corpus=corpus,
         )
         app = create_app(state)
+        charts_url = f"/api/charts?location={quote(NAME)}"
         routes = (
             "/api/health",
             "/api/locations",
             "/api/assessments",
+            charts_url,
             "/api/storms",
             "/api/alerts",
             "/api/timeline",
@@ -167,6 +170,7 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
     non_coordinate_routes = (
         "/api/health",
         "/api/assessments",
+        charts_url,
         "/api/storms",
         "/api/alerts",
         "/api/timeline",
@@ -220,6 +224,7 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
     assert not [
         (msg, pat.pattern) for msg in above_debug for pat in distance_patterns if pat.search(msg)
     ]
+    assert not [pat.pattern for pat in distance_patterns if pat.search(responses[charts_url].text)]
 
 
 def test_place_search_route_never_logs_or_echoes_search_query_in_errors_or_logs(

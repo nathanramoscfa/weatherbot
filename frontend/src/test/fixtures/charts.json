@@ -1,0 +1,52 @@
+{
+  "levels": [
+    {
+      "as_of": "2026-10-13T01:31:00Z",
+      "as_of_local": "2026-10-12T21:31:00-04:00",
+      "complete": true,
+      "id": 3,
+      "label": "All Clear",
+      "level": 1,
+      "rule": "all_clear"
+    },
+    {
+      "as_of": "2026-10-13T01:30:00Z",
+      "as_of_local": "2026-10-12T21:30:00-04:00",
+      "complete": true,
+      "id": 1,
+      "label": "Warning / Watch / Evacuation",
+      "level": 4,
+      "rule": "evacuation_order"
+    }
+  ],
+  "limit": 200,
+  "location": "Miami-Dade County Hall",
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "time_zone": "America/New_York",
+  "wind": [
+    {
+      "label": null,
+      "lower_pct": null,
+      "reading": "below_every_band",
+      "synoptic_at": "2026-10-12T18:00:00Z",
+      "threshold_kt": 34,
+      "upper_pct": null
+    },
+    {
+      "label": null,
+      "lower_pct": null,
+      "reading": "below_every_band",
+      "synoptic_at": "2026-10-12T18:00:00Z",
+      "threshold_kt": 50,
+      "upper_pct": null
+    },
+    {
+      "label": null,
+      "lower_pct": null,
+      "reading": "below_every_band",
+      "synoptic_at": "2026-10-12T18:00:00Z",
+      "threshold_kt": 64,
+      "upper_pct": null
+    }
+  ]
+}

@@ -32,6 +32,7 @@ from weatherbot.web.routes.actions import router as actions_router
 from weatherbot.web.routes.ai import router as ai_router
 from weatherbot.web.routes.alerts import router as alerts_router
 from weatherbot.web.routes.assessments import router as assessments_router
+from weatherbot.web.routes.charts import router as charts_router
 from weatherbot.web.routes.disclaimer import router as disclaimer_router
 from weatherbot.web.routes.events import router as events_router
 from weatherbot.web.routes.health import router as health_router
@@ -312,6 +313,7 @@ def create_app(state: WebState) -> FastAPI:
     app.include_router(health_router)
     app.include_router(locations_router)
     app.include_router(assessments_router)
+    app.include_router(charts_router)
     app.include_router(storms_router)
     app.include_router(alerts_router)
     app.include_router(timeline_router)

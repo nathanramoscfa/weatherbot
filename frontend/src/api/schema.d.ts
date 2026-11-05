@@ -68,6 +68,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/charts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Charts
+         * @description Return compact threat-level and wind-probability series for one watched location.
+         */
+        get: operations["get_charts_api_charts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/storms": {
         parameters: {
             query?: never;
@@ -1814,6 +1834,84 @@ export interface components {
         };
         /** @enum {string} */
         CallKind: "briefing" | "summary" | "chat" | "narration";
+        /**
+         * ChartLevelPointResponse
+         * @description One stored threat-level point in ``GET /api/charts``.
+         */
+        ChartLevelPointResponse: {
+            /**
+             * Id
+             * @description Database primary key of the stored assessment.
+             */
+            id: number;
+            /**
+             * As Of
+             * Format: date-time
+             * @description UTC completion instant of the assessed snapshot.
+             */
+            as_of: string;
+            /**
+             * As Of Local
+             * @description ISO 8601 instant in the location's local time zone, or null.
+             */
+            as_of_local?: string | null;
+            /**
+             * Level
+             * @description Threat level number (1..5).
+             */
+            level: number;
+            /**
+             * Label
+             * @description Threat level label.
+             */
+            label: string;
+            /**
+             * Rule
+             * @description Deciding ladder rule code.
+             */
+            rule: string;
+            /**
+             * Complete
+             * @description False when one or more inputs were unavailable, making the level a floor.
+             */
+            complete: boolean;
+        };
+        /**
+         * ChartsResponse
+         * @description Response document for ``GET /api/charts``.
+         */
+        ChartsResponse: {
+            /**
+             * Location
+             * @description Watched location name.
+             */
+            location: string;
+            /**
+             * Time Zone
+             * @description IANA time zone of the location, or null.
+             */
+            time_zone: string | null;
+            /**
+             * Limit
+             * @description Maximum number of assessment points requested.
+             */
+            limit: number;
+            /**
+             * Levels
+             * @description Stored threat-level points ordered newest first.
+             */
+            levels: components["schemas"]["ChartLevelPointResponse"][];
+            /**
+             * Wind
+             * @description Deduplicated wind-speed-probability readings (one per threshold_kt and synoptic_at), ordered newest first.
+             */
+            wind: components["schemas"]["WindReadingResponse"][];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
         /**
          * ChatRequest
          * @description Request body for ``POST /api/ai/chat``.
@@ -4622,6 +4720,11 @@ export interface components {
              */
             entries: components["schemas"]["TimelineEntryResponse"][];
             /**
+             * Next Before
+             * @description Opaque cursor (occurred_at, kind, id) to pass as before= for the next page, or null when no older entries remain.
+             */
+            next_before?: string | null;
+            /**
              * Notice
              * @description One-line informational-only disclaimer notice.
              */
@@ -5045,6 +5148,40 @@ export interface operations {
             };
         };
     };
+    get_charts_api_charts_get: {
+        parameters: {
+            query: {
+                /** @description Watched location name whose level and wind-probability series to read. */
+                location: string;
+                /** @description Maximum number of stored assessments to inspect, newest first. */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_storms_api_storms_get: {
         parameters: {
             query?: never;
@@ -5092,6 +5229,8 @@ export interface operations {
                 location?: string | null;
                 /** @description Maximum number of timeline entries to return, newest first. */
                 limit?: number;
+                /** @description Optional opaque cursor from a previous TimelineResponse.next_before to read entries strictly after that cursor in newest-first order. */
+                before?: string | null;
             };
             header?: never;
             path?: never;

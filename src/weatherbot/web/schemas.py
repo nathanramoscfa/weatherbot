@@ -1103,6 +1103,51 @@ class TimelineResponse(_ApiModel):
     entries: tuple[TimelineEntryResponse, ...] = Field(
         description="Merged assessment and notification entries ordered newest first."
     )
+    next_before: str | None = Field(
+        default=None,
+        description=(
+            "Opaque cursor (occurred_at, kind, id) to pass as before= for the next page, "
+            "or null when no older entries remain."
+        ),
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+# Charts (GET /api/charts) ------------------------------------------------------------------
+
+
+class ChartLevelPointResponse(_ApiModel):
+    """One stored threat-level point in ``GET /api/charts``."""
+
+    id: int = Field(ge=1, description="Database primary key of the stored assessment.")
+    as_of: datetime = Field(description="UTC completion instant of the assessed snapshot.")
+    as_of_local: str | None = Field(
+        default=None,
+        description="ISO 8601 instant in the location's local time zone, or null.",
+    )
+    level: int = Field(ge=1, le=5, description="Threat level number (1..5).")
+    label: str = Field(description="Threat level label.")
+    rule: str = Field(description="Deciding ladder rule code.")
+    complete: bool = Field(
+        description="False when one or more inputs were unavailable, making the level a floor."
+    )
+
+
+class ChartsResponse(_ApiModel):
+    """Response document for ``GET /api/charts``."""
+
+    location: str = Field(description="Watched location name.")
+    time_zone: str | None = Field(description="IANA time zone of the location, or null.")
+    limit: int = Field(ge=1, le=500, description="Maximum number of assessment points requested.")
+    levels: tuple[ChartLevelPointResponse, ...] = Field(
+        description="Stored threat-level points ordered newest first."
+    )
+    wind: tuple[WindReadingResponse, ...] = Field(
+        description=(
+            "Deduplicated wind-speed-probability readings (one per threshold_kt and synoptic_at), "
+            "ordered newest first."
+        )
+    )
     notice: str = Field(description="One-line informational-only disclaimer notice.")
 
 

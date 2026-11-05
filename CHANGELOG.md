@@ -8,6 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 7 — Depth
+- Add SVG threat-level, wind-probability, and 34-kt arrival charts, location
+  comparison strip, and cursor-paginated timeline history (Phase 7 Step 6):
+  - Compact chart series and timeline cursor pagination
+    (`AssessmentRepository.level_points`, `AssessmentRepository.wind_series`,
+    `AssessmentRepository.history(before=...)`,
+    `NotificationService.recent(before=...)`, `weatherbot.web.routes.charts`,
+    `weatherbot.web.routes.timeline`, `weatherbot.web.schemas`): add
+    `level_points(location_name, limit)` reading `id`, `as_of`, `level`, `rule`,
+    and `complete` by column without decoding JSON, `wind_series(location_name,
+    limit)` keeping one `LocationWindProbability` per `(threshold_kt,
+    synoptic_at)`, `GET /api/charts?location=&limit=` (`1`–`500`, default `200`,
+    holding no distance, bearing, or coordinate), and `GET
+    /api/timeline?before=` with `TimelineResponse.next_before` encoding
+    `(occurred_at, kind, id)` so pages ending inside a shared cycle instant skip
+    nothing.
+  - Pure SVG chart scales and components (`frontend/src/charts/scale.ts`,
+    `LevelSparkline.tsx`, `LevelHistoryChart.tsx`, `WindProbabilityChart.tsx`,
+    `ArrivalTimeline.tsx`, and `frontend/src/api/keys.ts`): add pure scale
+    functions (`timeScale`, `linearScale`, `stepPath`, `bandPath`, `ticksFor`),
+    `queryKeys.charts(name)` under the `"timeline"` invalidation prefix, and
+    four accessible SVG charts (`role="img"`, `<title>`, visually hidden
+    `<table>`, Tailwind `stroke-`/`fill-` classes beside `ThreatLevelBadge`
+    with zero `style=` attributes), wired into `Dashboard.tsx` (comparison
+    strip, card sparklines, and storm arrival timelines) and `Timeline.tsx`
+    (location level-history and wind-probability charts plus `"Show older"`
+    pagination).
 - Add map depth layers, wind-speed probability bands, nowCOAST radar and
   satellite WMS overlays, and the stored advisory slider (Phase 7 Step 5):
   - Vector depth and wind-probability routes (`weatherbot.web.map_layers`,

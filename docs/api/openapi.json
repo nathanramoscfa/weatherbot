@@ -99,6 +99,63 @@
         }
       }
     },
+    "/api/charts": {
+      "get": {
+        "summary": "Get Charts",
+        "description": "Return compact threat-level and wind-probability series for one watched location.",
+        "operationId": "get_charts_api_charts_get",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Watched location name whose level and wind-probability series to read.",
+              "title": "Location"
+            },
+            "description": "Watched location name whose level and wind-probability series to read."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "Maximum number of stored assessments to inspect, newest first.",
+              "default": 200,
+              "title": "Limit"
+            },
+            "description": "Maximum number of stored assessments to inspect, newest first."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChartsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/storms": {
       "get": {
         "summary": "Get Storms",
@@ -174,6 +231,24 @@
               "title": "Limit"
             },
             "description": "Maximum number of timeline entries to return, newest first."
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional opaque cursor from a previous TimelineResponse.next_before to read entries strictly after that cursor in newest-first order.",
+              "title": "Before"
+            },
+            "description": "Optional opaque cursor from a previous TimelineResponse.next_before to read entries strictly after that cursor in newest-first order."
           }
         ],
         "responses": {
@@ -3753,6 +3828,129 @@
           "chat",
           "narration"
         ]
+      },
+      "ChartLevelPointResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Id",
+            "description": "Database primary key of the stored assessment."
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time",
+            "title": "As Of",
+            "description": "UTC completion instant of the assessed snapshot."
+          },
+          "as_of_local": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of Local",
+            "description": "ISO 8601 instant in the location's local time zone, or null."
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Level",
+            "description": "Threat level number (1..5)."
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "Threat level label."
+          },
+          "rule": {
+            "type": "string",
+            "title": "Rule",
+            "description": "Deciding ladder rule code."
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete",
+            "description": "False when one or more inputs were unavailable, making the level a floor."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "as_of",
+          "level",
+          "label",
+          "rule",
+          "complete"
+        ],
+        "title": "ChartLevelPointResponse",
+        "description": "One stored threat-level point in ``GET /api/charts``."
+      },
+      "ChartsResponse": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "Watched location name."
+          },
+          "time_zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Zone",
+            "description": "IANA time zone of the location, or null."
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Maximum number of assessment points requested."
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/ChartLevelPointResponse"
+            },
+            "type": "array",
+            "title": "Levels",
+            "description": "Stored threat-level points ordered newest first."
+          },
+          "wind": {
+            "items": {
+              "$ref": "#/components/schemas/WindReadingResponse"
+            },
+            "type": "array",
+            "title": "Wind",
+            "description": "Deduplicated wind-speed-probability readings (one per threshold_kt and synoptic_at), ordered newest first."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location",
+          "time_zone",
+          "limit",
+          "levels",
+          "wind",
+          "notice"
+        ],
+        "title": "ChartsResponse",
+        "description": "Response document for ``GET /api/charts``."
       },
       "ChatRequest": {
         "properties": {
@@ -9012,6 +9210,18 @@
             "type": "array",
             "title": "Entries",
             "description": "Merged assessment and notification entries ordered newest first."
+          },
+          "next_before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Before",
+            "description": "Opaque cursor (occurred_at, kind, id) to pass as before= for the next page, or null when no older entries remain."
           },
           "notice": {
             "type": "string",

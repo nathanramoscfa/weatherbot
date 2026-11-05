@@ -14,6 +14,7 @@ import {
 import { createAppQueryClient } from "../main.tsx";
 import { TYPED_AI, TYPED_BRIEFINGS } from "../test/ai.ts";
 import assessmentsFixture from "../test/fixtures/assessments.json";
+import chartsFixture from "../test/fixtures/charts.json";
 import disclaimerFixture from "../test/fixtures/disclaimer.json";
 import healthFixture from "../test/fixtures/health.json";
 import locationsFixture from "../test/fixtures/locations.json";
@@ -24,6 +25,9 @@ const TYPED_ASSESSMENTS = asSchema<components["schemas"]["AssessmentsResponse"]>
   assessmentsFixture satisfies JsonFixture<
     components["schemas"]["AssessmentsResponse"]
   >,
+);
+const TYPED_CHARTS = asSchema<components["schemas"]["ChartsResponse"]>(
+  chartsFixture satisfies JsonFixture<components["schemas"]["ChartsResponse"]>,
 );
 const TYPED_LOCATIONS = asSchema<components["schemas"]["LocationsResponse"]>(
   locationsFixture satisfies JsonFixture<
@@ -48,6 +52,15 @@ describe("Dashboard", () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
     queryClient.setQueryData(queryKeys.assessments(), TYPED_ASSESSMENTS);
+    queryClient.setQueryData(
+      queryKeys.charts("Miami-Dade County Hall"),
+      TYPED_CHARTS,
+    );
+    queryClient.setQueryData(queryKeys.charts("Parliament Square"), {
+      ...TYPED_CHARTS,
+      location: "Parliament Square",
+      levels: [TYPED_CHARTS.levels[0]!],
+    });
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.health(), TYPED_HEALTH);
     queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
@@ -132,6 +145,17 @@ describe("Dashboard", () => {
     expect(putSpy).toHaveBeenCalledWith("/api/locations/evacuation", {
       body: { location: "Miami-Dade County Hall", on: true },
     });
+
+    // Comparison strip lists both locations with sparkline and link to card
+    const strip = screen.getByTestId("location-comparison-strip");
+    const miamiLink = within(strip).getByRole("link", {
+      name: "Miami-Dade County Hall",
+    });
+    expect(miamiLink).toHaveAttribute("href", "#location-miami-dade-county-hall");
+    expect(within(strip).getAllByTestId("level-sparkline").length).toBe(2);
+
+    // ArrivalTimeline rendered inside storm threats
+    expect(screen.getAllByTestId("arrival-timeline").length).toBeGreaterThan(0);
   });
 
   it("shows 'At least' with missing inputs when complete is false and escapes HTML in product and storm strings", () => {
@@ -197,6 +221,15 @@ describe("Dashboard", () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
     queryClient.setQueryData(queryKeys.assessments(), TYPED_ASSESSMENTS);
+    queryClient.setQueryData(
+      queryKeys.charts("Miami-Dade County Hall"),
+      TYPED_CHARTS,
+    );
+    queryClient.setQueryData(queryKeys.charts("Parliament Square"), {
+      ...TYPED_CHARTS,
+      location: "Parliament Square",
+      levels: [TYPED_CHARTS.levels[0]!],
+    });
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.health(), TYPED_HEALTH);
     queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
