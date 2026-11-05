@@ -372,6 +372,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/replay/{atcf_id}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Replay Timeline
+         * @description Return every replayed advisory step and notes for ``atcf_id`` at ``location``.
+         */
+        get: operations["get_replay_timeline_api_replay__atcf_id__timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/replay/{atcf_id}/{advisory}": {
         parameters: {
             query?: never;
@@ -384,6 +404,26 @@ export interface paths {
          * @description Build the GeoJSON map layer payload for one replayed advisory without decoding others.
          */
         get: operations["get_replay_advisory_map_api_replay__atcf_id___advisory__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/replay/{atcf_id}/{advisory}/assessment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Replay Assessment
+         * @description Return the full replayed assessment for ``atcf_id`` at ``advisory`` and ``location``.
+         */
+        get: operations["get_replay_assessment_api_replay__atcf_id___advisory__assessment_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3276,6 +3316,125 @@ export interface components {
             notice: string;
         };
         /**
+         * ReplayAssessmentResponse
+         * @description Response document for ``GET /api/replay/{atcf_id}/{advisory}/assessment``.
+         */
+        ReplayAssessmentResponse: {
+            /**
+             * Origin
+             * @description Origin of the assessment: always 'replay'.
+             * @default replay
+             * @constant
+             */
+            origin: "replay";
+            /**
+             * Atcf Id
+             * @description Storm ATCF identifier.
+             */
+            atcf_id: string;
+            /**
+             * Name
+             * @description Storm name in the replay corpus.
+             */
+            name: string;
+            /**
+             * Advisory Id
+             * @description Zero-padded corpus advisory identifier, such as '026' or '026A'.
+             */
+            advisory_id: string;
+            /**
+             * Advisory
+             * @description Printed advisory number from the cone product, such as '26' or '26A'.
+             */
+            advisory: string;
+            /**
+             * Location
+             * @description Watched location name.
+             */
+            location: string;
+            /**
+             * Inside Nws Coverage
+             * @description Whether the location is inside NWS coverage.
+             */
+            inside_nws_coverage: boolean;
+            /**
+             * Time Zone
+             * @description IANA time zone of the location, or null outside NWS coverage.
+             */
+            time_zone?: string | null;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             * @description Deterministic UUID5 identifier of the replayed snapshot.
+             */
+            snapshot_id: string;
+            /**
+             * As Of
+             * Format: date-time
+             * @description UTC issuance instant of the replayed advisory.
+             */
+            as_of: string;
+            /** @description Decided threat level, label, and recommended actions. */
+            level: components["schemas"]["ThreatLevelResponse"];
+            /**
+             * Rule
+             * @description Identifier of the first ladder rule that matched.
+             */
+            rule: string;
+            /**
+             * Rule Trigger
+             * @description Human-readable summary of what triggers that rule.
+             */
+            rule_trigger: string;
+            /**
+             * Complete
+             * @description False when one or more inputs were unavailable, making the level a floor.
+             */
+            complete: boolean;
+            /**
+             * Unavailable
+             * @description Inputs that were unavailable when the replayed assessment was computed.
+             */
+            unavailable: components["schemas"]["AssessmentUnavailableResponse"][];
+            /**
+             * Evidence
+             * @description Evidence items supporting the deciding rule.
+             */
+            evidence: components["schemas"]["AssessmentEvidenceResponse"][];
+            /**
+             * Official
+             * @description Covering official products evaluated at the location.
+             */
+            official: components["schemas"]["AssessmentOfficialProductResponse"][];
+            /**
+             * Wind Probabilities
+             * @description 34, 50, and 64 kt wind-speed-probability readings at the location.
+             */
+            wind_probabilities: components["schemas"]["WindReadingResponse"][];
+            /**
+             * Threats
+             * @description Per-storm threat readings for the replayed storm.
+             */
+            threats: components["schemas"]["StormThreatResponse"][];
+            /**
+             * Changes
+             * @description Change events compared with the preceding advisory in the replay.
+             */
+            changes: components["schemas"]["AssessmentChangeResponse"][];
+            /** @description Nearest coastal breakpoint span for the location, or null. */
+            breakpoint_span: components["schemas"]["BreakpointSpan"] | null;
+            /**
+             * Ruleset
+             * @description Fingerprint of the ladder ruleset and thresholds.
+             */
+            ruleset: string;
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
          * ReplayStormSummaryResponse
          * @description One historical storm available in the configured replay corpus.
          */
@@ -3328,6 +3487,101 @@ export interface components {
              * @description One-line informational-only disclaimer notice.
              */
             notice: string;
+        };
+        /**
+         * ReplayTimelineResponse
+         * @description Response document for ``GET /api/replay/{atcf_id}/timeline``.
+         */
+        ReplayTimelineResponse: {
+            /**
+             * Atcf Id
+             * @description Storm ATCF identifier.
+             */
+            atcf_id: string;
+            /**
+             * Name
+             * @description Storm name in the replay corpus.
+             */
+            name: string;
+            /**
+             * Location
+             * @description Watched location name.
+             */
+            location: string;
+            /**
+             * Time Zone
+             * @description IANA time zone of the location, or null outside NWS coverage.
+             */
+            time_zone?: string | null;
+            /**
+             * Ruleset
+             * @description Fingerprint of the ladder ruleset and thresholds.
+             */
+            ruleset: string;
+            /**
+             * Notes
+             * @description Operator-facing notes on missing archive inputs or ignored present-day toggles.
+             */
+            notes: string[];
+            /**
+             * Steps
+             * @description Replayed advisory steps in chronological issuance order.
+             */
+            steps: components["schemas"]["ReplayTimelineStepResponse"][];
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
+         * ReplayTimelineStepResponse
+         * @description One replayed advisory step in ``GET /api/replay/{atcf_id}/timeline``.
+         */
+        ReplayTimelineStepResponse: {
+            /**
+             * Advisory Id
+             * @description Zero-padded corpus advisory identifier, such as '026' or '026A'.
+             */
+            advisory_id: string;
+            /**
+             * Advisory
+             * @description Printed advisory number from the cone product, such as '26' or '26A'.
+             */
+            advisory: string;
+            /**
+             * Issued At
+             * Format: date-time
+             * @description UTC issuance instant of the advisory.
+             */
+            issued_at: string;
+            /** @description Decided threat level, label, and recommended actions. */
+            level: components["schemas"]["ThreatLevelResponse"];
+            /**
+             * Rule
+             * @description Identifier of the first ladder rule that matched.
+             */
+            rule: string;
+            /**
+             * Rule Trigger
+             * @description Human-readable summary of what triggers that rule.
+             */
+            rule_trigger: string;
+            /**
+             * Complete
+             * @description False when one or more inputs were unavailable, making the level a floor.
+             */
+            complete: boolean;
+            /**
+             * Official Codes
+             * @description Sorted codes of covering watches and warnings at this step.
+             */
+            official_codes: string[];
+            /**
+             * Changes
+             * @description Change events compared with the preceding advisory in the replay.
+             */
+            changes: components["schemas"]["AssessmentChangeResponse"][];
         };
         /**
          * RetentionLastRunResponse
@@ -5593,6 +5847,40 @@ export interface operations {
             };
         };
     };
+    get_replay_timeline_api_replay__atcf_id__timeline_get: {
+        parameters: {
+            query: {
+                /** @description Stored location name to replay the storm at. */
+                location: string;
+            };
+            header?: never;
+            path: {
+                atcf_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplayTimelineResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_replay_advisory_map_api_replay__atcf_id___advisory__get: {
         parameters: {
             query?: never;
@@ -5612,6 +5900,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MapResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_replay_assessment_api_replay__atcf_id___advisory__assessment_get: {
+        parameters: {
+            query: {
+                /** @description Stored location name to replay the advisory at. */
+                location: string;
+            };
+            header?: never;
+            path: {
+                atcf_id: string;
+                advisory: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplayAssessmentResponse"];
                 };
             };
             /** @description Validation Error */

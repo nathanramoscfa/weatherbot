@@ -70,7 +70,8 @@ def round_bearing(value: float | None) -> int | None:
     return round(value) % 360 if value is not None else None
 
 
-def _evidence_response(item: Evidence) -> AssessmentEvidenceResponse:
+def evidence_response(item: Evidence) -> AssessmentEvidenceResponse:
+    """Convert an ``Evidence`` item into its API response shape."""
     return AssessmentEvidenceResponse(
         product=item.product,
         source_id=item.source_id,
@@ -89,7 +90,8 @@ def _evidence_response(item: Evidence) -> AssessmentEvidenceResponse:
     )
 
 
-def _official_response(product: OfficialProduct) -> AssessmentOfficialProductResponse:
+def official_response(product: OfficialProduct) -> AssessmentOfficialProductResponse:
+    """Convert an ``OfficialProduct`` into its API response shape."""
     return AssessmentOfficialProductResponse(
         kind=product.kind,
         code=product.code,
@@ -139,7 +141,8 @@ def _arrival_response(reading: ArrivalReading) -> ArrivalReadingResponse:
     )
 
 
-def _threat_response(threat: StormThreat) -> StormThreatResponse:
+def threat_response(threat: StormThreat) -> StormThreatResponse:
+    """Convert a ``StormThreat`` into its API response shape."""
     return StormThreatResponse(
         atcf_id=threat.atcf_id,
         storm_name=threat.storm_name,
@@ -159,7 +162,8 @@ def _threat_response(threat: StormThreat) -> StormThreatResponse:
     )
 
 
-def _unavailable_response(item: UnavailableInput) -> AssessmentUnavailableResponse:
+def unavailable_response(item: UnavailableInput) -> AssessmentUnavailableResponse:
+    """Convert an ``UnavailableInput`` into its API response shape."""
     return AssessmentUnavailableResponse(
         kind=item.kind,
         source_id=item.source_id,
@@ -227,17 +231,17 @@ def stored_assessment_to_response(
         rule=str(assessment.rule),
         rule_trigger=RULE_TRIGGERS[assessment.rule],
         complete=assessment.complete,
-        unavailable=tuple(_unavailable_response(item) for item in assessment.unavailable),
-        evidence=tuple(_evidence_response(item) for item in assessment.evidence),
+        unavailable=tuple(unavailable_response(item) for item in assessment.unavailable),
+        evidence=tuple(evidence_response(item) for item in assessment.evidence),
         official=tuple(
-            _official_response(product)
+            official_response(product)
             for product in assessment.official
             if product.covers or is_county_context(product)
         ),
         wind_probabilities=tuple(
-            _wind_response(reading) for reading in assessment.wind_probabilities
+            wind_reading_response(reading) for reading in assessment.wind_probabilities
         ),
-        threats=tuple(_threat_response(threat) for threat in assessment.threats),
+        threats=tuple(threat_response(threat) for threat in assessment.threats),
         changes=change_responses(stored.changes),
         breakpoint_span=assessment.breakpoint_span,
         evacuation_order=EvacuationOrderResponse(

@@ -8,6 +8,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 7 — Depth
+- Add the `/replay` historical storm scrubber page, replay timeline and
+  assessment routes, shared assessment components, and complete the `changes.py`
+  no-cone detail sentence (Phase 7 Step 7, closes #44):
+  - `src/weatherbot/engine/changes.py`: complete the unfinished `_storm_detail`
+    clause on line 85 from `", whose cone does not"` to `", whose cone does not
+    cover the location"` (#44), leaving all eight frozen golden replay timelines
+    unchanged.
+  - Replay timeline cache and notes (`weatherbot.services.replay`,
+    `weatherbot.cli.replay`): move `replay_notes` (`FULL_CONVERSION` and
+    `_MISSING`) from `cli/replay.py` to `services/replay.py` and add
+    `ReplayTimelines(corpus, thresholds, *, max_size=8)` computing
+    `timeline(atcf_id, location) -> tuple[ReplayStep, ...]` once per
+    `(atcf_id, ruleset_fingerprint, location.name, location.point,
+    location.polygon)` key under a per-key lock with `without_evacuation_order`
+    applied internally and LRU eviction past `max_size`.
+  - Replay timeline and assessment web routes (`weatherbot.web.routes.replay`,
+    `weatherbot.web.routes.assessments`, `weatherbot.web.schemas`,
+    `weatherbot.web.app`): expose public assessment response builders in
+    `routes/assessments.py`, hold `ReplayTimelines` on `WebState`, add `GET
+    /api/replay/{atcf_id}/timeline?location=` (`ReplayTimelineResponse`: compact
+    `steps` and `notes`, declared before `/{advisory}`), add `GET
+    /api/replay/{atcf_id}/{advisory}/assessment?location=`
+    (`ReplayAssessmentResponse` with `origin: "replay"` and `notice`, omitting
+    `id` and `stored_at`), and stop passing live assessments to
+    `build_map_response` in `GET /api/replay/{atcf_id}/{advisory}` so replay
+    map markers carry `level: null` rather than today's live level.
+  - Shared assessment components and `/replay` UI
+    (`frontend/src/assessment/LevelSummary.tsx`, `EvidenceList.tsx`,
+    `OfficialProductList.tsx`, `ThreatTable.tsx`, `frontend/src/pages/Dashboard.tsx`,
+    `frontend/src/pages/Replay.tsx`, `frontend/src/charts/LevelHistoryChart.tsx`,
+    `frontend/src/app/AppShell.tsx`, `frontend/src/app/routes.tsx`): extract the
+    four assessment display components from `Dashboard.tsx` and reuse them in
+    `Replay.tsx` alongside storm and location pickers, `LevelHistoryChart` with
+    an `activeAsOf` marker, `AdvisorySlider`, a 1.5 s `Play` control (stopping at
+    the end, on user input, or when the tab hides, with no background timer
+    otherwise), `useLeafletMap`, `notes`, corpus configuration guidance when
+    `health.corpus` is `false`, a non-dismissible `"Replay: <storm> advisory <n>,
+    issued <instant> — not live"` banner, and neither an AI panel nor an
+    evacuation-order switch.
 - Add SVG threat-level, wind-probability, and 34-kt arrival charts, location
   comparison strip, and cursor-paginated timeline history (Phase 7 Step 6):
   - Compact chart series and timeline cursor pagination

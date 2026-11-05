@@ -218,10 +218,10 @@ installed monitor stops with a toast until you run
 `weatherbot serve --no-open` (or run headless under Task Scheduler) to keep the
 browser from opening automatically, or `weatherbot serve --open` to force it.
 Pass `weatherbot serve --corpus DIR` (or set `[web] corpus` in `weatherbot.toml`)
-to expose a historical replay corpus on `/map`.
+to expose a historical replay corpus on `/map` and `/replay`.
 
 The dashboard refreshes live over Server-Sent Events (`GET /api/events`) without
-reloading the page and provides seven pages:
+reloading the page and provides eight pages:
 
 - **Dashboard (`/`)**: when two or more locations are watched, a location
   comparison strip above the cards lists every location's level, stepped
@@ -258,6 +258,22 @@ reloading the page and provides seven pages:
   picker (`not live` banner) renders replayed advisories and their landmark
   wind-probability windows (`GET
   /api/replay/{atcf_id}/{advisory}/wind-probabilities`).
+- **Replay (`/replay`)**: historical storm scrubber against watched locations
+  when `serve --corpus DIR` or `[web] corpus` is configured: a storm picker and
+  a watched-location picker, a stepped `LevelHistoryChart` across the storm's
+  advisories with an active-step marker (`GET
+  /api/replay/{atcf_id}/timeline?location=`), `AdvisorySlider` and a `Play`
+  button (stepping one advisory every 1.5 seconds and stopping at the end, on
+  user input, or when the tab hides), the advisory's Leaflet map (`GET
+  /api/replay/{atcf_id}/{advisory}`, with `level: null` on location markers),
+  and the replayed assessment card (`GET
+  /api/replay/{atcf_id}/{advisory}/assessment?location=`, sharing
+  `LevelSummary`, `EvidenceList`, `OfficialProductList`, and `ThreatTable` with
+  the live dashboard, with `origin: "replay"`, no `id` or `stored_at`, no AI
+  panel, and no evacuation-order switch) plus `notes` explaining omitted archival
+  inputs and a non-dismissible `"Replay: <storm> advisory <n>, issued <instant>
+  — not live"` banner. Scrubbing writes nothing to SQLite, sends no notification,
+  and calls no AI endpoint.
 - **Storms (`/storms`)**: active cyclones and their advisories, graphical
   Tropical Weather Outlook areas with NHC's six official outlook graphics from
   the stored snapshot (and, with `[ai] outlook_narration` on, an
@@ -354,7 +370,9 @@ repository; "Local data" there lists the paths and the overrides.
   source version 2 reads, verified live, with its endpoints, terms, and
   etiquette.
 - [The alert ladder](docs/ALERT-LADDER.md): levels, actions, ordered rules,
-  calibrated thresholds, and the historical replay evidence.
+  calibrated thresholds, and the historical replay evidence (`docs/phase03-qa-findings.md`
+  was a point-in-time Phase 3 audit; `src/weatherbot/engine/changes.py` now reads
+  `"whose cone does not cover the location"`, closing #44).
 - [Notifications and phone delivery](docs/NOTIFICATIONS.md): the four
   notification channels (`log`, `toast`, `browser`, `ntfy`), ntfy setup,
   per-location preferences, priorities, quiet hours, and the troubleshooting

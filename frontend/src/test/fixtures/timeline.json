@@ -195,7 +195,7 @@
           "kind": "level_changed"
         },
         {
-          "detail": "NHC issued advisory 22A for Simon, whose cone does not.",
+          "detail": "NHC issued advisory 22A for Simon, whose cone does not cover the location.",
           "kind": "advisory_issued"
         }
       ],
@@ -229,7 +229,7 @@
           "kind": "level_changed"
         },
         {
-          "detail": "NHC issued advisory 22A for Simon, whose cone does not.",
+          "detail": "NHC issued advisory 22A for Simon, whose cone does not cover the location.",
           "kind": "advisory_issued"
         },
         {

@@ -28,7 +28,9 @@ file that breaks a rule raises ``ReplayError`` naming the file and the rule.
 """
 
 import hashlib
-from collections.abc import Callable, Iterator, Sequence
+import threading
+from collections import OrderedDict
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path, PurePosixPath
@@ -74,6 +76,19 @@ REPLAY_NAMESPACE: Final = uuid5(
 NO_ARRIVAL_PRODUCTS: Final = "the corpus holds no arrival-time products"
 MAX_FILE_BYTES: Final = 64 * 1024 * 1024
 """The bound on any one converted file; an arrival KMZ is bounded as the client bounds it."""
+
+FULL_CONVERSION: Final = "uv run python scripts/fetch_replay_corpus.py convert --full --out DIR"
+_MISSING: Final[Mapping[str, str]] = {
+    "nws_alerts": "NWS alerts",
+    "source": "a source",
+    "cone": "a usable cone",
+    "forecast_points": "forecast points",
+    "wind_probabilities": "wind-speed probabilities",
+    "outlook_areas": "the tropical weather outlook",
+    "arrival_times": "arrival-time products",
+}
+
+type _TimelineKey = tuple[str, str, str, tuple[float, float], str | None]
 
 
 class ReplayError(Exception):
@@ -169,6 +184,138 @@ def without_evacuation_order(location: Location) -> Location:
     fields = {name: getattr(location, name) for name in Location.model_fields}
     off = {"evacuation_order_in_effect": False, "evacuation_order_set_at": None}
     return Location.model_validate(fields | off)
+
+
+def replay_notes(location: Location, steps: Sequence[ReplayStep]) -> tuple[str, ...]:
+    """Return the operator-facing notes for a replay timeline at ``location``.
+
+    Args:
+        location: The stored location (including its present-day evacuation toggle).
+        steps: Every advisory's replayed step, in issuance order.
+
+    Returns:
+        The notes to show alongside the replayed timeline.
+    """
+    notes: list[str] = []
+    if location.evacuation_order_in_effect:
+        notes.append(
+            f"The stored evacuation-order toggle of {location.name!r} is on; the replay "
+            "assesses with it off, because the toggle is a present-day input."
+        )
+    readings = [reading for step in steps for reading in step.assessment.wind_probabilities]
+    if any(reading.reading == "outside_coverage" for reading in readings):
+        notes.append(
+            "The corpus's wind-speed probabilities are windows around the public landmarks "
+            f"that do not cover {location.name!r}, so the replay reads none there. Convert "
+            f"the complete products with: {FULL_CONVERSION}, then pass --corpus DIR."
+        )
+    kinds = sorted({item.kind for step in steps for item in step.assessment.unavailable})
+    if kinds:
+        lacked = [_MISSING[kind] for kind in kinds]
+        listed = lacked[0] if len(lacked) == 1 else f"{', '.join(lacked[:-1])} and {lacked[-1]}"
+        notes.append(
+            f"Replayed assessments lack {listed}, so a level they show reads as at least "
+            "that level."
+        )
+    return tuple(notes)
+
+
+class ReplayTimelines:
+    """Bounded LRU cache of replay timelines with per-key single-flight computation."""
+
+    def __init__(
+        self,
+        corpus: "ReplayCorpus",
+        thresholds: Thresholds,
+        *,
+        max_size: int = 8,
+    ) -> None:
+        """Cache up to ``max_size`` timelines for ``corpus`` and ``thresholds``.
+
+        Args:
+            corpus: The opened replay corpus.
+            thresholds: The engine thresholds to assess with by default.
+            max_size: Maximum number of timelines retained in memory.
+        """
+        if max_size < 1:
+            message = "max_size must be at least 1"
+            raise ValueError(message)
+        self._corpus = corpus
+        self._service = ReplayService(corpus)
+        self._thresholds = thresholds
+        self._max_size = max_size
+        self._lock = threading.Lock()
+        self._entries: OrderedDict[_TimelineKey, tuple[ReplayStep, ...]] = OrderedDict()
+        self._inflight: dict[_TimelineKey, tuple[threading.Lock, int]] = {}
+
+    def timeline(
+        self,
+        atcf_id: str,
+        location: Location,
+        thresholds: Thresholds | None = None,
+    ) -> tuple[ReplayStep, ...]:
+        """Return the replay timeline for ``atcf_id`` at ``location``.
+
+        Applies ``without_evacuation_order(location)`` internally, computes once under a
+        per-key lock when concurrent callers request the same key, and evicts
+        least-recently-used entries past ``max_size``.
+
+        Args:
+            atcf_id: A storm listed in the corpus manifest.
+            location: The location to assess.
+            thresholds: Optional override for the instance's default thresholds.
+
+        Returns:
+            The replay steps in advisory order.
+        """
+        active_thresholds = thresholds if thresholds is not None else self._thresholds
+        key: _TimelineKey = (
+            atcf_id,
+            active_thresholds.fingerprint(),
+            location.name,
+            (location.point.latitude, location.point.longitude),
+            location.polygon.model_dump_json() if location.polygon is not None else None,
+        )
+        with self._lock:
+            cached = self._entries.get(key)
+            if cached is not None:
+                self._entries.move_to_end(key)
+                return cached
+            inflight = self._inflight.get(key)
+            if inflight is None:
+                key_lock = threading.Lock()
+                self._inflight[key] = (key_lock, 1)
+            else:
+                key_lock, waiters = inflight
+                self._inflight[key] = (key_lock, waiters + 1)
+
+        try:
+            with key_lock:
+                with self._lock:
+                    cached = self._entries.get(key)
+                    if cached is not None:
+                        self._entries.move_to_end(key)
+                        return cached
+
+                steps = self._service.timeline(
+                    atcf_id,
+                    without_evacuation_order(location),
+                    active_thresholds,
+                )
+
+                with self._lock:
+                    self._entries[key] = steps
+                    self._entries.move_to_end(key)
+                    while len(self._entries) > self._max_size:
+                        self._entries.popitem(last=False)
+                    return steps
+        finally:
+            with self._lock:
+                current_lock, remaining = self._inflight[key]
+                if remaining <= 1:
+                    del self._inflight[key]
+                else:
+                    self._inflight[key] = (current_lock, remaining - 1)
 
 
 def snapshot_id(atcf_id: str, advisory: str) -> UUID:

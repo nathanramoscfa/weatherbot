@@ -271,6 +271,7 @@ describe("AppShell and routes", () => {
     ).toEqual([
       "Dashboard",
       "Map",
+      "Replay",
       "Storms",
       "Alerts",
       "Timeline",
@@ -284,6 +285,7 @@ describe("AppShell and routes", () => {
       readonly heading: string;
     }[] = [
       { linkName: "Map", heading: "Map" },
+      { linkName: "Replay", heading: "Replay" },
       { linkName: "Storms", heading: "Storms" },
       { linkName: "Alerts", heading: "Alerts" },
       { linkName: "Timeline", heading: "Timeline" },

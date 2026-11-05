@@ -1,6 +1,6 @@
 // frontend/src/pages/Dashboard.tsx
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, RefreshCw, ShieldAlert } from "lucide-react";
+import { RefreshCw, ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { BriefingPanel } from "../ai/BriefingPanel.tsx";
@@ -8,7 +8,13 @@ import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { ThreatLevelBadge } from "../app/ThreatLevelBadge.tsx";
-import { ArrivalTimeline } from "../charts/ArrivalTimeline.tsx";
+import { EvidenceList } from "../assessment/EvidenceList.tsx";
+import {
+  LevelSummary,
+  UnavailableBanner,
+} from "../assessment/LevelSummary.tsx";
+import { OfficialProductList } from "../assessment/OfficialProductList.tsx";
+import { ThreatTable } from "../assessment/ThreatTable.tsx";
 import {
   type ChartLevelPoint,
   LevelSparkline,
@@ -19,15 +25,10 @@ import {
 } from "../events/useEventStream.ts";
 import {
   formatAgeSeconds,
-  formatArrivalReading,
-  formatBearing,
   formatBothTimes,
   formatBreakpointSpan,
-  formatKm,
-  formatLeadHours,
   formatRouteError,
   formatUtc,
-  formatWindProbability,
 } from "./format.ts";
 
 export type AssessmentsResponse =
@@ -522,10 +523,6 @@ function LocationLevelCard({
 }: LocationLevelCardProps) {
   const { assessment, time_zone: timeZone } = item;
   const levelPoints = useLocationLevelPoints(item);
-  const coveringOfficial =
-    assessment?.official.filter((p) => p.covers && !p.is_county_context) ?? [];
-  const contextAlerts =
-    assessment?.official.filter((p) => p.is_county_context || !p.covers) ?? [];
 
   return (
     <article
@@ -576,39 +573,10 @@ function LocationLevelCard({
         </p>
       ) : (
         <div className="mt-4 space-y-4">
-          {!assessment.complete && (
-            <div
-              role="note"
-              className="rounded-md border border-amber-400 bg-amber-50 p-3 text-xs text-amber-950 dark:border-amber-600 dark:bg-amber-950/60 dark:text-amber-100"
-            >
-              <div className="flex items-start gap-2">
-                <AlertTriangle
-                  className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400"
-                  aria-hidden="true"
-                />
-                <div className="space-y-1">
-                  <p className="font-semibold">
-                    At least: the level is a floor because these inputs were
-                    unavailable:
-                  </p>
-                  <ul className="list-disc space-y-0.5 pl-4">
-                    {assessment.unavailable.map((unavail, idx) => (
-                      <li key={`${unavail.kind}-${String(idx)}`}>
-                        <span className="font-medium">{unavail.kind}</span>
-                        {unavail.source_id ? ` (${unavail.source_id})` : ""}
-                        {unavail.storm_name ? ` — ${unavail.storm_name}` : ""}
-                        {unavail.threshold_kt !== null &&
-                        unavail.threshold_kt !== undefined
-                          ? ` — ${String(unavail.threshold_kt)} kt`
-                          : ""}
-                        : {unavail.reason}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
+          <UnavailableBanner
+            complete={assessment.complete}
+            unavailable={assessment.unavailable}
+          />
 
           {assessment.toggle_changed && assessment.toggle_note && (
             <div
@@ -620,43 +588,12 @@ function LocationLevelCard({
           )}
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40">
-              <p className="font-semibold text-slate-900 dark:text-slate-100">
-                Deciding rule:{" "}
-                <code className="rounded bg-slate-200/80 px-1 py-0.5 font-mono dark:bg-slate-700">
-                  {assessment.rule}
-                </code>
-              </p>
-              <p className="mt-1 text-slate-700 dark:text-slate-300">
-                {assessment.rule_trigger}
-              </p>
-              <p className="mt-2 font-medium text-slate-900 dark:text-slate-100">
-                Recommended actions: {assessment.level.actions}
-              </p>
-              {assessment.evidence.length > 0 && (
-                <div className="mt-2 border-t border-slate-200 pt-2 dark:border-slate-700">
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">
-                    Deciding evidence
-                  </p>
-                  <ul className="mt-1 space-y-1 text-slate-700 dark:text-slate-300">
-                    {assessment.evidence.map((ev, idx) => (
-                      <li key={`${ev.product}-${String(idx)}`}>
-                        <span>{ev.detail}</span>
-                        {ev.code ? ` · ${ev.code}` : ""}
-                        {ev.source_id ? ` (${ev.source_id})` : ""}
-                        {ev.distance_km !== null &&
-                        ev.distance_km !== undefined
-                          ? ` · ${formatKm(ev.distance_km)}${ev.at_end ? " (at its end)" : ""}`
-                          : ""}
-                        {ev.issued_at
-                          ? ` · issued ${formatBothTimes(ev.issued_at, timeZone)}`
-                          : ""}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+            <LevelSummary assessment={assessment}>
+              <EvidenceList
+                evidence={assessment.evidence}
+                timeZone={timeZone}
+              />
+            </LevelSummary>
 
             <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40">
               <div className="flex items-center justify-between gap-2">
@@ -705,188 +642,17 @@ function LocationLevelCard({
             assessedAt={assessment.as_of}
           />
 
-          {coveringOfficial.length > 0 && (
-            <div className="space-y-1.5 text-xs">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                Covering official products
-              </h3>
-              <ul className="space-y-1.5">
-                {coveringOfficial.map((prod, idx) => (
-                  <li
-                    key={`${prod.code}-${String(idx)}`}
-                    className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-800/40"
-                  >
-                    <div className="font-semibold text-slate-900 dark:text-slate-100">
-                      {prod.code}
-                      {prod.issuer ? ` · ${prod.issuer}` : ""}
-                      {prod.storm_name
-                        ? ` · ${prod.storm_name} (${prod.atcf_id ?? ""}, adv ${prod.advisory ?? "?"})`
-                        : ""}
-                    </div>
-                    <div className="mt-0.5 text-slate-700 dark:text-slate-300">
-                      {prod.reason}
-                      {prod.distance_km !== null &&
-                      prod.distance_km !== undefined
-                        ? ` · ${formatKm(prod.distance_km)}`
-                        : ""}
-                    </div>
-                    <div className="mt-0.5 text-slate-600 dark:text-slate-400">
-                      Issued: {formatBothTimes(prod.issued_at, timeZone)}
-                      {prod.expires_at
-                        ? ` · Expires: ${formatBothTimes(prod.expires_at, timeZone)}`
-                        : ""}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <OfficialProductList
+            official={assessment.official}
+            timeZone={timeZone}
+          />
 
-          {contextAlerts.length > 0 && (
-            <div className="space-y-1.5 text-xs">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                County-zone alerts outside this location&apos;s zones (context
-                only; never sets the level)
-              </h3>
-              <ul className="space-y-1.5">
-                {contextAlerts.map((prod, idx) => (
-                  <li
-                    key={`${prod.code}-${String(idx)}`}
-                    className="rounded-md border border-slate-200 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-800/30"
-                  >
-                    <div className="font-semibold text-slate-800 dark:text-slate-200">
-                      {prod.code}
-                      {prod.issuer ? ` · ${prod.issuer}` : ""}
-                    </div>
-                    <div className="mt-0.5 text-slate-600 dark:text-slate-300">
-                      {prod.reason}
-                      {prod.zones.length > 0
-                        ? ` · Zones: ${prod.zones.join(", ")}`
-                        : ""}
-                    </div>
-                    <div className="mt-0.5 text-slate-500 dark:text-slate-400">
-                      Issued: {formatBothTimes(prod.issued_at, timeZone)}
-                      {prod.expires_at
-                        ? ` · Expires: ${formatBothTimes(prod.expires_at, timeZone)}`
-                        : ""}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {assessment.threats.length > 0 && (
-            <div className="space-y-2 text-xs">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                Storm threats
-              </h3>
-              <div className="space-y-2">
-                {assessment.threats.map((threat) => (
-                  <div
-                    key={threat.atcf_id}
-                    className="rounded-md border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/40"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-bold text-slate-900 dark:text-slate-100">
-                        {threat.storm_name} ({threat.atcf_id}) · Advisory{" "}
-                        {threat.advisory}
-                      </span>
-                      <span className="rounded bg-slate-200/80 px-2 py-0.5 font-medium text-slate-800 dark:bg-slate-700 dark:text-slate-200">
-                        {threat.development}
-                        {threat.category !== null &&
-                        threat.category !== undefined
-                          ? ` (Category ${String(threat.category)})`
-                          : ""}
-                      </span>
-                    </div>
-                    <div className="mt-1.5 grid grid-cols-1 gap-1 text-slate-700 sm:grid-cols-2 dark:text-slate-300">
-                      <div>
-                        Cone:{" "}
-                        <strong>
-                          {threat.in_cone === true
-                            ? "inside its cone"
-                            : threat.in_cone === false
-                              ? "outside its cone"
-                              : "no usable cone"}
-                        </strong>
-                      </div>
-                      <div>
-                        Current center:{" "}
-                        {threat.distance_km !== null
-                          ? formatKm(threat.distance_km)
-                          : "—"}{" "}
-                        at{" "}
-                        {threat.bearing_deg !== null
-                          ? formatBearing(threat.bearing_deg)
-                          : "—"}
-                      </div>
-                      <div className="sm:col-span-2">
-                        Closest approach:{" "}
-                        {threat.closest_approach_km !== null
-                          ? formatKm(threat.closest_approach_km)
-                          : "—"}{" "}
-                        at{" "}
-                        {formatBothTimes(threat.closest_approach_at, timeZone)}{" "}
-                        (lead{" "}
-                        {threat.lead_h !== null
-                          ? formatLeadHours(threat.lead_h)
-                          : "—"}
-                        {threat.hurricane_by_approach
-                          ? ", hurricane by approach"
-                          : ""}
-                        )
-                      </div>
-                      <div className="sm:col-span-2">
-                        Earliest reasonable 34-kt arrival:{" "}
-                        {formatArrivalReading(
-                          threat.earliest_arrival,
-                          timeZone,
-                        )}
-                      </div>
-                      <div className="sm:col-span-2">
-                        Most likely 34-kt arrival:{" "}
-                        {formatArrivalReading(
-                          threat.most_likely_arrival,
-                          timeZone,
-                        )}
-                      </div>
-                    </div>
-                    <ArrivalTimeline
-                      asOf={assessment.as_of}
-                      stormName={threat.storm_name}
-                      earliest={threat.earliest_arrival}
-                      mostLikely={threat.most_likely_arrival}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {assessment.wind_probabilities.length > 0 && (
-            <div className="space-y-1.5 text-xs">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                5 km wind-speed probabilities (synoptic{" "}
-                {formatUtc(assessment.wind_probabilities[0]?.synoptic_at)})
-              </h3>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {assessment.wind_probabilities.map((wp) => (
-                  <div
-                    key={wp.threshold_kt}
-                    className="rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-800/40"
-                  >
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">
-                      {String(wp.threshold_kt)} kt:{" "}
-                    </span>
-                    <span className="text-slate-700 dark:text-slate-300">
-                      {formatWindProbability(wp)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <ThreatTable
+            threats={assessment.threats}
+            windProbabilities={assessment.wind_probabilities}
+            asOf={assessment.as_of}
+            timeZone={timeZone}
+          />
 
           {assessment.changes.length > 0 && (
             <div className="space-y-1 text-xs">

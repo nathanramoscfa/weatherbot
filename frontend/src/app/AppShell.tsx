@@ -25,6 +25,7 @@ export const DEFAULT_DISCLAIMER_NOTICE =
 export const NAV_ITEMS = [
   { to: "/", label: "Dashboard", end: true },
   { to: "/map", label: "Map", end: false },
+  { to: "/replay", label: "Replay", end: false },
   { to: "/storms", label: "Storms", end: false },
   { to: "/alerts", label: "Alerts", end: false },
   { to: "/timeline", label: "Timeline", end: false },

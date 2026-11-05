@@ -82,7 +82,11 @@ def _advisories(before: dict[str, StormThreat], current: Assessment) -> Iterator
             continue
         cone = ""
         if threat.in_cone is not None:
-            cone = ", whose cone covers the location" if threat.in_cone else ", whose cone does not"
+            cone = (
+                ", whose cone covers the location"
+                if threat.in_cone
+                else ", whose cone does not cover the location"
+            )
         detail = f"NHC issued advisory {threat.advisory} for {threat.storm_name}{cone}."
         yield ChangeEvent(
             kind="advisory_issued",

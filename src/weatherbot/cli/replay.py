@@ -16,9 +16,9 @@ for another location the command says once that they do not cover it, and names
 ``convert --full``, which writes the complete products for any location.
 """
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Annotated, Final
+from typing import Annotated
 
 import typer
 
@@ -32,7 +32,6 @@ from weatherbot.cli.documents import (
 from weatherbot.cli.runtime import EXIT_USAGE, Output, context_of, fail, open_session
 from weatherbot.cli.snapshots import JsonOption, utc
 from weatherbot.cli.status import change_entries
-from weatherbot.models import Location
 from weatherbot.services.disclaimer import NOTICE
 from weatherbot.services.locations import LocationService
 from weatherbot.services.replay import (
@@ -41,19 +40,9 @@ from weatherbot.services.replay import (
     ReplayService,
     ReplayStep,
     ReplayStorm,
+    replay_notes,
     without_evacuation_order,
 )
-
-FULL_CONVERSION: Final = "uv run python scripts/fetch_replay_corpus.py convert --full --out DIR"
-_MISSING: Final[Mapping[str, str]] = {
-    "nws_alerts": "NWS alerts",
-    "source": "a source",
-    "cone": "a usable cone",
-    "forecast_points": "forecast points",
-    "wind_probabilities": "wind-speed probabilities",
-    "outlook_areas": "the tropical weather outlook",
-    "arrival_times": "arrival-time products",
-}
 
 
 def _step(step: ReplayStep) -> ReplayStepEntry:
@@ -91,31 +80,6 @@ def transitions(steps: Sequence[ReplayStepEntry]) -> tuple[ReplayStepEntry, ...]
             kept.append(step)
         previous = key
     return tuple(kept)
-
-
-def _notes(location: Location, steps: Sequence[ReplayStep]) -> tuple[str, ...]:
-    notes: list[str] = []
-    if location.evacuation_order_in_effect:
-        notes.append(
-            f"The stored evacuation-order toggle of {location.name!r} is on; the replay "
-            "assesses with it off, because the toggle is a present-day input."
-        )
-    readings = [reading for step in steps for reading in step.assessment.wind_probabilities]
-    if any(reading.reading == "outside_coverage" for reading in readings):
-        notes.append(
-            "The corpus's wind-speed probabilities are windows around the public landmarks "
-            f"that do not cover {location.name!r}, so the replay reads none there. Convert "
-            f"the complete products with: {FULL_CONVERSION}, then pass --corpus DIR."
-        )
-    kinds = sorted({item.kind for step in steps for item in step.assessment.unavailable})
-    if kinds:
-        lacked = [_MISSING[kind] for kind in kinds]
-        listed = lacked[0] if len(lacked) == 1 else f"{', '.join(lacked[:-1])} and {lacked[-1]}"
-        notes.append(
-            f"Replayed assessments lack {listed}, so a level they show reads as at least "
-            "that level."
-        )
-    return tuple(notes)
 
 
 def _open(output: Output, corpus: Path, atcf_id: str) -> tuple[ReplayCorpus, ReplayStorm]:
@@ -219,7 +183,7 @@ def replay(  # noqa: PLR0913 - the storm, then the command's options, keyword-on
         every=every,
         ruleset=thresholds.fingerprint(),
         steps=entries if every else transitions(entries),
-        notes=_notes(stored, steps),
+        notes=replay_notes(stored, steps),
     )
     if json_output:
         output.document(

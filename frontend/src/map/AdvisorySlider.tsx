@@ -19,6 +19,7 @@ export interface AdvisorySliderProps {
   readonly onSelectSnapshotId: (snapshotId: string | null) => void;
   readonly newerAdvisoryArrived?: boolean;
   readonly order?: "newest-first" | "oldest-first";
+  readonly showStoredBanner?: boolean;
 }
 
 export function formatStepLabel(step: AdvisorySliderStep): string {
@@ -34,6 +35,7 @@ export function AdvisorySlider({
   onSelectSnapshotId,
   newerAdvisoryArrived = false,
   order = "newest-first",
+  showStoredBanner = true,
 }: AdvisorySliderProps) {
   const chronologicalSteps = useMemo(() => {
     if (order === "oldest-first") {
@@ -85,7 +87,7 @@ export function AdvisorySlider({
     return null;
   }
 
-  const isViewingPast = selectedSnapshotId !== null;
+  const isViewingPast = showStoredBanner && selectedSnapshotId !== null;
 
   const commitIndex = (indexToCommit: number) => {
     const clamped = Math.min(
@@ -96,7 +98,7 @@ export function AdvisorySlider({
     if (!targetStep) {
       return;
     }
-    if (clamped === latestIndex) {
+    if (showStoredBanner && clamped === latestIndex) {
       if (selectedSnapshotId !== null) {
         onSelectSnapshotId(null);
       }

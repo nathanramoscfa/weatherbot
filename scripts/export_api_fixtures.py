@@ -116,6 +116,8 @@ ROUTE_FIXTURES: Final[tuple[tuple[str, str], ...]] = (
     ("map.json", "/api/map"),
     ("replay.json", "/api/replay"),
     ("replay-advisory.json", "/api/replay/AL112017/036"),
+    ("replay-timeline.json", f"/api/replay/AL052019/timeline?location={quote(NASSAU)}"),
+    ("replay-assessment.json", f"/api/replay/AL052019/026/assessment?location={quote(NASSAU)}"),
     ("ai.json", "/api/ai"),
     ("ai-calls.json", "/api/ai/calls"),
     ("briefings.json", "/api/ai/briefings"),

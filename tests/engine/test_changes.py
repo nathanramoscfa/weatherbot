@@ -200,6 +200,10 @@ def test_a_new_advisory_is_an_event_with_whether_its_cone_covers_the_location() 
 
     assert event.kind == "advisory_issued"
     assert (str(event.previous_advisory), str(event.advisory), event.in_cone) == ("1", "1A", False)
+    assert (
+        event.detail
+        == "NHC issued advisory 1A for Synthetic, whose cone does not cover the location."
+    )
 
 
 # Official products ------------------------------------------------------------------------

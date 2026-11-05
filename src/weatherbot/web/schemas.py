@@ -1609,6 +1609,112 @@ class ReplayStormsResponse(_ApiModel):
     notice: str = Field(description="One-line informational-only disclaimer notice.")
 
 
+class ReplayTimelineStepResponse(_ApiModel):
+    """One replayed advisory step in ``GET /api/replay/{atcf_id}/timeline``."""
+
+    advisory_id: str = Field(
+        description="Zero-padded corpus advisory identifier, such as '026' or '026A'."
+    )
+    advisory: str = Field(
+        description="Printed advisory number from the cone product, such as '26' or '26A'."
+    )
+    issued_at: datetime = Field(description="UTC issuance instant of the advisory.")
+    level: ThreatLevelResponse = Field(
+        description="Decided threat level, label, and recommended actions."
+    )
+    rule: str = Field(description="Identifier of the first ladder rule that matched.")
+    rule_trigger: str = Field(description="Human-readable summary of what triggers that rule.")
+    complete: bool = Field(
+        description="False when one or more inputs were unavailable, making the level a floor."
+    )
+    official_codes: tuple[str, ...] = Field(
+        description="Sorted codes of covering watches and warnings at this step."
+    )
+    changes: tuple[AssessmentChangeResponse, ...] = Field(
+        description="Change events compared with the preceding advisory in the replay."
+    )
+
+
+class ReplayTimelineResponse(_ApiModel):
+    """Response document for ``GET /api/replay/{atcf_id}/timeline``."""
+
+    atcf_id: str = Field(description="Storm ATCF identifier.")
+    name: str = Field(description="Storm name in the replay corpus.")
+    location: str = Field(description="Watched location name.")
+    time_zone: str | None = Field(
+        default=None,
+        description="IANA time zone of the location, or null outside NWS coverage.",
+    )
+    ruleset: str = Field(description="Fingerprint of the ladder ruleset and thresholds.")
+    notes: tuple[str, ...] = Field(
+        description=(
+            "Operator-facing notes on missing archive inputs or ignored present-day toggles."
+        )
+    )
+    steps: tuple[ReplayTimelineStepResponse, ...] = Field(
+        description="Replayed advisory steps in chronological issuance order."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
+class ReplayAssessmentResponse(_ApiModel):
+    """Response document for ``GET /api/replay/{atcf_id}/{advisory}/assessment``."""
+
+    origin: Literal["replay"] = Field(
+        default="replay",
+        description="Origin of the assessment: always 'replay'.",
+    )
+    atcf_id: str = Field(description="Storm ATCF identifier.")
+    name: str = Field(description="Storm name in the replay corpus.")
+    advisory_id: str = Field(
+        description="Zero-padded corpus advisory identifier, such as '026' or '026A'."
+    )
+    advisory: str = Field(
+        description="Printed advisory number from the cone product, such as '26' or '26A'."
+    )
+    location: str = Field(description="Watched location name.")
+    inside_nws_coverage: bool = Field(description="Whether the location is inside NWS coverage.")
+    time_zone: str | None = Field(
+        default=None,
+        description="IANA time zone of the location, or null outside NWS coverage.",
+    )
+    snapshot_id: UUID = Field(
+        description="Deterministic UUID5 identifier of the replayed snapshot."
+    )
+    as_of: datetime = Field(description="UTC issuance instant of the replayed advisory.")
+    level: ThreatLevelResponse = Field(
+        description="Decided threat level, label, and recommended actions."
+    )
+    rule: str = Field(description="Identifier of the first ladder rule that matched.")
+    rule_trigger: str = Field(description="Human-readable summary of what triggers that rule.")
+    complete: bool = Field(
+        description="False when one or more inputs were unavailable, making the level a floor."
+    )
+    unavailable: tuple[AssessmentUnavailableResponse, ...] = Field(
+        description="Inputs that were unavailable when the replayed assessment was computed."
+    )
+    evidence: tuple[AssessmentEvidenceResponse, ...] = Field(
+        description="Evidence items supporting the deciding rule."
+    )
+    official: tuple[AssessmentOfficialProductResponse, ...] = Field(
+        description="Covering official products evaluated at the location."
+    )
+    wind_probabilities: tuple[WindReadingResponse, ...] = Field(
+        description="34, 50, and 64 kt wind-speed-probability readings at the location."
+    )
+    threats: tuple[StormThreatResponse, ...] = Field(
+        description="Per-storm threat readings for the replayed storm."
+    )
+    changes: tuple[AssessmentChangeResponse, ...] = Field(
+        description="Change events compared with the preceding advisory in the replay."
+    )
+    breakpoint_span: BreakpointSpan | None = Field(
+        description="Nearest coastal breakpoint span for the location, or null."
+    )
+    ruleset: str = Field(description="Fingerprint of the ladder ruleset and thresholds.")
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
+
+
 # Events (GET /api/events) ------------------------------------------------------------------
 
 
