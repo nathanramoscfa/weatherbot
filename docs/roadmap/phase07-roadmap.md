@@ -3576,9 +3576,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 5 — The map's depth
+## Step 5 — The map's depth ✅
 
-**Status:** Not started
+**Status:** Complete — PR #96 (2026-11-04)
 
 > **Goal:** Put the storm's whole official picture on the map, from what is
 > stored, and the live overlays only when asked. `GET /api/map/depth` serves
@@ -3622,6 +3622,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-04: Balanced Pick / Quality Runner-up — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -4645,6 +4647,8 @@ Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
 
+> Ran 2026-11-04: Balanced Pick / Quality Runner-up — Gemini 4 Argon · High.
+
 **Conversation:** New
 
 **Model rationale:** Step 7 is coding with a multimodal secondary category — a
@@ -5149,6 +5153,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-04: Balanced Pick / Quality Runner-up — Gemini 4 Argon · High.
 
 **Conversation:** New
 
