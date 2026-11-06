@@ -11,18 +11,29 @@ ROOT = Path(__file__).resolve().parents[2]
 SUPPORT = [ROOT / "scripts", *(ROOT / "tests" / name for name in ("contract", "sources", "cli"))]
 SCRIPT = """
 import sys
+from pathlib import Path
 sys.path[:0] = {support!r}
 from cli_support import MIAMI, add_landmark, recorded_services, run
 with recorded_services():
-    if {args!r}[0] == "status":
+    if {args!r}[0] in ("status", "report"):
         add_landmark(MIAMI, "miami-dade")
+    if {args!r}[0] == "report":
+        run(["status"])
     ran = run({args!r})
 loaded = sorted(name for name in ("anthropic", "httpx2") if name in sys.modules)
 print(f"exit={{ran.exit_code}} loaded={{','.join(loaded) or '-'}}")
 """
 
 
-@pytest.mark.parametrize("args", [["--version"], ["status", "--json"], ["config", "show"]])
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["--version"],
+        ["status", "--json"],
+        ["config", "show"],
+        ["report", "--out", "report.html"],
+    ],
+)
 def test_a_command_that_does_not_use_ai_never_loads_the_sdk(args: list[str]) -> None:
     script = SCRIPT.format(support=[str(path) for path in SUPPORT], args=args)
 

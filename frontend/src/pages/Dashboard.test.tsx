@@ -156,6 +156,40 @@ describe("Dashboard", () => {
 
     // ArrivalTimeline rendered inside storm threats
     expect(screen.getAllByTestId("arrival-timeline").length).toBeGreaterThan(0);
+
+    // Export report links and unticked "Include the AI briefing" checkbox
+    expect(
+      screen.getByText(/opens offline anywhere and prints to PDF from the browser/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /its words quote NWS alerts and can name a county or a forecast office/i,
+      ),
+    ).toBeInTheDocument();
+    const briefingCheckbox = screen.getByRole("checkbox", {
+      name: /Include the AI briefing/i,
+    });
+    expect(briefingCheckbox).not.toBeChecked();
+
+    const exportAllLink = screen.getByTestId("export-report-all");
+    const exportMiamiLink = screen.getByTestId(
+      "export-report-Miami-Dade County Hall",
+    );
+    expect(exportAllLink).toHaveAttribute("href", "/api/report");
+    expect(exportAllLink).toHaveAttribute("download");
+    expect(exportMiamiLink).toHaveAttribute(
+      "href",
+      "/api/report?location=Miami-Dade+County+Hall",
+    );
+    expect(exportMiamiLink).toHaveAttribute("download");
+
+    await user.click(briefingCheckbox);
+    expect(briefingCheckbox).toBeChecked();
+    expect(exportAllLink).toHaveAttribute("href", "/api/report?briefing=true");
+    expect(exportMiamiLink).toHaveAttribute(
+      "href",
+      "/api/report?location=Miami-Dade+County+Hall&briefing=true",
+    );
   });
 
   it("shows 'At least' with missing inputs when complete is false and escapes HTML in product and storm strings", () => {

@@ -93,6 +93,10 @@ weatherbot config show               # every setting's value, and whether it cam
 weatherbot config path               # where the settings file, the database, its backups, the log file, and the lock files live
 weatherbot prune --dry-run --days 90 # preview how many rows per table a 90-day retention run would remove and its UTC cutoff
 weatherbot prune --cutoff 2026-08-05T12:00:00Z --vacuum  # execute that exact plan in batches and compact the database (while serve/check is stopped)
+
+# Export a self-contained, offline HTML threat report (leaves out coordinates, zone IDs, and raw km; prints to PDF from the browser).
+weatherbot report --out report.html
+weatherbot report "Miami-Dade County Hall" --out miami-report.html --force --with-briefing
 ```
 
 `status` prints, for each location, the level and its deciding rule with each
@@ -154,6 +158,20 @@ checks, and the disclaimer's reminder. A sentence that states another current
 level, a URL, or an unquoted position withholds the rest. The question is never
 logged. [docs/AI.md](docs/AI.md) covers what each request carries and what it
 costs.
+
+`report [LOCATION] --out PATH [--force] [--with-briefing]` writes one
+self-contained HTML file (inline CSS, an inline `<svg>` level sparkline with a
+table alternative, no script, no remote resource, a `<meta>` Content Security
+Policy of `default-src 'none'; style-src 'unsafe-inline'`, and `@media print`
+styles) from the privacy-reduced briefing context (`briefing_context`). It
+leaves out coordinates at any precision, `Location.display_name`, NWS zone IDs,
+forecast office identifiers, raw kilometre distances, exact bearings, NWS query
+URLs, polygons, paths, and tokens/topics; by default it also leaves out AI text
+and county/forecast-office names, adding the latest unwithheld stored briefing
+(with its `AiLabel` and stale notice) only when `--with-briefing` is passed. It
+refuses to overwrite an existing file without `--force`, never loads the
+Anthropic SDK, and opens offline anywhere — to produce a PDF, open the HTML file
+in any browser and print to PDF.
 
 `locations list`, `fetch`, `storms`, `alerts`, `status`, `replay`, `doctor`,
 `check --once`, `install-task`, `uninstall-task`, `notify log`, `notify setup`,
@@ -240,7 +258,13 @@ reloading the page and provides eight pages:
   briefing with its sources, and `Brief me` streams a new one section by
   section (`POST /api/ai/briefings`); a withheld briefing shows only its
   reason, and a briefing written for an older assessment says so and offers
-  `Brief me again`.
+  `Brief me again`. Above the cards and on each location card, **Export report**
+  (`<a href="/api/report?location=..." download>`) downloads the self-contained
+  HTML report (`GET /api/report?location=&briefing=`) with an unticked
+  **Include the AI briefing** checkbox explaining that briefing words quote NWS
+  alerts and can name a county or a forecast office; the exported HTML leaves
+  out coordinates, zone IDs, raw kilometre figures, and tokens, opens offline
+  anywhere, and prints to PDF directly from the browser.
 - **Map (`/map`)**: an interactive Leaflet map over OpenStreetMap tiles showing
   six default-on layers (storm cones, forecast tracks, forecast points, coastal
   watch and warning segments, Tropical Weather Outlook areas, and watched

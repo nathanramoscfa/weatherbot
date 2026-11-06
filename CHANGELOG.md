@@ -8,6 +8,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 7 — Depth
+- Add the self-contained HTML threat report (`ReportService`, `render_report`,
+  `GET /api/report`, `weatherbot report`, and dashboard export links) (Phase 7
+  Step 8):
+  - Report builder and renderer (`src/weatherbot/services/report.py`): add
+    `ReportService(engine, *, now)` with `build(location=None, *,
+    with_briefing=False) -> ReportData` (building each location's entry from
+    `AssessmentRepository.latest` through `briefing_context(..., snapshot=None)`
+    with a `ContextTooLarge` fallback, `AssessmentRepository.level_points`, and
+    — only when `with_briefing=True` — `OutputRepository.latest_briefing` kept
+    when unwithheld and marked stale when written for an older assessment) and
+    `render_report(data) -> str` producing a single offline HTML5 file with
+    inline screen and `@media print` CSS, an inline `<svg>` level sparkline and
+    visually hidden `<table>` alternative, `<meta
+    http-equiv="Content-Security-Policy" content="default-src 'none'; style-src
+    'unsafe-inline'">`, `NOTICE` at the top, `ESSENTIALS` and `DISCLAIMER_URL`
+    in the footer, `public_page` `https` links (`rel="noopener noreferrer"`),
+    and every dynamic string passed through `html.escape`, while leaving out
+    coordinates, `Location.display_name`, zone IDs, forecast offices, raw
+    kilometre distances, engine-written sentences, query URLs, and tokens/topics
+    (and printing cleanly to PDF from the browser).
+  - Web route (`src/weatherbot/web/routes/report.py`,
+    `src/weatherbot/web/app.py`): add sync `GET /api/report?location=&briefing=`
+    answering `text/html; charset=utf-8` with `Content-Disposition: attachment;
+    filename="weatherbot-report-<YYYYMMDDTHHMMZ>.html"` and
+    `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline';
+    sandbox`, 404 for an unknown location without echoing it, and 409 when no
+    assessment is stored.
+  - CLI command (`src/weatherbot/cli/report.py`,
+    `src/weatherbot/cli/__init__.py`): add `weatherbot report [LOCATION] --out
+    PATH [--force] [--with-briefing]` writing atomically via a temporary file
+    and `os.replace`, refusing an existing file without `--force` and a missing
+    parent directory with exit 2, printing the path and disclaimer notice, and
+    never loading the Anthropic SDK.
+  - Dashboard export controls (`frontend/src/pages/Dashboard.tsx`): add
+    `Export report` download links (`<a href="/api/report?location=..."
+    download>`) for all locations and on each location card, an unticked
+    `Include the AI briefing` checkbox noting that briefing words quote NWS
+    alerts and can name a county or a forecast office, and copy explaining what
+    the report leaves out and that it opens offline anywhere and prints to PDF
+    from the browser.
 - Add the `/replay` historical storm scrubber page, replay timeline and
   assessment routes, shared assessment components, and complete the `changes.py`
   no-cone detail sentence (Phase 7 Step 7, closes #44):

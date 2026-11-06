@@ -1,6 +1,6 @@
 // frontend/src/pages/Dashboard.tsx
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, ShieldAlert } from "lucide-react";
+import { Download, RefreshCw, ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { BriefingPanel } from "../ai/BriefingPanel.tsx";
@@ -49,6 +49,21 @@ export function locationCardId(name: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
   return `location-${slug}`;
+}
+
+export function buildReportHref(
+  location: string | null,
+  includeBriefing: boolean,
+): string {
+  const params = new URLSearchParams();
+  if (location !== null) {
+    params.set("location", location);
+  }
+  if (includeBriefing) {
+    params.set("briefing", "true");
+  }
+  const query = params.toString();
+  return query ? `/api/report?${query}` : "/api/report";
 }
 
 async function fetchLocationCharts(location: string): Promise<ChartsResponse> {
@@ -128,6 +143,7 @@ export function Dashboard() {
   } | null>(null);
   const [evacPendingName, setEvacPendingName] = useState<string | null>(null);
   const [evacError, setEvacError] = useState<string | null>(null);
+  const [includeBriefing, setIncludeBriefing] = useState(false);
 
   const assessmentsQuery = useQuery({
     queryKey: queryKeys.assessments(),
@@ -325,6 +341,9 @@ export function Dashboard() {
 
   const snapshot = assessmentsData?.snapshot ?? null;
   const nextProductAt = healthQuery.data?.next_product_at ?? null;
+  const hasAnyAssessment = locationCards.some(
+    (item) => item.assessment !== null,
+  );
   const liveAnnouncement = locationCards
     .map((item) => {
       if (!item.assessment) {
@@ -379,7 +398,18 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {hasAnyAssessment && (
+              <a
+                href={buildReportHref(null, includeBriefing)}
+                download
+                data-testid="export-report-all"
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              >
+                <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Export report</span>
+              </a>
+            )}
             <button
               type="button"
               onClick={() => void handleCheckNow()}
@@ -393,6 +423,31 @@ export function Dashboard() {
               <span>Check now</span>
             </button>
           </div>
+        </div>
+
+        <div className="mt-3 border-t border-slate-200 pt-3 text-xs text-slate-600 dark:border-slate-800 dark:text-slate-300">
+          <p>
+            Export report saves a self-contained HTML file with each location’s
+            threat level, deciding evidence, coarsened storm distance bands,
+            8-point compass bearings, and whole-hour times (no coordinates or
+            zone IDs); it opens offline anywhere and prints to PDF from the
+            browser.
+          </p>
+          <label className="mt-2 inline-flex cursor-pointer items-start gap-2 text-slate-700 dark:text-slate-200">
+            <input
+              type="checkbox"
+              checked={includeBriefing}
+              onChange={(evt) => setIncludeBriefing(evt.target.checked)}
+              className="mt-0.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800"
+            />
+            <span>
+              <span className="font-semibold">Include the AI briefing</span>{" "}
+              <span className="text-slate-600 dark:text-slate-400">
+                — its words quote NWS alerts and can name a county or a forecast
+                office.
+              </span>
+            </span>
+          </label>
         </div>
 
         {cycleMessage && (
@@ -427,6 +482,7 @@ export function Dashboard() {
           <LocationLevelCard
             key={loc.name}
             item={loc}
+            includeBriefing={includeBriefing}
             evacPending={evacPendingName === loc.name}
             onToggleEvacuation={(nextOn) =>
               void handleEvacuationToggle(loc.name, nextOn)
@@ -512,12 +568,14 @@ function LocationComparisonRow({
 
 interface LocationLevelCardProps {
   readonly item: LocationAssessmentResponse;
+  readonly includeBriefing: boolean;
   readonly evacPending: boolean;
   readonly onToggleEvacuation: (nextOn: boolean) => void;
 }
 
 function LocationLevelCard({
   item,
+  includeBriefing,
   evacPending,
   onToggleEvacuation,
 }: LocationLevelCardProps) {
@@ -558,6 +616,16 @@ function LocationLevelCard({
                 atLeast={!assessment.complete}
               />
               <LevelSparkline location={item.name} points={levelPoints} />
+              <a
+                href={buildReportHref(item.name, includeBriefing)}
+                download
+                data-testid={`export-report-${item.name}`}
+                aria-label={`Export report for ${item.name}`}
+                className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              >
+                <Download className="h-3 w-3" aria-hidden="true" />
+                <span>Export report</span>
+              </a>
             </div>
             <span className="text-xs text-slate-600 dark:text-slate-400">
               Assessed: {formatBothTimes(assessment.as_of, timeZone)}

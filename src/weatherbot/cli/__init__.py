@@ -20,6 +20,7 @@ from weatherbot.cli import (
     locations,
     notify,
     prune,
+    report,
     serve,
     snapshots,
     tasks,
@@ -51,6 +52,7 @@ app.command("uninstall-task")(tasks.uninstall_task)
 app.command("brief")(brief.brief)
 app.command("ask")(ask.ask)
 app.command("prune")(prune.prune)
+app.command("report")(report.report)
 
 
 def _print_version_and_exit(*, value: bool) -> None:

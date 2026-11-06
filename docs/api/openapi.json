@@ -953,6 +953,73 @@
         }
       }
     },
+    "/api/report": {
+      "get": {
+        "summary": "Get Report",
+        "description": "Build and return the self-contained HTML threat report as a file download.",
+        "operationId": "get_report_api_report_get",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Export this stored location only; every location when omitted.",
+              "title": "Location"
+            },
+            "description": "Export this stored location only; every location when omitted."
+          },
+          {
+            "name": "briefing",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Include each location's latest unwithheld stored AI briefing.",
+              "default": false,
+              "title": "Briefing"
+            },
+            "description": "Include each location's latest unwithheld stored AI briefing."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Self-contained HTML threat report attachment.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested location is not stored."
+          },
+          "409": {
+            "description": "No stored assessment is available to build the report."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/events": {
       "get": {
         "summary": "Stream Events",
