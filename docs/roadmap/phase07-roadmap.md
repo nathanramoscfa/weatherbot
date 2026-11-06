@@ -4603,9 +4603,9 @@ phase-boundary hygiene.
 
 ---
 
-## Step 7 — Replay in the UI
+## Step 7 — Replay in the UI ✅
 
-**Status:** Complete
+**Status:** Complete — PR #98 (2026-11-05)
 
 > **Goal:** Let a past storm scrub advisory by advisory through the same engine
 > and the same components. `services/replay.py` gains `ReplayTimelines`, an
