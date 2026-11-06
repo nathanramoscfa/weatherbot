@@ -5112,9 +5112,9 @@ hygiene.
 
 ---
 
-## Step 8 — The report
+## Step 8 — The report ✅
 
-**Status:** Not started
+**Status:** Complete — PR #100 (2026-11-05)
 
 > **Goal:** Give the operator something safe to hand to someone.
 > `src/weatherbot/services/report.py` builds `ReportData` from
@@ -5155,6 +5155,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels.
+
+> Ran 2026-11-05: Balanced Pick — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6941,7 +6943,7 @@ workflow above maps directly to the corresponding row below.
 | 5    | Map layers + time slider       | Gemini 4 Argon | Complete — PR #96  |
 | 6    | Charts + history               | Gemini 4 Argon | Complete — PR #97  |
 | 7    | Replay scrubber                | Gemini 4 Argon | Complete — PR #98  |
-| 8    | Report export                  | Gemini 4 Argon | Not started        |
+| 8    | Report export                  | Gemini 4 Argon | Complete — PR #100 |
 | 9    | Full smoke + idle + deploy     | Sonnet 5.5     | Not started        |
 | 10   | QA + verify_phase07.py         | GPT-6.1 Sol    | Not started        |
 | V1   | Test budget (xdist)            | CI             | --                 |

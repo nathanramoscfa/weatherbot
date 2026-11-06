@@ -105,6 +105,7 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
         )
         app = create_app(state)
         charts_url = f"/api/charts?location={quote(NAME)}"
+        report_url = f"/api/report?location={quote(NAME)}"
         replay_timeline_url = f"/api/replay/AL112017/timeline?location={quote(NAME)}"
         replay_assessment_url = f"/api/replay/AL112017/026A/assessment?location={quote(NAME)}"
         routes = (
@@ -112,6 +113,8 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
             "/api/locations",
             "/api/assessments",
             charts_url,
+            "/api/report",
+            report_url,
             "/api/storms",
             "/api/alerts",
             "/api/timeline",
@@ -175,6 +178,8 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
         "/api/health",
         "/api/assessments",
         charts_url,
+        "/api/report",
+        report_url,
         "/api/storms",
         "/api/alerts",
         "/api/timeline",
@@ -191,8 +196,9 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
     for url in non_coordinate_routes:
         text = responses[url].text
         assert not _leaks_coordinate(text, coordinates), (url, text)
-        # DISCLAIMER.md includes the static NOAA Weather Radio band "162.400-162.550 MHz".
-        sanitized = text.replace("162.400-162.550 MHz", "")
+        # DISCLAIMER.md includes the static NOAA Weather Radio band "162.400-162.550 MHz",
+        # and the HTML report stylesheet includes "0.375rem".
+        sanitized = text.replace("162.400-162.550 MHz", "").replace("0.375rem", "")
         assert not _leaks_coordinate_or_decimal(sanitized, coordinates), (url, text)
 
     # No log record above DEBUG holds a coordinate, a 3+-decimal number, a distance, or a bearing.
@@ -231,6 +237,7 @@ def test_only_locations_and_map_location_layers_carry_coordinates_and_logs_stay_
         (msg, pat.pattern) for msg in above_debug for pat in distance_patterns if pat.search(msg)
     ]
     assert not [pat.pattern for pat in distance_patterns if pat.search(responses[charts_url].text)]
+    assert not [pat.pattern for pat in distance_patterns if pat.search(responses[report_url].text)]
 
 
 def test_place_search_route_never_logs_or_echoes_search_query_in_errors_or_logs(
