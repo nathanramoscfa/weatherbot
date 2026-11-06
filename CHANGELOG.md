@@ -8,6 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 7 — Depth
+- Add the whole-phase browser smoke, idle CPU measurement with retention active,
+  and operational alarm fault-injection tests (Phase 7 Step 9):
+  - Whole-phase browser smoke (`frontend/e2e/phase7.spec.ts`): end-to-end
+    Playwright spec exercising `/settings` place search and outside-NWS-coverage
+    location addition, notification channel cards, quiet-hours saving, retention
+    plan preview, every `/map` layer toggle with `nowcoast.noaa.gov` blank-tile
+    routing and `"Radar unavailable"` on route abort, advisory history slider
+    stepping, `/` threat-level sparkline and `/timeline` wind probability chart,
+    `/replay` Dorian (`AL052019`) scrubbing to advisory `026` at `Parliament
+    Square` (Level 5, `hurricane_warning`, `HWR`), and offline HTML report
+    export, with failure screenshots written to `frontend/test-results/`.
+  - Responsive and theme screenshots (`frontend/e2e/screens.spec.ts`): expand
+    the screenshot capture matrix (`1280x800` and `360x740` in `light` and
+    `dark` themes) to include `/replay` and `/settings` with the Phase 7
+    location, channel, quiet-hours, and retention sections.
+  - Idle CPU measurement with retention (`scripts/serve_demo.py`,
+    `scripts/measure_idle.py`): add `--retention-days` to `serve_demo.py`
+    (writing `[retention] history_days` to the demonstration `weatherbot.toml`
+    so `/api/settings` remains editable) and pass `--retention-days 30` from
+    `measure_idle.py` while holding the `< 0.5%` server and tab CPU budget over
+    600 s with AI `ready` and `change_summaries=on`.
+  - Operational alarms (`tests/services/test_phase7_alarms.py`): add fault
+    injection tests covering ntfy `HTTP 401` across `weatherbot notify test`
+    (exit 1), `weatherbot doctor` (`ntfy` check failure naming
+    `docs/NOTIFICATIONS.md`), and `GET /api/notifications/channels`
+    (`last_result == "failed"`), `RetentionWorker` error heartbeat recording and
+    stale `watch/retention` detection in `doctor` and `GET /api/health`, and
+    unparseable `weatherbot.toml` reloads logging one `WARNING` while running
+    the next monitor cycle on the last valid settings.
 - Add the self-contained HTML threat report (`ReportService`, `render_report`,
   `GET /api/report`, `weatherbot report`, and dashboard export links) (Phase 7
   Step 8):

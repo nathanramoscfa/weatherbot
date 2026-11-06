@@ -67,11 +67,15 @@ def test_parse_args_defaults_and_overrides(tmp_path: Path) -> None:
     assert defaults.ai_replay is True
     assert defaults.ai_cap_usd is None
     assert defaults.ai_fail_auth is False
+    assert defaults.retention_days is None
 
-    ai = _parse_args(["--no-ai-replay", "--ai-cap-usd", "0.001", "--ai-fail-auth"])
+    ai = _parse_args(
+        ["--no-ai-replay", "--ai-cap-usd", "0.001", "--ai-fail-auth", "--retention-days", "30"]
+    )
     assert ai.ai_replay is False
     assert ai.ai_cap_usd == 0.001  # noqa: PLR2004 - the smoke's tiny cap
     assert ai.ai_fail_auth is True
+    assert ai.retention_days == 30  # noqa: PLR2004 - idle measurement's retention days
 
     switch_file = tmp_path / "switch.flag"
     corpus_dir = tmp_path / "corpus"
@@ -141,8 +145,11 @@ def test_the_demo_environment_drops_every_credential_and_sets_the_ai_options(
     assert environ["WEATHERBOT_AI_ENABLED"] == "true"
     assert environ["WEATHERBOT_AI_DAILY_CAP_USD"] == "0.001"
 
-    _configure_demo_environ(tmp_path, _parse_args(["--no-ai-replay"]))
+    _configure_demo_environ(tmp_path, _parse_args(["--no-ai-replay", "--retention-days", "30"]))
     assert environ["WEATHERBOT_AI_ENABLED"] == "false"
+    assert "WEATHERBOT_RETENTION_HISTORY_DAYS" not in environ
+    toml_path = tmp_path / "config" / "weatherbot.toml"
+    assert toml_path.read_text(encoding="utf-8") == "[retention]\nhistory_days = 30\n"
 
 
 def test_each_request_kind_is_named_from_its_path_and_body() -> None:

@@ -98,6 +98,7 @@ export const test = base.extend<{ guard: void }>({
           await route.fulfill({
             status: 200,
             contentType: "image/png",
+            headers: { "Cache-Control": "no-store" },
             path: "./e2e/blank-tile.png",
           });
           return;

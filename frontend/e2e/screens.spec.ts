@@ -9,7 +9,7 @@ const VIEWPORTS = [
 
 const THEMES = ["light", "dark"] as const;
 
-test("captures dashboard and map screenshots at 1280x800 and 360x740 in light and dark themes", async ({
+test("captures dashboard, map, replay, and settings screenshots at 1280x800 and 360x740 in light and dark themes", async ({
   page,
 }) => {
   mkdirSync("test-results/screenshots", { recursive: true });
@@ -49,6 +49,49 @@ test("captures dashboard and map screenshots at 1280x800 and 360x740 in light an
 
       await page.screenshot({
         path: `test-results/screenshots/map-${sizeTag}-${theme}.png`,
+        fullPage: true,
+      });
+
+      await page.goto("/replay");
+      await page.evaluate((choice) => {
+        window.localStorage.setItem("weatherbot.theme", choice);
+        document.documentElement.classList.toggle("dark", choice === "dark");
+      }, theme);
+
+      await expect(
+        page.getByRole("heading", { name: "Replay", exact: true }),
+      ).toBeVisible();
+      await expect(page.getByTestId("replay-banner")).toBeVisible({
+        timeout: 30_000,
+      });
+      await expect(page.getByTestId("replay-leaflet-map")).toBeVisible();
+
+      await page.screenshot({
+        path: `test-results/screenshots/replay-${sizeTag}-${theme}.png`,
+        fullPage: true,
+      });
+
+      await page.goto("/settings");
+      await page.evaluate((choice) => {
+        window.localStorage.setItem("weatherbot.theme", choice);
+        document.documentElement.classList.toggle("dark", choice === "dark");
+      }, theme);
+
+      await expect(
+        page.getByRole("heading", { name: "Watched Locations" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Notification Channels" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Quiet Hours & Cooldown" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Database & Retention" }),
+      ).toBeVisible();
+
+      await page.screenshot({
+        path: `test-results/screenshots/settings-${sizeTag}-${theme}.png`,
         fullPage: true,
       });
     }

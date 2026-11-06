@@ -312,6 +312,12 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Answer every AI request 401, as Anthropic does for a refused credential.",
     )
+    parser.add_argument(
+        "--retention-days",
+        type=int,
+        default=None,
+        help="Write [retention] history_days into the demonstration's weatherbot.toml.",
+    )
     return parser.parse_args(argv)
 
 
@@ -419,6 +425,13 @@ def _configure_demo_environ(root: Path, args: argparse.Namespace) -> None:
         interval_text = str(int(args.roster_interval_minutes))
         os.environ["WEATHERBOT_MONITOR_ROSTER_INTERVAL_MINUTES"] = interval_text
         os.environ["WEATHERBOT_MONITOR_ROSTER_INTERVAL_RELEVANT_MINUTES"] = interval_text
+    if args.retention_days is not None:
+        config_dir = root / "config"
+        config_dir.mkdir(parents=True, exist_ok=True)
+        (config_dir / "weatherbot.toml").write_text(
+            f"[retention]\nhistory_days = {int(args.retention_days)}\n",
+            encoding="utf-8",
+        )
 
 
 def _run_serve_loop(  # noqa: PLR0913 - the open database, its settings, and the demo's seams

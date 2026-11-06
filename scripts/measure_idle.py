@@ -252,7 +252,14 @@ def main() -> int:
     )
 
     serve_proc = subprocess.Popen(  # noqa: S603 - fixed argument list, no shell  # nosec B603
-        [sys.executable, str(REPO_ROOT / "scripts" / "serve_demo.py"), "--port", str(port)],
+        [
+            sys.executable,
+            str(REPO_ROOT / "scripts" / "serve_demo.py"),
+            "--port",
+            str(port),
+            "--retention-days",
+            "30",
+        ],
         cwd=REPO_ROOT,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
