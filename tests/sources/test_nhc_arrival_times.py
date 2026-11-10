@@ -287,6 +287,17 @@ def test_the_opengis_namespace_and_a_multi_geometry_parse() -> None:
     assert product.lines[0].geometry.crs.name == "EPSG:4326"
 
 
+def test_antimeridian_unwrapped_kml_longitudes_wrap_into_geographic_bounds() -> None:
+    raw = kml().replace(
+        b"-80.5,25.5,0 -79.5,26.5,0",
+        b"-182.5,10.5,0 182.5,11.5,0",
+    )
+    product = arrivals.parse_arrival_kmz(product_kmz(raw), provenance())
+
+    assert product.lines[0].geometry.coordinates == ((177.5, 10.5), (-177.5, 11.5))
+    assert product.lines[0].geometry.is_valid
+
+
 # Hardening --------------------------------------------------------------------------------
 
 

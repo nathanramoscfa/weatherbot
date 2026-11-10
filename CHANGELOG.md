@@ -37,6 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     stale `watch/retention` detection in `doctor` and `GET /api/health`, and
     unparseable `weatherbot.toml` reloads logging one `WARNING` while running
     the next monitor cycle on the last valid settings.
+  - Antimeridian KMZ coordinates (`src/weatherbot/sources/nhc_arrival_times.py`,
+    `docs/DATA_SOURCES.md`): wrap KML `<coordinates>` longitudes unwrapped
+    across `±180°` (`[-360, -180)` and `(180, 360]`, observed live on Central
+    Pacific storm `CP042026` Pena advisory `016` on 2026-11-10) into
+    `[-180, 180]` before constructing the WGS 84 `Geometry`.
 - Add the self-contained HTML threat report (`ReportService`, `render_report`,
   `GET /api/report`, `weatherbot report`, and dashboard export links) (Phase 7
   Step 8):
