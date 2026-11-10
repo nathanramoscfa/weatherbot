@@ -5619,7 +5619,7 @@ hygiene.
 
 ## Step 9 — The whole phase on the operator's machine ✅
 
-**Status:** Complete — PR #101, #102 (2026-11-10)
+**Status:** Complete — PR #101, #104 (2026-11-10)
 
 > **Goal:** Prove the phase end to end and put it in the operator's hands.
 > `frontend/e2e/phase7.spec.ts` walks one flow across every new surface with no
@@ -6946,7 +6946,7 @@ workflow above maps directly to the corresponding row below.
 | 6    | Charts + history               | Gemini 4 Argon | Complete — PR #97  |
 | 7    | Replay scrubber                | Gemini 4 Argon | Complete — PR #98  |
 | 8    | Report export                  | Gemini 4 Argon | Complete — PR #100      |
-| 9    | Full smoke + idle + deploy     | Gemini 4 Argon | Complete — PR #101, 102 |
+| 9    | Full smoke + idle + deploy     | Gemini 4 Argon | Complete — PR #101, 104 |
 | 10   | QA + verify_phase07.py         | GPT-6.1 Sol    | Not started             |
 | V1   | Test budget (xdist)            | CI             | --                 |
 | V2   | Locations + place search       | CI             | --                 |
