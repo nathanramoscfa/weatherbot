@@ -276,7 +276,12 @@ storms (see [GIS archive](#gis-archive)).
   contour. The other Placemarks are the label icons, Points with no
   description. Dorian 036 has 11 labelled lines in the earliest-reasonable
   file and 10 in the most-likely file, each plus the contour; Trudy 015
-  has 5 and 7; Simon 038 has the contour only.
+  has 5 and 7; Simon 038 has the contour only. When a Central Pacific
+  storm crosses the antimeridian (such as `CP042026` Pena advisory 016 on
+  2026-11-10), the KML writes longitudes west of `180°W` as unwrapped
+  values in `[-360, -180)` (and east of `180°E` in `(180, 360]`), which
+  `nhc_arrival_times` wraps into `[-180, 180]` before building the WGS 84
+  `Geometry`.
 - **Fields v2 uses:** `timezone`, `advisoryNum`, `atcfid`, and
   `pubAdvTime`.
 - **Why v2 reads it.** Issue

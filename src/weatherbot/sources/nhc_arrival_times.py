@@ -80,6 +80,8 @@ OUTER_CONTOUR_LABEL: Final = "Wind Speed Probability 5% contour"
 ISSUANCE_TOLERANCE: Final = timedelta(hours=1)
 _LINE_GEOMETRIES: Final = ("LineString", "MultiGeometry")
 _ZONE_OF_TEXT: Final = re.compile(r"\b(?:AM|PM)\s+(?P<zone>[A-Za-z]{2,5})\s", re.IGNORECASE)
+_HALF_TURN_DEG: Final = 180.0
+_FULL_TURN_DEG: Final = 360.0
 
 
 def check_url(url: str, *, atcf_id: str | None = None, kind: Kind | None = None) -> re.Match[str]:
@@ -212,6 +214,15 @@ def description_label(description: str, where: str) -> str:
     return " ".join(parser.cells[0].split())
 
 
+def _wrap_antimeridian(longitude: float) -> float:
+    """Bring a KML longitude unwrapped across the antimeridian into ``[-180, 180]``."""
+    if -_FULL_TURN_DEG <= longitude < -_HALF_TURN_DEG:
+        return longitude + _FULL_TURN_DEG
+    if _HALF_TURN_DEG < longitude <= _FULL_TURN_DEG:
+        return longitude - _FULL_TURN_DEG
+    return longitude
+
+
 def _positions(text: str, where: str) -> tuple[tuple[float, float], ...]:
     positions: list[tuple[float, float]] = []
     for token in text.split():
@@ -220,7 +231,7 @@ def _positions(text: str, where: str) -> tuple[tuple[float, float], ...]:
             message = f"{where} has a coordinate that is not lon,lat[,alt]"
             raise SourceSchemaError(SOURCE, message)
         try:
-            positions.append((float(parts[0]), float(parts[1])))
+            positions.append((_wrap_antimeridian(float(parts[0])), float(parts[1])))
         except ValueError:
             message = f"{where} has a coordinate that is not a number"
             raise SourceSchemaError(SOURCE, message) from None
