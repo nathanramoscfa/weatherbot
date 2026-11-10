@@ -7,6 +7,7 @@ import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { createAppQueryClient } from "../main.tsx";
 import type { MapResponse } from "../map/layers.ts";
+import { getLeafletMapForContainer } from "../map/useLeafletMap.ts";
 import healthFixture from "../test/fixtures/health.json";
 import locationsFixture from "../test/fixtures/locations.json";
 import replayFixture from "../test/fixtures/replay.json";
@@ -375,5 +376,84 @@ describe("Replay page", () => {
       configurable: true,
       get: () => "visible",
     });
+  });
+
+  it("invalidates Leaflet map size and fits bounds when the replay map container transitions from hidden (0x0) to visible", () => {
+    let resizeCallback: ResizeObserverCallback | null = null;
+    const OriginalResizeObserver = globalThis.ResizeObserver;
+    class MockResizeObserver {
+      constructor(cb: ResizeObserverCallback) {
+        resizeCallback = cb;
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    vi.stubGlobal("ResizeObserver", MockResizeObserver);
+
+    try {
+      const queryClient = createAppQueryClient();
+      const shortTimeline = buildShortTimeline();
+      queryClient.setQueryData(queryKeys.health(), {
+        ...TYPED_HEALTH,
+        corpus: true,
+      });
+      queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
+      queryClient.setQueryData(queryKeys.replay(), TYPED_REPLAY);
+
+      // Render while timeline is not yet resolved so the map wrapper is hidden (0x0)
+      render(
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <Replay />
+          </MemoryRouter>
+        </QueryClientProvider>,
+      );
+
+      const mapContainer = screen.getByTestId("replay-leaflet-map");
+      const leafletMap = getLeafletMapForContainer(mapContainer);
+      expect(leafletMap).not.toBeNull();
+      const invalidateSpy = vi.spyOn(leafletMap!, "invalidateSize");
+
+      // Populate timeline and advisory data and simulate container becoming visible
+      Object.defineProperty(mapContainer, "clientWidth", {
+        configurable: true,
+        get: () => 580,
+      });
+      Object.defineProperty(mapContainer, "clientHeight", {
+        configurable: true,
+        get: () => 384,
+      });
+
+      act(() => {
+        queryClient.setQueryData(
+          queryKeys.replayTimeline("AL052019", "Parliament Square"),
+          shortTimeline,
+        );
+        for (const step of shortTimeline.steps) {
+          queryClient.setQueryData(
+            queryKeys.replayAdvisory("AL052019", step.advisory_id),
+            TYPED_REPLAY_ADVISORY,
+          );
+          queryClient.setQueryData(
+            queryKeys.replayAssessment(
+              "AL052019",
+              step.advisory_id,
+              "Parliament Square",
+            ),
+            buildStepAssessment(step),
+          );
+        }
+        resizeCallback?.([], {} as ResizeObserver);
+      });
+
+      expect(invalidateSpy).toHaveBeenCalledWith({ animate: false });
+    } finally {
+      if (OriginalResizeObserver) {
+        vi.stubGlobal("ResizeObserver", OriginalResizeObserver);
+      } else {
+        vi.unstubAllGlobals();
+      }
+    }
   });
 });

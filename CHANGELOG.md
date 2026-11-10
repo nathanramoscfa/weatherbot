@@ -42,6 +42,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     across `±180°` (`[-360, -180)` and `(180, 360]`, observed live on Central
     Pacific storm `CP042026` Pena advisory `016` on 2026-11-10) into
     `[-180, 180]` before constructing the WGS 84 `Geometry`.
+  - Replay advisory map sizing (`frontend/src/map/useLeafletMap.ts`): call
+    `map.invalidateSize({ animate: false })` and attach a `ResizeObserver` on
+    the Leaflet container so maps mounted inside an initially hidden wrapper
+    (such as `/replay` while the storm timeline loads) resize their tile grid,
+    SVG overlay viewport, and fitted bounds as soon as the container becomes
+    visible.
 - Add the self-contained HTML threat report (`ReportService`, `render_report`,
   `GET /api/report`, `weatherbot report`, and dashboard export links) (Phase 7
   Step 8):

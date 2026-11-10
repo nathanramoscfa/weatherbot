@@ -5619,7 +5619,7 @@ hygiene.
 
 ## Step 9 — The whole phase on the operator's machine ✅
 
-**Status:** Complete — PR #101, #104 (2026-11-10)
+**Status:** Complete — PR #101, #104, #105 (2026-11-10)
 
 > **Goal:** Prove the phase end to end and put it in the operator's hands.
 > `frontend/e2e/phase7.spec.ts` walks one flow across every new surface with no
