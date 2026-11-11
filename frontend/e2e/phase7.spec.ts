@@ -235,6 +235,20 @@ test.describe("Phase 7 end-to-end smoke", () => {
       await expect(assessmentCard).toContainText("hurricane_warning");
       await expect(assessmentCard).toContainText("HWR");
 
+      const replayMap = page.getByTestId("replay-leaflet-map");
+      await expect(replayMap).toBeVisible();
+      await expect
+        .poll(async () => replayMap.locator(".leaflet-tile").count())
+        .toBeGreaterThan(1);
+      const overlaySvg = replayMap.locator(".leaflet-overlay-pane svg").first();
+      await expect(overlaySvg).toBeVisible();
+      expect(Number(await overlaySvg.getAttribute("width"))).toBeGreaterThan(
+        100,
+      );
+      expect(Number(await overlaySvg.getAttribute("height"))).toBeGreaterThan(
+        100,
+      );
+
       // 8. Export the report on /
       await page.goto("/");
       const exportAll = page.getByTestId("export-report-all");

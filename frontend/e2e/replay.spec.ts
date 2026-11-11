@@ -80,6 +80,23 @@ test.describe("Replay scrubber page", () => {
     await expect(assessmentCard).toContainText("hurricane_warning");
     await expect(assessmentCard).toContainText("HWR");
 
+    // Advisory map fills its container with multiple tiles and non-zero SVG overlay viewport
+    const replayMap = page.getByTestId("replay-leaflet-map");
+    await expect(replayMap).toBeVisible();
+    await expect
+      .poll(async () => replayMap.locator(".leaflet-tile").count())
+      .toBeGreaterThan(1);
+    const overlaySvg = replayMap.locator(".leaflet-overlay-pane svg").first();
+    await expect(overlaySvg).toBeVisible();
+    const svgWidth = Number(await overlaySvg.getAttribute("width"));
+    const svgHeight = Number(await overlaySvg.getAttribute("height"));
+    expect(svgWidth).toBeGreaterThan(100);
+    expect(svgHeight).toBeGreaterThan(100);
+    const nonDegeneratePaths = await replayMap
+      .locator('.leaflet-overlay-pane svg path:not([d="M0 0"])')
+      .count();
+    expect(nonDegeneratePaths).toBeGreaterThan(0);
+
     // No AI panel or evacuation switch on the Replay page
     await expect(page.getByTestId("ai-label")).toHaveCount(0);
     await expect(page.getByRole("switch")).toHaveCount(0);

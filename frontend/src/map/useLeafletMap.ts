@@ -226,6 +226,7 @@ export function useLeafletMap({
     (map: L.Map, payload: MapResponse | null | undefined) => {
       programmaticMoveRef.current = true;
       try {
+        map.invalidateSize({ animate: false });
         if (payload) {
           fitMapToPayload(map, payload);
         } else {
@@ -283,7 +284,48 @@ export function useLeafletMap({
       latestVisibilityRef.current,
     );
 
+    let hadNonZeroSize =
+      container.clientWidth > 0 && container.clientHeight > 0;
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            const hasNonZeroSize =
+              container.clientWidth > 0 && container.clientHeight > 0;
+            if (!hasNonZeroSize) {
+              hadNonZeroSize = false;
+              return;
+            }
+            const becameVisible = !hadNonZeroSize;
+            hadNonZeroSize = true;
+            programmaticMoveRef.current = true;
+            try {
+              map.invalidateSize({ animate: false });
+              if (becameVisible) {
+                if (!userMovedRef.current) {
+                  if (latestMapDataRef.current) {
+                    fitMapToPayload(map, latestMapDataRef.current);
+                  } else {
+                    map.setView(DEFAULT_ATLANTIC_CENTER, DEFAULT_ATLANTIC_ZOOM, {
+                      animate: false,
+                    });
+                  }
+                }
+                syncLayersOnMap(
+                  map,
+                  overlayLayersRef,
+                  latestBuiltRef.current,
+                  latestVisibilityRef.current,
+                );
+              }
+            } finally {
+              programmaticMoveRef.current = false;
+            }
+          })
+        : null;
+    resizeObserver?.observe(container);
+
     return () => {
+      resizeObserver?.disconnect();
       for (const layer of overlayLayersRef.current) {
         if (map.hasLayer(layer)) {
           map.removeLayer(layer);
@@ -336,6 +378,7 @@ export function useLeafletMap({
     if (!map) {
       return;
     }
+    map.invalidateSize({ animate: false });
     syncLayersOnMap(map, overlayLayersRef, builtLayers, visibility);
   }, [builtLayers, visibility]);
 
