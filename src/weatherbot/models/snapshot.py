@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, model_validator
 from weatherbot.models.alerts import NwsAlert
 from weatherbot.models.arrivals import ArrivalTimeProduct
 from weatherbot.models.base import DomainModel
+from weatherbot.models.geometry import Geometry
 from weatherbot.models.outlook import OutlookArea, WindProbabilityProduct
 from weatherbot.models.products import (
     Breakpoint,
@@ -102,6 +103,8 @@ def _provenances(value: object) -> Iterator[Provenance]:
     """Yield every provenance a value holds, at any depth."""
     if isinstance(value, Provenance):
         yield value
+    elif isinstance(value, Geometry):
+        return
     elif isinstance(value, BaseModel):
         for name in type(value).model_fields:
             yield from _provenances(getattr(value, name))
@@ -163,25 +166,28 @@ class Snapshot(DomainModel):
         if any(not 1 <= len(name) <= 64 for name in self.alerts):  # noqa: PLR2004 - Location.name
             message = "alerts are keyed by location name"
             raise ValueError(message)
+        provenances = tuple(_provenances(self))
         if self.origin == "replay":
-            self._check_replay(sources)
+            self._check_replay(sources, provenances)
         elif any(storm.summary is None for storm in self.storms):
             message = "a live snapshot's storms carry the roster's summary"
             raise ValueError(message)
         fetched = {o.source_id for o in self.source_outcomes if o.status in ("ok", "not_modified")}
-        if any(p.source_id not in fetched for p in _provenances(self)):
+        if any(p.source_id not in fetched for p in provenances):
             message = "every record's source has an ok or not_modified outcome"
             raise ValueError(message)
         return self
 
-    def _check_replay(self, sources: Counter[SourceId]) -> None:
+    def _check_replay(
+        self, sources: Counter[SourceId], provenances: tuple[Provenance, ...]
+    ) -> None:
         if ROSTER in sources:
             message = "a replay snapshot asks no roster"
             raise ValueError(message)
         if any(storm.archived is None for storm in self.storms):
             message = "a replay snapshot's storms carry the archive's record"
             raise ValueError(message)
-        if any(p.source_id not in REPLAY_SOURCES for p in _provenances(self)):
+        if any(p.source_id not in REPLAY_SOURCES for p in provenances):
             message = "a replay snapshot holds only records of the archive and the arrival times"
             raise ValueError(message)
 

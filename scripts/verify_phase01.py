@@ -823,7 +823,7 @@ def py_suites() -> list[Outcome]:
         ("format", ["ruff", "format", "--check"]),
         ("types", ["pyright"]),
         ("imports", ["lint-imports"]),
-        ("tests", ["pytest"]),
+        ("tests", ["pytest", "-n", "auto"]),
     )
     return [run_command(f"py.{name}", name, ["uv", "run", *args]) for name, args in commands] + [
         package_smoke()
@@ -1030,7 +1030,7 @@ def probe(item_id: str, description: str, check: Callable[[], bool]) -> Outcome:
 def ubuntu_verification() -> bool:
     """Use current PR checks, or the latest main phase run after branch retirement."""
     branch = git("branch", "--show-current")
-    if branch == "main":
+    if branch == "main" or git("rev-parse", "HEAD") == git("rev-parse", "main"):
         run = latest_run("phase-verify.yml")
         return run["conclusion"] == "success" and run["head_sha"] == git("rev-parse", "HEAD")
     result = capture(["gh", "pr", "checks", "--json", "name,bucket"])

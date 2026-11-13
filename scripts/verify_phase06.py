@@ -1664,6 +1664,8 @@ def py_suites(tmp_dir: Path | None = None) -> tuple[list[Outcome], dict[str, Sta
                 "uv",
                 "run",
                 "pytest",
+                "-n",
+                "auto",
                 f"--junitxml={junit}",
                 "--cov=weatherbot.engine",
                 "--cov=weatherbot.services.policy",
@@ -1987,7 +1989,9 @@ def protection_requires_both() -> bool:
 def phase_entries_green(entries: Sequence[str]) -> bool:
     """On ``main``: the latest phase-verify run at HEAD; on a branch: its PR's checks."""
     names = {f"phase-verify ({entry})" for entry in entries}
-    if git("branch", "--show-current") == "main":
+    if git("branch", "--show-current") == "main" or git("rev-parse", "HEAD") == git(
+        "rev-parse", "main"
+    ):
         run = latest_run("phase-verify.yml")
         jobs = object_of(github_api(f"actions/runs/{run['id']}/jobs"))
         conclusions = {
@@ -2017,6 +2021,9 @@ def phase_five_post() -> bool:
     totals = dict(
         re.findall(r"^  (passed|failed|skipped|total)\s+(\d+)$", result.stdout, re.MULTILINE)
     )
+    for line in result.stdout.splitlines():
+        if line.startswith(("[FAIL]", "[SKIP]")) or "verify_phase0" in line:
+            print(f"    {line}")
     print(
         f"  verify_phase05.py --post: {totals or 'no summary'} in {elapsed:.1f}s; "
         f"exit {result.returncode}"
@@ -2127,7 +2134,7 @@ def operator_health_and_doctor_ai() -> bool:
 
 def operator_settled_briefing() -> bool:
     """V6.5: operator's service settled a real briefing in /api/ai/calls."""
-    calls_payload = _fetch_operator_json("/api/ai/calls")
+    calls_payload = _fetch_operator_json("/api/ai/calls?limit=100")
     calls = [object_of(item) for item in array_of(calls_payload.get("calls", []))]
     settled = [
         row

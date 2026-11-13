@@ -102,7 +102,7 @@ class Graded:
 
 def _client() -> anthropic.AsyncAnthropic:
     return anthropic.AsyncAnthropic(
-        max_retries=0,
+        max_retries=2,
         timeout=anthropic.Timeout(120.0, connect=10.0),
         http_client=anthropic.DefaultAsyncHttpxClient(follow_redirects=False),
     )

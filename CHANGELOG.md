@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Phase 7 — Depth
+- Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),
+  verifier unit tests (`tests/test_phase07_verification.py`), QA findings ledger
+  (`docs/phase07-qa-findings.md`), and `"07"` matrix leg in
+  `.github/workflows/phase-verify.yml` (Phase 7 Step 10):
+  - `scripts/verify_phase07.py`: 65 static checks (59 for Steps 1–9 and 6
+    self-checks) and 42 V1–V10 post-implementation verification matrix rows
+    (`107` total checks in `--post`) across `--fast`, `--py`, `--node`, `--ui`,
+    `--live`, `--security`, `--all`, and `--post` (nesting `verify_phase06.py
+    --post`'s 79 checks after operator confirmation).
+  - `tests/test_phase07_verification.py`: test `--fast` execution under 30 s,
+    `"07"` in `.github/workflows/phase-verify.yml`, single-deliverable red-check
+    isolation across Steps 1–10, fail-closed skipped JUnit evidence, and post
+    probe failure handling.
+  - `.github/workflows/phase-verify.yml`: append `"07"` to the `phase` matrix
+    with dedicated Node 24 setup and `npm --prefix frontend ci` steps under
+    `if: "!cancelled() && matrix.phase == '07'"`.
+  - `docs/phase07-qa-findings.md`: record every Phase 7 PR (#89–#105), the test
+    parallelism speedup, the 600 s idle CPU measurement with retention active,
+    live smoke runs, source-drift observations (`CP042026` Pena antimeridian KMZ,
+    marine `/points` and `/zones`, synthetic peak-surge status), exact vs.
+    growth-proof checks for Phase 8, and pre-ship item dispositions.
 - Add the whole-phase browser smoke, idle CPU measurement with retention active,
   and operational alarm fault-injection tests (Phase 7 Step 9):
   - Whole-phase browser smoke (`frontend/e2e/phase7.spec.ts`): end-to-end

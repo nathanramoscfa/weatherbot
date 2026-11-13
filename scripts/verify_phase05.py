@@ -1605,6 +1605,8 @@ def py_suites(tmp_dir: Path | None = None) -> tuple[list[Outcome], dict[str, Sta
                 "uv",
                 "run",
                 "pytest",
+                "-n",
+                "auto",
                 f"--junitxml={junit}",
                 "--cov=weatherbot.engine",
                 "--cov=weatherbot.services.policy",
@@ -1827,7 +1829,9 @@ def protection_requires_both() -> bool:
 def phase_entries_green(entries: Sequence[str]) -> bool:
     """On ``main``: the latest phase-verify run at HEAD; on a branch: its PR's checks."""
     names = {f"phase-verify ({entry})" for entry in entries}
-    if git("branch", "--show-current") == "main":
+    if git("branch", "--show-current") == "main" or git("rev-parse", "HEAD") == git(
+        "rev-parse", "main"
+    ):
         run = latest_run("phase-verify.yml")
         jobs = object_of(github_api(f"actions/runs/{run['id']}/jobs"))
         conclusions = {
@@ -1857,6 +1861,9 @@ def phase_four_post() -> bool:
     totals = dict(
         re.findall(r"^  (passed|failed|skipped|total)\s+(\d+)$", result.stdout, re.MULTILINE)
     )
+    for line in result.stdout.splitlines():
+        if line.startswith(("[FAIL]", "[SKIP]")) or "verify_phase0" in line:
+            print(f"    {line}")
     print(
         f"  verify_phase04.py --post: {totals or 'no summary'} in {elapsed:.1f}s; "
         f"exit {result.returncode}"
