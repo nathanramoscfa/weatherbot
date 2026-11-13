@@ -19,10 +19,13 @@ NAMES = tuple(
 )
 
 
+_CANDIDATES = build_goldens.candidates
+
+
 @cache
 def current_goldens() -> dict[str, dict[str, object]]:
     """Run all eight production timelines once for the frozen-reference checks."""
-    return build_goldens.candidates()
+    return _CANDIDATES()
 
 
 @pytest.mark.parametrize("name", NAMES)

@@ -195,9 +195,42 @@ Phase 6's is `uv run python scripts/verify_phase06.py`, adding `--ai`:
   online `doctor --json` against your running service. Findings are in
   [the Phase 6 QA ledger](docs/phase06-qa-findings.md).
 
+Phase 7's is `uv run python scripts/verify_phase07.py`, with Phase 5's eight
+flags (`--fast`, `--py`, `--node`, `--ui`, `--live`, `--security`, `--all`, and
+`--post`; there is no `--ai` mode):
+
+- `--fast`: 65 numbered, independent checks, offline and standard-library only.
+- `--py`: static checks, lint, formatting, types (Windows and `--pythonplatform
+  Linux`), import contracts, the offline tests with the engine, policy, AI
+  context, and AI validator branch-coverage floors (the coverage data file goes
+  to a temporary directory), `export_schemas.py --check`,
+  `export_openapi.py --check`, `export_api_fixtures.py --check`, and the
+  installed-wheel smoke (`scripts/smoke_installed_web.py`).
+- `--node`: static checks and, in `frontend/`, `npm ci`, `npm audit signatures`,
+  `api:check`, `lint`, `typecheck`, Vitest with a JUnit reporter, `build`, and
+  `licenses:check`.
+- `--ui`: static checks and the Playwright Chromium smoke (`locations.spec.ts`,
+  `layers.spec.ts`, `replay.spec.ts`, `report.spec.ts`, and `phase7.spec.ts`
+  included) with a JUnit reporter.
+- `--live`: static checks and `pytest -m live` (landmarks only; `test_ntfy_live`
+  skips without `WEATHERBOT_NTFY_TOPIC`).
+- `--security`: static checks and the security gate over both stacks (gitleaks,
+  bandit, `scripts/audit_deps.py`, `scripts/check_personal_data.py`,
+  `npm audit --audit-level=high`, ESLint at `--max-warnings 0`, and a secret
+  shape scan for `sk-ant-` and `tk_` over the phase's paths).
+- `--all`: the Python, Node, UI, live, and security suites together.
+- `--post`: the canonical 107-check pre-tag sweep: the 42-row V1-V10 matrix from
+  one offline pytest run, one frontend/Vitest run, one Playwright run, and one
+  live run, GitHub readbacks, Phase 6's own `--post` (79 checks, including its
+  live AI eval after the operator's yes), the 600-second idle CPU measurement
+  with retention active (`scripts/measure_idle.py`), and `GET /api/health`,
+  `GET /api/notifications/channels`, and `doctor --json` against your running
+  service. Findings are in [the Phase 7 QA ledger](docs/phase07-qa-findings.md).
+
 Both `gate` and `phase-verify` are required on protected `main`. The latter
 aggregates the `phase-verify (01)`, `phase-verify (02)`, `phase-verify (03)`,
-`phase-verify (04)`, `phase-verify (05)`, and `phase-verify (06)` matrix jobs;
+`phase-verify (04)`, `phase-verify (05)`, `phase-verify (06)`, and
+`phase-verify (07)` matrix jobs;
 later phases append their entries and retain the aggregate name. Both workflows
 run on every pull request.
 

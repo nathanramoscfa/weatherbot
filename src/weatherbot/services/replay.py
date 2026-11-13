@@ -40,9 +40,11 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 from weatherbot.engine import assess, diff
 from weatherbot.models import (
     AdvisoryNumber,
+    ArchiveStorm,
     ArrivalTimeProduct,
     Assessment,
     ChangeEvent,
+    ConeGeometry,
     Location,
     Snapshot,
     SourceOutcome,
@@ -363,6 +365,8 @@ class ReplayCorpus:
         self._forecast: dict[tuple[str, str, str], ConvertedFile] = {}
         self._wsp: dict[tuple[str, str], list[ConvertedFile]] = {}
         self._arrivals: dict[tuple[str, str, str], ConvertedFile] = {}
+        self._wsp_cache: dict[tuple[str, str], WindProbabilityProduct] = {}
+        self._cone_cache: dict[tuple[str, str], tuple[ConeGeometry, ArchiveStorm]] = {}
         for converted in manifest.subset:
             self._path(converted.file)
             limit = MAX_KMZ_BYTES if converted.product in ARRIVAL_KINDS else MAX_FILE_BYTES
@@ -469,12 +473,23 @@ class ReplayCorpus:
             )
         return tuple(found)
 
-    def _parsed_cone(self, atcf_id: str, advisory: str) -> tuple[datetime, str]:
+    def _cone_and_storm(
+        self, atcf_id: str, advisory: str
+    ) -> tuple[ConvertedFile, ConeGeometry, ArchiveStorm]:
         converted = self._cone(atcf_id, advisory)
         body = self._read(converted)
-        entry = self.manifest.entry(converted)
-        cone = _parsed(converted, lambda: nhc_gis_archive.parse_cone(body, entry))
-        storm = _parsed(converted, lambda: nhc_gis_archive.parse_archive_storm(body, entry))
+        key = (converted.file, converted.sha256)
+        cached = self._cone_cache.get(key)
+        if cached is None:
+            entry = self.manifest.entry(converted)
+            cone = _parsed(converted, lambda: nhc_gis_archive.parse_cone(body, entry))
+            storm = _parsed(converted, lambda: nhc_gis_archive.parse_archive_storm(body, entry))
+            cached = (cone, storm)
+            self._cone_cache[key] = cached
+        return converted, cached[0], cached[1]
+
+    def _parsed_cone(self, atcf_id: str, advisory: str) -> tuple[datetime, str]:
+        converted, cone, storm = self._cone_and_storm(atcf_id, advisory)
         if cone.advisory.issued_at is None:
             raise ReplayError(converted.file, "the cone's ADVDATE names no instant")
         return cone.advisory.issued_at, storm.name
@@ -534,11 +549,7 @@ class ReplayCorpus:
             yield self._snapshot(atcf_id, advisory, advisories[: index + 1])
 
     def _snapshot(self, atcf_id: str, advisory: str, so_far: Sequence[str]) -> Snapshot:
-        cone_file = self._cone(atcf_id, advisory)
-        cone_body = self._read(cone_file)
-        entry = self.manifest.entry(cone_file)
-        cone = _parsed(cone_file, lambda: nhc_gis_archive.parse_cone(cone_body, entry))
-        storm = _parsed(cone_file, lambda: nhc_gis_archive.parse_archive_storm(cone_body, entry))
+        cone_file, cone, storm = self._cone_and_storm(atcf_id, advisory)
         issued_at = cone.advisory.issued_at
         if issued_at is None:
             raise ReplayError(cone_file.file, "the cone's ADVDATE names no instant")
@@ -577,7 +588,20 @@ class ReplayCorpus:
 
     def _probabilities(self, atcf_id: str, advisory: str) -> tuple[WindProbabilityProduct, ...]:
         files = sorted(self._wsp.get((atcf_id, advisory), ()), key=lambda f: f.product)
-        return tuple(self._parse(f, nhc_gis_archive.parse_wind_probabilities) for f in files)
+        products: list[WindProbabilityProduct] = []
+        for converted in files:
+            body = self._read(converted)
+            key = (converted.file, converted.sha256)
+            cached = self._wsp_cache.get(key)
+            if cached is None:
+                entry = self.manifest.entry(converted)
+                cached = _parsed(
+                    converted,
+                    lambda b=body, e=entry: nhc_gis_archive.parse_wind_probabilities(b, e),
+                )
+                self._wsp_cache[key] = cached
+            products.append(cached)
+        return tuple(products)
 
     def _arrival_pair(
         self, atcf_id: str, so_far: Sequence[str]

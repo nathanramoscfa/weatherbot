@@ -1119,7 +1119,9 @@ def py_suites() -> PySuites:
         ("imports", ["lint-imports"]),
     )
     tools = [run_command(f"py.{name}", name, ["uv", "run", *args]) for name, args in commands]
-    tests = pytest_run("py.tests", "offline tests (unit, model, contract, replay, command)")
+    tests = pytest_run(
+        "py.tests", "offline tests (unit, model, contract, replay, command)", "-n", "auto"
+    )
     return PySuites(tools, tests, package_smoke())
 
 
@@ -1198,7 +1200,9 @@ def protection_requires_both() -> bool:
 def phase_entry_green(entry: str) -> bool:
     """On ``main``: the latest phase run at HEAD; on a branch: its PR's checks, all green."""
     name = f"phase-verify ({entry})"
-    if git("branch", "--show-current") == "main":
+    if git("branch", "--show-current") == "main" or git("rev-parse", "HEAD") == git(
+        "rev-parse", "main"
+    ):
         run = latest_run("phase-verify.yml")
         jobs = object_of(github_api(f"actions/runs/{run['id']}/jobs"))
         conclusions = {
@@ -1230,6 +1234,9 @@ def phase_one_post() -> bool:
     totals = dict(
         re.findall(r"^  (passed|failed|skipped|total)\s+(\d+)$", result.stdout, re.MULTILINE)
     )
+    for line in result.stdout.splitlines():
+        if line.startswith(("[FAIL]", "[SKIP]")):
+            print(f"    {line}")
     print(f"  verify_phase01.py --post: {totals or 'no summary'}; exit {result.returncode}")
     return result.returncode == 0 and totals == {
         "passed": "75",

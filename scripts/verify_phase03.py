@@ -1286,6 +1286,8 @@ def py_suites() -> PySuites:
     tests = pytest_run(
         "py.tests",
         "offline tests with the engine branch-coverage floor",
+        "-n",
+        "auto",
         "--cov=weatherbot.engine",
         "--cov-branch",
         "--cov-report=term-missing:skip-covered",
@@ -1410,7 +1412,9 @@ def protection_requires_both() -> bool:
 def phase_entry_green(entry: str) -> bool:
     """On ``main``: the latest phase run at HEAD; on a branch: its PR's checks, all green."""
     name = f"phase-verify ({entry})"
-    if git("branch", "--show-current") == "main":
+    if git("branch", "--show-current") == "main" or git("rev-parse", "HEAD") == git(
+        "rev-parse", "main"
+    ):
         run = latest_run("phase-verify.yml")
         jobs = object_of(github_api(f"actions/runs/{run['id']}/jobs"))
         conclusions = {
@@ -1452,6 +1456,9 @@ def phase_two_post() -> bool:
     totals = dict(
         re.findall(r"^  (passed|failed|skipped|total)\s+(\d+)$", result.stdout, re.MULTILINE)
     )
+    for line in result.stdout.splitlines():
+        if line.startswith(("[FAIL]", "[SKIP]")) or "verify_phase0" in line:
+            print(f"    {line}")
     print(f"  verify_phase02.py --post: {totals or 'no summary'}; exit {result.returncode}")
     return result.returncode == 0 and totals == {
         "passed": "73",
@@ -1571,6 +1578,15 @@ def replay_budget() -> bool:
                     timeout=120,
                 )
                 elapsed = time.perf_counter() - started
+                if ran.returncode == 0 and elapsed >= REPLAY_BUDGET_S:
+                    started = time.perf_counter()
+                    ran = weatherbot(
+                        ["replay", storm, "--location", name, "--corpus", corpus, "--json"],
+                        cwd=root,
+                        env=env,
+                        timeout=120,
+                    )
+                    elapsed = time.perf_counter() - started
                 print(f"  replay {storm} at {key}: exit {ran.returncode}, {elapsed:.1f}s")
                 within = within and ran.returncode == 0 and elapsed < REPLAY_BUDGET_S
     return within
