@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 7 Complete — 2026-11-12; PR #106; v2.0.0-phase-7. Phase 8 (Release 2.0) is next.
+> **Status:** Phase 7 Complete — 2026-11-12; PR #106; v2.0.0-phase-7. Phase 8 (UI/UX redesign and visual dogfooding) is next; Phase 9 (Release 2.0) follows.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -66,7 +66,7 @@ constraints:
    its own PR; the same security gate runs before every commit.
 
 The path: **freeze and record → fetch → decide → watch → show → explain
-→ deepen → release**. Phases run strictly in order; none depends on a
+→ deepen → polish & dogfood → release**. Phases run strictly in order; none depends on a
 cloud resource or spends money except the Claude layer's per-token
 calls, which carry a cap.
 
@@ -81,7 +81,8 @@ calls, which carry a cap.
 | 5     | FastAPI API with server-sent events, the React SPA, packaging | `weatherbot serve` opens a live dashboard and map in the browser |
 | 6     | Claude Sonnet 5.5 briefing, change summary, grounded chat, cost meter | The dashboard explains the situation in plain language, labeled |
 | 7     | Place search, charts, surge and radar layers, replay scrubber, multi-location UI, ntfy push, quiet hours, retention, export | Nassau joins the operator's place; the phone buzzes; a past storm scrubs on the map |
-| 8     | Documentation, PyPI 2.0.0, always-on guide, optional LAN mode | `pip install weatherbot` gives anyone the whole thing              |
+| 8     | Modern meteorological command-center UI/UX redesign, plain-English hierarchy, floating map HUD, split-screen replay, multi-scenario demo states, iterative AI + operator visual dogfooding loops | Every page and threat level (1–5) reads effortlessly at a glance and passes multi-round visual dogfooding |
+| 9     | Documentation, PyPI 2.0.0, always-on guide, optional LAN mode | `pip install weatherbot` gives anyone the whole thing              |
 
 ---
 
@@ -312,7 +313,7 @@ Nominatim with a place the operator submitted. From Phase 5 the browser
 itself also fetches the map's raster tiles from OpenStreetMap, and from
 Phase 7, only while a toggle is on, radar and satellite images from
 NOAA's nowCOAST. There is no
-public ingress; an optional LAN mode in Phase 8 is the only widening,
+public ingress; an optional LAN mode in Phase 9 is the only widening,
 and it is gated. Loopback is not a trust boundary against the browser:
 any other site's page open in it can send requests to 127.0.0.1, so the
 server answers only its own host names, grants no cross-origin read,
@@ -901,7 +902,7 @@ entries.
   events (measured, numbers recorded in the phase's QA findings).
 - `npm audit --audit-level=high` and `eslint-plugin-security` are clean
   and run in the gate; the server refuses non-loopback binds unless the
-  Phase 8 LAN mode is explicitly enabled.
+  Phase 9 LAN mode is explicitly enabled.
 - **Deployed & verified:** `/api/health` on the operator's running
   service reports this phase's build after upgrade (the package
   version stays `2.0.0.dev0`, so health names the built interface's
@@ -1195,7 +1196,173 @@ through `"06"` in `phase-verify.yml`.
 
 ---
 
-### Phase 8 — Release 2.0
+### Phase 8 — UI/UX redesign and visual dogfooding
+
+**Status:** Not started
+
+**Goal:** Transform the functional Phase 5–7 web app into a modern,
+high-readability meteorological command center, verified through a
+multi-scenario demo harness and closed-loop AI + operator visual
+dogfooding cycles across every route, threat level (1–5), theme, and
+viewport before public release.
+
+**Complexity:** High · **Risk:** Low · **Cloud cost:** $0 ·
+**Handles sensitive data:** No — visual/UI presentation and offline/demo
+scenarios over existing APIs and public landmarks
+
+**Phase roadmap settings** — the session that writes
+`phase08-roadmap.md` (`/roadmap-phase 8`), ladder
+(`roadmodel ladder --category planning --complexity high --phase`):
+
+|               |          | Cost               | Balanced           | Quality            |
+| ------------- | -------- | ------------------ | ------------------ | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **Opus 5.5**       | **Opus 5.5**       |
+|               | Platform | Codex              | Claude Code        | Claude Code        |
+|               | Level    | Medium             | High               | Max                |
+|               | AA       | 47.8               | 53.6               | 57.6               |
+|               | Price    | $2.50/1M           | $6.76/1M           | $40.08/1M          |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
+|               | Platform | Claude Code        | Codex              | Antigravity        |
+|               | Level    | High               | XHigh              | High               |
+|               | AA       | 46.8               | 51                 | 52.6               |
+|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
+|               | Platform | Antigravity        | Antigravity        | Codex              |
+|               | Level    | Low                | Medium             | Max                |
+|               | AA       | ≈45.2              | ≈49.8              | 51.8               |
+|               | Price    | $2.31/1M           | $2.37/1M           | $4.74/1M           |
+
+Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1
+out), the output part scaled by the tokens the model writes at that level. ≈
+estimated from the model's measured levels.
+
+**Conversation:** New
+
+Phases 5–7 built the web app to satisfy functional contracts and DOM
+assertions, leaving the interface cramped (`12px` `text-xs` body copy),
+cluttered with raw engine/database identifiers (`snake_case` rule slugs,
+source IDs, coverage flags, and export boilerplate above the fold), and
+visually flat across all five threat levels. Phase 8 redesigns the
+frontend into a modern meteorological command center and runs iterative
+visual dogfooding loops until every page and threat state is genuinely
+clear, interactive, and release-ready.
+
+Phase 8 keeps every earlier phase's verification green (`"01"` through `"07"`
+in `phase-verify.yml`; see `docs/phase07-qa-findings.md` §"Exact vs.
+growth-proof Phase 7 checks for Phase 8"):
+- **Growth-proof checks that stay live on `HEAD`:** `verify_phase07.py` checks
+  1–19, 21–24, 26–34, 37–42, 46–58, and 60–65 check inclusion or structural
+  invariants and remain green (`phase-verify.yml` checks `"01"`..`"07"` as a
+  prefix/subset so Phase 8 can append `"08"`).
+- **Exact checks that stay live unless Phase 8 deliberately changes them:**
+  check 20 (`services/policy.py` and `tests/golden` match `v2.0.0-phase-6`),
+  check 25 (`EDITABLE`'s 12 keys and forbidden tables), checks 35–36
+  (`CSP_SUFFIX` and 12 `MapLayerKey`s), and checks 43–45
+  (`frontend/package.json` dependencies, zero inline `style=`, and `events.py`
+  `QUERY_KEYS`; if Phase 8 deliberately adds a frontend package or converts a
+  component check, convert the corresponding check via `tagged(...,
+  tag="v2.0.0-phase-7")` in that PR).
+- **Exact check that converts in Phase 8:** check 59 (`README.md`'s `## Status`
+  names Phase 7 complete and Phase 8 next) converts via `tagged("README.md",
+  tag=PHASE_7_TAG)` in the PR that updates `README.md`'s `## Status`. Keep
+  `"01"` through `"07"` in `phase-verify.yml`.
+
+#### 8.1 Design system, typography, and plain-English hierarchy
+- **Modern Meteorological Command Center aesthetic** (Apple Weather /
+  Windy / Stripe-inspired clarity): threat-tinted hero cards with subtle
+  elevation and borders tuned to Levels 1–5, a visual 5-step threat
+  ladder meter on each location card, tabular numerals for distances,
+  bearings, countdowns, and probabilities, and icon-enhanced primary
+  navigation with live status badges.
+- **Readable typographic scale:** replace the pervasive `12px`
+  (`text-xs`) body copy with comfortable `15px–17px` (`text-sm` /
+  `text-base`) prose, clear section headings, generous line height and
+  card padding, and automated Playwright computed-style assertions that
+  forbid sub-`14px` body/explanation copy.
+- **Plain-English first + progressive disclosure:** replace raw
+  `snake_case` rule slugs (`baseline_clear`, `hurricane_warning`),
+  internal source codes (`(nhc-two-at)`, `HWR`), and zone metadata in
+  primary views with human-readable headlines and action cards; move raw
+  rule IDs, audit provenance (`source_id`, zone codes, breakpoint spans,
+  raw UTC/local timestamps), and the manual evacuation-order override
+  into collapsible **"Why this level / Official provenance & controls"**
+  disclosures.
+
+#### 8.2 Command Center Dashboard, Immersive Map HUD, Split-Screen Replay, and Sectioned Pages
+- **Command Center Dashboard (`/`):** replace the bulky top boilerplate
+  box with a sleek, single-line **System Status & Action Bar** (snapshot
+  age, next NHC advisory countdown, `Check now`, and an `Export report`
+  popover housing the AI-briefing toggle); turn the location comparison
+  list into interactive **Location Switcher Cards** at the top; present
+  each location with its Hero Summary, 5-step threat bar, scannable
+  storm/wind stat tiles, and readable AI Briefing card; and embed an
+  integrated **Live Situation Mini-Map** card on the Dashboard so spatial
+  context is visible immediately on load.
+- **Immersive Map (`/map`) & Split-Screen Replay (`/replay`):** expand
+  `/map` to a tall interactive canvas (`70vh+`) with floating HUD
+  drawers/popovers overlaid on the map (grouped Layer Toggles, a
+  contextual Legend showing active layers, and the Advisory Time Slider
+  docked cleanly on the canvas) and remove the duplicate legacy replay
+  box from `/map`; redesign `/replay` as a desktop **split-screen
+  workbench** (interactive Map + Playback Scrubber + Level History chart
+  beside the live-updating Location Assessment Hero card) so scrubbing a
+  historical storm shows the cone and threat level evolving side-by-side
+  without vertical scrolling.
+- **Secondary pages (`/settings`, `/ask`, `/storms`, `/alerts`,
+  `/timeline`):** organize `/settings` with a clean sub-navigation tab
+  bar (`Locations`, `Notifications & Quiet Hours`, `AI & Budget`,
+  `History & Retention`, `Threat Ladder & About`) instead of a single
+  long vertical wall; add clickable starter prompt chips and a modern
+  conversation layout on `/ask`; and apply the new typographic and card
+  hierarchy across `/storms`, `/alerts`, and `/timeline`.
+
+#### 8.3 Multi-scenario demo states and two-stage visual dogfooding loops
+- **Multi-scenario demo harness (`scripts/serve_demo.py`):** add
+  switchable demo scenarios (quiet tropics `Level 1`, tropical outlook /
+  cone `Level 2–3`, watch / warning `Level 4`, and active landfalling
+  major hurricane `Level 5` with NWS alerts, NHC watch-warning segments,
+  wind probabilities, arrival timelines, and AI briefings/summaries) so
+  every UI state can be inspected even when the real tropics are quiet.
+- **Loop 1 — AI Visual Dogfooding & Readability Audit:** render every
+  route and interactive state across all demo scenarios, desktop
+  (`1440×900`) and mobile (`390×844`), in light and dark themes; run
+  automated computed-style checks (minimum font sizes, contrast, line
+  width, zero horizontal overflow) and inspect full-page screenshots
+  against a visual rubric; log every visual/UX defect in a dogfood
+  ledger, fix in-branch, and re-verify in loops until clean.
+- **Loop 2 — Live Operator Dogfooding & Iterative Refinement:** deploy to
+  the operator's Windows 11 service and launch the multi-scenario demo
+  server; walk through every page with the operator in their browser,
+  collect live design/UX feedback, and iterate in loops until the
+  operator explicitly signs off that the web app is release-ready.
+
+**Acceptance criteria**
+- Every page (`/`, `/map`, `/replay`, `/storms`, `/alerts`, `/timeline`,
+  `/ask`, `/settings`) renders with the new typographic scale and
+  command-center hierarchy; an automated Playwright readability test
+  verifies computed `font-size >= 14px` on all primary prose/explanation
+  elements and zero horizontal overflow at `1440×900`, `1280×800`, and
+  `360×740`.
+- Raw `snake_case` rule identifiers and raw provenance codes never
+  appear in primary card headlines; expanding the provenance disclosure
+  reveals the full official evidence and evacuation-order controls.
+- `/map` uses floating HUD drawers over a tall map canvas, `/replay`
+  renders the side-by-side map + assessment workbench on desktop, and
+  `/settings` navigates cleanly across its five sub-sections.
+- Both dogfooding loops (AI visual dogfooding across Levels 1–5 in
+  light/dark + live operator dogfooding on the operator's machine) are
+  complete and signed off in `docs/phase08-qa-findings.md`.
+- The canonical Phase 8 `--post` sweep passes all static checks and V
+  rows, `gate` and `phase-verify` (`"01"` through `"08"`) are green on
+  `main`, and annotated `v2.0.0-phase-8` peels to the closure merge
+  commit.
+- **Security:** gate green; CSP (`style-src 'self'`, zero inline
+  `style=`), privacy/coordinate redaction, and the 0.5% idle CPU budget
+  hold after the redesign.
+
+---
+
+### Phase 9 — Release 2.0
 
 **Status:** Not started
 
@@ -1208,7 +1375,7 @@ setup guide, and an optional, gated LAN mode.
 publishing; the LAN mode token
 
 **Phase roadmap settings** — the session that writes
-`phase08-roadmap.md` (`/roadmap-phase 8`), ladder
+`phase09-roadmap.md` (`/roadmap-phase 9`), ladder
 (`roadmodel ladder --category planning --complexity high --phase`):
 
 |               |          | Cost               | Balanced           | Quality            |
@@ -1243,44 +1410,27 @@ the first non-loopback bind) and their readiness gates. Opus 5.5 at
 PRIMARY `roadmodel score` names; Gemini 4 Argon on Antigravity, then
 GPT-6.1 Sol on Codex, each at `Max`, if its pool is short. The
 conversation is new: the roadmap is written once, from this roadmap and
-`main` as Phase 7 leaves it.
+`main` as Phase 8 leaves it.
 
-Phase 8 keeps every earlier phase's verification green (`"01"` through `"07"`
-in `phase-verify.yml`; see `docs/phase07-qa-findings.md` §"Exact vs.
-growth-proof Phase 7 checks for Phase 8"):
-- **Growth-proof checks that stay live on `HEAD`:** `verify_phase07.py` checks
-  1–19, 21–24, 26–34, 37–42, 46–58, and 60–65 check inclusion or structural
-  invariants and remain green as Phase 8 adds LAN mode, release workflows, and
-  documentation (`phase-verify.yml` checks `"01"`..`"07"` as a prefix/subset so
-  Phase 8 can append `"08"`).
-- **Exact checks that stay live unless Phase 8 deliberately changes them:**
-  check 20 (`services/policy.py` and `tests/golden` match `v2.0.0-phase-6`),
-  check 25 (`EDITABLE`'s 12 keys and forbidden tables — `web`, including any
-  Phase 8 LAN/bearer-token settings, must remain non-editable via `PUT
-  /api/settings`), checks 35–36 (`CSP_SUFFIX` and 12 `MapLayerKey`s), and checks
-  43–45 (`frontend/package.json` dependencies, zero inline `style=`, and
-  `events.py` `QUERY_KEYS`).
-- **Exact check that converts in Phase 8:** check 59 (`README.md`'s `## Status`
-  names Phase 7 complete and Phase 8 next) must be converted in the Phase 8 PR
-  that updates `README.md`'s `## Status` for `v2.0.0` to read
-  `v2.0.0-phase-7:README.md` via `tagged("README.md", tag=PHASE_7_TAG)`
-  (matching Phase 5 Check 47 and Phase 6 Check 44). Keep `"01"` through `"07"`
-  in `phase-verify.yml`.
+Phase 9 keeps every earlier phase's verification green (`"01"` through `"08"`
+in `phase-verify.yml`). Note that `verify_phase07.py` Check 25 pins
+`EDITABLE`'s 12 keys and forbidden tables — `web`, including any Phase 9
+LAN/bearer-token settings, must remain non-editable via `PUT /api/settings`.
 
-#### 8.1 Documentation
+#### 9.1 Documentation
 - User guide, configuration reference, `docs/DATA_SOURCES.md` and
   `docs/ALERT-LADDER.md` finalized, AI features and costs, always-on
   setup, troubleshooting, a v1 to v2 migration note, and `CHANGELOG.md`
   for 2.0.0.
 
-#### 8.2 Release pipeline
+#### 9.2 Release pipeline
 - A tag-triggered workflow builds the SPA and the wheel, publishes to
   TestPyPI for `2.0.0rc1` and to PyPI for `2.0.0` through trusted
   publishing from a protected environment, then runs a fresh-install
   smoke on Windows and Ubuntu (`uv tool install`, `--version`,
   `doctor`, `serve --check`).
 
-#### 8.3 Readiness gate and optional LAN mode
+#### 9.3 Readiness gate and optional LAN mode
 - A release readiness checklist: repository scan for personal data,
   disclaimer surfaces, dependency audits, rollback rehearsed (yank and
   patch), documentation complete.
@@ -1330,18 +1480,20 @@ the real figure per call, and the daily cap bounds the worst case.
 Phase 1 ──▶ Phase 2 ──▶ Phase 3 ──▶ Phase 4 ──▶ Phase 5 ──▶ Phase 6
                                                               │
                                                               ▼
-                                                   Phase 7 ──▶ Phase 8
+                                         Phase 7 ──▶ Phase 8 ──▶ Phase 9
 ```
 
 - Strictly serial. Each phase consumes the previous phase's artifacts:
   fixtures (1) feed clients (2), clients feed the engine (3), the
   engine feeds the monitor (4), the monitor feeds the API and UI (5),
-  the stored assessments feed Claude (6), and 7 and 8 extend all of it.
+  the stored assessments feed Claude (6), 7 deepens the feature set, 8
+  redesigns and visually dogfoods the web app in loops, and 9 packages
+  and releases 2.0.0.
 - Every phase runs locally with zero spend; only Phase 6 introduces a
   metered dependency, and it is capped.
-- The irreversible cutovers are both in Phase 8: the public 2.0.0
+- The irreversible cutovers are both in Phase 9: the public 2.0.0
   release and the first non-loopback bind. Each has its own
-  readiness-gate sub-step (§4 Phase 8.3).
+  readiness-gate sub-step (§4 Phase 9.3).
 - No phases run in parallel, so the "Worktree strategy" below permits
   no declared-parallel steps; the only second worktree is a hotfix.
 
@@ -1581,7 +1733,7 @@ release — never assume it happened.
   started; a migration ships with its backup and its downgrade.
 - **Readiness gate before an irreversible cutover.** The public 2.0.0
   release and the first non-loopback bind each get their own
-  readiness-gate sub-step (Phase 8.3) with a checklist: personal-data
+  readiness-gate sub-step (Phase 9.3) with a checklist: personal-data
   scan, disclaimer surfaces, audits, rollback rehearsed, documentation
   complete. Going live is a decision, not a side effect of a merge.
 
@@ -1589,7 +1741,7 @@ release — never assume it happened.
 
 - A step that introduces a required environment variable or secret
   (`ANTHROPIC_API_KEY` in Phase 6, the ntfy token in Phase 7, the LAN
-  token in Phase 8) verifies at step kickoff — before writing code
+  token in Phase 9) verifies at step kickoff — before writing code
   that fails closed without it — that the operator has a place to set
   it (the environment or the OS credential store) and that `doctor`
   reports its presence without printing it.
@@ -1657,7 +1809,7 @@ the database schema version is the Alembic head and is reported by
 | Anthropic API key                     | Yes (Phase 6) | Environment variable or OS credential store only; never in source, config files under version control, logs, the database, or the client bundle. |
 | Place text the operator searches for  | Yes (Phase 7) | Sent to Nominatim only on an explicit submit; never in a log above DEBUG, an error, a URL of ours, the browser's console, or the database: an answer is cached in memory only. |
 | Location names                        | Yes      | A label the operator types, never defaulted from a search: it leaves the machine in AI requests, ntfy titles, and reports. |
-| ntfy topic and token, LAN bearer token | Yes (Phases 7–8) | Same handling as the API key: on a public ntfy server the topic is itself the password. The LAN token is required for any non-loopback bind. |
+| ntfy topic and token, LAN bearer token | Yes (Phases 7, 9) | Same handling as the API key: on a public ntfy server the topic is itself the password. The LAN token is required for any non-loopback bind. |
 | Client / user PII                     | No       | Single operator; no accounts, no third-party users.                                 |
 | Payment / financial data              | No       | None.                                                                               |
 | Health / regulated data               | No       | None.                                                                               |
@@ -1730,7 +1882,7 @@ Rules for the gate:
 
 | Layer               | Control                                                                                     |
 |---------------------|---------------------------------------------------------------------------------------------|
-| Identity / auth     | None on loopback by design; LAN mode (Phase 8) requires a bearer token, rate limiting, and a startup warning |
+| Identity / auth     | None on loopback by design; LAN mode (Phase 9) requires a bearer token, rate limiting, and a startup warning |
 | Transport           | HTTPS to every external service with certificate verification on; plain HTTP only on 127.0.0.1 |
 | Data at rest        | SQLite and configuration in the user data directory under the OS account's permissions; database backup before migrations |
 | Secrets             | Environment or OS credential store; `doctor` reports presence, never values; redaction filter on logging |
@@ -1922,4 +2074,5 @@ The following are deliberately deferred to a future version:
 | 5     | Web app MVP                                   | High       | Complete |
 | 6     | Claude layer                                  | High       | Complete |
 | 7     | Depth                                         | Medium     | Complete |
-| 8     | Release 2.0                                   | Medium     | Not started |
+| 8     | UI/UX redesign and visual dogfooding          | High       | Not started |
+| 9     | Release 2.0                                   | Medium     | Not started |
