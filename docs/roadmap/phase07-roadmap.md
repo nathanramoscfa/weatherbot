@@ -1,6 +1,6 @@
-# Phase 7 Roadmap — Depth
+# Phase 7 Roadmap — Depth ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-11-12
 
 ## Overview
 
@@ -6060,9 +6060,9 @@ new, per phase-boundary hygiene.
 
 ---
 
-## Step 10 — QA & Verification Script
+## Step 10 — QA & Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #106 (2026-11-12)
 
 > **Goal:** Package the verification matrix into `scripts/verify_phase07.py`
 > (with `--fast`, `--py`, `--node`, `--ui`, `--live`, `--security`, `--all`, and
@@ -6947,7 +6947,7 @@ workflow above maps directly to the corresponding row below.
 | 7    | Replay scrubber                | Gemini 4 Argon | Complete — PR #98  |
 | 8    | Report export                  | Gemini 4 Argon | Complete — PR #100      |
 | 9    | Full smoke + idle + deploy     | Gemini 4 Argon | Complete — PR #101, 104 |
-| 10   | QA + verify_phase07.py         | GPT-6.1 Sol    | Not started             |
+| 10   | QA + verify_phase07.py         | GPT-6.1 Sol    | Complete — PR #106      |
 | V1   | Test budget (xdist)            | CI             | --                 |
 | V2   | Locations + place search       | CI             | --                 |
 | V3   | ntfy + preferences             | CI             | --                 |

@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 6 Complete — 2026-11-02; PR #88; v2.0.0-phase-6. Phase 7 (depth) is in progress.
+> **Status:** Phase 7 Complete — 2026-11-12; PR #106; v2.0.0-phase-7. Phase 8 (Release 2.0) is next.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -1065,9 +1065,9 @@ matrix entries.
 
 ---
 
-### Phase 7 — Depth
+### Phase 7 — Depth ✅
 
-**Status:** In progress — phase07-roadmap.md
+**Status:** Complete — 2026-11-12; PR #106; v2.0.0-phase-7; phase07-roadmap.md
 
 **Goal:** The features that turn a correct monitor into a daily-use
 tool: charts, surge and radar layers, a replay scrubber, the
@@ -1183,6 +1183,12 @@ through `"06"` in `phase-verify.yml`.
   watched, a phone delivery confirmed, and a storm scrubbing.
 - **Operations:** the ntfy channel's delivery alarm and the retention
   worker's heartbeat alarm have each been seen to fire.
+- The canonical Phase 7 `--post` sweep reports all 65 static checks and
+  V1.1 through V10.4 PASS (107 total checks; see `phase07-roadmap.md`).
+  Both `gate` and `phase-verify` (matrix `"01"` through `"07"`) are
+  green on `main`, and annotated `v2.0.0-phase-7` peels to the closure
+  merge commit. The QA ledger (`docs/phase07-qa-findings.md`) assigns
+  every finding a destination.
 - **Security:** gate green; the ntfy topic and token are stored like
   the API key and redacted from logs and exports; `npm audit` and
   `pip-audit` clean after the new dependencies.
@@ -1238,6 +1244,28 @@ PRIMARY `roadmodel score` names; Gemini 4 Argon on Antigravity, then
 GPT-6.1 Sol on Codex, each at `Max`, if its pool is short. The
 conversation is new: the roadmap is written once, from this roadmap and
 `main` as Phase 7 leaves it.
+
+Phase 8 keeps every earlier phase's verification green (`"01"` through `"07"`
+in `phase-verify.yml`; see `docs/phase07-qa-findings.md` §"Exact vs.
+growth-proof Phase 7 checks for Phase 8"):
+- **Growth-proof checks that stay live on `HEAD`:** `verify_phase07.py` checks
+  1–19, 21–24, 26–34, 37–42, 46–58, and 60–65 check inclusion or structural
+  invariants and remain green as Phase 8 adds LAN mode, release workflows, and
+  documentation (`phase-verify.yml` checks `"01"`..`"07"` as a prefix/subset so
+  Phase 8 can append `"08"`).
+- **Exact checks that stay live unless Phase 8 deliberately changes them:**
+  check 20 (`services/policy.py` and `tests/golden` match `v2.0.0-phase-6`),
+  check 25 (`EDITABLE`'s 12 keys and forbidden tables — `web`, including any
+  Phase 8 LAN/bearer-token settings, must remain non-editable via `PUT
+  /api/settings`), checks 35–36 (`CSP_SUFFIX` and 12 `MapLayerKey`s), and checks
+  43–45 (`frontend/package.json` dependencies, zero inline `style=`, and
+  `events.py` `QUERY_KEYS`).
+- **Exact check that converts in Phase 8:** check 59 (`README.md`'s `## Status`
+  names Phase 7 complete and Phase 8 next) must be converted in the Phase 8 PR
+  that updates `README.md`'s `## Status` for `v2.0.0` to read
+  `v2.0.0-phase-7:README.md` via `tagged("README.md", tag=PHASE_7_TAG)`
+  (matching Phase 5 Check 47 and Phase 6 Check 44). Keep `"01"` through `"07"`
+  in `phase-verify.yml`.
 
 #### 8.1 Documentation
 - User guide, configuration reference, `docs/DATA_SOURCES.md` and
@@ -1893,5 +1921,5 @@ The following are deliberately deferred to a future version:
 | 4     | Monitoring and notifications                  | Medium     | Complete |
 | 5     | Web app MVP                                   | High       | Complete |
 | 6     | Claude layer                                  | High       | Complete |
-| 7     | Depth                                         | Medium     | In progress |
+| 7     | Depth                                         | Medium     | Complete |
 | 8     | Release 2.0                                   | Medium     | Not started |
