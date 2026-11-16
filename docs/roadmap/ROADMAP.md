@@ -1266,6 +1266,24 @@ growth-proof Phase 7 checks for Phase 8"):
   names Phase 7 complete and Phase 8 next) converts via `tagged("README.md",
   tag=PHASE_7_TAG)` in the PR that updates `README.md`'s `## Status`. Keep
   `"01"` through `"07"` in `phase-verify.yml`.
+- **The audit supersedes this list.** `phase08-roadmap.md` ("Verification
+  surfaces") holds an audit of all seven verifiers, their mutation tests, their
+  JUnit selections, and the pinned tests no verifier names. It adds what the
+  list above omits: Phase 6's check 39 (package names, exact against
+  `v2.0.0-phase-5`), the literal pins (`NAV_ITEMS`, the four shared assessment
+  components in both pages, `serve_demo.py`'s and `simulate_advisory.py`'s
+  names, the README's headings), and the file-level JUnit selections, under
+  which every selected test file keeps its path and at least one passing test.
+
+The Settings page's ladder reference and the level badge's own names disagree
+with the engine today (rule order, one rule's name, the products and codes the
+ladder reads), so Phase 8 serves the ladder from the engine through one
+read-only route, `GET /api/ladder`, and pins every word on the page to it
+(`phase08-roadmap.md`, Decision 8); it serves engine metadata only, no location
+data. Loop 2 runs in the other order from 8.3's wording: the operator walks the
+demonstration servers started from the step's branch, and the signed-off build
+is deployed to the operator's service afterwards, so that service never runs a
+build the operator has not approved (`phase08-roadmap.md`, Decisions 17 and 19).
 
 #### 8.1 Design system, typography, and plain-English hierarchy
 - **Modern Meteorological Command Center aesthetic** (Apple Weather /
@@ -1352,10 +1370,10 @@ growth-proof Phase 7 checks for Phase 8"):
 - Both dogfooding loops (AI visual dogfooding across Levels 1–5 in
   light/dark + live operator dogfooding on the operator's machine) are
   complete and signed off in `docs/phase08-qa-findings.md`.
-- The canonical Phase 8 `--post` sweep passes all static checks and V
-  rows, `gate` and `phase-verify` (`"01"` through `"08"`) are green on
-  `main`, and annotated `v2.0.0-phase-8` peels to the closure merge
-  commit.
+- The canonical Phase 8 `--post` sweep reports all 60 static checks and
+  V1.1 through V10.4 PASS (98 total checks; see `phase08-roadmap.md`),
+  `gate` and `phase-verify` (`"01"` through `"08"`) are green on `main`,
+  and annotated `v2.0.0-phase-8` peels to the closure merge commit.
 - **Security:** gate green; CSP (`style-src 'self'`, zero inline
   `style=`), privacy/coordinate redaction, and the 0.5% idle CPU budget
   hold after the redesign.
@@ -1696,6 +1714,7 @@ Rules that apply to every worktree:
 | `v2.0.0-phase-5`     | Web app MVP packaged in the wheel                             |
 | `v2.0.0-phase-6`     | Claude briefing, change summary, grounded chat                |
 | `v2.0.0-phase-7`     | Depth: charts, layers, replay UI, Nassau, ntfy                |
+| `v2.0.0-phase-8`     | UI/UX redesign, demonstration scenarios, dogfood sign-off     |
 | `v2.0.0rc1`          | Release candidate on TestPyPI                                 |
 | `v2.0.0`             | Public release on PyPI                                        |
 
