@@ -13,6 +13,7 @@ import {
   writeBrowserNotificationsEnabled,
 } from "../notifications/notify.ts";
 import { formatBothTimes, formatRouteError } from "../pages/format.ts";
+import { Card } from "../ui/Card.tsx";
 
 export type NotificationChannelsResponse =
   components["schemas"]["NotificationChannelsResponse"];
@@ -125,9 +126,9 @@ export function NotificationChannels() {
   const channels = channelsQuery.data?.channels ?? [];
 
   return (
-    <section
+    <Card
+      as="section"
       aria-labelledby="notifications-settings-heading"
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex items-center gap-2">
         <Bell
@@ -145,7 +146,7 @@ export function NotificationChannels() {
       {channels.length > 0 && (
         <div
           aria-label="Configured notification channels"
-          className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2"
+          className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2"
         >
           {channels.map((ch) => (
             <div
@@ -158,7 +159,7 @@ export function NotificationChannels() {
                   {ch.name}
                 </span>
                 <span
-                  className={`rounded px-2 py-0.5 text-[11px] font-semibold ${stateBadgeClass(ch.state)}`}
+                  className={`rounded px-2 py-0.5 text-caption font-semibold ${stateBadgeClass(ch.state)}`}
                 >
                   {ch.state}
                 </span>
@@ -166,7 +167,7 @@ export function NotificationChannels() {
               <p className="mt-1 text-slate-600 dark:text-slate-300">
                 {ch.detail}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 {ch.last_result && ch.last_attempted_at
                   ? `Last delivery: ${ch.last_result} · ${formatBothTimes(ch.last_attempted_at)}`
                   : "Last delivery: none recorded yet"}
@@ -177,7 +178,7 @@ export function NotificationChannels() {
       )}
 
       <div className="mt-4 flex flex-col justify-between gap-4 border-t border-slate-200 pt-3 sm:flex-row sm:items-center dark:border-slate-800">
-        <div className="space-y-1 text-xs">
+        <div className="space-y-1 text-sm">
           <p className="font-semibold text-slate-900 dark:text-slate-100">
             Background Web Notifications:{" "}
             <span>{browserNotifEnabled ? "On" : "Off"}</span> (Permission:{" "}
@@ -197,9 +198,9 @@ export function NotificationChannels() {
             aria-checked={browserNotifEnabled}
             aria-label="Browser notifications"
             onClick={() => void handleToggleBrowserNotifications()}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 ${
+            className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
               browserNotifEnabled
-                ? "bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950"
+                ? "bg-brand text-on-brand hover:bg-brand-hover"
                 : "border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             }`}
           >
@@ -212,7 +213,7 @@ export function NotificationChannels() {
             type="button"
             disabled={testNotifSubmitting}
             onClick={() => void handleSendTestNotification()}
-            className="rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            className="rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
           >
             Send test notification
           </button>
@@ -222,7 +223,7 @@ export function NotificationChannels() {
       {testNotifFeedback && (
         <div
           role={testNotifFeedback.kind === "error" ? "alert" : "status"}
-          className={`mt-3 rounded-md border px-3 py-2 text-xs ${
+          className={`mt-3 rounded-md border px-3 py-2 text-sm ${
             testNotifFeedback.kind === "error"
               ? "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
               : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
@@ -231,6 +232,6 @@ export function NotificationChannels() {
           {testNotifFeedback.text}
         </div>
       )}
-    </section>
+    </Card>
   );
 }

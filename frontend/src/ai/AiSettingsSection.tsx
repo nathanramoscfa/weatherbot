@@ -22,6 +22,7 @@ import {
 } from "./queries.ts";
 import { type AiStateName, reasonText } from "./reasons.ts";
 import { useAiStatus } from "./useAiStatus.ts";
+import { Card } from "../ui/Card.tsx";
 
 const MICRO_PER_USD = 1_000_000;
 const ALLOWANCES_PER_DAY = 3;
@@ -372,10 +373,10 @@ export function AiSettingsSection() {
     : "";
 
   return (
-    <section
+    <Card
+      as="section"
       id="ai"
       aria-labelledby="ai-heading"
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex items-center gap-2">
         <Sparkles
@@ -389,7 +390,7 @@ export function AiSettingsSection() {
           AI
         </h2>
       </div>
-      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
         Claude explains what the engine decided and never sets a level. Every
         request is metered here and held under the daily cap; the cap itself
         changes only in <code>weatherbot.toml</code> or{" "}
@@ -397,13 +398,13 @@ export function AiSettingsSection() {
       </p>
 
       {status.isError ? (
-        <p role="alert" className="mt-3 text-xs text-red-800 dark:text-red-300">
+        <p role="alert" className="mt-3 text-sm text-red-800 dark:text-red-300">
           {formatRouteError("/api/ai")}
         </p>
       ) : null}
 
       {ai ? (
-        <div className="mt-3 space-y-4 text-xs">
+        <div className="mt-3 space-y-4 text-sm tabular-nums">
           <div className="space-y-2">
             <p className="text-slate-800 dark:text-slate-200">
               State: <strong>{stateName(ai.state)}</strong>
@@ -455,7 +456,7 @@ export function AiSettingsSection() {
               type="button"
               disabled={!controllable || pending}
               onClick={() => void handlePause()}
-              className="rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              className="rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
             >
               {ai.paused ? "Resume AI" : "Pause AI"}
             </button>
@@ -467,14 +468,14 @@ export function AiSettingsSection() {
                   disabled={
                     !controllable || pending || ai.today.allowances_left === 0
                   }
-                  className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                  className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                 >
                   Allow {allowance} more today
                 </button>
               </AlertDialog.Trigger>
               <AlertDialog.Portal>
                 <AlertDialog.Overlay className="fixed inset-0 z-40 bg-slate-950/50" />
-                <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                   <AlertDialog.Title className="text-sm font-bold text-slate-900 dark:text-slate-100">
                     Allow {allowance} more today?
                   </AlertDialog.Title>
@@ -487,7 +488,7 @@ export function AiSettingsSection() {
                     <AlertDialog.Cancel asChild>
                       <button
                         type="button"
-                        className="rounded-md border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                        className="rounded-md border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                       >
                         Cancel
                       </button>
@@ -581,7 +582,7 @@ export function AiSettingsSection() {
 
       <form
         onSubmit={(event) => void handleSaveAiConfig(event)}
-        className="mt-4 space-y-3 border-t border-slate-200 pt-4 text-xs dark:border-slate-800"
+        className="mt-4 space-y-3 border-t border-slate-200 pt-4 text-sm dark:border-slate-800"
       >
         <h3 className="font-semibold text-slate-900 dark:text-slate-100">
           AI Configuration (<code>weatherbot.toml</code>)
@@ -603,7 +604,7 @@ export function AiSettingsSection() {
               AI enabled (<code>[ai] enabled</code>)
             </label>
             {enabledEnv && enabledSetting && (
-              <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
                 Set by <code>{enabledSetting.variable}</code> (read-only)
               </p>
             )}
@@ -625,10 +626,10 @@ export function AiSettingsSection() {
               value={capInput}
               disabled={capEnv || configSaving}
               onChange={(event) => setCapInput(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
+              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-sm text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
             />
             {capEnv && capSetting && (
-              <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
                 Set by <code>{capSetting.variable}</code> (read-only)
               </p>
             )}
@@ -650,7 +651,7 @@ export function AiSettingsSection() {
               Change summaries (<code>[ai] change_summaries</code>)
             </label>
             {summariesEnv && summariesSetting && (
-              <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
                 Set by <code>{summariesSetting.variable}</code> (read-only)
               </p>
             )}
@@ -672,7 +673,7 @@ export function AiSettingsSection() {
               Outlook narration (<code>[ai] outlook_narration</code>)
             </label>
             {narrationEnv && narrationSetting && (
-              <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
                 Set by <code>{narrationSetting.variable}</code> (read-only)
               </p>
             )}
@@ -680,13 +681,13 @@ export function AiSettingsSection() {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+          <span className="text-caption text-slate-500 dark:text-slate-400">
             Applies on the next monitor start (<code>next_start</code>).
           </span>
           <button
             type="submit"
             disabled={allAiEnv || configSaving || !expectedSha256}
-            className="rounded-md bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:text-slate-950"
+            className="rounded-md bg-violet-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-violet-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:text-slate-950"
           >
             Save AI settings
           </button>
@@ -695,7 +696,7 @@ export function AiSettingsSection() {
         {configFeedback && (
           <div
             role={configFeedback.kind === "error" ? "alert" : "status"}
-            className={`rounded-md border px-3 py-2 text-xs ${
+            className={`rounded-md border px-3 py-2 text-sm ${
               configFeedback.kind === "error"
                 ? "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
                 : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
@@ -705,6 +706,6 @@ export function AiSettingsSection() {
           </div>
         )}
       </form>
-    </section>
+    </Card>
   );
 }

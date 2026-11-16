@@ -6,6 +6,7 @@ import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { formatRouteError } from "../pages/format.ts";
+import { Card } from "../ui/Card.tsx";
 
 export type SettingsResponse = components["schemas"]["SettingsResponse"];
 export type SettingOriginResponse =
@@ -205,10 +206,10 @@ export function QuietHoursForm() {
   };
 
   return (
-    <section
+    <Card
+      as="section"
       id="quiet-hours"
       aria-labelledby="quiet-hours-heading"
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex items-center gap-2">
         <Moon
@@ -223,7 +224,7 @@ export function QuietHoursForm() {
         </h2>
       </div>
 
-      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
         Quiet hours hold routine{" "}
         <strong>Level 1 (All Clear) and Level 2 (Monitor)</strong>{" "}
         notifications until the quiet window ends.{" "}
@@ -237,7 +238,7 @@ export function QuietHoursForm() {
 
       <form
         onSubmit={(event) => void handleSubmit(event)}
-        className="mt-4 space-y-4 text-xs"
+        className="mt-4 space-y-4 text-sm"
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1">
@@ -254,10 +255,10 @@ export function QuietHoursForm() {
               value={startInput}
               disabled={startEnv || submitting}
               onChange={(event) => setStartInput(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
+              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-sm text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
             />
             {startEnv && startSetting && (
-              <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
                 Set by <code>{startSetting.variable}</code> (read-only)
               </p>
             )}
@@ -277,10 +278,10 @@ export function QuietHoursForm() {
               value={endInput}
               disabled={endEnv || submitting}
               onChange={(event) => setEndInput(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
+              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-sm text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
             />
             {endEnv && endSetting && (
-              <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
                 Set by <code>{endSetting.variable}</code> (read-only)
               </p>
             )}
@@ -300,10 +301,10 @@ export function QuietHoursForm() {
               value={tzInput}
               disabled={tzEnv || submitting}
               onChange={(event) => setTzInput(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
+              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-sm text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
             />
             {tzEnv && tzSetting && (
-              <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
                 Set by <code>{tzSetting.variable}</code> (read-only)
               </p>
             )}
@@ -325,10 +326,10 @@ export function QuietHoursForm() {
               value={cooldownInput}
               disabled={cooldownEnv || submitting}
               onChange={(event) => setCooldownInput(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
+              className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-sm text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
             />
             {cooldownEnv && cooldownSetting && (
-              <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
                 Set by <code>{cooldownSetting.variable}</code> (read-only)
               </p>
             )}
@@ -336,14 +337,14 @@ export function QuietHoursForm() {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+          <span className="text-caption text-slate-500 dark:text-slate-400">
             Leave both start and end blank to disable quiet hours. Applies:{" "}
             <code>next_cycle</code>.
           </span>
           <button
             type="submit"
             disabled={allEnv || submitting || !expectedSha256}
-            className="rounded-md bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
+            className="rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60"
           >
             Save quiet hours
           </button>
@@ -352,7 +353,7 @@ export function QuietHoursForm() {
         {feedback && (
           <div
             role={feedback.kind === "error" ? "alert" : "status"}
-            className={`rounded-md border px-3 py-2 text-xs ${
+            className={`rounded-md border px-3 py-2 text-sm ${
               feedback.kind === "error"
                 ? "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
                 : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
@@ -362,6 +363,6 @@ export function QuietHoursForm() {
           </div>
         )}
       </form>
-    </section>
+    </Card>
   );
 }

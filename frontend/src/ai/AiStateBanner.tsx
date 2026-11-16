@@ -68,7 +68,7 @@ export function AiStateBanner({
     <div
       role="status"
       data-testid="ai-state-banner"
-      className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-700/80 dark:bg-amber-950/60 dark:text-amber-100"
+      className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-700/80 dark:bg-amber-950/60 dark:text-amber-100"
     >
       <Icon
         className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-700 dark:text-amber-400"

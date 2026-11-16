@@ -1,6 +1,20 @@
 // frontend/src/app/AppShell.tsx
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Radio, ShieldAlert, WifiOff, X } from "lucide-react";
+import {
+  ChartLine,
+  LayoutDashboard,
+  Map as MapIcon,
+  MessageCircle,
+  Radio,
+  Rewind,
+  Settings as SettingsIcon,
+  ShieldAlert,
+  Siren,
+  TriangleAlert,
+  WifiOff,
+  Wind,
+  X,
+} from "lucide-react";
 import { Toast } from "radix-ui";
 import { useCallback, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
@@ -13,6 +27,9 @@ import {
 } from "../events/useEventStream.ts";
 import { deliverBrowserNotification } from "../notifications/notify.ts";
 import { formatUtc } from "../pages/format.ts";
+import { Callout } from "../ui/Callout.tsx";
+import { cx, threatClasses } from "../ui/threat.ts";
+import { type NavBadge, useNavBadges } from "./navStatus.ts";
 import { ThreatLevelBadge } from "./ThreatLevelBadge.tsx";
 import { ThemeMenu } from "./ThemeMenu.tsx";
 
@@ -23,15 +40,58 @@ export const DEFAULT_DISCLAIMER_NOTICE =
   "Informational only — never a substitute for official NHC, NWS, or local emergency-management guidance. Keep a NOAA Weather Radio and multiple independent warning sources.";
 
 export const NAV_ITEMS = [
-  { to: "/", label: "Dashboard", end: true },
-  { to: "/map", label: "Map", end: false },
-  { to: "/replay", label: "Replay", end: false },
-  { to: "/storms", label: "Storms", end: false },
-  { to: "/alerts", label: "Alerts", end: false },
-  { to: "/timeline", label: "Timeline", end: false },
-  { to: "/ask", label: "Ask", end: false },
-  { to: "/settings", label: "Settings", end: false },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/map", label: "Map", icon: MapIcon, end: false },
+  { to: "/replay", label: "Replay", icon: Rewind, end: false },
+  { to: "/storms", label: "Storms", icon: Wind, end: false },
+  { to: "/alerts", label: "Alerts", icon: Siren, end: false },
+  { to: "/timeline", label: "Timeline", icon: ChartLine, end: false },
+  { to: "/ask", label: "Ask", icon: MessageCircle, end: false },
+  { to: "/settings", label: "Settings", icon: SettingsIcon, end: false },
 ] as const;
+
+// The id of the hidden sentence that describes a link's badge.
+export function navBadgeId(path: string): string {
+  return path === "/" ? "nav-status-dashboard" : `nav-status-${path.slice(1)}`;
+}
+
+const BADGE_TONE: Readonly<Record<Exclude<NavBadge["tone"], "level">, string>> = {
+  count: "border-line-strong bg-surface-card text-ink",
+  ai: "border-violet-300 bg-violet-50 text-violet-900 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-100",
+  warning:
+    "border-amber-500 bg-amber-100 text-amber-950 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-50",
+};
+
+// A live mark beside a navigation link: aria-hidden, and described to
+// assistive technology by the link's aria-describedby, so the link's text and
+// accessible name stay its label (docs/DESIGN.md, "Navigation").
+function NavStatusBadge({ path, badge }: { path: string; badge: NavBadge }) {
+  const toneClass =
+    badge.tone === "level" && badge.level !== undefined
+      ? threatClasses(badge.level).solid
+      : BADGE_TONE[badge.tone === "level" ? "count" : badge.tone];
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        data-testid={`nav-badge-${navBadgeId(path).slice("nav-status-".length)}`}
+        className={cx(
+          "pointer-events-none absolute -top-2 right-0 inline-flex min-w-5 items-center justify-center rounded-pill border px-1.5 text-caption leading-tight font-semibold tabular-nums",
+          toneClass,
+        )}
+      >
+        {badge.tone === "warning" ? (
+          <TriangleAlert className="my-0.5 h-3.5 w-3.5" aria-hidden="true" />
+        ) : (
+          badge.text
+        )}
+      </span>
+      <span id={navBadgeId(path)} hidden>
+        {badge.description}
+      </span>
+    </>
+  );
+}
 
 export function formatHeartbeatAge(ageSeconds: number | null): string {
   if (ageSeconds === null || !Number.isFinite(ageSeconds) || ageSeconds < 0) {
@@ -103,21 +163,22 @@ export function AppShell({
   });
 
   const health = healthQuery.data;
+  const navBadges = useNavBadges(health, healthQuery.dataUpdatedAt);
   const staleItems = health?.stale ? formatStaleHeartbeats(health) : [];
   const noticeText = health?.notice ?? DEFAULT_DISCLAIMER_NOTICE;
 
   return (
     <Toast.Provider swipeDirection="right" duration={10000}>
-      <div className="flex min-h-screen w-full max-w-full flex-col overflow-x-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex min-h-screen w-full max-w-full flex-col bg-surface-page text-ink">
+      <header className="border-b border-line bg-surface-card">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-3 py-2.5 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 rounded-md text-base font-bold tracking-tight text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-slate-100"
+              className="inline-flex items-center gap-2 rounded-control text-lg font-bold tracking-tight text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               <ShieldAlert
-                className="h-5 w-5 shrink-0 text-sky-600 dark:text-sky-400"
+                className="h-5 w-5 shrink-0 text-brand"
                 aria-hidden="true"
               />
               <span>Weatherbot</span>
@@ -128,18 +189,18 @@ export function AppShell({
                 <div
                   role="status"
                   aria-live="polite"
-                  className="inline-flex items-center gap-1.5 rounded-md border border-amber-400 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-900 dark:border-amber-600 dark:bg-amber-950/60 dark:text-amber-200"
+                  className="inline-flex items-center gap-1.5 rounded-pill border border-amber-400 bg-amber-50 px-2.5 py-1 text-sm font-medium text-amber-900 dark:border-amber-600 dark:bg-amber-950/60 dark:text-amber-200"
                 >
-                  <WifiOff className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <WifiOff className="h-4 w-4 shrink-0" aria-hidden="true" />
                   <span>Reconnecting…</span>
                 </div>
               ) : (
                 <div
-                  className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-100 px-2 py-1 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/70 dark:text-slate-300"
+                  className="inline-flex items-center gap-1.5 rounded-pill border border-line bg-surface-inset px-2.5 py-1 text-sm text-ink-muted"
                   aria-label="Live event stream status"
                 >
                   <Radio
-                    className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400"
+                    className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400"
                     aria-hidden="true"
                   />
                   <span>Live</span>
@@ -151,43 +212,43 @@ export function AppShell({
 
           <nav
             aria-label="Primary navigation"
-            className="grid grid-cols-4 gap-1 sm:flex sm:flex-wrap sm:items-center sm:gap-1.5"
+            className="grid grid-cols-4 gap-x-1 gap-y-2 pt-1.5 sm:flex sm:flex-wrap sm:items-center sm:gap-1.5"
           >
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `rounded-md px-2.5 py-1.5 text-center text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 sm:text-sm ${
-                    isActive
-                      ? "bg-sky-600 text-white dark:bg-sky-500 dark:text-slate-950"
-                      : "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const badge = navBadges[item.to];
+              return (
+                <div key={item.to} className="relative min-w-0">
+                  <NavLink
+                    to={item.to}
+                    end={item.end}
+                    aria-describedby={badge ? navBadgeId(item.to) : undefined}
+                    className={({ isActive }) =>
+                      cx(
+                        "flex min-h-6 flex-col items-center gap-0.5 rounded-control px-1 py-1.5 text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:flex-row sm:gap-1.5 sm:px-3",
+                        isActive
+                          ? "bg-brand text-on-brand"
+                          : "text-ink-muted hover:bg-surface-inset hover:text-ink",
+                      )
+                    }
+                  >
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    {item.label}
+                  </NavLink>
+                  {badge && <NavStatusBadge path={item.to} badge={badge} />}
+                </div>
+              );
+            })}
           </nav>
         </div>
       </header>
 
       {health?.stale && (
-        <div
-          role="alert"
-          className="border-b border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-950 sm:px-6 dark:border-amber-700/80 dark:bg-amber-950/70 dark:text-amber-100"
-        >
-          <div className="mx-auto flex max-w-6xl items-start gap-2">
-            <AlertTriangle
-              className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400"
-              aria-hidden="true"
-            />
-            <div>
-              <span className="font-semibold">Stale monitor data: </span>
-              <span>{staleItems.join(", ")}</span>
-            </div>
-          </div>
+        <div className="mx-auto w-full max-w-6xl px-3 pt-4 sm:px-6">
+          <Callout tone="warning" role="alert">
+            <span className="font-semibold">Stale monitor data: </span>
+            <span>{staleItems.join(", ")}</span>
+          </Callout>
         </div>
       )}
 
@@ -195,12 +256,12 @@ export function AppShell({
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-200 bg-white px-3 py-3 text-xs text-slate-600 sm:px-6 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+      <footer className="border-t border-line bg-surface-card px-3 py-4 text-sm text-ink-subtle sm:px-6">
         <div className="mx-auto flex max-w-6xl flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <p>{noticeText}</p>
           <Link
             to="/settings#disclaimer"
-            className="shrink-0 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-sky-400 dark:hover:text-sky-300"
+            className="shrink-0 font-medium text-brand underline underline-offset-2 hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             Read full disclaimer
           </Link>
@@ -218,7 +279,7 @@ export function AppShell({
               );
             }
           }}
-          className="rounded-lg border border-slate-300 bg-white p-3.5 text-xs shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          className="rounded-card border border-line-strong bg-surface-raised p-3.5 text-sm text-ink shadow-raised"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="space-y-1">
@@ -226,12 +287,12 @@ export function AppShell({
                 {toastEvt.level !== null && toastEvt.level !== undefined && (
                   <ThreatLevelBadge level={toastEvt.level} size="sm" />
                 )}
-                <Toast.Title className="font-bold text-slate-900 dark:text-slate-100">
+                <Toast.Title className="font-bold text-ink">
                   {toastEvt.title ?? "Weatherbot notification"}
                 </Toast.Title>
               </div>
               {toastEvt.body && toastEvt.body.length > 0 && (
-                <Toast.Description className="space-y-0.5 text-slate-700 dark:text-slate-300">
+                <Toast.Description className="space-y-0.5 text-ink-muted">
                   {toastEvt.body.map((line, idx) => (
                     <span key={idx} className="block">
                       {line}
@@ -239,15 +300,18 @@ export function AppShell({
                   ))}
                 </Toast.Description>
               )}
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <time
+                dateTime={toastEvt.at}
+                className="block text-caption tabular-nums text-ink-subtle"
+              >
                 {formatUtc(toastEvt.at)}
-              </p>
+              </time>
             </div>
             <Toast.Close
               aria-label="Dismiss notification"
-              className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="inline-flex min-h-6 min-w-6 items-center justify-center rounded-control text-ink-subtle hover:bg-surface-inset hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
-              <X className="h-3.5 w-3.5" aria-hidden="true" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </Toast.Close>
           </div>
         </Toast.Root>

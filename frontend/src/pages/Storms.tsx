@@ -11,6 +11,8 @@ import {
   formatUtc,
 } from "./format.ts";
 import { OutlookGraphics } from "./OutlookGraphics.tsx";
+import { Card } from "../ui/Card.tsx";
+import { PageHeader } from "../ui/PageHeader.tsx";
 
 export type StormsResponse = components["schemas"]["StormsResponse"];
 export type StormSummaryResponse =
@@ -73,29 +75,29 @@ export function Storms() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Storms
-        </h1>
-        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-          {snapshot ? (
-            <>
-              Snapshot:{" "}
-              <strong className="font-semibold text-slate-800 dark:text-slate-100">
-                {snapshot.status}
-              </strong>{" "}
-              · completed {formatUtc(snapshot.completed_at)} (
-              {formatAgeSeconds(snapshot.age_seconds)})
-            </>
-          ) : (
-            "No snapshot stored yet."
-          )}
-        </p>
-      </section>
+      <Card as="section">
+        <PageHeader
+          title="Storms"
+          summary={
+            snapshot ? (
+              <>
+                Snapshot:{" "}
+                <strong className="font-semibold text-slate-800 dark:text-slate-100">
+                  {snapshot.status}
+                </strong>{" "}
+                · completed {formatUtc(snapshot.completed_at)} (
+                {formatAgeSeconds(snapshot.age_seconds)})
+              </>
+            ) : (
+              "No snapshot stored yet."
+            )
+          }
+        />
+      </Card>
 
-      <section
+      <Card
+        as="section"
         aria-labelledby="active-storms-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="flex items-center gap-2">
           <CloudRainWind
@@ -122,11 +124,11 @@ export function Storms() {
             ))}
           </div>
         )}
-      </section>
+      </Card>
 
-      <section
+      <Card
+        as="section"
         aria-labelledby="outlook-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="flex items-center gap-2">
           <Compass
@@ -150,7 +152,7 @@ export function Storms() {
             {outlook.map((area, idx) => (
               <div
                 key={`${area.basin}-${area.kind}-${String(idx)}`}
-                className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40"
+                className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-bold text-slate-900 dark:text-slate-100">
@@ -187,11 +189,11 @@ export function Storms() {
         )}
 
         <OutlookGraphics />
-      </section>
+      </Card>
 
-      <section
+      <Card
+        as="section"
         aria-labelledby="wind-prob-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="flex items-center gap-2">
           <Wind
@@ -211,7 +213,7 @@ export function Storms() {
             No wind-speed probability products in the latest snapshot.
           </p>
         ) : (
-          <div className="mt-3 space-y-2 text-xs">
+          <div className="mt-3 space-y-2 text-sm">
             <p className="text-slate-600 dark:text-slate-300">
               Synoptic time: {formatUtc(windProbs[0]?.synoptic_at)}
             </p>
@@ -232,7 +234,7 @@ export function Storms() {
             </div>
           </div>
         )}
-      </section>
+      </Card>
     </div>
   );
 }
@@ -241,7 +243,7 @@ function StormCard({ storm }: { readonly storm: StormSummaryResponse }) {
   return (
     <article
       aria-label={`${storm.name} (${storm.atcf_id})`}
-      className="rounded-md border border-slate-200 bg-slate-50/70 p-4 text-xs dark:border-slate-800 dark:bg-slate-800/40"
+      className="rounded-md border border-slate-200 bg-slate-50/70 p-4 text-sm dark:border-slate-800 dark:bg-slate-800/40"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3 dark:border-slate-700">
         <div>

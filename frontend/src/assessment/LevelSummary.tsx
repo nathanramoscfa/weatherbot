@@ -31,7 +31,7 @@ export function UnavailableBanner({
   return (
     <div
       role="note"
-      className="rounded-md border border-amber-400 bg-amber-50 p-3 text-xs text-amber-950 dark:border-amber-600 dark:bg-amber-950/60 dark:text-amber-100"
+      className="rounded-md border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-600 dark:bg-amber-950/60 dark:text-amber-100"
     >
       <div className="flex items-start gap-2">
         <AlertTriangle
@@ -70,7 +70,7 @@ export interface LevelSummaryProps {
 
 export function LevelSummary({ assessment, children }: LevelSummaryProps) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40">
+    <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40">
       <p className="font-semibold text-slate-900 dark:text-slate-100">
         Deciding rule:{" "}
         <code className="rounded bg-slate-200/80 px-1 py-0.5 font-mono dark:bg-slate-700">

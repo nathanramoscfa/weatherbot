@@ -8,6 +8,7 @@ import {
   linearScale,
   roundSvg,
   stepPath,
+  tickAnchor,
   ticksFor,
   timeScale,
   toEpochMs,
@@ -80,7 +81,7 @@ export function LevelHistoryChart({
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           Threat level history · {location}
         </h3>
-        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           No assessments are stored for {location} yet. A stepped threat-level
           history chart will appear here after the first monitor cycle stores an
           assessment.
@@ -132,7 +133,7 @@ export function LevelHistoryChart({
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           Threat level history · {location}
         </h3>
-        <span className="text-xs text-slate-500 dark:text-slate-400">
+        <span className="text-caption text-slate-500 dark:text-slate-400">
           {timeZone !== null && timeZone !== undefined
             ? `UTC axis · local zone ${timeZone}`
             : "UTC axis"}
@@ -142,7 +143,7 @@ export function LevelHistoryChart({
         role="img"
         aria-label={titleText}
         viewBox={`0 0 ${String(VIEW_WIDTH)} ${String(VIEW_HEIGHT)}`}
-        className="h-auto w-full max-w-full"
+        className="h-auto w-full max-w-[560px]"
       >
         <title>{titleText}</title>
         {[1, 2, 3, 4, 5].map((lvl) => {
@@ -161,7 +162,7 @@ export function LevelHistoryChart({
                 x={PLOT_LEFT - 8}
                 y={y + 4}
                 textAnchor="end"
-                className="fill-slate-600 text-[11px] font-medium dark:fill-slate-400"
+                className="fill-slate-600 text-caption font-medium dark:fill-slate-400"
               >
                 {levelAxisLabel(lvl)}
               </text>
@@ -185,8 +186,8 @@ export function LevelHistoryChart({
               <text
                 x={x}
                 y={PLOT_BOTTOM + 18}
-                textAnchor="middle"
-                className="fill-slate-600 font-mono text-[10px] dark:fill-slate-400"
+                textAnchor={tickAnchor(idx, xTicks.length)}
+                className="fill-slate-600 font-mono text-caption dark:fill-slate-400"
               >
                 {formatShortUtc(tickMs)}
               </text>
@@ -230,7 +231,7 @@ export function LevelHistoryChart({
                 x={cx}
                 y={cy - 8}
                 textAnchor="middle"
-                className="fill-slate-800 text-[10px] font-semibold dark:fill-slate-200"
+                className="fill-slate-800 text-caption font-semibold dark:fill-slate-200"
               >
                 {`L${String(pt.level)}`}
               </text>

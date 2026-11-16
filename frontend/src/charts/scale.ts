@@ -191,3 +191,9 @@ export function ticksFor(
   }
   return ticks;
 }
+
+// Axis labels sit centred on their tick, except the last of several, which
+// ends at it, so a caption-sized label never runs past the chart's right edge.
+export function tickAnchor(index: number, count: number): "middle" | "end" {
+  return count > 1 && index === count - 1 ? "end" : "middle";
+}

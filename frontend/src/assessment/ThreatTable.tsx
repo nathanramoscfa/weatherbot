@@ -34,7 +34,7 @@ export function ThreatTable({
   return (
     <>
       {threats.length > 0 && (
-        <div className="space-y-2 text-xs">
+        <div className="space-y-2 text-sm tabular-nums">
           <h3 className="font-semibold text-slate-900 dark:text-slate-100">
             Storm threats
           </h3>
@@ -114,7 +114,7 @@ export function ThreatTable({
       )}
 
       {windProbabilities.length > 0 && (
-        <div className="space-y-1.5 text-xs">
+        <div className="space-y-1.5 text-sm tabular-nums">
           <h3 className="font-semibold text-slate-900 dark:text-slate-100">
             5 km wind-speed probabilities (synoptic{" "}
             {formatUtc(windProbabilities[0]?.synoptic_at)})

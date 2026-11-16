@@ -2,3 +2,167 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * The design tokens (docs/DESIGN.md). Tailwind 4 reads its scale from these
+ * variables, so `text-sm`, `bg-surface-card`, `text-threat-5-fg`, `shadow-card`,
+ * and `rounded-card` all resolve here. Colours are sRGB hex taken from
+ * Tailwind's own palette (the hue named beside each), so the contrast ratios
+ * docs/DESIGN.md records are exact; the dark theme redefines the same names
+ * under the `dark` class below.
+ */
+@theme {
+  /* Type scale (Phase 8 Decision 4): 13 px captions, 15 px and 17 px prose. */
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.4;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.4;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.3333;
+  --text-2xl: 1.875rem;
+  --text-2xl--line-height: 1.2;
+
+  /* Neutral surfaces. */
+  --color-surface-page: #f8fafc; /* slate-50 */
+  --color-surface-card: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-inset: #f1f5f9; /* slate-100 */
+  --color-line: #e2e8f0; /* slate-200: card and divider borders */
+  --color-line-strong: #cad5e2; /* slate-300: control borders */
+
+  /* Text on the neutral surfaces. */
+  --color-ink: #0f172b; /* slate-900 */
+  --color-ink-muted: #314158; /* slate-700 */
+  --color-ink-subtle: #45556c; /* slate-600 */
+
+  /* Links, primary actions, and focus rings. */
+  --color-brand: #0069a8; /* sky-700 */
+  --color-brand-hover: #024a70; /* sky-900 */
+  --color-on-brand: #ffffff;
+
+  /* The threat palette: levels 1 to 5 in the levels' hues (emerald, sky,
+   * amber, orange, red). `surface` tints a card, `border` outlines it, `fg`
+   * is text on that surface, and `accent` is the solid mark that carries
+   * `on-accent` text. */
+  --color-threat-1-surface: #ecfdf5; /* emerald-50 */
+  --color-threat-1-border: #5ee9b5; /* emerald-300 */
+  --color-threat-1-fg: #004f3b; /* emerald-900 */
+  --color-threat-1-accent: #007a55; /* emerald-700 */
+  --color-threat-1-on-accent: #ffffff;
+
+  --color-threat-2-surface: #f0f9ff; /* sky-50 */
+  --color-threat-2-border: #74d4ff; /* sky-300 */
+  --color-threat-2-fg: #024a70; /* sky-900 */
+  --color-threat-2-accent: #0069a8; /* sky-700 */
+  --color-threat-2-on-accent: #ffffff;
+
+  --color-threat-3-surface: #fffbeb; /* amber-50 */
+  --color-threat-3-border: #ffd230; /* amber-300 */
+  --color-threat-3-fg: #7b3306; /* amber-900 */
+  --color-threat-3-accent: #ffb900; /* amber-400 */
+  --color-threat-3-on-accent: #020618; /* slate-950 */
+
+  --color-threat-4-surface: #fff7ed; /* orange-50 */
+  --color-threat-4-border: #ffb86a; /* orange-300 */
+  --color-threat-4-fg: #7e2a0c; /* orange-900 */
+  --color-threat-4-accent: #ff6900; /* orange-500 */
+  --color-threat-4-on-accent: #020618; /* slate-950 */
+
+  --color-threat-5-surface: #fef2f2; /* red-50 */
+  --color-threat-5-border: #ffa2a2; /* red-300 */
+  --color-threat-5-fg: #82181a; /* red-900 */
+  --color-threat-5-accent: #e7000b; /* red-600 */
+  --color-threat-5-on-accent: #ffffff;
+
+  /* Elevation: a resting card and a raised layer (menus, popovers, toasts). */
+  --shadow-card: 0 1px 2px 0 rgb(15 23 43 / 0.06), 0 1px 3px 0 rgb(15 23 43 / 0.08);
+  --shadow-raised: 0 10px 15px -3px rgb(15 23 43 / 0.14), 0 4px 6px -4px rgb(15 23 43 / 0.12);
+
+  /* The measure (Decision 6): a run of prose is at most 42 em wide. Every
+   * <p> takes it in the base layer below; `max-w-measure` gives it to a long
+   * <li> or <dd>. */
+  --container-measure: 42em;
+
+  /* Radius steps: controls, cards, and pills. */
+  --radius-control: 0.375rem;
+  --radius-card: 0.75rem;
+  --radius-pill: 9999px;
+}
+
+@layer base {
+  .dark {
+    --color-surface-page: #020618; /* slate-950 */
+    --color-surface-card: #0f172b; /* slate-900 */
+    --color-surface-raised: #1d293d; /* slate-800 */
+    --color-surface-inset: #020618; /* slate-950 */
+    --color-line: #1d293d; /* slate-800 */
+    --color-line-strong: #314158; /* slate-700 */
+
+    --color-ink: #f1f5f9; /* slate-100 */
+    --color-ink-muted: #cad5e2; /* slate-300 */
+    --color-ink-subtle: #90a1b9; /* slate-400 */
+
+    --color-brand: #00bcff; /* sky-400 */
+    --color-brand-hover: #74d4ff; /* sky-300 */
+    --color-on-brand: #020618; /* slate-950 */
+
+    --color-threat-1-surface: #002c22; /* emerald-950 */
+    --color-threat-1-border: #007a55; /* emerald-700 */
+    --color-threat-1-fg: #a4f4cf; /* emerald-200 */
+    --color-threat-1-accent: #00bc7d; /* emerald-500 */
+    --color-threat-1-on-accent: #020618;
+
+    --color-threat-2-surface: #052f4a; /* sky-950 */
+    --color-threat-2-border: #0069a8; /* sky-700 */
+    --color-threat-2-fg: #b8e6fe; /* sky-200 */
+    --color-threat-2-accent: #00bcff; /* sky-400 */
+    --color-threat-2-on-accent: #020618;
+
+    --color-threat-3-surface: #461901; /* amber-950 */
+    --color-threat-3-border: #bb4d00; /* amber-700 */
+    --color-threat-3-fg: #fee685; /* amber-200 */
+    --color-threat-3-accent: #ffb900; /* amber-400 */
+    --color-threat-3-on-accent: #020618;
+
+    --color-threat-4-surface: #441306; /* orange-950 */
+    --color-threat-4-border: #ca3500; /* orange-700 */
+    --color-threat-4-fg: #ffd6a7; /* orange-200 */
+    --color-threat-4-accent: #ff6900; /* orange-500 */
+    --color-threat-4-on-accent: #020618;
+
+    --color-threat-5-surface: #460809; /* red-950 */
+    --color-threat-5-border: #c10007; /* red-700 */
+    --color-threat-5-fg: #ffc9c9; /* red-200 */
+    --color-threat-5-accent: #fb2c36; /* red-500 */
+    --color-threat-5-on-accent: #020618;
+
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow-raised: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+  }
+
+  p {
+    max-width: 42em;
+  }
+
+  /* A long unbroken string (a URL, a code, a topic) wraps rather than
+   * widening the page (Decision 6's overflow check). */
+  body {
+    overflow-wrap: break-word;
+  }
+
+  /* Motion: honour the reader's setting (docs/DESIGN.md, "Motion"). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

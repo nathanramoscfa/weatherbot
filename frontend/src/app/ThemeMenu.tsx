@@ -60,7 +60,7 @@ export function ThemeMenu() {
         <button
           type="button"
           aria-label={`Theme: ${currentLabel}`}
-          className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800 shadow-xs hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+          className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm font-medium text-slate-800 shadow-xs hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
         >
           {theme === "dark" ? (
             <Moon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -87,7 +87,7 @@ export function ThemeMenu() {
               <DropdownMenu.RadioItem
                 key={option.value}
                 value={option.value}
-                className="flex cursor-pointer items-center justify-between rounded-sm px-2.5 py-1.5 text-xs outline-hidden select-none focus:bg-slate-100 data-[highlighted]:bg-slate-100 dark:focus:bg-slate-800 dark:data-[highlighted]:bg-slate-800"
+                className="flex cursor-pointer items-center justify-between rounded-sm px-2.5 py-1.5 text-sm outline-hidden select-none focus:bg-slate-100 data-[highlighted]:bg-slate-100 dark:focus:bg-slate-800 dark:data-[highlighted]:bg-slate-800"
               >
                 <span>{option.label}</span>
                 <DropdownMenu.ItemIndicator>

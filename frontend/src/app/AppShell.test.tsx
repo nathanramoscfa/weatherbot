@@ -305,6 +305,73 @@ describe("AppShell and routes", () => {
     }
   });
 
+  it("shows live status badges beside the links, described to assistive technology, without changing any link's name", async () => {
+    const queryClient = createAppQueryClient();
+    seedFixtureCache(queryClient);
+    queryClient.setQueryData(queryKeys.ai(), { ...TYPED_AI, state: "paused" });
+    const router = createAppMemoryRouter(["/"], {
+      fetchHealth: () =>
+        Promise.resolve(
+          buildHealthResponse({
+            stale: true,
+            ai: {
+              state: "paused",
+              reason: "paused",
+              spent_micro_usd: 0,
+              cap_micro_usd: 1_000_000,
+            },
+          }),
+        ),
+    });
+
+    const { container } = render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+
+    const navigation = screen.getByRole("navigation", {
+      name: "Primary navigation",
+    });
+    await waitFor(() => {
+      expect(
+        within(navigation).getByRole("link", { name: "Settings" }),
+      ).toHaveAccessibleDescription("The monitor's data is stale");
+    });
+
+    const dashboard = within(navigation).getByRole("link", { name: "Dashboard" });
+    expect(dashboard).toHaveAccessibleDescription(
+      "Highest current level: 1, All Clear",
+    );
+    expect(within(navigation).getByRole("link", { name: "Storms" })).toHaveAccessibleDescription(
+      "1 active storm",
+    );
+    expect(within(navigation).getByRole("link", { name: "Alerts" })).toHaveAccessibleDescription(
+      "1 alert covers a watched location",
+    );
+    expect(within(navigation).getByRole("link", { name: "Ask" })).toHaveAccessibleDescription(
+      "AI is paused",
+    );
+    expect(within(navigation).getByRole("link", { name: "Map" })).not.toHaveAttribute(
+      "aria-describedby",
+    );
+
+    for (const key of ["dashboard", "storms", "alerts", "ask", "settings"]) {
+      const badge = screen.getByTestId(`nav-badge-${key}`);
+      expect(badge).toHaveAttribute("aria-hidden", "true");
+      expect(badge.closest("a")).toBeNull();
+    }
+    expect(screen.getByTestId("nav-badge-dashboard")).toHaveTextContent("1");
+    expect(
+      within(navigation)
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual(NAV_ITEMS.map((item) => item.label));
+    // The header and its badges set no inline style (the CSP has no
+    // unsafe-inline); Radix's toast viewport, outside it, is styled by nonce.
+    expect(container.querySelector("header [style]")).toBeNull();
+  });
+
   it("renders the not-found page on an unknown route", () => {
     const queryClient = createAppQueryClient();
     const router = createAppMemoryRouter(["/does-not-exist"], {

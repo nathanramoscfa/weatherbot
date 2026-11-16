@@ -105,7 +105,7 @@ export function ArrivalTimeline({
         role="img"
         aria-label={titleText}
         viewBox={`0 0 ${String(VIEW_WIDTH)} ${String(VIEW_HEIGHT)}`}
-        className="h-auto w-full max-w-full"
+        className="h-auto w-full max-w-[420px]"
       >
         <title>{titleText}</title>
 
@@ -123,7 +123,7 @@ export function ArrivalTimeline({
           x={asOfX}
           y={69}
           textAnchor="start"
-          className="fill-slate-500 font-mono text-[9px] dark:fill-slate-400"
+          className="fill-slate-500 font-mono text-caption dark:fill-slate-400"
         >
           {`As of ${formatCompactUtc(asOf)}`}
         </text>
@@ -144,7 +144,7 @@ export function ArrivalTimeline({
                 x={PLOT_LEFT - 8}
                 y={row.y + 4}
                 textAnchor="end"
-                className="fill-slate-700 text-[10px] font-medium dark:fill-slate-300"
+                className="fill-slate-700 text-caption font-medium dark:fill-slate-300"
               >
                 {row.label}
               </text>
@@ -174,7 +174,7 @@ export function ArrivalTimeline({
                 <text
                   x={PLOT_LEFT + 6}
                   y={row.y + 4}
-                  className="fill-slate-600 text-[10px] dark:fill-slate-400"
+                  className="fill-slate-600 text-caption dark:fill-slate-400"
                   data-testid={`arrival-words-${row.key}`}
                 >
                   {`${row.reading.reading}: ${row.words}`}

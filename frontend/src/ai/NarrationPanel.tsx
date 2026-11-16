@@ -106,7 +106,7 @@ export function NarrationPanel({
   return (
     <section
       aria-label={`${label}: ${basinName(basin)} ${horizonName(horizon)}`}
-      className="space-y-2 rounded-md border border-violet-200 bg-violet-50/50 p-2.5 text-xs dark:border-violet-900/70 dark:bg-violet-950/20"
+      className="space-y-2 rounded-md border border-violet-200 bg-violet-50/50 p-2.5 text-sm dark:border-violet-900/70 dark:bg-violet-950/20"
     >
       {written ? (
         <Narration label={label} narration={written} two={storedOk?.two ?? null} />
@@ -155,7 +155,7 @@ export function NarrationPanel({
           onClick={interpret}
           disabled={busy || !ready}
           aria-label={`Interpret (AI) the ${basinName(basin)} ${horizonName(horizon)} outlook`}
-          className="inline-flex items-center gap-1.5 rounded-md bg-violet-700 px-2.5 py-1 text-xs font-semibold text-white hover:bg-violet-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:text-slate-950 dark:hover:bg-violet-400"
+          className="inline-flex items-center gap-1.5 rounded-md bg-violet-700 px-2.5 py-1 text-sm font-semibold text-white hover:bg-violet-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:text-slate-950 dark:hover:bg-violet-400"
         >
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           Interpret (AI)

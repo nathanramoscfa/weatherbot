@@ -7,6 +7,7 @@ import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { formatRouteError, formatUtc } from "../pages/format.ts";
+import { Card } from "../ui/Card.tsx";
 
 export type RetentionResponse = components["schemas"]["RetentionResponse"];
 export type SettingsResponse = components["schemas"]["SettingsResponse"];
@@ -235,10 +236,10 @@ export function RetentionPanel() {
     : [];
 
   return (
-    <section
+    <Card
+      as="section"
       id="retention"
       aria-labelledby="retention-heading"
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex items-center gap-2">
         <Database
@@ -253,7 +254,7 @@ export function RetentionPanel() {
         </h2>
       </div>
 
-      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
         Inspect <code>weatherbot.sqlite3</code> size, configure automatic daily
         pruning at <code>03:30</code> local time, preview what a retention
         cutoff removes, or run a manual prune. The newest snapshot, each
@@ -263,7 +264,7 @@ export function RetentionPanel() {
       </p>
 
       {retention ? (
-        <div className="mt-4 space-y-4 text-xs">
+        <div className="mt-4 space-y-4 text-sm tabular-nums">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/40">
               <p className="font-semibold text-slate-700 dark:text-slate-300">
@@ -272,7 +273,7 @@ export function RetentionPanel() {
               <p className="mt-1 font-mono text-slate-900 dark:text-slate-100">
                 {formatBytes(retention.database_bytes)}
               </p>
-              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
                 WAL: {formatBytes(retention.wal_bytes)}
               </p>
             </div>
@@ -305,7 +306,7 @@ export function RetentionPanel() {
                     {formatUtc(retention.last_run.ran_at)} (
                     {retention.last_run.status})
                   </p>
-                  <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                  <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
                     Deleted{" "}
                     {retention.last_run.total_deleted.toLocaleString("en-US")}{" "}
                     rows ({String(retention.last_run.batches)} batches)
@@ -343,21 +344,21 @@ export function RetentionPanel() {
                 value={historyDaysInput}
                 disabled={isEnv || savingSetting}
                 onChange={(event) => setHistoryDaysInput(event.target.value)}
-                className="w-40 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
+                className="w-40 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-sm text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-800"
               />
               {isEnv && (
-                <p className="text-[11px] text-amber-800 dark:text-amber-300">
+                <p className="text-sm text-amber-800 dark:text-amber-300">
                   Set by <code>{retention.setting.variable}</code> (read-only)
                 </p>
               )}
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Applies at the next daily check (<code>next_cycle</code>).
               </p>
             </div>
             <button
               type="submit"
               disabled={isEnv || savingSetting || !expectedSha256}
-              className="rounded-md bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-sky-500 dark:text-slate-950 dark:hover:bg-sky-400"
+              className="rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60"
             >
               Save retention window
             </button>
@@ -387,12 +388,12 @@ export function RetentionPanel() {
                       onChange={(event) =>
                         setPreviewDaysInput(event.target.value)
                       }
-                      className="mt-1 w-28 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                      className="mt-1 w-28 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                   >
                     Preview plan
                   </button>
@@ -406,14 +407,14 @@ export function RetentionPanel() {
                     <button
                       type="button"
                       disabled={pruning}
-                      className="rounded-md border border-amber-400 bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-950 hover:bg-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-amber-700 dark:bg-amber-900/70 dark:text-amber-100 dark:hover:bg-amber-900"
+                      className="rounded-md border border-amber-400 bg-amber-100 px-3 py-1.5 text-sm font-semibold text-amber-950 hover:bg-amber-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-amber-700 dark:bg-amber-900/70 dark:text-amber-100 dark:hover:bg-amber-900"
                     >
                       Prune now
                     </button>
                   </AlertDialog.Trigger>
                   <AlertDialog.Portal>
                     <AlertDialog.Overlay className="fixed inset-0 z-40 bg-slate-950/50" />
-                    <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                    <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                       <AlertDialog.Title className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         Prune records older than {String(plan.days)} days?
                       </AlertDialog.Title>
@@ -438,7 +439,7 @@ export function RetentionPanel() {
                         <AlertDialog.Cancel asChild>
                           <button
                             type="button"
-                            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                           >
                             Cancel
                           </button>
@@ -466,12 +467,12 @@ export function RetentionPanel() {
                 to delete (estimated {formatBytes(plan.estimated_bytes)}).
               </p>
               {plan.kept.length > 0 && (
-                <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-600 dark:text-slate-400">
                   Protected by keep-list: {plan.kept.join(", ")}.
                 </p>
               )}
               {nonZeroCounts.length > 0 && (
-                <ul className="grid grid-cols-2 gap-1 font-mono text-[11px] sm:grid-cols-3">
+                <ul className="grid grid-cols-2 gap-1 font-mono text-sm sm:grid-cols-3">
                   {nonZeroCounts.map(([table, count]) => (
                     <li
                       key={table}
@@ -488,7 +489,7 @@ export function RetentionPanel() {
           {feedback && (
             <div
               role={feedback.kind === "error" ? "alert" : "status"}
-              className={`rounded-md border px-3 py-2 text-xs ${
+              className={`rounded-md border px-3 py-2 text-sm ${
                 feedback.kind === "error"
                   ? "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
                   : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
@@ -499,6 +500,6 @@ export function RetentionPanel() {
           )}
         </div>
       ) : null}
-    </section>
+    </Card>
   );
 }

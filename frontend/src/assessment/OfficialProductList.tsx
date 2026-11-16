@@ -26,7 +26,7 @@ export function OfficialProductList({
   return (
     <>
       {coveringOfficial.length > 0 && (
-        <div className="space-y-1.5 text-xs">
+        <div className="space-y-1.5 text-sm tabular-nums">
           <h3 className="font-semibold text-slate-900 dark:text-slate-100">
             Covering official products
           </h3>
@@ -62,7 +62,7 @@ export function OfficialProductList({
       )}
 
       {contextAlerts.length > 0 && (
-        <div className="space-y-1.5 text-xs">
+        <div className="space-y-1.5 text-sm tabular-nums">
           <h3 className="font-semibold text-slate-900 dark:text-slate-100">
             County-zone alerts outside this location&apos;s zones (context
             only; never sets the level)

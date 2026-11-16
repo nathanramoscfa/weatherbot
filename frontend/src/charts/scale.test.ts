@@ -4,6 +4,7 @@ import {
   bandPath,
   linearScale,
   stepPath,
+  tickAnchor,
   ticksFor,
   timeScale,
 } from "./scale.ts";
@@ -95,5 +96,14 @@ describe("charts/scale", () => {
     expect(ticksFor([42, 42], 4)).toEqual([42]);
     expect(ticksFor([0, 100], 1)).toEqual([0]);
     expect(ticksFor([0, 100], 0)).toEqual([]);
+  });
+
+  it("ends the last of several axis labels at its tick and centres the rest", () => {
+    expect([0, 1, 2].map((idx) => tickAnchor(idx, 3))).toEqual([
+      "middle",
+      "middle",
+      "end",
+    ]);
+    expect(tickAnchor(0, 1)).toBe("middle");
   });
 });

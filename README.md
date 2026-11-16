@@ -240,6 +240,14 @@ browser from opening automatically, or `weatherbot serve --open` to force it.
 Pass `weatherbot serve --corpus DIR` (or set `[web] corpus` in `weatherbot.toml`)
 to expose a historical replay corpus on `/map` and `/replay`.
 
+Every page follows one design system (`docs/DESIGN.md`): tokens for a type scale
+of 13 px captions and 15 to 17 px prose, a threat palette for levels 1 to 5 that
+meets WCAG AA in the light and dark themes, shared card, heading, callout, chip,
+button, and disclosure primitives, and icon navigation with live status badges
+(the highest level, active storms, covering alerts, the AI state, and a stale
+monitor). A readability gate in the browser tests holds every route to that
+type, contrast, line length, and no sideways scrolling.
+
 The dashboard refreshes live over Server-Sent Events (`GET /api/events`) without
 reloading the page and provides eight pages:
 

@@ -11,6 +11,7 @@ import { ThreatLevelBadge } from "../app/ThreatLevelBadge.tsx";
 import { LevelHistoryChart } from "../charts/LevelHistoryChart.tsx";
 import { WindProbabilityChart } from "../charts/WindProbabilityChart.tsx";
 import { formatBothTimes, formatRouteError, formatUtc } from "./format.ts";
+import { Card } from "../ui/Card.tsx";
 
 export type TimelineResponse = components["schemas"]["TimelineResponse"];
 export type TimelineEntryResponse =
@@ -215,19 +216,19 @@ export function Timeline() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <Card as="section">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               Timeline
             </h1>
-            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
               Reverse-chronological history of stored assessments, change
               events, policy decisions, and channel deliveries.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-sm">
             <Filter
               className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400"
               aria-hidden="true"
@@ -243,7 +244,7 @@ export function Timeline() {
               aria-label="Filter by location"
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             >
               <option value="">All locations</option>
               {locationOptions.map((loc) => (
@@ -254,7 +255,7 @@ export function Timeline() {
             </select>
           </div>
         </div>
-      </section>
+      </Card>
 
       {selectedLocation !== "" ? (
         <div
@@ -275,7 +276,7 @@ export function Timeline() {
         <section
           aria-label="Location charts prompt"
           data-testid="timeline-charts-prompt"
-          className="rounded-lg border border-dashed border-slate-300 bg-slate-50/70 px-4 py-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300"
+          className="rounded-lg border border-dashed border-slate-300 bg-slate-50/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300"
         >
           Choose a watched location in <strong>Filter by location</strong> above
           to display its stepped threat-level history chart and 34/50/64 kt
@@ -283,9 +284,9 @@ export function Timeline() {
         </section>
       )}
 
-      <section
+      <Card
+        as="section"
         aria-labelledby="timeline-entries-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="flex items-center gap-2">
           <Clock
@@ -325,7 +326,7 @@ export function Timeline() {
         {olderError !== null && (
           <div
             role="alert"
-            className="mt-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
+            className="mt-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
           >
             {olderError}
           </div>
@@ -338,17 +339,17 @@ export function Timeline() {
               onClick={() => void handleShowOlder()}
               disabled={loadingOlder}
               data-testid="timeline-show-older"
-              className="inline-flex items-center rounded-md border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              className="inline-flex items-center rounded-md border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
             >
               {loadingOlder ? "Loading older…" : "Show older"}
             </button>
           </div>
         )}
-      </section>
+      </Card>
 
-      <section
+      <Card
+        as="section"
         aria-labelledby="notifications-log-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="flex items-center gap-2">
           <Bell
@@ -374,7 +375,7 @@ export function Timeline() {
             ))}
           </div>
         )}
-      </section>
+      </Card>
     </div>
   );
 }
@@ -390,7 +391,7 @@ function TimelineEntryCard({
     return (
       <article
         aria-label={`Assessment ${String(entry.id)} for ${entry.location ?? "unknown"}`}
-        className="rounded-md border border-slate-200 bg-slate-50/70 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-800/40"
+        className="rounded-md border border-slate-200 bg-slate-50/70 p-3.5 text-sm dark:border-slate-800 dark:bg-slate-800/40"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -426,7 +427,9 @@ function TimelineEntryCard({
           {entry.changes.length > 0 && (
             <ul className="list-disc space-y-0.5 pl-4">
               {entry.changes.map((chg, idx) => (
-                <li key={`${chg.kind}-${String(idx)}`}>{chg.detail}</li>
+                <li key={`${chg.kind}-${String(idx)}`} className="max-w-measure">
+                  {chg.detail}
+                </li>
               ))}
             </ul>
           )}
@@ -439,7 +442,7 @@ function TimelineEntryCard({
   return (
     <article
       aria-label={`Notification ${String(entry.id)}`}
-      className="rounded-md border border-amber-200 bg-amber-50/50 p-3.5 text-xs dark:border-amber-900/60 dark:bg-amber-950/20"
+      className="rounded-md border border-amber-200 bg-amber-50/50 p-3.5 text-sm dark:border-amber-900/60 dark:bg-amber-950/20"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -468,7 +471,9 @@ function TimelineEntryCard({
       {entry.body.length > 0 && (
         <ul className="mt-1 list-disc space-y-0.5 pl-4 text-slate-700 dark:text-slate-300">
           {entry.body.map((line, idx) => (
-            <li key={idx}>{line}</li>
+            <li key={idx} className="max-w-measure">
+              {line}
+            </li>
           ))}
         </ul>
       )}
@@ -484,7 +489,7 @@ function NotificationLogCard({
   return (
     <article
       aria-label={`Notification log ${String(item.id)}: ${item.title}`}
-      className="rounded-md border border-slate-200 bg-slate-50/70 p-3.5 text-xs dark:border-slate-800 dark:bg-slate-800/40"
+      className="rounded-md border border-slate-200 bg-slate-50/70 p-3.5 text-sm dark:border-slate-800 dark:bg-slate-800/40"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -506,7 +511,9 @@ function NotificationLogCard({
       {item.body.length > 0 && (
         <ul className="mt-2 list-disc space-y-0.5 pl-4 text-slate-700 dark:text-slate-300">
           {item.body.map((line, idx) => (
-            <li key={idx}>{line}</li>
+            <li key={idx} className="max-w-measure">
+              {line}
+            </li>
           ))}
         </ul>
       )}

@@ -11,6 +11,7 @@ import {
   formatBreakpointSpan,
   formatRouteError,
 } from "../pages/format.ts";
+import { Card } from "../ui/Card.tsx";
 
 export type LocationResponse = components["schemas"]["LocationResponse"];
 export type LocationPreferencesResponse =
@@ -368,9 +369,9 @@ export function LocationManager({ locations }: LocationManagerProps) {
   };
 
   return (
-    <section
+    <Card
+      as="section"
       aria-labelledby="locations-heading"
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex items-center gap-2">
         <MapPin
@@ -391,7 +392,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
             <article
               key={loc.name}
               aria-label={loc.name}
-              className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40"
+              className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-bold text-slate-900 dark:text-slate-100">
@@ -406,14 +407,14 @@ export function LocationManager({ locations }: LocationManagerProps) {
                       <button
                         type="button"
                         disabled={removingName === loc.name}
-                        className="rounded-md border border-red-300 bg-white px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-60 dark:border-red-800 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-950/50"
+                        className="rounded-md border border-red-300 bg-white px-2.5 py-1 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-60 dark:border-red-800 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-950/50"
                       >
                         Remove
                       </button>
                     </AlertDialog.Trigger>
                     <AlertDialog.Portal>
                       <AlertDialog.Overlay className="fixed inset-0 z-40 bg-slate-950/50" />
-                      <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                      <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
                         <AlertDialog.Title className="text-sm font-bold text-slate-900 dark:text-slate-100">
                           Remove {loc.name}?
                         </AlertDialog.Title>
@@ -427,7 +428,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
                           <AlertDialog.Cancel asChild>
                             <button
                               type="button"
-                              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                             >
                               Cancel
                             </button>
@@ -480,9 +481,9 @@ export function LocationManager({ locations }: LocationManagerProps) {
                           toast: !prefs.toast,
                         })
                       }
-                      className={`rounded px-2 py-0.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 ${
+                      className={`rounded px-2 py-0.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 ${
                         prefs.toast
-                          ? "bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950"
+                          ? "bg-brand text-on-brand hover:bg-brand-hover"
                           : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                       }`}
                     >
@@ -500,9 +501,9 @@ export function LocationManager({ locations }: LocationManagerProps) {
                           browser: !prefs.browser,
                         })
                       }
-                      className={`rounded px-2 py-0.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 ${
+                      className={`rounded px-2 py-0.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 ${
                         prefs.browser
-                          ? "bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950"
+                          ? "bg-brand text-on-brand hover:bg-brand-hover"
                           : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                       }`}
                     >
@@ -520,9 +521,9 @@ export function LocationManager({ locations }: LocationManagerProps) {
                           phone: !prefs.phone,
                         })
                       }
-                      className={`rounded px-2 py-0.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 ${
+                      className={`rounded px-2 py-0.5 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 ${
                         prefs.phone
-                          ? "bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950"
+                          ? "bg-brand text-on-brand hover:bg-brand-hover"
                           : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                       }`}
                     >
@@ -540,7 +541,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
                             phone_min_level: Number(e.target.value),
                           })
                         }
-                        className="rounded border border-slate-300 bg-white px-2 py-0.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                        className="rounded border border-slate-300 bg-white px-2 py-0.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                       >
                         {PHONE_MIN_LEVEL_OPTIONS.map((opt) => (
                           <option key={opt.level} value={String(opt.level)}>
@@ -557,7 +558,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
         </div>
       )}
 
-      <div className="mt-4 space-y-4 border-t border-slate-200 pt-4 text-xs dark:border-slate-800">
+      <div className="mt-4 space-y-4 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
         <h3 className="font-semibold text-slate-900 dark:text-slate-100">
           Add a watched location
         </h3>
@@ -581,12 +582,12 @@ export function LocationManager({ locations }: LocationManagerProps) {
               value={placeQuery}
               onChange={(e) => setPlaceQuery(e.target.value)}
               placeholder="e.g. Nassau, Bahamas"
-              className="min-w-56 flex-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className="min-w-56 flex-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
             />
             <button
               type="submit"
               disabled={searching || searchCooldown}
-              className="inline-flex items-center rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              className="inline-flex items-center rounded-md border border-slate-300 bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
             >
               Search
             </button>
@@ -594,7 +595,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
           {searchFeedback && (
             <div
               role={searchFeedback.kind === "error" ? "alert" : "status"}
-              className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
+              className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
             >
               {searchFeedback.text}
             </div>
@@ -633,7 +634,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
                   ))}
                 </fieldset>
               )}
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 {attribution}
               </p>
             </div>
@@ -659,9 +660,9 @@ export function LocationManager({ locations }: LocationManagerProps) {
                 value={locName}
                 onChange={(e) => setLocName(e.target.value)}
                 placeholder="e.g. Home"
-                className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               />
-              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 This label appears in phone notifications, AI requests, logs,
                 and reports. Use something like Home, not an address.
               </p>
@@ -680,7 +681,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
                 onChange={(e) =>
                   setLocPolygon(e.target.value as "" | PolygonKind)
                 }
-                className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
               >
                 <option value="">None (point only)</option>
                 <option value="forecast">Forecast zone</option>
@@ -709,7 +710,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
                   value={locLat}
                   onChange={(e) => setLocLat(e.target.value)}
                   placeholder="-90 to 90"
-                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                 />
               </div>
               <div>
@@ -727,7 +728,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
                   value={locLon}
                   onChange={(e) => setLocLon(e.target.value)}
                   placeholder="-180 to 180"
-                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                 />
               </div>
             </div>
@@ -737,7 +738,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
             <button
               type="submit"
               disabled={locSubmitting}
-              className="inline-flex items-center rounded-md bg-sky-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 dark:bg-sky-500 dark:text-slate-950"
+              className="inline-flex items-center rounded-md bg-brand px-3.5 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
             >
               Add location
             </button>
@@ -746,7 +747,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
           {locFeedback && (
             <div
               role={locFeedback.kind === "error" ? "alert" : "status"}
-              className={`rounded-md border px-3 py-2 text-xs ${
+              className={`rounded-md border px-3 py-2 text-sm ${
                 locFeedback.kind === "error"
                   ? "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
                   : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
@@ -757,6 +758,6 @@ export function LocationManager({ locations }: LocationManagerProps) {
           )}
         </form>
       </div>
-    </section>
+    </Card>
   );
 }

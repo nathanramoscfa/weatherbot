@@ -9,6 +9,10 @@ const VIEWPORTS = [
 
 const THEMES = ["light", "dark"] as const;
 
+// The densest page: the landfall scenario's dashboard (scripts/demo_scenarios.py),
+// with the Miami-Dade landmark at level 5 and the Nassau one at level 4.
+const landfallPort = Number(process.env.E2E_LANDFALL_PORT ?? "8806");
+
 test("captures dashboard, map, replay, and settings screenshots at 1280x800 and 360x740 in light and dark themes", async ({
   page,
 }) => {
@@ -96,4 +100,40 @@ test("captures dashboard, map, replay, and settings screenshots at 1280x800 and 
       });
     }
   }
+});
+
+test.describe("landfall scenario", () => {
+  test.use({ baseURL: `http://127.0.0.1:${String(landfallPort)}` });
+
+  test("captures the landfall dashboard at 1280x800 and 360x740 in light and dark themes", async ({
+    page,
+  }) => {
+    mkdirSync("test-results/screenshots", { recursive: true });
+
+    for (const theme of THEMES) {
+      for (const viewport of VIEWPORTS) {
+        await page.setViewportSize(viewport);
+        await page.goto("/");
+        await page.evaluate((choice) => {
+          window.localStorage.setItem("weatherbot.theme", choice);
+          document.documentElement.classList.toggle("dark", choice === "dark");
+        }, theme);
+
+        await expect(
+          page.getByRole("heading", { name: "simulated Miami-Dade" }),
+        ).toBeVisible();
+        await expect(
+          page.locator("article", {
+            has: page.getByRole("heading", { name: "simulated Miami-Dade" }),
+          }),
+        ).toContainText("Level 5");
+
+        const sizeTag = `${String(viewport.width)}x${String(viewport.height)}`;
+        await page.screenshot({
+          path: `test-results/screenshots/landfall-dashboard-${sizeTag}-${theme}.png`,
+          fullPage: true,
+        });
+      }
+    }
+  });
 });

@@ -28,9 +28,9 @@ export function AiLabel({
   return (
     <div
       data-testid="ai-label"
-      className="space-y-0.5 text-[11px] text-violet-900 dark:text-violet-200"
+      className="space-y-0.5 text-violet-900 dark:text-violet-200"
     >
-      <p className="flex items-start gap-1.5">
+      <span className="flex items-start gap-1.5 text-caption">
         <Sparkles className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span>
           <span className="font-semibold">{kind}</span>
@@ -44,8 +44,10 @@ export function AiLabel({
           ) : null}
           {context ? ` ${context}` : ""}
         </span>
-      </p>
-      <p className="text-violet-800/90 dark:text-violet-300/90">{note}</p>
+      </span>
+      <span className="block text-caption text-violet-800 dark:text-violet-300">
+        {note}
+      </span>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import { Clock, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatUtc } from "../pages/format.ts";
+import { Card } from "../ui/Card.tsx";
 
 export interface AdvisorySliderStep {
   readonly snapshot_id: string;
@@ -156,15 +157,15 @@ export function AdvisorySlider({
   );
 
   return (
-    <section
+    <Card
+      as="section"
       aria-label="Advisory history"
       data-testid="advisory-slider-panel"
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <label
           htmlFor="advisory-history-slider"
-          className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200"
+          className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200"
         >
           <Clock
             className="h-3.5 w-3.5 shrink-0 text-sky-600 dark:text-sky-400"
@@ -183,7 +184,7 @@ export function AdvisorySlider({
           <button
             type="button"
             onClick={handleBackToLatest}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:bg-sky-500 dark:text-slate-950"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
             <span>Back to latest</span>
@@ -213,13 +214,13 @@ export function AdvisorySlider({
         <div
           role="status"
           data-testid="stored-advisory-banner"
-          className="mt-3 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-950 dark:border-amber-600 dark:bg-amber-950/70 dark:text-amber-100"
+          className="mt-3 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-950 dark:border-amber-600 dark:bg-amber-950/70 dark:text-amber-100"
         >
           Stored advisory: {committedStep.storm_name} {committedAdvisoryText},{" "}
           {committedTimeText} — not the latest
           {newerAdvisoryArrived ? " · Newer advisory arrived" : ""}
         </div>
       )}
-    </section>
+    </Card>
   );
 }

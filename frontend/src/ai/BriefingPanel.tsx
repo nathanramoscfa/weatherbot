@@ -177,7 +177,7 @@ export function BriefingPanel({
   return (
     <section
       aria-label={`AI briefing for ${location}`}
-      className="space-y-2 rounded-md border border-violet-200 bg-violet-50/50 p-3 text-xs dark:border-violet-900/70 dark:bg-violet-950/20"
+      className="space-y-2 rounded-md border border-violet-200 bg-violet-50/50 p-3 text-sm dark:border-violet-900/70 dark:bg-violet-950/20"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="inline-flex items-center gap-1.5 font-semibold text-slate-900 dark:text-slate-100">
@@ -191,7 +191,7 @@ export function BriefingPanel({
           type="button"
           onClick={() => brief(fresh)}
           disabled={busy || !ready}
-          className="rounded-md bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:text-slate-950 dark:hover:bg-violet-400"
+          className="rounded-md bg-violet-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-violet-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:text-slate-950 dark:hover:bg-violet-400"
         >
           {again ? "Brief me again" : "Brief me"}
         </button>
