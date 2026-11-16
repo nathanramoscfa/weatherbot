@@ -2902,9 +2902,9 @@ cross-layer care. The conversation is new, per phase-boundary hygiene.
 
 ---
 
-## Step 4 — The command-center dashboard
+## Step 4 — The command-center dashboard ✅
 
-**Status:** Not started
+**Status:** Complete — PR #115 (2026-11-16)
 
 > **Goal:** Make `/` answer "how bad, where, and what now" in one look. A
 > one-line status and action bar replaces the controls card: the snapshot's age
@@ -2947,6 +2947,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
+
+> Ran 2026-11-16: Balanced Pick or Quality Runner-up — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6443,7 +6445,7 @@ workflow above maps directly to the corresponding row below.
 | 1    | Scenarios + recordings         | Opus 5.5       | Complete — PR #111 |
 | 2    | Design system + type gate      | Opus 5.5       | Complete — PR #112 |
 | 3    | Plain English + ladder route   | Opus 5.5       | Complete — PR #113 |
-| 4    | Command-center dashboard       | Gemini 4 Argon | Not started        |
+| 4    | Command-center dashboard       | Gemini 4 Argon | Complete — PR #115 |
 | 5    | Immersive map                  | Gemini 4 Argon | Not started        |
 | 6    | Replay workbench               | Gemini 4 Argon | Not started        |
 | 7    | Settings tabs + pages          | Gemini 4 Argon | Not started        |
