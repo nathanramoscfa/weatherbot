@@ -2722,7 +2722,8 @@ cross-layer care. The conversation is new, per phase-boundary hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 7, 8, and 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - src/weatherbot/models/ladder.py, engine/rules.py,
       engine/official.py, engine/__init__.py, services/assessments.py,
       services/disclaimer.py, and services/config.py (`LiveSettings` and
@@ -3225,7 +3226,8 @@ is new, per phase-boundary hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 9, 10, and 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - frontend/src/pages/Dashboard.tsx, Dashboard.test.tsx, and
       format.ts; frontend/src/ai/BriefingPanel.tsx and its test;
       frontend/src/assessment/ (Step 3's components);
@@ -3717,7 +3719,8 @@ hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 11 and 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - frontend/src/map/MapView.tsx, layers.ts, useLeafletMap.ts,
       AdvisorySlider.tsx, and their tests.
     - frontend/src/pages/Replay.tsx (where replay lives after this
@@ -4150,7 +4153,8 @@ conversation is new, per phase-boundary hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 12 and 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - frontend/src/pages/Replay.tsx and Replay.test.tsx;
       frontend/src/assessment/ (Step 3's components);
       frontend/src/charts/LevelHistoryChart.tsx;
@@ -4553,7 +4557,8 @@ less eye across five pages. The conversation is new, per phase-boundary hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 13 to 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - frontend/src/pages/Settings.tsx, Ask.tsx, Storms.tsx, Alerts.tsx,
       Timeline.tsx, OutlookGraphics.tsx, and their tests.
     - frontend/src/settings/ (every file and test),
