@@ -1,35 +1,36 @@
 // frontend/src/pages/Dashboard.tsx
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, RefreshCw, ShieldAlert } from "lucide-react";
+import { ShieldAlert, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { BriefingPanel } from "../ai/BriefingPanel.tsx";
+import { Link, useLocation, useNavigate } from "react-router";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
-import { ThreatLevelBadge } from "../app/ThreatLevelBadge.tsx";
 import { EvidenceList } from "../assessment/EvidenceList.tsx";
 import { LevelSummary } from "../assessment/LevelSummary.tsx";
-import { LocationHero } from "../assessment/LocationHero.tsx";
 import { OfficialProductList } from "../assessment/OfficialProductList.tsx";
 import { ThreatTable } from "../assessment/ThreatTable.tsx";
-import { WhyThisLevel } from "../assessment/WhyThisLevel.tsx";
-import { ArrivalTimeline } from "../charts/ArrivalTimeline.tsx";
+import { useLadder } from "../assessment/vocabulary.ts";
+import { buildReportHref } from "../dashboard/ExportPopover.tsx";
+import { FeaturedLocation } from "../dashboard/FeaturedLocation.tsx";
 import {
-  type ChartLevelPoint,
-  LevelSparkline,
-} from "../charts/LevelSparkline.tsx";
+  LocationSwitcher,
+  locationCardId,
+  selectFeaturedLocation,
+} from "../dashboard/LocationSwitcher.tsx";
+import { MiniMap } from "../dashboard/MiniMap.tsx";
+import {
+  type CycleStatusMessage,
+  StatusBar,
+} from "../dashboard/StatusBar.tsx";
 import {
   STREAM_EVENT_DOM_NAME,
   type StreamEvent,
 } from "../events/useEventStream.ts";
-import {
-  formatAgeSeconds,
-  formatBothTimes,
-  formatRouteError,
-  formatUtc,
-} from "./format.ts";
 import { Card } from "../ui/Card.tsx";
+import { formatRouteError } from "./format.ts";
+
+export { buildReportHref, locationCardId };
 
 export type AssessmentsResponse =
   components["schemas"]["AssessmentsResponse"];
@@ -42,65 +43,6 @@ export type ChartsResponse = components["schemas"]["ChartsResponse"];
 
 const FALLBACK_ESSENTIALS =
   "Weatherbot is informational only. It is never a substitute for official guidance from the National Hurricane Center (NHC), your local National Weather Service (NWS) Weather Forecast Office, or your local emergency management agency.";
-
-export function locationCardId(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `location-${slug}`;
-}
-
-export function buildReportHref(
-  location: string | null,
-  includeBriefing: boolean,
-): string {
-  const params = new URLSearchParams();
-  if (location !== null) {
-    params.set("location", location);
-  }
-  if (includeBriefing) {
-    params.set("briefing", "true");
-  }
-  const query = params.toString();
-  return query ? `/api/report?${query}` : "/api/report";
-}
-
-async function fetchLocationCharts(location: string): Promise<ChartsResponse> {
-  const { data, response } = await apiClient.GET("/api/charts", {
-    params: { query: { location } },
-  });
-  if (!response.ok || !data) {
-    throw new ApiRequestError("/api/charts", response.status);
-  }
-  return data;
-}
-
-function useLocationLevelPoints(
-  item: LocationAssessmentResponse,
-): readonly ChartLevelPoint[] {
-  const chartsQuery = useQuery({
-    queryKey: queryKeys.charts(item.name),
-    queryFn: () => fetchLocationCharts(item.name),
-  });
-  if (chartsQuery.data !== undefined && chartsQuery.data.levels.length > 0) {
-    return chartsQuery.data.levels;
-  }
-  if (item.assessment !== null) {
-    return [
-      {
-        id: item.assessment.id,
-        as_of: item.assessment.as_of,
-        as_of_local: null,
-        level: item.assessment.level.number,
-        label: item.assessment.level.label,
-        rule: item.assessment.rule,
-        complete: item.assessment.complete,
-      },
-    ];
-  }
-  return [];
-}
 
 async function fetchAssessments(): Promise<AssessmentsResponse> {
   const { data, response } = await apiClient.GET("/api/assessments");
@@ -134,13 +76,37 @@ async function fetchDisclaimer(): Promise<DisclaimerResponse> {
   return data;
 }
 
+function formatAiStateSummary(
+  ai: HealthResponse["ai"] | null | undefined,
+  featuredName: string,
+): string {
+  if (!ai) {
+    return `AI briefing card for ${featuredName} is below the stat tiles.`;
+  }
+  switch (ai.state) {
+    case "ready":
+      return `AI ready for ${featuredName} · press Brief me in the briefing card to stream an explanation.`;
+    case "paused":
+      return "AI is paused by you — resume it in Settings.";
+    case "capped":
+      return "AI is paused because today's daily spend cap is reached.";
+    case "unavailable":
+      return "AI is temporarily unavailable — check Settings for details.";
+    default:
+      return "AI is off — configure an Anthropic credential to enable briefings.";
+  }
+}
+
 export function Dashboard() {
   const queryClient = useQueryClient();
+  const routerLocation = useLocation();
+  const navigate = useNavigate();
+  const { data: ladder } = useLadder();
+
   const [cycleRunning, setCycleRunning] = useState(false);
-  const [cycleMessage, setCycleMessage] = useState<{
-    kind: "info" | "error";
-    text: string;
-  } | null>(null);
+  const [cycleMessage, setCycleMessage] = useState<CycleStatusMessage | null>(
+    null,
+  );
   const [evacPendingName, setEvacPendingName] = useState<string | null>(null);
   const [evacError, setEvacError] = useState<string | null>(null);
   const [includeBriefing, setIncludeBriefing] = useState(false);
@@ -247,6 +213,16 @@ export function Dashboard() {
     }
   };
 
+  const handleSelectLocation = (cardId: string) => {
+    const targetHash = `#${cardId}`;
+    if (routerLocation.hash !== targetHash) {
+      void navigate({
+        pathname: routerLocation.pathname,
+        hash: targetHash,
+      });
+    }
+  };
+
   if (assessmentsQuery.isError) {
     const status =
       assessmentsQuery.error instanceof ApiRequestError
@@ -279,7 +255,7 @@ export function Dashboard() {
 
   if (assessmentsQuery.isLoading || locationsQuery.isLoading) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+      <div className="rounded-lg border border-line bg-surface-card p-6 text-sm text-ink-muted">
         Loading threat assessments…
       </div>
     );
@@ -299,21 +275,21 @@ export function Dashboard() {
     return (
       <section
         aria-labelledby="empty-dashboard-heading"
-        className="space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900"
+        className="space-y-4 rounded-card border border-line bg-surface-card p-6 shadow-card"
       >
         <div className="flex items-start gap-3">
           <ShieldAlert
-            className="mt-0.5 h-6 w-6 shrink-0 text-sky-600 dark:text-sky-400"
+            className="mt-0.5 h-6 w-6 shrink-0 text-brand"
             aria-hidden="true"
           />
           <div className="space-y-2">
             <h1
               id="empty-dashboard-heading"
-              className="text-lg font-semibold text-slate-900 dark:text-slate-100"
+              className="text-lg font-semibold text-ink"
             >
               No watched locations configured
             </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
+            <p className="text-sm text-ink-muted">
               Add a location in Settings to monitor official NHC and NWS
               products and compute threat levels.
             </p>
@@ -341,9 +317,13 @@ export function Dashboard() {
 
   const snapshot = assessmentsData?.snapshot ?? null;
   const nextProductAt = healthQuery.data?.next_product_at ?? null;
+  const serverNow = healthQuery.data?.now ?? null;
   const hasAnyAssessment = locationCards.some(
     (item) => item.assessment !== null,
   );
+  const featured = selectFeaturedLocation(locationCards, routerLocation.hash);
+  const featuredTimeZone = featured?.time_zone ?? null;
+
   const liveAnnouncement = locationCards
     .map((item) => {
       if (!item.assessment) {
@@ -356,6 +336,8 @@ export function Dashboard() {
 
   return (
     <div className="space-y-5">
+      <h1 className="sr-only">Dashboard</h1>
+
       <div
         aria-live="polite"
         aria-atomic="true"
@@ -365,376 +347,96 @@ export function Dashboard() {
         {liveAnnouncement}
       </div>
 
-      <Card
-        as="section"
-        aria-label="Monitor cycle controls"
-      >
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div className="space-y-1">
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Dashboard
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600 tabular-nums dark:text-slate-300">
-              {snapshot ? (
-                <span>
-                  Snapshot:{" "}
-                  <strong className="font-semibold text-slate-800 dark:text-slate-100">
-                    {snapshot.status}
-                  </strong>{" "}
-                  · completed {formatUtc(snapshot.completed_at)} (
-                  {formatAgeSeconds(snapshot.age_seconds)})
-                </span>
-              ) : (
-                <span>No snapshot stored yet.</span>
-              )}
-              {nextProductAt && (
-                <span>
-                  Next NHC product:{" "}
-                  <strong className="font-semibold text-slate-800 dark:text-slate-100">
-                    {formatUtc(nextProductAt)}
-                  </strong>
-                </span>
-              )}
-            </div>
-          </div>
+      <StatusBar
+        snapshot={snapshot}
+        nextProductAt={nextProductAt}
+        serverNow={serverNow}
+        timeZone={featuredTimeZone}
+        hasAnyAssessment={hasAnyAssessment}
+        locationNames={locationCards.map((item) => item.name)}
+        includeBriefing={includeBriefing}
+        onIncludeBriefingChange={setIncludeBriefing}
+        cycleRunning={cycleRunning}
+        onCheckNow={() => void handleCheckNow()}
+        cycleMessage={cycleMessage}
+        evacError={evacError}
+      />
 
-          <div className="flex flex-wrap items-center gap-2">
-            {hasAnyAssessment && (
-              <a
-                href={buildReportHref(null, includeBriefing)}
-                download
-                data-testid="export-report-all"
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-              >
-                <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Export report</span>
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={() => void handleCheckNow()}
-              disabled={cycleRunning}
-              className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 ${cycleRunning ? "animate-spin" : ""}`}
-                aria-hidden="true"
-              />
-              <span>Check now</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-3 border-t border-slate-200 pt-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
-          <p>
-            Export report saves a self-contained HTML file with each location’s
-            threat level, deciding evidence, coarsened storm distance bands,
-            8-point compass bearings, and whole-hour times (no coordinates or
-            zone IDs); it opens offline anywhere and prints to PDF from the
-            browser.
-          </p>
-          <label className="mt-2 inline-flex cursor-pointer items-start gap-2 text-slate-700 dark:text-slate-200">
-            <input
-              type="checkbox"
-              checked={includeBriefing}
-              onChange={(evt) => setIncludeBriefing(evt.target.checked)}
-              className="mt-0.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800"
-            />
-            <span>
-              <span className="font-semibold">Include the AI briefing</span>{" "}
-              <span className="text-slate-600 dark:text-slate-400">
-                — its words quote NWS alerts and can name a county or a forecast
-                office.
-              </span>
-            </span>
-          </label>
-        </div>
-
-        {cycleMessage && (
-          <div
-            role={cycleMessage.kind === "error" ? "alert" : "status"}
-            className={`mt-3 rounded-md border px-3 py-2 text-sm ${
-              cycleMessage.kind === "error"
-                ? "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
-                : "border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-800 dark:bg-sky-950/60 dark:text-sky-200"
-            }`}
-          >
-            {cycleMessage.text}
-          </div>
-        )}
-
-        {evacError && (
-          <div
-            role="alert"
-            className="mt-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
-          >
-            {evacError}
-          </div>
-        )}
-      </Card>
-
-      {locationCards.length >= 2 && (
-        <LocationComparisonStrip locations={locationCards} />
-      )}
-
-      <div className="space-y-5">
-        {locationCards.map((loc) => (
-          <LocationLevelCard
-            key={loc.name}
-            item={loc}
+      {locationCards.length > 0 && featured && (
+        <>
+          <LocationSwitcher
+            locations={locationCards}
+            featuredName={featured.name}
             ageSeconds={snapshot?.age_seconds ?? 0}
-            includeBriefing={includeBriefing}
-            evacPending={evacPendingName === loc.name}
+            onSelectLocation={handleSelectLocation}
+            ladder={ladder}
+          />
+
+          <FeaturedLocation
+            item={featured}
+            ageSeconds={snapshot?.age_seconds ?? 0}
+            evacPending={evacPendingName === featured.name}
             onToggleEvacuation={(nextOn) =>
-              void handleEvacuationToggle(loc.name, nextOn)
+              void handleEvacuationToggle(featured.name, nextOn)
             }
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-interface LocationComparisonStripProps {
-  readonly locations: readonly LocationAssessmentResponse[];
-}
-
-function LocationComparisonStrip({ locations }: LocationComparisonStripProps) {
-  return (
-    <Card
-      as="section"
-      aria-label="Location comparison"
-      data-testid="location-comparison-strip"
-    >
-      <h2 className="text-sm font-semibold tracking-wide text-slate-600 uppercase dark:text-slate-400">
-        Location comparison
-      </h2>
-      <ul className="mt-2.5 divide-y divide-slate-200 dark:divide-slate-800">
-        {locations.map((loc) => (
-          <LocationComparisonRow key={loc.name} item={loc} />
-        ))}
-      </ul>
-    </Card>
-  );
-}
-
-function LocationComparisonRow({
-  item,
-}: {
-  readonly item: LocationAssessmentResponse;
-}) {
-  const points = useLocationLevelPoints(item);
-  const { assessment } = item;
-  const cardHref = `#${locationCardId(item.name)}`;
-
-  return (
-    <li
-      data-testid={`comparison-row-${item.name}`}
-      className="flex flex-wrap items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
-    >
-      <div className="flex flex-wrap items-center gap-2.5">
-        <a
-          href={cardHref}
-          className="text-sm font-semibold text-sky-700 underline decoration-sky-400/70 underline-offset-2 hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200"
-        >
-          {item.name}
-        </a>
-        {assessment ? (
-          <ThreatLevelBadge
-            level={assessment.level.number}
-            label={assessment.level.label}
-            atLeast={!assessment.complete}
-            size="sm"
-          />
-        ) : (
-          <span className="text-sm text-slate-600 dark:text-slate-400">
-            No stored assessment
-          </span>
-        )}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
-        <LevelSparkline location={item.name} points={points} />
-        {assessment ? (
-          <span>
-            {assessment.level.label} — {assessment.rule_trigger}
-          </span>
-        ) : null}
-      </div>
-    </li>
-  );
-}
-
-interface LocationLevelCardProps {
-  readonly item: LocationAssessmentResponse;
-  readonly ageSeconds: number;
-  readonly includeBriefing: boolean;
-  readonly evacPending: boolean;
-  readonly onToggleEvacuation: (nextOn: boolean) => void;
-}
-
-function LocationLevelCard({
-  item,
-  ageSeconds,
-  includeBriefing,
-  evacPending,
-  onToggleEvacuation,
-}: LocationLevelCardProps) {
-  const { assessment, time_zone: timeZone } = item;
-  const levelPoints = useLocationLevelPoints(item);
-  const leadThreat = assessment?.threats[0] ?? null;
-
-  return (
-    <Card
-      as="article"
-      id={locationCardId(item.name)}
-      aria-label={item.name}
-    >
-      <div className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center dark:border-slate-800">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-base font-bold text-slate-900 sm:text-lg dark:text-slate-100">
-            {item.name}
-          </h2>
-          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-caption font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-            {item.inside_nws_coverage
-              ? "Inside NWS coverage"
-              : "Outside NWS coverage"}
-          </span>
-        </div>
-
-        {assessment && (
-          <div className="flex flex-wrap items-center gap-2">
-            <ThreatLevelBadge
-              level={assessment.level.number}
-              label={assessment.level.label}
-              atLeast={!assessment.complete}
-            />
-            <LevelSparkline location={item.name} points={levelPoints} />
-            <a
-              href={buildReportHref(item.name, includeBriefing)}
-              download
-              data-testid={`export-report-${item.name}`}
-              aria-label={`Export report for ${item.name}`}
-              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-            >
-              <Download className="h-3 w-3" aria-hidden="true" />
-              <span>Export report</span>
-            </a>
-          </div>
-        )}
-      </div>
-
-      {!assessment ? (
-        <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
-          No assessment stored yet for {item.name}. Press Check now to fetch
-          NHC and NWS products.
-        </p>
-      ) : (
-        <div className="mt-4 space-y-4">
-          <LocationHero
-            assessment={assessment}
-            timeZone={timeZone}
-            ageSeconds={ageSeconds}
-            evacuationOrderOn={item.evacuation_order.on}
-            origin="live"
-          />
-
-          {leadThreat && (
-            <ArrivalTimeline
-              asOf={assessment.as_of}
-              stormName={leadThreat.storm_name}
-              earliest={leadThreat.earliest_arrival}
-              mostLikely={leadThreat.most_likely_arrival}
-            />
-          )}
-
-          <BriefingPanel
-            location={item.name}
-            assessmentId={assessment.id}
-            assessedAt={assessment.as_of}
-          />
-
-          {assessment.changes.length > 0 && (
-            <div className="space-y-1 text-sm">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                Changes since previous assessment
-              </h3>
-              <ul className="list-disc space-y-0.5 pl-4 text-slate-700 dark:text-slate-300">
-                {assessment.changes.map((chg, idx) => (
-                  <li key={`${chg.kind}-${String(idx)}`} className="max-w-measure">
-                    {chg.detail}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <WhyThisLevel
-            assessment={assessment}
-            insideNwsCoverage={item.inside_nws_coverage}
-            timeZone={timeZone}
-            breakpointSpan={assessment.breakpoint_span ?? item.breakpoint_span}
-            controls={
-              <div className="rounded-md border border-line bg-surface-inset p-3 text-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <p className="font-semibold text-ink">
-                      Evacuation-order toggle
-                    </p>
-                    <p className="mt-0.5 text-ink-muted">
-                      State:{" "}
-                      <strong>
-                        {item.evacuation_order.on ? "On" : "Off"}
-                      </strong>
-                      {item.evacuation_order.set_at
-                        ? ` since ${formatBothTimes(item.evacuation_order.set_at, timeZone)}`
-                        : ""}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={item.evacuation_order.on}
-                    aria-label={`Evacuation order for ${item.name}`}
-                    disabled={evacPending}
-                    onClick={() =>
-                      onToggleEvacuation(!item.evacuation_order.on)
-                    }
-                    className={`rounded-md px-2.5 py-1 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 ${
-                      item.evacuation_order.on
-                        ? "bg-orange-600 text-white hover:bg-orange-700"
-                        : "border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                    }`}
+            ladder={ladder}
+            miniMap={
+              <MiniMap
+                ageSeconds={snapshot ? snapshot.age_seconds : null}
+                timeZone={featuredTimeZone}
+                statusNote={
+                  <Card
+                    as="aside"
+                    aria-label="Briefing status summary"
+                    padding="sm"
+                    data-testid="mini-map-briefing-status"
                   >
-                    {item.evacuation_order.on ? "Turn off" : "Turn on"}
-                  </button>
-                </div>
-                <p className="mt-2 text-ink-subtle">
-                  When on, holds {item.name} at Level 4 (Warning / Watch /
-                  Evacuation) or above on the next fetched snapshot.
-                </p>
-              </div>
-            }
-          >
-            <LevelSummary assessment={assessment}>
-              <EvidenceList
-                evidence={assessment.evidence}
-                timeZone={timeZone}
+                    <div className="flex items-start gap-2 text-sm text-ink-muted">
+                      <Sparkles
+                        className="mt-0.5 h-4 w-4 shrink-0 text-violet-700 dark:text-violet-300"
+                        aria-hidden="true"
+                      />
+                      <div className="space-y-1">
+                        <p className="font-semibold text-ink">
+                          AI briefing status
+                        </p>
+                        <p>
+                          {formatAiStateSummary(
+                            healthQuery.data?.ai,
+                            featured.name,
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                }
               />
-            </LevelSummary>
-            <OfficialProductList
-              official={assessment.official}
-              timeZone={timeZone}
-            />
-            <ThreatTable
-              threats={assessment.threats}
-              windProbabilities={assessment.wind_probabilities}
-              asOf={assessment.as_of}
-              timeZone={timeZone}
-            />
-          </WhyThisLevel>
-        </div>
+            }
+            provenanceChildren={
+              featured.assessment ? (
+                <>
+                  <LevelSummary assessment={featured.assessment}>
+                    <EvidenceList
+                      evidence={featured.assessment.evidence}
+                      timeZone={featured.time_zone}
+                    />
+                  </LevelSummary>
+                  <OfficialProductList
+                    official={featured.assessment.official}
+                    timeZone={featured.time_zone}
+                  />
+                  <ThreatTable
+                    threats={featured.assessment.threats}
+                    windProbabilities={featured.assessment.wind_probabilities}
+                    asOf={featured.assessment.as_of}
+                    timeZone={featured.time_zone}
+                  />
+                </>
+              ) : null
+            }
+          />
+        </>
       )}
-    </Card>
+    </div>
   );
 }

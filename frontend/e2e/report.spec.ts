@@ -9,6 +9,7 @@ test("ticks Include the AI briefing, downloads the report, opens it offline with
   browser,
 }) => {
   await page.goto("/");
+  await page.getByRole("link", { name: LANDMARK }).click();
 
   const panel = page.getByRole("region", {
     name: `AI briefing for ${LANDMARK}`,
@@ -29,6 +30,8 @@ test("ticks Include the AI briefing, downloads the report, opens it offline with
     "Claude Sonnet 5.5",
   );
   recordAiText(page, await panel.innerText());
+
+  await page.getByRole("button", { name: "Export report" }).click();
 
   const briefingCheckbox = page.getByRole("checkbox", {
     name: /Include the AI briefing/i,

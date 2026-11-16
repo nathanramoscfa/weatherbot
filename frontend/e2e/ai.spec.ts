@@ -109,6 +109,7 @@ test("streams a labeled briefing section by section, answers after a tool chip, 
   page,
 }) => {
   await page.goto("/");
+  await page.getByRole("link", { name: LANDMARK }).click();
   const panel = briefingPanel(page, LANDMARK);
   const brief = panel.getByRole("button", { name: "Brief me" });
   await expect(brief).toBeEnabled();
@@ -200,6 +201,7 @@ test.describe("with today's cap below the smallest request", () => {
     expect(status.today.cap_micro_usd).toBe(1000);
 
     await page.goto("/");
+    await page.getByRole("link", { name: LANDMARK }).click();
     const panel = briefingPanel(page, LANDMARK);
     await expect(panel.getByTestId("ai-state-banner")).toContainText(
       "cap is reached",
@@ -243,6 +245,7 @@ test.describe("with a credential Anthropic refuses", () => {
     page,
   }) => {
     await page.goto("/");
+    await page.getByRole("link", { name: LANDMARK }).click();
     const panel = briefingPanel(page, LANDMARK);
     const brief = panel.getByRole("button", { name: "Brief me" });
 
@@ -258,15 +261,16 @@ test.describe("with a credential Anthropic refuses", () => {
       );
     }
     expect((await aiStatus(page)).reason).toBe("auth_failed");
+    await expect(brief).toBeDisabled();
 
     // The hold is the state, not one request's answer: the other card, which
     // never asked, shows it too, and every AI button waits.
+    await page.getByRole("link", { name: OTHER_LANDMARK }).click();
     const other = briefingPanel(page, OTHER_LANDMARK);
     await expect(other.getByTestId("ai-state-banner")).toContainText(
       AUTH_FAILED,
     );
     await expect(other.getByRole("button", { name: "Brief me" })).toBeDisabled();
-    await expect(brief).toBeDisabled();
 
     const calls = await aiCalls(page);
     expect(calls).toHaveLength(3);
@@ -277,6 +281,6 @@ test.describe("with a credential Anthropic refuses", () => {
         "auth_failed",
       ]);
     }
-    await captureThemes(page, panel, "auth-failed");
+    await captureThemes(page, other, "auth-failed");
   });
 });

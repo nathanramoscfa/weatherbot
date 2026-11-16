@@ -41,31 +41,23 @@ test.describe("plain-English hierarchy and provenance disclosure", () => {
     await expect(miamiCard).toBeVisible();
     await expect(nassauCard).toBeVisible();
 
-    for (const card of [miamiCard, nassauCard]) {
-      const headline = card.getByTestId("location-hero-headline");
-      const sentence = card.getByTestId("location-hero-sentence");
-      await expect(headline).toBeVisible();
-      await expect(sentence).toBeVisible();
+    const featured = page.getByTestId("featured-location");
+    const headline = featured.getByTestId("location-hero-headline");
+    const sentence = featured.getByTestId("location-hero-sentence");
+    await expect(headline).toHaveText("Level 5 — Hurricane Warning");
+    await expect(sentence).toBeVisible();
 
-      const headlineText = (await headline.textContent()) ?? "";
-      const sentenceText = (await sentence.textContent()) ?? "";
-      expect(headlineText).not.toMatch(SNAKE_CASE_ID_PATTERN);
-      expect(headlineText).not.toMatch(FORBIDDEN_CODE_PATTERN);
-      expect(sentenceText).not.toMatch(SNAKE_CASE_ID_PATTERN);
-      expect(sentenceText).not.toMatch(FORBIDDEN_CODE_PATTERN);
-    }
+    const miamiHeadlineText = (await headline.textContent()) ?? "";
+    const miamiSentenceText = (await sentence.textContent()) ?? "";
+    expect(miamiHeadlineText).not.toMatch(SNAKE_CASE_ID_PATTERN);
+    expect(miamiHeadlineText).not.toMatch(FORBIDDEN_CODE_PATTERN);
+    expect(miamiSentenceText).not.toMatch(SNAKE_CASE_ID_PATTERN);
+    expect(miamiSentenceText).not.toMatch(FORBIDDEN_CODE_PATTERN);
 
-    await expect(
-      miamiCard.getByTestId("location-hero-headline"),
-    ).toHaveText("Level 5 — Hurricane Warning");
-    await expect(
-      nassauCard.getByTestId("location-hero-headline"),
-    ).toHaveText("Level 4 — Warning / Watch / Evacuation");
-
-    const miamiDisclosure = miamiCard.getByTestId("why-this-level");
+    const miamiDisclosure = featured.getByTestId("why-this-level");
     await expect(miamiDisclosure).not.toHaveAttribute("open");
     await expect(
-      miamiCard.getByRole("switch", {
+      featured.getByRole("switch", {
         name: `Evacuation order for ${MIAMI}`,
       }),
     ).not.toBeVisible();
@@ -86,6 +78,16 @@ test.describe("plain-English hierarchy and provenance disclosure", () => {
         name: `Evacuation order for ${MIAMI}`,
       }),
     ).toBeVisible();
+
+    // Feature Parliament Square and verify its hero headline and sentence too
+    await page.getByRole("link", { name: NASSAU }).click();
+    await expect(headline).toHaveText("Level 4 — Warning / Watch / Evacuation");
+    const nassauHeadlineText = (await headline.textContent()) ?? "";
+    const nassauSentenceText = (await sentence.textContent()) ?? "";
+    expect(nassauHeadlineText).not.toMatch(SNAKE_CASE_ID_PATTERN);
+    expect(nassauHeadlineText).not.toMatch(FORBIDDEN_CODE_PATTERN);
+    expect(nassauSentenceText).not.toMatch(SNAKE_CASE_ID_PATTERN);
+    expect(nassauSentenceText).not.toMatch(FORBIDDEN_CODE_PATTERN);
 
     expect(errors).toEqual([]);
   });

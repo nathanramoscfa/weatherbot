@@ -53,7 +53,7 @@ export function StatTile({
       <span id={labelId} className="block text-caption font-medium text-ink-subtle">
         {label}
       </span>
-      <span className="mt-1 flex items-baseline gap-1.5">
+      <span className="mt-1 flex flex-wrap items-baseline gap-1.5">
         <span className="text-2xl font-semibold tabular-nums text-ink">{value}</span>
         {unit !== undefined && (
           <span className="text-sm font-medium text-ink-subtle">{unit}</span>

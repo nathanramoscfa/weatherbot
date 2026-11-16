@@ -251,6 +251,7 @@ test.describe("Phase 7 end-to-end smoke", () => {
 
       // 8. Export the report on /
       await page.goto("/");
+      await page.getByRole("button", { name: "Export report" }).click();
       const exportAll = page.getByTestId("export-report-all");
       await expect(exportAll).toBeVisible();
       mkdirSync("test-results", { recursive: true });

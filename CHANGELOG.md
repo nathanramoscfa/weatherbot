@@ -102,6 +102,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `tests/web/test_ladder_route.py`, `frontend/src/assessment/vocabulary.test.ts`,
     `ThreatMeter.test.tsx`, `LocationHero.test.tsx`, `WhyThisLevel.test.tsx`,
     and `frontend/e2e/plain-english.spec.ts`.
+- Rebuild `/` as the command-center dashboard with a single-line status bar,
+  export popover, location switcher cards, featured location stat tiles, and
+  live situation mini-map (Phase 8 Step 4):
+  - `frontend/src/dashboard/StatusBar.tsx` and `ExportPopover.tsx`: replace the
+    top controls box with a one-line status and action bar (`lg:flex-nowrap`)
+    showing snapshot status and age, a minute countdown to `next_product_at`
+    driven by a single minute-boundary `setTimeout` paused while
+    `document.hidden` is `true`, `Check now`, and a non-modal portalled Radix
+    `Popover` (`export-report-all`, per-location report links, `"Include the AI
+    briefing"` checkbox, and county-name caveat).
+  - `frontend/src/dashboard/LocationSwitcher.tsx` and `FeaturedLocation.tsx`:
+    replace the comparison strip with interactive location switcher cards (one
+    `<article>` and one heading per location, `ThreatLevelBadge`, plain-English
+    sentence, NWS coverage caption, `LevelSparkline`, assessed age, and
+    `#location-<slug>` link with `aria-current`) selecting the featured location
+    by URL hash, then highest threat level, then list order; render the featured
+    location with `LocationHero`, six `tabular-nums` `StatTile`s (closest
+    approach, compass-word bearing, earliest and most likely 34-kt arrival,
+    34-kt and 64-kt 120-hour wind chances, and storms tracked, with product
+    captions and dashes when absent), paired `ArrivalTimeline` and arrival
+    summary, `BriefingPanel`, changes, and `WhyThisLevel` with the
+    evacuation-order switch; shorten `ArrivalTimeline`'s non-bar SVG words so
+    `track` and `unresolved` rows never clip at 420 px.
+  - `frontend/src/dashboard/MiniMap.tsx`: add the live situation mini-map card
+    reusing `useLeafletMap` and `queryKeys.map()` (cones, tracks, forecast
+    points, watches and warnings, and locations, with storm count, snapshot age,
+    and a link to `/map`) in the responsive three-breakpoint command-center
+    layout.
+  - Tests: `frontend/src/dashboard/{StatusBar,ExportPopover,LocationSwitcher,FeaturedLocation,MiniMap}.test.tsx`,
+    rewritten `frontend/src/pages/Dashboard.test.tsx`, updated Playwright specs,
+    `frontend/e2e/command-center.spec.ts`, and 600 s idle CPU measurement
+    (`window=600.1s server_cpu=0.3229% (1.938s) tab_cpu=0.0087% (0.052s) roster_polls=0 cycles=0 ai_state=ready change_summaries=on budget=<0.5%`).
 
 ### Phase 7 — Depth
 - Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),

@@ -1,6 +1,6 @@
 // frontend/src/charts/ArrivalTimeline.tsx
 import type { components } from "../api/schema.ts";
-import { formatArrivalReading } from "../pages/format.ts";
+import { formatArrivalReading, formatUtc } from "../pages/format.ts";
 import { roundSvg, timeScale, toEpochMs } from "./scale.ts";
 
 export type ArrivalReading = components["schemas"]["ArrivalReadingResponse"];
@@ -35,6 +35,23 @@ function formatCompactUtc(iso: string): string {
   const d = new Date(ms);
   const s = d.toISOString();
   return `${s.slice(5, 10)} ${s.slice(11, 16)}Z`;
+}
+
+function formatPlotWords(reading: ArrivalReading): string {
+  switch (reading.reading) {
+    case "outside":
+      return "outside: outside the 5% contour";
+    case "before":
+      return `before: by ${formatUtc(reading.end)}`;
+    case "after":
+      return `after: after ${formatUtc(reading.start)}`;
+    case "track":
+      return `track: ${reading.approach_at ? formatCompactUtc(reading.approach_at) : "—"} (closest approach)`;
+    case "unresolved":
+      return `unresolved: ${reading.origin === "kmz" ? "kmz" : "map layer"}, adv ${reading.advisory ?? "?"}`;
+    case "between":
+      return `between: ${formatArrivalReading(reading)}`;
+  }
 }
 
 export function ArrivalTimeline({
@@ -177,7 +194,7 @@ export function ArrivalTimeline({
                   className="fill-slate-600 text-caption dark:fill-slate-400"
                   data-testid={`arrival-words-${row.key}`}
                 >
-                  {`${row.reading.reading}: ${row.words}`}
+                  {formatPlotWords(row.reading)}
                 </text>
               )}
             </g>

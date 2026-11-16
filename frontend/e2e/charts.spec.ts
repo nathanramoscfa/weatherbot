@@ -7,10 +7,10 @@ test.describe("Dashboard and Timeline SVG charts", () => {
   }) => {
     await page.goto("/");
 
-    const comparisonStrip = page.getByTestId("location-comparison-strip");
-    await expect(comparisonStrip).toBeVisible();
+    const locationSwitcher = page.getByTestId("location-switcher");
+    await expect(locationSwitcher).toBeVisible();
     await expect(
-      comparisonStrip.getByRole("link", { name: "simulated Miami-Dade" }),
+      locationSwitcher.getByRole("link", { name: "simulated Miami-Dade" }),
     ).toHaveAttribute("href", "#location-simulated-miami-dade");
 
     await expect(page.getByTestId("level-sparkline").first()).toBeVisible();
