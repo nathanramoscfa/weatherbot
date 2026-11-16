@@ -318,5 +318,101 @@
     "date": "2026-11-01",
     "request_sha256": "f2ac1b7bcf93c69978954d9ceeea223d82700b30219e9b627079c392b33f8625",
     "bytes": 1414
+  },
+  {
+    "case": "scenario-cone-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "f056aaa704a2c75747a7d4046366dc43aae20d7ccca6a61f9d4ef500e06dec1d",
+    "bytes": 21482
+  },
+  {
+    "case": "scenario-cone-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "614531b1e3422358f07335208d9ad33c04557429f5c6e0efb70d2daabe71fe51",
+    "bytes": 18992
+  },
+  {
+    "case": "scenario-landfall-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "6b24a13a7ab6e867176f1a7063e3f8a0b7ae9d6ea864177ab701b7d7032f033c",
+    "bytes": 25042
+  },
+  {
+    "case": "scenario-landfall-miami-dade-summary",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "84c2676b776aebbf56faadab5850f9f413c402d2f84b171e65bad271642a8c45",
+    "bytes": 1008
+  },
+  {
+    "case": "scenario-landfall-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "4914e54e6263a09dc62d75bfbeb4307fb30abe05266d70af6a9feae727f9960d",
+    "bytes": 21174
+  },
+  {
+    "case": "scenario-landfall-nassau-summary",
+    "kind": "parse",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "a76d3a495e14884d01fac12f66d33deb9fe8b64d443a65f4375b506680b4d868",
+    "bytes": 916
+  },
+  {
+    "case": "scenario-outlook-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "e6f788c71d3b474a55d31cb4cb58bb9d86af3df0668aad8ba4d3ca6dbf6ff14e",
+    "bytes": 13903
+  },
+  {
+    "case": "scenario-outlook-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "eb74dffb8c126487b057ac7ef77c2941afce9cbc899de6641b33beef78a0362d",
+    "bytes": 14974
+  },
+  {
+    "case": "scenario-quiet-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "ca4b29e2f3ff5bc90f1225564991fd3c198518782f35dc1741cf14ac3fe268b6",
+    "bytes": 11328
+  },
+  {
+    "case": "scenario-quiet-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "12d2b22cb28300b082f95b772c3d07a9ea1c26298d504b2555772ac29a14bbbf",
+    "bytes": 12481
+  },
+  {
+    "case": "scenario-watch-miami-dade",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "1405647654143d824d6d3a313d89c83a53ea95cf1692978dbb0c0ff6506c93d2",
+    "bytes": 23535
+  },
+  {
+    "case": "scenario-watch-nassau",
+    "kind": "stream",
+    "model": "claude-sonnet-5-5",
+    "date": "2026-11-16",
+    "request_sha256": "91a40423e3408f9312a3f2562c2ad6b889701c9523d60dfa31c470d5524887fd",
+    "bytes": 20554
   }
 ]

@@ -1097,6 +1097,53 @@ against `serve_demo.py` in headless Chromium:
   intervals over the same 600 s window, and verifies that both CPU shares remain
   strictly under `0.5%` of one core.
 
+### The demonstration scenarios
+
+The recordings hold one storm, Eastern Pacific Hurricane Simon, so the default
+demonstration shows level 1 for both landmarks (and level 5 for the Miami-Dade
+landmark once the smoke's switch file exists). `scripts/serve_demo.py
+--scenario NAME` serves one of five scenarios instead, each through the real
+fetch, engine, storage, API, and event path, behind the same `respx` router
+that refuses every unknown request:
+
+```sh
+uv run python scripts/serve_demo.py --scenario quiet --port 8802
+uv run python scripts/serve_demo.py --scenario landfall --port 8806
+```
+
+| Scenario   | `simulated Miami-Dade` | `Parliament Square`        | Port |
+| ---------- | ---------------------- | -------------------------- | ---- |
+| `quiet`    | 1 `all_clear`          | 1 `all_clear`              | 8802 |
+| `outlook`  | 2 `development_region` | 2 `development_region`     | 8803 |
+| `cone`     | 3 `hurricane_cone`     | 2 `storm_cone`             | 8804 |
+| `watch`    | 4 `hurricane_watch`    | 3 `tropical_storm_watch`   | 8805 |
+| `landfall` | 5 `hurricane_warning`  | 4 `tropical_storm_warning` | 8806 |
+
+`quiet` holds no storm, alert, or outlook area; `outlook` one synthetic
+seven-day development region over both landmarks; the other three stage
+Hurricane Demo (`scripts/demo_storm.py`, `AL802026`), a synthetic Atlantic storm
+in the live feeds' own formats, at two decimals and labelled synthetic in its
+own fields, with its watches and warnings and an NWS alert for the Miami-Dade
+landmark's zone. `landfall` first stores its history (the `outlook`, `cone`, and
+`watch` stages as earlier advisories), so the sparklines, the timeline, the
+escalation notifications, and both change summaries have content. Every
+scenario stores each landmark's briefing before the server binds, replayed from
+`tests/fixtures/ai/scenario-*`. `--scenario` and `--switch-file` together exit
+2, and the clock still starts at `2026-10-13 01:30 UTC`.
+`scripts/demo_scenarios.py`'s `SCENARIOS` is the table above, and
+`build_database` builds a scenario's database in a directory for the tests and
+the recorder.
+
+The scenario recordings are made once, with the operator's yes: twelve requests
+(ten briefings and two change summaries), at most $0.60 at list price ($0.16
+when they were made). The recorder refuses without a credential, prints the
+count and the ceiling, and asks before anything is sent; re-record after any
+change to the synthetic storm or the scenarios that moves a briefing's context:
+
+```sh
+uv run python scripts/record_ai_fixtures.py --scenario all --force   # 12 requests, <= $0.60
+```
+
 ### The AI tests and the recorder
 
 No test reaches Anthropic or the operator's credential. `tests/conftest.py`

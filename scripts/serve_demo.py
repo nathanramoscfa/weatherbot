@@ -24,6 +24,17 @@ points at an empty one, so no credential is read and nothing leaves the machine.
 recordings answered the eval set's cases, so their text describes those cases (Parliament
 Square's briefing is Dorian's first advisory there), and the validators still judge each
 one against the demonstration's own context: an answer that fails them is withheld.
+
+``--scenario {quiet,outlook,cone,watch,landfall}`` serves one of
+``scripts/demo_scenarios.py``'s scenarios instead: Hurricane Demo, a synthetic Atlantic
+storm in the live feeds' own formats, with its official products staged so the two
+landmarks read the scenario's declared levels through the real fetch, engine, storage,
+API, and event path. The scenario's history (the landfall scenario's earlier advisories)
+is stored first, then its startup cycle, then each landmark's briefing and the history's
+last escalation summaries, all before the server binds; every later fetch keeps serving
+the scenario's answers, and a briefing or summary request replays the scenario's own
+recording when ``tests/fixtures/ai/`` holds one. ``--scenario`` and ``--switch-file``
+together exit 2. Without ``--scenario`` the server is the default demonstration, unchanged.
 """
 
 from __future__ import annotations
@@ -82,6 +93,13 @@ from cli_support import (  # noqa: E402
 )
 from source_support import NOW, entry  # noqa: E402
 
+from demo_scenarios import (  # noqa: E402
+    SCENARIO_NAMES,
+    Staging,
+    run_history,
+    scenario_recording,
+    seed_ai,
+)
 from simulate_advisory import (  # noqa: E402
     FORECAST_ALERTS_URL,
     SIMULATED_MIAMI,
@@ -136,6 +154,8 @@ class DemoReplay:
     fail_auth: bool = False
     stream_seconds: float = STREAM_SECONDS
     kinds: list[str] = field(default_factory=list[str])
+    scenario: str | None = None
+    """A scenario server's name: its briefings and summaries replay its own recordings."""
 
     async def handler(self, request: httpx2.Request) -> httpx2.Response:
         """Answer one request with its recorded answer.
@@ -170,6 +190,10 @@ class DemoReplay:
             The recorded answer.
         """
         text = json.dumps(body.get("messages", []))
+        if self.scenario is not None and kind in {"briefing", "summary"}:
+            recorded = scenario_recording(self.scenario, kind, text)
+            if recorded is not None:
+                return load_answer(recorded)
         if kind == "briefing":
             name = next(
                 (case for place, case in REPLAYED_BRIEFINGS.items() if place in text),
@@ -318,7 +342,16 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Write [retention] history_days into the demonstration's weatherbot.toml.",
     )
-    return parser.parse_args(argv)
+    parser.add_argument(
+        "--scenario",
+        choices=SCENARIO_NAMES,
+        default=None,
+        help="Serve a demonstration scenario (scripts/demo_scenarios.py) instead of the default.",
+    )
+    args = parser.parse_args(argv)
+    if args.scenario is not None and args.switch_file is not None:
+        parser.error("--scenario and --switch-file cannot be combined: a scenario stages its own")
+    return args
 
 
 def _baseline_roster_response() -> httpx.Response:
@@ -442,6 +475,7 @@ def _run_serve_loop(  # noqa: PLR0913 - the open database, its settings, and the
     corpus: ReplayCorpus | None,
     *,
     replay: DemoReplay,
+    after_startup: Callable[[], None] | None = None,
 ) -> None:
     def _make_demo_fetcher(
         client: httpx.AsyncClient,
@@ -469,6 +503,8 @@ def _run_serve_loop(  # noqa: PLR0913 - the open database, its settings, and the
         run_startup=True,
     )
     asyncio.run(initial_schedule.run_startup(clock()))
+    if after_startup is not None:
+        after_startup()
 
     context = Context(
         runtime=rt,
@@ -496,6 +532,36 @@ def _run_serve_loop(  # noqa: PLR0913 - the open database, its settings, and the
 
     with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(_run_with_sigbreak())
+
+
+def _prepare_scenario(  # noqa: PLR0913 - the open database, its settings, and the scenario's seams
+    database: Database,
+    paths: AppPaths,
+    settings: Settings,
+    clock: Callable[[], datetime],
+    *,
+    staging: Staging,
+    args: argparse.Namespace,
+) -> Callable[[], None]:
+    """Store a scenario's history now; return what seeds its AI after the startup cycle."""
+    asyncio.run(run_history(database, paths, settings, staging, channels=(LogChannel(),)))
+    seeding = DemoReplay(
+        fail_auth=bool(args.ai_fail_auth), stream_seconds=0.0, scenario=staging.scenario
+    )
+
+    def seed() -> None:
+        if args.ai_replay:
+            asyncio.run(
+                seed_ai(
+                    database,
+                    settings,
+                    demo_claude(seeding),
+                    scenario=staging.scenario,
+                    clock=clock,
+                )
+            )
+
+    return seed
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -539,12 +605,18 @@ def main(argv: list[str] | None = None) -> int:
         with TemporaryDirectory(prefix="weatherbot-serve-demo-") as tmp:
             _configure_demo_environ(Path(tmp), args)
             with recorded_services() as router:
-                router.get(ROSTER_URL).mock(side_effect=_roster_side_effect)
-                router.get(FORECAST_ALERTS_URL).mock(side_effect=_alerts_side_effect)
-                router.get(PEAK_SURGE_POLYGONS_URL).mock(
-                    return_value=synthetic_surge_polygons_response()
-                )
-                router.get(PEAK_SURGE_LINES_URL).mock(return_value=synthetic_surge_lines_response())
+                staging = Staging(args.scenario) if args.scenario is not None else None
+                if staging is None:
+                    router.get(ROSTER_URL).mock(side_effect=_roster_side_effect)
+                    router.get(FORECAST_ALERTS_URL).mock(side_effect=_alerts_side_effect)
+                    router.get(PEAK_SURGE_POLYGONS_URL).mock(
+                        return_value=synthetic_surge_polygons_response()
+                    )
+                    router.get(PEAK_SURGE_LINES_URL).mock(
+                        return_value=synthetic_surge_lines_response()
+                    )
+                else:
+                    staging.install(router)
 
                 ran_miami = add_landmark(SIMULATED_MIAMI, "miami-dade", "--polygon", "forecast")
                 if ran_miami.exit_code != EXIT_OK:
@@ -555,9 +627,24 @@ def main(argv: list[str] | None = None) -> int:
 
                 paths = AppPaths.resolve(os.environ)
                 settings = load_settings(paths, os.environ)
-                replay = DemoReplay(fail_auth=bool(args.ai_fail_auth))
+                replay = DemoReplay(fail_auth=bool(args.ai_fail_auth), scenario=args.scenario)
                 with open_database(paths) as database:
-                    _run_serve_loop(database, paths, settings, clock, corpus, replay=replay)
+                    after_startup = (
+                        _prepare_scenario(
+                            database, paths, settings, clock, staging=staging, args=args
+                        )
+                        if staging is not None
+                        else None
+                    )
+                    _run_serve_loop(
+                        database,
+                        paths,
+                        settings,
+                        clock,
+                        corpus,
+                        replay=replay,
+                        after_startup=after_startup,
+                    )
         return EXIT_OK
     finally:
         serve_logger.removeHandler(address_handler)
