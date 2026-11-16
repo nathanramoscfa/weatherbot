@@ -1,6 +1,6 @@
 # Phase 8 Roadmap — UI/UX Redesign and Visual Dogfooding
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -1266,9 +1266,9 @@ Step 9 needs Step 8's clean round before the operator's time is spent, and Step
 
 ---
 
-## Step 1 — Demonstration scenarios
+## Step 1 — Demonstration scenarios ✅
 
-**Status:** Not started
+**Status:** Complete — PR #111 (2026-11-16)
 
 > **Goal:** Put every level on screen while the real tropics are quiet.
 > `scripts/demo_storm.py` builds a synthetic Atlantic storm, in the live feeds'
@@ -1318,6 +1318,9 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high
 Ranked for coding, high complexity, novel. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
 estimated from the model's measured levels or its previous version's.
+
+> Ran 2026-11-16: Quality Pick, Balanced Pick, or Cost Runner-up — Opus 5.5 ·
+> XHigh, High, or Medium.
 
 **Conversation:** New
 
@@ -6414,7 +6417,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
-| 1    | Scenarios + recordings         | Opus 5.5       | Not started        |
+| 1    | Scenarios + recordings         | Opus 5.5       | Complete — PR #111 |
 | 2    | Design system + type gate      | Opus 5.5       | Not started        |
 | 3    | Plain English + ladder route   | Opus 5.5       | Not started        |
 | 4    | Command-center dashboard       | Gemini 4 Argon | Not started        |

@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 7 Complete — 2026-11-12; PR #106; v2.0.0-phase-7. Phase 8 (UI/UX redesign and visual dogfooding) is next; Phase 9 (Release 2.0) follows.
+> **Status:** Phase 7 Complete — 2026-11-12; PR #106; v2.0.0-phase-7. Phase 8 (UI/UX redesign and visual dogfooding) is in progress (phase08-roadmap.md); Phase 9 (Release 2.0) follows.
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -1198,7 +1198,7 @@ through `"06"` in `phase-verify.yml`.
 
 ### Phase 8 — UI/UX redesign and visual dogfooding
 
-**Status:** Not started
+**Status:** In progress — phase08-roadmap.md
 
 **Goal:** Transform the functional Phase 5–7 web app into a modern,
 high-readability meteorological command center, verified through a
@@ -2093,5 +2093,5 @@ The following are deliberately deferred to a future version:
 | 5     | Web app MVP                                   | High       | Complete |
 | 6     | Claude layer                                  | High       | Complete |
 | 7     | Depth                                         | Medium     | Complete |
-| 8     | UI/UX redesign and visual dogfooding          | High       | Not started |
+| 8     | UI/UX redesign and visual dogfooding          | High       | In progress |
 | 9     | Release 2.0                                   | Medium     | Not started |
