@@ -1898,9 +1898,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 2 — The design system and readable type
+## Step 2 — The design system and readable type ✅
 
-**Status:** Not started
+**Status:** Complete — PR #112 (2026-11-16)
 
 > **Goal:** Give every page one design language and type a reader can read.
 > `frontend/src/index.css` gains a Tailwind `@theme` with the operator's type
@@ -1944,6 +1944,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
+
+> Ran 2026-11-16: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -6437,7 +6439,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Scenarios + recordings         | Opus 5.5       | Complete — PR #111 |
-| 2    | Design system + type gate      | Opus 5.5       | Not started        |
+| 2    | Design system + type gate      | Opus 5.5       | Complete — PR #112 |
 | 3    | Plain English + ladder route   | Opus 5.5       | Not started        |
 | 4    | Command-center dashboard       | Gemini 4 Argon | Not started        |
 | 5    | Immersive map                  | Gemini 4 Argon | Not started        |
