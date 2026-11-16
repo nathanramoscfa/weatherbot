@@ -96,6 +96,7 @@ export const queryKeys = {
   notificationChannels: () =>
     invalidatableQueryKey("notifications", "channels"),
   settings: () => invalidatableQueryKey("settings"),
+  ladder: () => invalidatableQueryKey("settings", "ladder"),
   retention: (days?: number) =>
     days !== undefined
       ? invalidatableQueryKey("settings", "retention", days)

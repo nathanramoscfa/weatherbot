@@ -8,12 +8,11 @@ import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { ThreatLevelBadge } from "../app/ThreatLevelBadge.tsx";
 import { EvidenceList } from "../assessment/EvidenceList.tsx";
-import {
-  LevelSummary,
-  UnavailableBanner,
-} from "../assessment/LevelSummary.tsx";
+import { LevelSummary } from "../assessment/LevelSummary.tsx";
+import { LocationHero } from "../assessment/LocationHero.tsx";
 import { OfficialProductList } from "../assessment/OfficialProductList.tsx";
 import { ThreatTable } from "../assessment/ThreatTable.tsx";
+import { WhyThisLevel } from "../assessment/WhyThisLevel.tsx";
 import { LevelHistoryChart } from "../charts/LevelHistoryChart.tsx";
 import type { ChartLevelPoint } from "../charts/LevelSparkline.tsx";
 import {
@@ -31,8 +30,6 @@ import {
 } from "../map/layers.ts";
 import { useLeafletMap } from "../map/useLeafletMap.ts";
 import {
-  formatBothTimes,
-  formatBreakpointSpan,
   formatRouteError,
   formatUtc,
 } from "./format.ts";
@@ -645,14 +642,12 @@ export function Replay() {
               <div className="flex items-center gap-2">
                 <ThreatLevelBadge
                   level={activeStep.level.number}
+                  label={activeStep.level.label}
                   atLeast={!activeStep.complete}
                   size="sm"
                 />
                 <span className="text-caption text-slate-600 dark:text-slate-400">
-                  Rule:{" "}
-                  <code className="rounded bg-slate-100 px-1 py-0.5 font-mono dark:bg-slate-800">
-                    {activeStep.rule}
-                  </code>
+                  {activeStep.rule_trigger}
                 </span>
               </div>
             </div>
@@ -741,58 +736,29 @@ export function Replay() {
             data-testid="replay-assessment-card"
             className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
           >
-            <div className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-start dark:border-slate-800">
-              <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-base font-bold text-slate-900 sm:text-lg dark:text-slate-100">
-                    {assessment.location}
-                  </h2>
-                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-caption font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                    {assessment.inside_nws_coverage
-                      ? "Inside NWS coverage"
-                      : "Outside NWS coverage"}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Time zone: {assessment.time_zone ?? "UTC"} · Breakpoint span:{" "}
-                  {formatBreakpointSpan(assessment.breakpoint_span)}
-                </p>
-              </div>
-
-              <div className="flex flex-col items-start gap-1 sm:items-end">
-                <ThreatLevelBadge
-                  level={assessment.level.number}
-                  atLeast={!assessment.complete}
-                />
-                <span className="text-caption text-slate-600 dark:text-slate-400">
-                  Issued:{" "}
-                  {formatBothTimes(assessment.as_of, assessment.time_zone)}
+            <div className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center dark:border-slate-800">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900 sm:text-lg dark:text-slate-100">
+                  {assessment.location}
+                </h2>
+                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-caption font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  {assessment.inside_nws_coverage
+                    ? "Inside NWS coverage"
+                    : "Outside NWS coverage"}
                 </span>
               </div>
+
+              <ThreatLevelBadge
+                level={assessment.level.number}
+                label={assessment.level.label}
+                atLeast={!assessment.complete}
+              />
             </div>
 
-            <UnavailableBanner
-              complete={assessment.complete}
-              unavailable={assessment.unavailable}
-            />
-
-            <LevelSummary assessment={assessment}>
-              <EvidenceList
-                evidence={assessment.evidence}
-                timeZone={assessment.time_zone}
-              />
-            </LevelSummary>
-
-            <OfficialProductList
-              official={assessment.official}
+            <LocationHero
+              assessment={assessment}
               timeZone={assessment.time_zone}
-            />
-
-            <ThreatTable
-              threats={assessment.threats}
-              windProbabilities={assessment.wind_probabilities}
-              asOf={assessment.as_of}
-              timeZone={assessment.time_zone}
+              origin="replay"
             />
 
             {assessment.changes.length > 0 && (
@@ -803,12 +769,38 @@ export function Replay() {
                 <ul className="list-disc space-y-0.5 pl-4 text-slate-700 dark:text-slate-300">
                   {assessment.changes.map((chg, idx) => (
                     <li key={`${chg.kind}-${String(idx)}`} className="max-w-measure">
-                    {chg.detail}
-                  </li>
+                      {chg.detail}
+                    </li>
                   ))}
                 </ul>
               </div>
             )}
+
+            <WhyThisLevel
+              assessment={assessment}
+              insideNwsCoverage={assessment.inside_nws_coverage}
+              timeZone={assessment.time_zone}
+              breakpointSpan={assessment.breakpoint_span}
+            >
+              <LevelSummary assessment={assessment}>
+                <EvidenceList
+                  evidence={assessment.evidence}
+                  timeZone={assessment.time_zone}
+                />
+              </LevelSummary>
+
+              <OfficialProductList
+                official={assessment.official}
+                timeZone={assessment.time_zone}
+              />
+
+              <ThreatTable
+                threats={assessment.threats}
+                windProbabilities={assessment.wind_probabilities}
+                asOf={assessment.as_of}
+                timeZone={assessment.time_zone}
+              />
+            </WhyThisLevel>
           </article>
         )}
       </div>

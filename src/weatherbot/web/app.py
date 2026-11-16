@@ -36,6 +36,7 @@ from weatherbot.web.routes.charts import router as charts_router
 from weatherbot.web.routes.disclaimer import router as disclaimer_router
 from weatherbot.web.routes.events import router as events_router
 from weatherbot.web.routes.health import router as health_router
+from weatherbot.web.routes.ladder import router as ladder_router
 from weatherbot.web.routes.locations import router as locations_router
 from weatherbot.web.routes.map import router as map_router
 from weatherbot.web.routes.notifications import router as notifications_router
@@ -334,6 +335,7 @@ def create_app(state: WebState) -> FastAPI:
     app.include_router(notifications_router)
     app.include_router(settings_router)
     app.include_router(disclaimer_router)
+    app.include_router(ladder_router)
     app.include_router(map_router)
     app.include_router(replay_router)
     app.include_router(report_router)

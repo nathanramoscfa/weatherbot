@@ -504,6 +504,25 @@
         }
       }
     },
+    "/api/ladder": {
+      "get": {
+        "summary": "Get Ladder",
+        "description": "Return the engine's levels, ordered rules, read products, and running startup thresholds.",
+        "operationId": "get_ladder_api_ladder_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LadderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/map": {
       "get": {
         "summary": "Get Map",
@@ -4834,6 +4853,223 @@
           "7d0"
         ]
       },
+      "LadderCodeResponse": {
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/WatchWarningCode",
+            "description": "NHC coastal watch-warning segment code (HWR, TWR, HWA, TWA)."
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Plain-English name of the NHC watch or warning code."
+          },
+          "rule": {
+            "$ref": "#/components/schemas/RuleId",
+            "description": "Ladder rule triggered when a covering NHC segment carries this code."
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Level",
+            "description": "Threat level (1..5) set by that rule."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "rule",
+          "level"
+        ],
+        "title": "LadderCodeResponse",
+        "description": "An NHC coastal watch-warning code read by the ladder and the rule and level it sets."
+      },
+      "LadderEventResponse": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "Event",
+            "description": "Exact NWS alert event name read by the threat ladder."
+          },
+          "rule": {
+            "$ref": "#/components/schemas/RuleId",
+            "description": "Ladder rule triggered when a covering NWS alert carries this event."
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Level",
+            "description": "Threat level (1..5) set by that rule."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "event",
+          "rule",
+          "level"
+        ],
+        "title": "LadderEventResponse",
+        "description": "An NWS alert event name read by the ladder and the rule and level it sets."
+      },
+      "LadderResponse": {
+        "properties": {
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/ThreatLevelResponse"
+            },
+            "type": "array",
+            "title": "Levels",
+            "description": "The five threat levels (1..5) in AlertLevel order, with labels and actions."
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/LadderRuleResponse"
+            },
+            "type": "array",
+            "title": "Rules",
+            "description": "The eleven ladder rules in fixed evaluation order."
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/LadderEventResponse"
+            },
+            "type": "array",
+            "title": "Events",
+            "description": "The four NWS alert event names read by the ladder and the rule each triggers."
+          },
+          "codes": {
+            "items": {
+              "$ref": "#/components/schemas/LadderCodeResponse"
+            },
+            "type": "array",
+            "title": "Codes",
+            "description": "The four NHC coastal watch-warning codes read by the ladder and their rules."
+          },
+          "thresholds": {
+            "items": {
+              "$ref": "#/components/schemas/LadderThresholdResponse"
+            },
+            "type": "array",
+            "title": "Thresholds",
+            "description": "The six engine thresholds currently running in this server process."
+          },
+          "ruleset": {
+            "type": "string",
+            "title": "Ruleset",
+            "description": "SHA-256 fingerprint of the rule order and running thresholds."
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "description": "One-line informational-only disclaimer notice."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "levels",
+          "rules",
+          "events",
+          "codes",
+          "thresholds",
+          "ruleset",
+          "notice"
+        ],
+        "title": "LadderResponse",
+        "description": "Response document for ``GET /api/ladder``."
+      },
+      "LadderRuleResponse": {
+        "properties": {
+          "order": {
+            "type": "integer",
+            "maximum": 11.0,
+            "minimum": 1.0,
+            "title": "Order",
+            "description": "Evaluation order of the rule (1..11); the first rule with a match decides."
+          },
+          "id": {
+            "$ref": "#/components/schemas/RuleId",
+            "description": "Engine identifier of the ladder rule."
+          },
+          "level": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Level",
+            "description": "Threat level (1..5) set when this rule matches."
+          },
+          "sentence": {
+            "type": "string",
+            "title": "Sentence",
+            "description": "Plain-English sentence describing what triggers this rule."
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources",
+            "description": "Official product feeds or location inputs this rule reads."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "order",
+          "id",
+          "level",
+          "sentence",
+          "sources"
+        ],
+        "title": "LadderRuleResponse",
+        "description": "One of the eleven ladder rules in evaluation order returned by ``GET /api/ladder``."
+      },
+      "LadderThresholdResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Engine threshold key in [engine] of weatherbot.toml."
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Value",
+            "description": "Running threshold value from startup settings."
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit",
+            "description": "Unit of the threshold value (km, h, or %)."
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Plain-English explanation of what the threshold bounds."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "value",
+          "unit",
+          "description"
+        ],
+        "title": "LadderThresholdResponse",
+        "description": "One running engine threshold reported by ``GET /api/ladder``."
+      },
       "LocationAlertResponse": {
         "properties": {
           "id": {
@@ -7377,6 +7613,24 @@
         ],
         "title": "RetentionSettingResponse",
         "description": "Effective ``[retention] history_days`` setting and its origin."
+      },
+      "RuleId": {
+        "type": "string",
+        "enum": [
+          "hurricane_warning",
+          "tropical_storm_warning",
+          "hurricane_watch",
+          "evacuation_order",
+          "tropical_storm_watch",
+          "hurricane_cone",
+          "hurricane_wind_probability",
+          "storm_cone",
+          "development_region",
+          "tropical_storm_wind_probability",
+          "all_clear"
+        ],
+        "title": "RuleId",
+        "description": "The eleven rules, in the order the engine evaluates them.\n\nWithin a level, official products precede the operator's toggle, and both precede\ngeometry and probability. ``all_clear`` decides when no other rule matches."
       },
       "RunRetentionRequest": {
         "properties": {

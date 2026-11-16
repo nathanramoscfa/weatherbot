@@ -102,7 +102,7 @@ describe("Dashboard", () => {
       screen.getAllByText(/Coastal Flood Statement/).length,
     ).toBeGreaterThan(0);
 
-    // The AI briefing sits in each card after the evidence, beneath the level
+    // The AI briefing sits in each card after the hero headline
     const miamiCard = screen.getByRole("article", {
       name: "Miami-Dade County Hall",
     });
@@ -110,15 +110,17 @@ describe("Dashboard", () => {
       name: "AI briefing for Miami-Dade County Hall",
     });
     const level = within(miamiCard).getByText("Level 1");
-    const evidence = within(miamiCard).getByRole("switch", {
-      name: "Evacuation order for Miami-Dade County Hall",
-    });
-    expect(within(miamiCard).getByText(/Deciding rule:/)).toBeInTheDocument();
+    const heroHeadline = within(miamiCard).getByTestId(
+      "location-hero-headline",
+    );
+    const disclosure = within(miamiCard).getByTestId("why-this-level");
+    expect(heroHeadline).toHaveTextContent("Level 1 — All Clear");
+    expect(disclosure).not.toHaveAttribute("open");
     expect(
       level.compareDocumentPosition(briefing) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(
-      evidence.compareDocumentPosition(briefing) &
+      heroHeadline.compareDocumentPosition(briefing) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expect(within(briefing).getByTestId("ai-label")).toHaveTextContent(
@@ -237,7 +239,7 @@ describe("Dashboard", () => {
     expect(
       screen.getByTestId("level-live-region"),
     ).toHaveTextContent(
-      "Miami <script>alert(1)</script>: At least Level 1, All Clear. Decided by all_clear.",
+      "Miami <script>alert(1)</script>: At least Level 1, All Clear. No other rule matches.",
     );
     expect(
       screen.getByText(

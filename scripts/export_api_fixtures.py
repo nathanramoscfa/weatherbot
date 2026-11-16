@@ -113,6 +113,7 @@ ROUTE_FIXTURES: Final[tuple[tuple[str, str], ...]] = (
     ("settings.json", "/api/settings"),
     ("retention.json", "/api/retention"),
     ("disclaimer.json", "/api/disclaimer"),
+    ("ladder.json", "/api/ladder"),
     ("map.json", "/api/map"),
     ("replay.json", "/api/replay"),
     ("replay-advisory.json", "/api/replay/AL112017/036"),

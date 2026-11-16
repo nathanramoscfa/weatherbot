@@ -16,24 +16,39 @@ export function EvidenceList({ evidence, timeZone }: EvidenceListProps) {
   }
 
   return (
-    <div className="mt-2 border-t border-slate-200 pt-2 dark:border-slate-700">
-      <p className="font-semibold text-slate-800 dark:text-slate-200">
+    <div className="mt-2 border-t border-line pt-2">
+      <p className="font-semibold text-ink">
         Deciding evidence
       </p>
-      <ul className="mt-1 space-y-1 text-slate-700 tabular-nums dark:text-slate-300">
-        {evidence.map((ev, idx) => (
-          <li key={`${ev.product}-${String(idx)}`}>
-            <span>{ev.detail}</span>
-            {ev.code ? ` · ${ev.code}` : ""}
-            {ev.source_id ? ` (${ev.source_id})` : ""}
-            {ev.distance_km !== null && ev.distance_km !== undefined
-              ? ` · ${formatKm(ev.distance_km)}${ev.at_end ? " (at its end)" : ""}`
-              : ""}
-            {ev.issued_at
-              ? ` · issued ${formatBothTimes(ev.issued_at, timeZone)}`
-              : ""}
-          </li>
-        ))}
+      <ul className="mt-1.5 space-y-2 text-ink-muted tabular-nums">
+        {evidence.map((ev, idx) => {
+          const metaParts: string[] = [];
+          if (ev.code) {
+            metaParts.push(ev.code);
+          }
+          if (ev.source_id) {
+            metaParts.push(`(${ev.source_id})`);
+          }
+          if (ev.distance_km !== null && ev.distance_km !== undefined) {
+            metaParts.push(
+              `${formatKm(ev.distance_km)}${ev.at_end ? " (at its end)" : ""}`,
+            );
+          }
+          if (ev.issued_at) {
+            metaParts.push(`issued ${formatBothTimes(ev.issued_at, timeZone)}`);
+          }
+
+          return (
+            <li key={`${ev.product}-${String(idx)}`} className="max-w-measure">
+              <span className="block text-sm text-ink">{ev.detail}</span>
+              {metaParts.length > 0 && (
+                <span className="mt-0.5 block text-caption text-ink-subtle tabular-nums">
+                  {metaParts.join(" · ")}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

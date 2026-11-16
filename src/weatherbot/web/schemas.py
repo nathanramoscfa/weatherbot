@@ -21,10 +21,12 @@ from weatherbot.models import (
     BreakpointSpan,
     NwsCoverage,
     OutlookRisk,
+    RuleId,
     SourceId,
     SourceOutcome,
     StormClassification,
     StormSlot,
+    WatchWarningCode,
     WatchWarningType,
 )
 from weatherbot.services.ai.chat import QUESTION_LIMIT
@@ -1347,7 +1349,7 @@ class RunRetentionResponse(_ApiModel):
     notice: str = Field(description="One-line informational-only disclaimer notice.")
 
 
-# Disclaimer (GET /api/disclaimer) ----------------------------------------------------------
+# Disclaimer (GET /api/disclaimer) & Ladder (GET /api/ladder) -------------------------------
 
 
 class DisclaimerResponse(_ApiModel):
@@ -1359,6 +1361,82 @@ class DisclaimerResponse(_ApiModel):
     essentials: tuple[str, ...] = Field(description="Essential disclaimer summary points.")
     full_text: str = Field(description="Complete text of DISCLAIMER.md.")
     url: str = Field(description="Canonical public URL for DISCLAIMER.md.")
+
+
+class LadderRuleResponse(_ApiModel):
+    """One of the eleven ladder rules in evaluation order returned by ``GET /api/ladder``."""
+
+    order: int = Field(
+        ge=1,
+        le=11,
+        description="Evaluation order of the rule (1..11); the first rule with a match decides.",
+    )
+    id: RuleId = Field(description="Engine identifier of the ladder rule.")
+    level: int = Field(
+        ge=1,
+        le=5,
+        description="Threat level (1..5) set when this rule matches.",
+    )
+    sentence: str = Field(description="Plain-English sentence describing what triggers this rule.")
+    sources: tuple[str, ...] = Field(
+        description="Official product feeds or location inputs this rule reads."
+    )
+
+
+class LadderEventResponse(_ApiModel):
+    """An NWS alert event name read by the ladder and the rule and level it sets."""
+
+    event: str = Field(description="Exact NWS alert event name read by the threat ladder.")
+    rule: RuleId = Field(
+        description="Ladder rule triggered when a covering NWS alert carries this event."
+    )
+    level: int = Field(ge=1, le=5, description="Threat level (1..5) set by that rule.")
+
+
+class LadderCodeResponse(_ApiModel):
+    """An NHC coastal watch-warning code read by the ladder and the rule and level it sets."""
+
+    code: WatchWarningCode = Field(
+        description="NHC coastal watch-warning segment code (HWR, TWR, HWA, TWA)."
+    )
+    name: str = Field(description="Plain-English name of the NHC watch or warning code.")
+    rule: RuleId = Field(
+        description="Ladder rule triggered when a covering NHC segment carries this code."
+    )
+    level: int = Field(ge=1, le=5, description="Threat level (1..5) set by that rule.")
+
+
+class LadderThresholdResponse(_ApiModel):
+    """One running engine threshold reported by ``GET /api/ladder``."""
+
+    name: str = Field(description="Engine threshold key in [engine] of weatherbot.toml.")
+    value: float | int = Field(description="Running threshold value from startup settings.")
+    unit: str = Field(description="Unit of the threshold value (km, h, or %).")
+    description: str = Field(description="Plain-English explanation of what the threshold bounds.")
+
+
+class LadderResponse(_ApiModel):
+    """Response document for ``GET /api/ladder``."""
+
+    levels: tuple[ThreatLevelResponse, ...] = Field(
+        description="The five threat levels (1..5) in AlertLevel order, with labels and actions."
+    )
+    rules: tuple[LadderRuleResponse, ...] = Field(
+        description="The eleven ladder rules in fixed evaluation order."
+    )
+    events: tuple[LadderEventResponse, ...] = Field(
+        description="The four NWS alert event names read by the ladder and the rule each triggers."
+    )
+    codes: tuple[LadderCodeResponse, ...] = Field(
+        description="The four NHC coastal watch-warning codes read by the ladder and their rules."
+    )
+    thresholds: tuple[LadderThresholdResponse, ...] = Field(
+        description="The six engine thresholds currently running in this server process."
+    )
+    ruleset: str = Field(
+        description="SHA-256 fingerprint of the rule order and running thresholds."
+    )
+    notice: str = Field(description="One-line informational-only disclaimer notice.")
 
 
 # Map & Replay (GET /api/map, GET /api/replay, GET /api/replay/{atcf_id}/{advisory}) --------

@@ -160,6 +160,7 @@ export function Ask() {
                 <>
                   <ThreatLevelBadge
                     level={item.assessment.level.number}
+                    label={item.assessment.level.label}
                     atLeast={!item.assessment.complete}
                     size="sm"
                   />
