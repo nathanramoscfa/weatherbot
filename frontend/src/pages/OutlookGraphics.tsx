@@ -31,7 +31,7 @@ export function OutlookGraphics() {
 
   if (outlookQuery.isError) {
     return (
-      <p role="alert" className="mt-3 text-xs text-red-800 dark:text-red-300">
+      <p role="alert" className="mt-3 text-sm text-red-800 dark:text-red-300">
         {formatRouteError(
           "/api/outlook",
           outlookQuery.error instanceof ApiRequestError
@@ -68,7 +68,7 @@ export function OutlookGraphics() {
           return (
             <figure
               key={`${graphic.basin}-${graphic.horizon}`}
-              className="space-y-2 rounded-md border border-slate-200 bg-slate-50/70 p-2.5 text-xs dark:border-slate-800 dark:bg-slate-800/40"
+              className="space-y-2 rounded-md border border-slate-200 bg-slate-50/70 p-2.5 text-sm dark:border-slate-800 dark:bg-slate-800/40"
             >
               <img
                 key={graphic.sha256}

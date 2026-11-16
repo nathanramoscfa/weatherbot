@@ -36,6 +36,7 @@ import {
   formatRouteError,
   formatUtc,
 } from "./format.ts";
+import { Card } from "../ui/Card.tsx";
 
 export type HealthResponse = components["schemas"]["HealthResponse"];
 export type LocationsResponse = components["schemas"]["LocationsResponse"];
@@ -442,13 +443,13 @@ export function Replay() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <Card as="section">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               Replay
             </h1>
-            <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+            <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">
               Scrub archived NHC storm advisories against your watched locations
               without storing history or triggering notifications.
             </p>
@@ -456,7 +457,7 @@ export function Replay() {
 
           {corpusEnabled && storms.length > 0 && locations.length > 0 && (
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-sm">
                 <label
                   htmlFor="replay-storm-picker"
                   className="font-semibold text-slate-700 dark:text-slate-300"
@@ -472,7 +473,7 @@ export function Replay() {
                     setSelectedStormId(e.target.value);
                     setSelectedAdvisoryId(null);
                   }}
-                  className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm text-slate-900 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 >
                   {storms.map((storm) => (
                     <option key={storm.atcf_id} value={storm.atcf_id}>
@@ -483,7 +484,7 @@ export function Replay() {
                 </select>
               </div>
 
-              <div className="flex items-center gap-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-sm">
                 <label
                   htmlFor="replay-location-picker"
                   className="font-semibold text-slate-700 dark:text-slate-300"
@@ -498,7 +499,7 @@ export function Replay() {
                     setPlaying(false);
                     setSelectedLocation(e.target.value);
                   }}
-                  className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs text-slate-900 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm text-slate-900 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                 >
                   {locations.map((loc) => (
                     <option key={loc.name} value={loc.name}>
@@ -510,7 +511,7 @@ export function Replay() {
             </div>
           )}
         </div>
-      </section>
+      </Card>
 
       {!corpusEnabled && (
         <section
@@ -527,7 +528,7 @@ export function Replay() {
               <h2 className="font-semibold">
                 No historical replay corpus is configured
               </h2>
-              <p className="text-xs leading-relaxed">
+              <p className="text-sm leading-relaxed">
                 To scrub historical storms in the UI, set{" "}
                 <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
                   [web] corpus
@@ -569,14 +570,14 @@ export function Replay() {
           <p className="font-semibold text-slate-900 dark:text-slate-100">
             No watched locations stored
           </p>
-          <p className="mt-1 text-xs">
+          <p className="mt-1 text-sm">
             Add a watched location in Settings to scrub historical storm
             timelines against it.
           </p>
           <div className="mt-3">
             <Link
               to="/settings"
-              className="inline-flex items-center rounded-md bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-slate-950"
+              className="inline-flex items-center rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover"
             >
               Add a location in Settings
             </Link>
@@ -603,7 +604,7 @@ export function Replay() {
           <div
             role="status"
             data-testid="replay-banner"
-            className="rounded-lg border border-amber-400 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-950 dark:border-amber-600/80 dark:bg-amber-950/70 dark:text-amber-100"
+            className="rounded-lg border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-950 dark:border-amber-600/80 dark:bg-amber-950/70 dark:text-amber-100"
           >
             Replay: {timeline.name} advisory {activeStep.advisory}, issued{" "}
             {formatUtc(activeStep.issued_at)} — not live
@@ -621,7 +622,7 @@ export function Replay() {
                   aria-label={isPlaying ? "Pause" : "Play"}
                   onClick={handleTogglePlay}
                   disabled={steps.length <= 1}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-sky-500 dark:text-slate-950"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isPlaying ? (
                     <>
@@ -635,7 +636,7 @@ export function Replay() {
                     </>
                   )}
                 </button>
-                <span className="text-xs text-slate-600 dark:text-slate-400">
+                <span className="text-caption text-slate-600 tabular-nums dark:text-slate-400">
                   Step {String(activeStepIndex + 1)} of {String(steps.length)} ·
                   Advisory {activeStep.advisory} ({activeStep.advisory_id})
                 </span>
@@ -647,7 +648,7 @@ export function Replay() {
                   atLeast={!activeStep.complete}
                   size="sm"
                 />
-                <span className="text-xs text-slate-600 dark:text-slate-400">
+                <span className="text-caption text-slate-600 dark:text-slate-400">
                   Rule:{" "}
                   <code className="rounded bg-slate-100 px-1 py-0.5 font-mono dark:bg-slate-800">
                     {activeStep.rule}
@@ -679,12 +680,14 @@ export function Replay() {
             <section
               aria-label="Replay notes"
               data-testid="replay-notes"
-              className="rounded-lg border border-amber-300 bg-amber-50/70 p-3.5 text-xs text-amber-950 dark:border-amber-700/70 dark:bg-amber-950/40 dark:text-amber-100"
+              className="rounded-lg border border-amber-300 bg-amber-50/70 p-3.5 text-sm text-amber-950 dark:border-amber-700/70 dark:bg-amber-950/40 dark:text-amber-100"
             >
               <h2 className="font-semibold">Replay notes</h2>
               <ul className="mt-1 list-disc space-y-1 pl-4">
                 {timeline.notes.map((note, idx) => (
-                  <li key={`note-${String(idx)}`}>{note}</li>
+                  <li key={`note-${String(idx)}`} className="max-w-measure">
+                    {note}
+                  </li>
                 ))}
               </ul>
             </section>
@@ -707,7 +710,7 @@ export function Replay() {
             <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Advisory map
             </h2>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
               {replayLayerItems.map((layer) => (
                 <label
                   key={layer.key}
@@ -744,13 +747,13 @@ export function Replay() {
                   <h2 className="text-base font-bold text-slate-900 sm:text-lg dark:text-slate-100">
                     {assessment.location}
                   </h2>
-                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-caption font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                     {assessment.inside_nws_coverage
                       ? "Inside NWS coverage"
                       : "Outside NWS coverage"}
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-600 dark:text-slate-400">
                   Time zone: {assessment.time_zone ?? "UTC"} · Breakpoint span:{" "}
                   {formatBreakpointSpan(assessment.breakpoint_span)}
                 </p>
@@ -761,7 +764,7 @@ export function Replay() {
                   level={assessment.level.number}
                   atLeast={!assessment.complete}
                 />
-                <span className="text-xs text-slate-600 dark:text-slate-400">
+                <span className="text-caption text-slate-600 dark:text-slate-400">
                   Issued:{" "}
                   {formatBothTimes(assessment.as_of, assessment.time_zone)}
                 </span>
@@ -793,13 +796,15 @@ export function Replay() {
             />
 
             {assessment.changes.length > 0 && (
-              <div className="space-y-1 text-xs">
+              <div className="space-y-1 text-sm">
                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">
                   Changes at this advisory
                 </h3>
                 <ul className="list-disc space-y-0.5 pl-4 text-slate-700 dark:text-slate-300">
                   {assessment.changes.map((chg, idx) => (
-                    <li key={`${chg.kind}-${String(idx)}`}>{chg.detail}</li>
+                    <li key={`${chg.kind}-${String(idx)}`} className="max-w-measure">
+                    {chg.detail}
+                  </li>
                   ))}
                 </ul>
               </div>

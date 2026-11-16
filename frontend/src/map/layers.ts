@@ -973,7 +973,7 @@ export function createPopupElement(
   lines: readonly string[],
 ): HTMLElement {
   const container = document.createElement("div");
-  container.className = "space-y-1 text-xs";
+  container.className = "space-y-1 text-sm";
 
   const heading = document.createElement("p");
   heading.className = "font-bold";

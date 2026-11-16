@@ -70,35 +70,35 @@ export function describeThreatLevel(
         level: 5,
         label: customLabel ?? "Hurricane Warning / Evacuation",
         badgeClassName:
-          "border-red-700 bg-red-600 text-white dark:border-red-400 dark:bg-red-700 dark:text-white",
+          "border-threat-5-accent bg-threat-5-accent text-threat-5-on-accent",
       };
     case 4:
       return {
         level: 4,
         label: customLabel ?? "Tropical Storm Warning / Hurricane Watch",
         badgeClassName:
-          "border-orange-600 bg-orange-500 text-slate-950 dark:border-orange-400 dark:bg-orange-600 dark:text-white",
+          "border-threat-4-accent bg-threat-4-accent text-threat-4-on-accent",
       };
     case 3:
       return {
         level: 3,
         label: customLabel ?? "Storm Watch",
         badgeClassName:
-          "border-amber-500 bg-amber-300 text-slate-950 dark:border-amber-400 dark:bg-amber-500 dark:text-slate-950",
+          "border-threat-3-accent bg-threat-3-accent text-threat-3-on-accent",
       };
     case 2:
       return {
         level: 2,
         label: customLabel ?? "Awareness",
         badgeClassName:
-          "border-sky-600 bg-sky-100 text-sky-950 dark:border-sky-400 dark:bg-sky-900 dark:text-sky-100",
+          "border-threat-2-border bg-threat-2-surface text-threat-2-fg",
       };
     default:
       return {
         level: 1,
         label: customLabel ?? "All Clear",
         badgeClassName:
-          "border-emerald-600 bg-emerald-100 text-emerald-950 dark:border-emerald-500 dark:bg-emerald-900 dark:text-emerald-100",
+          "border-threat-1-border bg-threat-1-surface text-threat-1-fg",
       };
   }
 }
@@ -118,12 +118,12 @@ export function ThreatLevelBadge({
 }: ThreatLevelBadgeProps) {
   const descriptor = describeThreatLevel(level, label);
   const sizeClass =
-    size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs";
+    size === "sm" ? "px-2 py-0.5 text-caption" : "px-2.5 py-1 text-sm";
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-md border font-semibold ${sizeClass} ${descriptor.badgeClassName}`}
+      className={`inline-flex flex-wrap items-center gap-x-1.5 rounded-md border font-semibold ${sizeClass} ${descriptor.badgeClassName}`}
     >
-      <span>
+      <span className="whitespace-nowrap">
         {atLeast
           ? `At least Level ${String(descriptor.level)}`
           : `Level ${String(descriptor.level)}`}

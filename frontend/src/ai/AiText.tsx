@@ -38,7 +38,7 @@ export function AiSources({ sources }: AiSourcesProps) {
                 href={source.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-sky-400 dark:hover:text-sky-300"
+                className="inline-flex items-center gap-0.5 font-medium text-sky-700 underline underline-offset-2 hover:text-sky-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:text-sky-400 dark:hover:text-sky-300"
               >
                 official page
                 <ExternalLink className="h-3 w-3" aria-hidden="true" />

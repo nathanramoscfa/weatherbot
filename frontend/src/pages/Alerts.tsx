@@ -11,6 +11,8 @@ import {
   formatRouteError,
   formatUtc,
 } from "./format.ts";
+import { Card } from "../ui/Card.tsx";
+import { PageHeader } from "../ui/PageHeader.tsx";
 
 export type AlertsResponse = components["schemas"]["AlertsResponse"];
 export type LocationAlertsGroupResponse =
@@ -88,25 +90,25 @@ export function Alerts() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Alerts
-        </h1>
-        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-          {snapshot ? (
-            <>
-              Snapshot:{" "}
-              <strong className="font-semibold text-slate-800 dark:text-slate-100">
-                {snapshot.status}
-              </strong>{" "}
-              · completed {formatUtc(snapshot.completed_at)} (
-              {formatAgeSeconds(snapshot.age_seconds)})
-            </>
-          ) : (
-            "No snapshot stored yet."
-          )}
-        </p>
-      </section>
+      <Card as="section">
+        <PageHeader
+          title="Alerts"
+          summary={
+            snapshot ? (
+              <>
+                Snapshot:{" "}
+                <strong className="font-semibold text-slate-800 dark:text-slate-100">
+                  {snapshot.status}
+                </strong>{" "}
+                · completed {formatUtc(snapshot.completed_at)} (
+                {formatAgeSeconds(snapshot.age_seconds)})
+              </>
+            ) : (
+              "No snapshot stored yet."
+            )
+          }
+        />
+      </Card>
 
       {locations.length === 0 ? (
         <section className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
@@ -138,9 +140,9 @@ function LocationAlertsCard({
     alerts?.filter((a) => !a.covers || a.is_county_context) ?? [];
 
   return (
-    <article
+    <Card
+      as="article"
       aria-label={location.name}
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3 dark:border-slate-800">
         <div>
@@ -152,13 +154,13 @@ function LocationAlertsCard({
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
               {location.name}
             </h2>
-            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-caption font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
               {location.inside_nws_coverage
                 ? "Inside NWS coverage"
                 : "Outside NWS coverage"}
             </span>
           </div>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Time zone: {timeZone ?? "UTC"}
             {location.forecast_zone
               ? ` · Forecast zone: ${location.forecast_zone}`
@@ -171,7 +173,7 @@ function LocationAlertsCard({
       </div>
 
       {note && (
-        <p className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-300">
+        <p className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-300">
           {note}
         </p>
       )}
@@ -179,11 +181,11 @@ function LocationAlertsCard({
       {alerts !== null && (
         <div className="mt-4 space-y-4">
           <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">
               Covering NWS Alerts
             </h3>
             {coveringAlerts.length === 0 ? (
-              <p className="text-xs text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 No active NWS alert covers {location.name}.
               </p>
             ) : (
@@ -201,7 +203,7 @@ function LocationAlertsCard({
 
           {contextAlerts.length > 0 && (
             <div className="space-y-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">
                 County-zone alerts outside this location&apos;s zones (context
                 only — never sets the threat level)
               </h3>
@@ -220,11 +222,11 @@ function LocationAlertsCard({
       )}
 
       <div className="mt-4 space-y-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300">
           NHC Watch-Warning Segments
         </h3>
         {segments.length === 0 ? (
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             No NHC watch-warning segment covers this location.
           </p>
         ) : (
@@ -239,7 +241,7 @@ function LocationAlertsCard({
           </div>
         )}
       </div>
-    </article>
+    </Card>
   );
 }
 
@@ -251,7 +253,7 @@ function NwsAlertBlock({
   readonly timeZone: string | null;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40">
+    <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-slate-100">
           <ShieldAlert
@@ -308,7 +310,7 @@ function NwsAlertBlock({
           </div>
         )}
         {alert.vtec.length > 0 && (
-          <div className="sm:col-span-2 font-mono text-[11px]">
+          <div className="sm:col-span-2 font-mono text-sm break-all">
             VTEC: {alert.vtec.join(", ")}
           </div>
         )}
@@ -325,7 +327,7 @@ function SegmentBlock({
   readonly timeZone: string | null;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40">
+    <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-bold text-slate-900 dark:text-slate-100">
           {segment.storm_name} ({segment.atcf_id}) ·{" "}

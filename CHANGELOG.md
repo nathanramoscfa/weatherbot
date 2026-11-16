@@ -42,6 +42,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   next; `scripts/verify_phase07.py`'s check 59 reads the README at
   `v2.0.0-phase-7`, with two mutation cases in
   `tests/test_phase07_verification.py`.
+- Add the design system and readable type on every page (Phase 8 Step 2):
+  - `frontend/src/index.css`: a Tailwind `@theme` with the type scale
+    (`text-caption` 13 px, `text-sm` 15 px, `text-base` 17 px, and the heading
+    steps), neutral surfaces and ink, a brand colour, a threat palette for
+    levels 1 to 5 in both themes, two elevations, radius steps, and the 42 em
+    measure; every text and surface pair meets WCAG AA (lowest 4.77:1), and
+    `docs/DESIGN.md` records each ratio.
+  - `frontend/src/ui/`: `Card`, `PageHeader`, `SectionHeading`, `StatTile`,
+    `Callout`, `Chip`, `Button` and `LinkButton`, and `Disclosure` (a native
+    `<details>`), each with its test.
+  - `AppShell.tsx`: an icon per navigation link and live status badges (the
+    highest level, active storms, covering alerts, the AI state when not
+    ready, and a stale-monitor mark) from the shared queries, described through
+    `aria-describedby` so each link's name stays its label; the stale banner,
+    footer, and toasts take the primitives; the root no longer clips horizontal
+    overflow.
+  - Every `text-xs` and pixel font size under `frontend/src` replaced (204
+    sites), primary buttons moved off the sky-600 that measured 4.02:1, chart
+    labels at caption size with each chart capped at its `viewBox` width, and
+    an ESLint `no-restricted-syntax` rule refusing a new one.
+  - `frontend/e2e/readability.ts` and `readability.spec.ts`: the readability
+    gate (size, contrast, measure, overflow) over all eight routes at
+    1440×900, 1280×800, and 360×740 on the `quiet` and `landfall` servers and
+    in dark at 1440×900, with `readability.unit.spec.ts` pinning its contrast
+    functions; `screens.spec.ts` also captures the `landfall` dashboard.
+  - `docs/DESIGN.md` (tokens, primitives, type and vocabulary rules, the gate,
+    layout, motion, accessibility, and CSP rules) and `docs/phase08-dogfood.md`
+    (the ledger Steps 2 to 9 append to).
 
 ### Phase 7 — Depth
 - Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),

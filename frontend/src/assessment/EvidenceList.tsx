@@ -20,7 +20,7 @@ export function EvidenceList({ evidence, timeZone }: EvidenceListProps) {
       <p className="font-semibold text-slate-800 dark:text-slate-200">
         Deciding evidence
       </p>
-      <ul className="mt-1 space-y-1 text-slate-700 dark:text-slate-300">
+      <ul className="mt-1 space-y-1 text-slate-700 tabular-nums dark:text-slate-300">
         {evidence.map((ev, idx) => (
           <li key={`${ev.product}-${String(idx)}`}>
             <span>{ev.detail}</span>

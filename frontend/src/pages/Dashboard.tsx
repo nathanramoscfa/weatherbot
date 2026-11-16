@@ -30,6 +30,7 @@ import {
   formatRouteError,
   formatUtc,
 } from "./format.ts";
+import { Card } from "../ui/Card.tsx";
 
 export type AssessmentsResponse =
   components["schemas"]["AssessmentsResponse"];
@@ -320,7 +321,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="rounded-md border border-amber-300 bg-amber-50/80 p-4 text-xs leading-relaxed text-amber-950 dark:border-amber-700/80 dark:bg-amber-950/50 dark:text-amber-100">
+        <div className="rounded-md border border-amber-300 bg-amber-50/80 p-4 text-sm leading-relaxed text-amber-950 dark:border-amber-700/80 dark:bg-amber-950/50 dark:text-amber-100">
           <p className="font-semibold uppercase tracking-wide">
             Disclaimer essentials
           </p>
@@ -330,7 +331,7 @@ export function Dashboard() {
         <div>
           <Link
             to="/settings"
-            className="inline-flex items-center rounded-md bg-sky-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:bg-sky-500 dark:text-slate-950"
+            className="inline-flex items-center rounded-md bg-brand px-3.5 py-2 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             Add your first location in Settings
           </Link>
@@ -365,16 +366,16 @@ export function Dashboard() {
         {liveAnnouncement}
       </div>
 
-      <section
+      <Card
+        as="section"
         aria-label="Monitor cycle controls"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div className="space-y-1">
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               Dashboard
             </h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600 tabular-nums dark:text-slate-300">
               {snapshot ? (
                 <span>
                   Snapshot:{" "}
@@ -404,7 +405,7 @@ export function Dashboard() {
                 href={buildReportHref(null, includeBriefing)}
                 download
                 data-testid="export-report-all"
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
               >
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Export report</span>
@@ -414,7 +415,7 @@ export function Dashboard() {
               type="button"
               onClick={() => void handleCheckNow()}
               disabled={cycleRunning}
-              className="inline-flex items-center gap-1.5 rounded-md bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-sky-500 dark:text-slate-950"
+              className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60"
             >
               <RefreshCw
                 className={`h-3.5 w-3.5 ${cycleRunning ? "animate-spin" : ""}`}
@@ -425,7 +426,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="mt-3 border-t border-slate-200 pt-3 text-xs text-slate-600 dark:border-slate-800 dark:text-slate-300">
+        <div className="mt-3 border-t border-slate-200 pt-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
           <p>
             Export report saves a self-contained HTML file with each location’s
             threat level, deciding evidence, coarsened storm distance bands,
@@ -453,7 +454,7 @@ export function Dashboard() {
         {cycleMessage && (
           <div
             role={cycleMessage.kind === "error" ? "alert" : "status"}
-            className={`mt-3 rounded-md border px-3 py-2 text-xs ${
+            className={`mt-3 rounded-md border px-3 py-2 text-sm ${
               cycleMessage.kind === "error"
                 ? "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
                 : "border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-800 dark:bg-sky-950/60 dark:text-sky-200"
@@ -466,12 +467,12 @@ export function Dashboard() {
         {evacError && (
           <div
             role="alert"
-            className="mt-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
+            className="mt-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
           >
             {evacError}
           </div>
         )}
-      </section>
+      </Card>
 
       {locationCards.length >= 2 && (
         <LocationComparisonStrip locations={locationCards} />
@@ -500,12 +501,12 @@ interface LocationComparisonStripProps {
 
 function LocationComparisonStrip({ locations }: LocationComparisonStripProps) {
   return (
-    <section
+    <Card
+      as="section"
       aria-label="Location comparison"
       data-testid="location-comparison-strip"
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
     >
-      <h2 className="text-xs font-semibold tracking-wide text-slate-600 uppercase dark:text-slate-400">
+      <h2 className="text-sm font-semibold tracking-wide text-slate-600 uppercase dark:text-slate-400">
         Location comparison
       </h2>
       <ul className="mt-2.5 divide-y divide-slate-200 dark:divide-slate-800">
@@ -513,7 +514,7 @@ function LocationComparisonStrip({ locations }: LocationComparisonStripProps) {
           <LocationComparisonRow key={loc.name} item={loc} />
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }
 
@@ -545,13 +546,13 @@ function LocationComparisonRow({
             size="sm"
           />
         ) : (
-          <span className="text-xs text-slate-500 dark:text-slate-400">
+          <span className="text-sm text-slate-500 dark:text-slate-400">
             No stored assessment
           </span>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-700 dark:text-slate-300">
+      <div className="flex flex-wrap items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
         <LevelSparkline location={item.name} points={points} />
         {assessment ? (
           <span>
@@ -583,10 +584,10 @@ function LocationLevelCard({
   const levelPoints = useLocationLevelPoints(item);
 
   return (
-    <article
+    <Card
+      as="article"
       id={locationCardId(item.name)}
       aria-label={item.name}
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-start dark:border-slate-800">
         <div className="space-y-1">
@@ -594,13 +595,13 @@ function LocationLevelCard({
             <h2 className="text-base font-bold text-slate-900 sm:text-lg dark:text-slate-100">
               {item.name}
             </h2>
-            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-caption font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
               {item.inside_nws_coverage
                 ? "Inside NWS coverage"
                 : "Outside NWS coverage"}
             </span>
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Time zone: {timeZone ?? "UTC"} · Breakpoint span:{" "}
             {formatBreakpointSpan(
               assessment?.breakpoint_span ?? item.breakpoint_span,
@@ -621,13 +622,13 @@ function LocationLevelCard({
                 download
                 data-testid={`export-report-${item.name}`}
                 aria-label={`Export report for ${item.name}`}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
               >
                 <Download className="h-3 w-3" aria-hidden="true" />
                 <span>Export report</span>
               </a>
             </div>
-            <span className="text-xs text-slate-600 dark:text-slate-400">
+            <span className="text-caption text-slate-600 dark:text-slate-400">
               Assessed: {formatBothTimes(assessment.as_of, timeZone)}
             </span>
           </div>
@@ -649,7 +650,7 @@ function LocationLevelCard({
           {assessment.toggle_changed && assessment.toggle_note && (
             <div
               role="note"
-              className="rounded-md border border-amber-400 bg-amber-50 p-3 text-xs text-amber-950 dark:border-amber-600 dark:bg-amber-950/60 dark:text-amber-100"
+              className="rounded-md border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-600 dark:bg-amber-950/60 dark:text-amber-100"
             >
               {assessment.toggle_note}
             </div>
@@ -663,7 +664,7 @@ function LocationLevelCard({
               />
             </LevelSummary>
 
-            <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40">
+            <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40">
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <p className="font-semibold text-slate-900 dark:text-slate-100">
@@ -688,7 +689,7 @@ function LocationLevelCard({
                   onClick={() =>
                     onToggleEvacuation(!item.evacuation_order.on)
                   }
-                  className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:opacity-60 ${
+                  className={`rounded-md px-2.5 py-1 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 ${
                     item.evacuation_order.on
                       ? "bg-orange-600 text-white hover:bg-orange-700"
                       : "border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -723,19 +724,21 @@ function LocationLevelCard({
           />
 
           {assessment.changes.length > 0 && (
-            <div className="space-y-1 text-xs">
+            <div className="space-y-1 text-sm">
               <h3 className="font-semibold text-slate-900 dark:text-slate-100">
                 Changes since previous assessment
               </h3>
               <ul className="list-disc space-y-0.5 pl-4 text-slate-700 dark:text-slate-300">
                 {assessment.changes.map((chg, idx) => (
-                  <li key={`${chg.kind}-${String(idx)}`}>{chg.detail}</li>
+                  <li key={`${chg.kind}-${String(idx)}`} className="max-w-measure">
+                    {chg.detail}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
         </div>
       )}
-    </article>
+    </Card>
   );
 }

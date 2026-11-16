@@ -19,6 +19,8 @@ import { NotificationChannels } from "../settings/NotificationChannels.tsx";
 import { QuietHoursForm } from "../settings/QuietHoursForm.tsx";
 import { RetentionPanel } from "../settings/RetentionPanel.tsx";
 import { formatRouteError } from "./format.ts";
+import { Card } from "../ui/Card.tsx";
+import { PageHeader } from "../ui/PageHeader.tsx";
 
 export type SettingsResponse = components["schemas"]["SettingsResponse"];
 export type DisclaimerResponse = components["schemas"]["DisclaimerResponse"];
@@ -209,20 +211,22 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Settings
-        </h1>
-        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-          Manage watched locations, browser notifications, the AI, effective
-          configuration, the alert ladder, and the full disclaimer.
-        </p>
-      </section>
+      <Card as="section">
+        <PageHeader
+          title="Settings"
+          summary={
+            <>
+              Manage watched locations, browser notifications, the AI, effective
+              configuration, the alert ladder, and the full disclaimer.
+            </>
+          }
+        />
+      </Card>
 
       {settingsData?.settings_file_problem && (
         <div
           role="alert"
-          className="rounded-lg border border-red-300 bg-red-50 p-4 text-xs text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
+          className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
         >
           <p className="font-semibold">
             Configuration file problem — running on last valid settings
@@ -236,7 +240,7 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
       {(settingsData?.restart_keys?.length ?? 0) > 0 && (
         <div
           role="alert"
-          className="rounded-lg border border-amber-400 bg-amber-50 p-4 text-xs text-amber-950 dark:border-amber-600 dark:bg-amber-950/70 dark:text-amber-100"
+          className="rounded-lg border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-600 dark:bg-amber-950/70 dark:text-amber-100"
         >
           <div className="flex items-start gap-2.5">
             <AlertTriangle
@@ -268,9 +272,9 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
       <RetentionPanel />
 
       {/* Effective Settings */}
-      <section
+      <Card
+        as="section"
         aria-labelledby="effective-settings-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="flex items-center gap-2">
           <Sliders
@@ -286,14 +290,14 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
         </div>
 
         {settingsData && (
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Configuration file: <code>{settingsData.settings_file}</code> (
             {settingsData.settings_file_exists ? "present" : "not created"})
           </p>
         )}
 
         <div className="mt-3 overflow-x-auto">
-          <table className="w-full border-collapse text-left text-xs">
+          <table className="w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-400">
                 <th className="py-2 pr-3 font-semibold">Setting</th>
@@ -324,12 +328,12 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
             </tbody>
           </table>
         </div>
-      </section>
+      </Card>
 
       {/* Alert Ladder Reference */}
-      <section
+      <Card
+        as="section"
         aria-labelledby="ladder-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="flex items-center gap-2">
           <BookOpen
@@ -352,7 +356,7 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
           <ThreatLevelBadge level={5} />
         </div>
 
-        <div className="mt-4 space-y-2 text-xs">
+        <div className="mt-4 space-y-2 text-sm">
           {LADDER_RULES.map((rule) => (
             <div
               key={rule.id}
@@ -372,13 +376,13 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
             </div>
           ))}
         </div>
-      </section>
+      </Card>
 
       {/* Full Disclaimer */}
-      <section
+      <Card
+        as="section"
         id="disclaimer"
         aria-labelledby="disclaimer-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
       >
         <div className="flex items-center gap-2">
           <FileText
@@ -394,29 +398,29 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
         </div>
 
         {disclaimer ? (
-          <div className="mt-3 space-y-3 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+          <div className="mt-3 space-y-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
             <div className="rounded-md border border-amber-300 bg-amber-50/70 p-3 text-amber-950 dark:border-amber-700/80 dark:bg-amber-950/50 dark:text-amber-100">
               <p className="font-semibold">Essentials</p>
               <p className="mt-1 whitespace-pre-line">
                 {disclaimer.essentials.join("\n")}
               </p>
             </div>
-            <pre className="overflow-x-auto whitespace-pre-wrap rounded-md border border-slate-200 bg-slate-50 p-3 font-sans text-xs text-slate-800 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+            <pre className="overflow-x-auto whitespace-pre-wrap rounded-md border border-slate-200 bg-slate-50 p-3 font-sans text-sm text-slate-800 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
               {disclaimer.full_text}
             </pre>
           </div>
         ) : (
-          <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
             Weatherbot is informational only and never a substitute for official
             NHC, NWS, or local emergency-management guidance.
           </p>
         )}
-      </section>
+      </Card>
 
       {/* Bundled Dependency Licences */}
-      <section
+      <Card
+        as="section"
         aria-labelledby="licenses-heading"
-        className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
       >
         <h2
           id="licenses-heading"
@@ -425,12 +429,12 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
           Bundled Frontend Dependency Licences
         </h2>
         {licenses.length === 0 ? (
-          <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
             Build the frontend bundle (<code>npm run build</code>) to populate{" "}
             <code>/licenses.json</code>.
           </p>
         ) : (
-          <ul className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
             {licenses.map((pkg) => (
               <li
                 key={`${pkg.name}-${pkg.version ?? ""}`}
@@ -441,7 +445,7 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
                 </span>
                 {pkg.version ? ` v${pkg.version}` : ""}
                 {pkg.license ? (
-                  <span className="ml-1.5 rounded bg-slate-200 px-1.5 py-0.5 text-[11px] font-medium text-slate-800 dark:bg-slate-700 dark:text-slate-200">
+                  <span className="ml-1.5 rounded bg-slate-200 px-1.5 py-0.5 text-caption font-medium text-slate-800 dark:bg-slate-700 dark:text-slate-200">
                     {pkg.license}
                   </span>
                 ) : null}
@@ -449,7 +453,7 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
             ))}
           </ul>
         )}
-      </section>
+      </Card>
     </div>
   );
 }

@@ -1898,9 +1898,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 2 — The design system and readable type
+## Step 2 — The design system and readable type ✅
 
-**Status:** Not started
+**Status:** Complete — PR #112 (2026-11-16)
 
 > **Goal:** Give every page one design language and type a reader can read.
 > `frontend/src/index.css` gains a Tailwind `@theme` with the operator's type
@@ -1944,6 +1944,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
+
+> Ran 2026-11-16: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -2722,7 +2724,8 @@ cross-layer care. The conversation is new, per phase-boundary hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 7, 8, and 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - src/weatherbot/models/ladder.py, engine/rules.py,
       engine/official.py, engine/__init__.py, services/assessments.py,
       services/disclaimer.py, and services/config.py (`LiveSettings` and
@@ -3225,7 +3228,8 @@ is new, per phase-boundary hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 9, 10, and 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - frontend/src/pages/Dashboard.tsx, Dashboard.test.tsx, and
       format.ts; frontend/src/ai/BriefingPanel.tsx and its test;
       frontend/src/assessment/ (Step 3's components);
@@ -3717,7 +3721,8 @@ hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 11 and 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - frontend/src/map/MapView.tsx, layers.ts, useLeafletMap.ts,
       AdvisorySlider.tsx, and their tests.
     - frontend/src/pages/Replay.tsx (where replay lives after this
@@ -4150,7 +4155,8 @@ conversation is new, per phase-boundary hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 12 and 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - frontend/src/pages/Replay.tsx and Replay.test.tsx;
       frontend/src/assessment/ (Step 3's components);
       frontend/src/charts/LevelHistoryChart.tsx;
@@ -4553,7 +4559,8 @@ less eye across five pages. The conversation is new, per phase-boundary hygiene.
     Files to read (every file before drafting):
 
     - docs/roadmap/phase08-roadmap.md (Decisions 13 to 16, and this
-      step) and docs/DESIGN.md.
+      step), docs/DESIGN.md, and docs/phase08-dogfood.md (its "Carried
+      from Steps 2 to 7" rows naming this step).
     - frontend/src/pages/Settings.tsx, Ask.tsx, Storms.tsx, Alerts.tsx,
       Timeline.tsx, OutlookGraphics.tsx, and their tests.
     - frontend/src/settings/ (every file and test),
@@ -6432,7 +6439,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Scenarios + recordings         | Opus 5.5       | Complete — PR #111 |
-| 2    | Design system + type gate      | Opus 5.5       | Not started        |
+| 2    | Design system + type gate      | Opus 5.5       | Complete — PR #112 |
 | 3    | Plain English + ladder route   | Opus 5.5       | Not started        |
 | 4    | Command-center dashboard       | Gemini 4 Argon | Not started        |
 | 5    | Immersive map                  | Gemini 4 Argon | Not started        |

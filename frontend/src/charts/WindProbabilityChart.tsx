@@ -5,6 +5,7 @@ import {
   bandPath,
   linearScale,
   roundSvg,
+  tickAnchor,
   ticksFor,
   timeScale,
   toEpochMs,
@@ -113,10 +114,10 @@ export function WindProbabilityChart({
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           Wind-speed probabilities · {location}
         </h3>
-        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
           {WIND_PROBABILITY_CAPTION}
         </p>
-        <p className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           No wind-speed probability readings are stored for {location} yet.
           Bands for 34, 50, and 64 kt winds will appear here once an assessment
           with NHC wind-probability products is stored.
@@ -152,7 +153,7 @@ export function WindProbabilityChart({
           Wind-speed probabilities · {location}
         </h3>
         <p
-          className="text-xs text-slate-600 dark:text-slate-400"
+          className="text-sm text-slate-600 dark:text-slate-400"
           data-testid="wind-probability-caption"
         >
           {WIND_PROBABILITY_CAPTION}
@@ -163,7 +164,7 @@ export function WindProbabilityChart({
         role="img"
         aria-label={titleText}
         viewBox={`0 0 ${String(VIEW_WIDTH)} ${String(VIEW_HEIGHT)}`}
-        className="h-auto w-full max-w-full"
+        className="h-auto w-full max-w-[560px]"
       >
         <title>{titleText}</title>
 
@@ -250,14 +251,14 @@ export function WindProbabilityChart({
                 x={PLOT_LEFT - 8}
                 y={roundSvg((rowTop + rowBottom) / 2) + 4}
                 textAnchor="end"
-                className="fill-slate-700 text-[11px] font-semibold dark:fill-slate-300"
+                className="fill-slate-700 text-caption font-semibold dark:fill-slate-300"
               >
                 {meta.label}
               </text>
               <text
                 x={PLOT_RIGHT + 4}
                 y={yGrid5 + 3}
-                className="fill-slate-500 font-mono text-[9px] dark:fill-slate-400"
+                className="fill-slate-500 font-mono text-caption dark:fill-slate-400"
               >
                 5%
               </text>
@@ -300,7 +301,7 @@ export function WindProbabilityChart({
                         x={x}
                         y={yBelowTop - 3}
                         textAnchor="middle"
-                        className="fill-slate-600 font-mono text-[9px] dark:fill-slate-400"
+                        className="fill-slate-600 font-mono text-caption dark:fill-slate-400"
                       >
                         {"<5%"}
                       </text>
@@ -331,7 +332,7 @@ export function WindProbabilityChart({
                       x={x}
                       y={Math.max(rowTop + 8, yTop - 3)}
                       textAnchor="middle"
-                      className="fill-slate-800 font-mono text-[9px] font-semibold dark:fill-slate-200"
+                      className="fill-slate-800 font-mono text-caption font-semibold dark:fill-slate-200"
                     >
                       {item.label ?? `${String(lower)}-${String(upper)}%`}
                     </text>
@@ -361,8 +362,8 @@ export function WindProbabilityChart({
               <text
                 x={x}
                 y={axisY + 18}
-                textAnchor="middle"
-                className="fill-slate-600 font-mono text-[10px] dark:fill-slate-400"
+                textAnchor={tickAnchor(idx, xTicks.length)}
+                className="fill-slate-600 font-mono text-caption dark:fill-slate-400"
               >
                 {formatSynopticUtc(tickMs)}
               </text>
@@ -373,7 +374,7 @@ export function WindProbabilityChart({
 
       {outsideCount > 0 ? (
         <p
-          className="mt-2 text-xs text-slate-600 dark:text-slate-400"
+          className="mt-2 text-sm text-slate-600 dark:text-slate-400"
           data-testid="wind-outside-coverage-note"
         >
           Note: {String(outsideCount)} reading{outsideCount === 1 ? " is" : "s are"}{" "}
