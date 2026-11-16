@@ -5458,6 +5458,14 @@ conversation is new, per phase-boundary hygiene.
       the built interface from `src/weatherbot/web/static`, so a fix to
       the frontend needs `npm --prefix frontend run build` and a restart
       of the servers before the operator looks again.
+    - Step 1 (PR #111): feedback that changes `scripts/demo_storm.py` or
+      `scripts/demo_scenarios.py` can move a briefing's context so a
+      scenario recording is withheld, and `tests/scripts/
+      test_demo_scenarios.py` then fails. Re-record only after the
+      operator's yes: `uv run python scripts/record_ai_fixtures.py
+      --scenario <name> --force` (all twelve cost $0.16; at most $0.60).
+      Windows PowerShell 5.1 pipes a byte-order mark before a piped `y`,
+      which the prompt ignores.
     - The operator's service runs Phase 7's build (`ui.index_sha256`
       `79fabd1a5019`) under `\Weatherbot\serve`, with
       `\Weatherbot\check` hourly at HH:25 and the database at `0010`.
@@ -5913,7 +5921,10 @@ cases. The conversation is new, per phase-boundary hygiene.
        `SCENARIOS` names `quiet`, `outlook`, `cone`, `watch`,
        `landfall`.
     2. The scenarios' declared expectations equal Decision 2's table
-       (read from their literal by AST).
+       (read from their literal by AST: `SCENARIOS: Final = {...}` in
+       `scripts/demo_scenarios.py`, an annotated assignment mapping each
+       scenario to each landmark's name and `{"level": n, "rule": "..."}`;
+       Step 1, PR #111).
     3. `serve_demo.py` holds `"--scenario"` with the five choices beside
        `"--switch-file"`, and still defines `DemoReplay`,
        `request_kind`, `chat_round`, and `demo_claude` at top level.
@@ -5928,7 +5939,10 @@ cases. The conversation is new, per phase-boundary hygiene.
        tracked; `record_ai_fixtures.py` holds `--scenario` and registers
        the scenario cases; `tests/fixtures/ai/manifest.json` lists the
        scenario recordings (ten briefings, two summaries), unless Step
-       1's PR recorded the operator's decline.
+       1's PR recorded the operator's decline. PR #111 recorded them:
+       `scenario-<scenario>-<miami-dade|nassau>` (kind `stream`) for
+       each of the five scenarios, and
+       `scenario-landfall-<miami-dade|nassau>-summary` (kind `parse`).
     7. `verify_phase07.py`'s check 59 reads `tagged("README.md",
        tag=PHASE_7_TAG)` (AST) with its two mutation cases in
        `tests/test_phase07_verification.py`.

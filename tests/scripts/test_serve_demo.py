@@ -26,6 +26,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
+from demo_scenarios import SCENARIO_NAMES  # noqa: E402
 from serve_demo import (  # noqa: E402
     DEFAULT_PORT,
     REPLAYED_BRIEFINGS,
@@ -98,7 +99,7 @@ def test_parse_args_defaults_and_overrides(tmp_path: Path) -> None:
     assert overridden.switch_file == switch_file
 
 
-@pytest.mark.parametrize("scenario", ["quiet", "outlook", "cone", "watch", "landfall"])
+@pytest.mark.parametrize("scenario", SCENARIO_NAMES)
 def test_each_scenario_name_is_a_choice(scenario: str) -> None:
     args = _parse_args(["--scenario", scenario, "--port", "8802"])
 

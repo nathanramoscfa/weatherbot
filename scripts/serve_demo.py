@@ -94,7 +94,6 @@ from cli_support import (  # noqa: E402
 from source_support import NOW, entry  # noqa: E402
 
 from demo_scenarios import (  # noqa: E402
-    SCENARIO_NAMES,
     Staging,
     run_history,
     scenario_recording,
@@ -344,7 +343,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--scenario",
-        choices=SCENARIO_NAMES,
+        choices=("quiet", "outlook", "cone", "watch", "landfall"),
         default=None,
         help="Serve a demonstration scenario (scripts/demo_scenarios.py) instead of the default.",
     )
