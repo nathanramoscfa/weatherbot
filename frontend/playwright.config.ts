@@ -11,6 +11,13 @@ const isIdleRun = process.argv.some((arg) => arg.includes("@idle"));
 const capPort = Number(process.env.E2E_AI_CAP_PORT ?? "8800");
 const authPort = Number(process.env.E2E_AI_AUTH_PORT ?? "8801");
 
+// The demonstration scenarios' servers (scripts/demo_scenarios.py,
+// frontend/e2e/scenarios.spec.ts): the sparsest page and the densest. Ports
+// 8803 to 8805 belong to the outlook, cone, and watch scenarios, which the
+// dogfood harness starts; the default run does not.
+const quietPort = Number(process.env.E2E_QUIET_PORT ?? "8802");
+const landfallPort = Number(process.env.E2E_LANDFALL_PORT ?? "8806");
+
 function demoServer(serverPort: number, options: string) {
   return {
     command: `uv run python ../scripts/serve_demo.py --port ${String(serverPort)} ${options}`,
@@ -43,5 +50,7 @@ export default defineConfig({
         ),
         demoServer(capPort, "--ai-cap-usd 0.001"),
         demoServer(authPort, "--ai-fail-auth"),
+        demoServer(quietPort, "--scenario quiet"),
+        demoServer(landfallPort, "--scenario landfall"),
       ],
 });

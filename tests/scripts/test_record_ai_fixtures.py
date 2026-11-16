@@ -147,3 +147,56 @@ def test_a_refusal_exits_1_without_a_traceback(capsys: pytest.CaptureFixture[str
     assert recorder.main([]) == 1
 
     assert capsys.readouterr().err.startswith("error: name one or more cases")
+
+
+def test_the_scenario_cases_are_ten_briefings_and_two_summaries() -> None:
+    cases = recorder.scenario_cases()
+
+    briefings = [name for name, case in cases.items() if case.kind == "stream"]
+    summaries = [name for name, case in cases.items() if case.kind == "parse"]
+    assert len(briefings) == 10  # noqa: PLR2004 - five scenarios, two landmarks
+    assert summaries == ["scenario-landfall-miami-dade-summary", "scenario-landfall-nassau-summary"]
+    assert all(name.startswith("scenario-") for name in cases)
+    assert set(cases) <= set(recorder.all_cases())
+    assert recorder.scenario_names("quiet") == [
+        "scenario-quiet-miami-dade",
+        "scenario-quiet-nassau",
+    ]
+    assert len(recorder.scenario_names("all")) == 12  # noqa: PLR2004 - the twelve requests
+    assert recorder.resolve(["scenario"]).keys() == cases.keys()
+
+
+def test_a_scenario_recording_refuses_without_a_credential_before_anything(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert recorder.main(["--scenario", "all"]) == 1
+
+    captured = capsys.readouterr()
+    assert captured.err.startswith("error: no Anthropic credential")
+    assert "nothing was sent" in captured.err
+    assert "requests" not in captured.out
+
+
+def test_a_declined_plan_sends_nothing(recordings: Path) -> None:
+    wire = Wire()
+    plans: list[recorder.ScenarioPlan] = []
+
+    def decline(plan: recorder.ScenarioPlan) -> bool:
+        plans.append(plan)
+        return False
+
+    with pytest.raises(recorder.RecordingError, match="declined"):
+        recorder.record(
+            ["scenario-quiet-miami-dade"],
+            directory=recordings,
+            today=TODAY,
+            client_factory=_client,
+            inner=httpx2.MockTransport(wire.handler),
+            confirm=decline,
+        )
+
+    assert wire.requests == []
+    assert not recordings.exists()
+    (plan,) = plans
+    assert (plan.requests, plan.briefings, plan.summaries) == (1, 1, 0)
+    assert plan.hard_ceiling_micro_usd > recorder.WORST_REQUEST_MICRO_USD

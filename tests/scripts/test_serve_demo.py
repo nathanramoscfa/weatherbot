@@ -26,6 +26,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parents[2] / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
+from demo_scenarios import SCENARIO_NAMES  # noqa: E402
 from serve_demo import (  # noqa: E402
     DEFAULT_PORT,
     REPLAYED_BRIEFINGS,
@@ -68,6 +69,7 @@ def test_parse_args_defaults_and_overrides(tmp_path: Path) -> None:
     assert defaults.ai_cap_usd is None
     assert defaults.ai_fail_auth is False
     assert defaults.retention_days is None
+    assert defaults.scenario is None
 
     ai = _parse_args(
         ["--no-ai-replay", "--ai-cap-usd", "0.001", "--ai-fail-auth", "--retention-days", "30"]
@@ -95,6 +97,71 @@ def test_parse_args_defaults_and_overrides(tmp_path: Path) -> None:
     assert overridden.corpus == corpus_dir
     assert overridden.roster_interval_minutes == 1
     assert overridden.switch_file == switch_file
+
+
+@pytest.mark.parametrize("scenario", SCENARIO_NAMES)
+def test_each_scenario_name_is_a_choice(scenario: str) -> None:
+    args = _parse_args(["--scenario", scenario, "--port", "8802"])
+
+    assert args.scenario == scenario
+    assert args.switch_file is None
+    assert args.port == 8802  # noqa: PLR2004 - the quiet scenario's browser port
+
+
+def test_an_unknown_scenario_exits_2(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exited:
+        _parse_args(["--scenario", "tornado"])
+
+    assert exited.value.code == 2  # noqa: PLR2004 - argparse's usage error
+    assert "--scenario" in capsys.readouterr().err
+
+
+def test_a_scenario_and_the_switch_file_together_exit_2(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    switch = tmp_path / "switch.flag"
+    with pytest.raises(SystemExit) as exited:
+        _parse_args(["--scenario", "landfall", "--switch-file", str(switch)])
+
+    assert exited.value.code == 2  # noqa: PLR2004 - argparse's usage error
+    assert "--scenario and --switch-file cannot be combined" in capsys.readouterr().err
+
+
+def test_without_a_scenario_the_replay_answers_as_before() -> None:
+    replay = DemoReplay()
+    body = _body(Briefing)
+    body["messages"] = [{"role": "user", "content": '{"location":"simulated Miami-Dade"}'}]
+
+    assert replay.scenario is None
+    assert (
+        replay.answer("briefing", body).body
+        == (FIXTURES / "eval-briefing-recorded-miami-dade.sse").read_bytes()
+    )
+    assert (
+        replay.answer("summary", _body(ChangeSummary)).body
+        == (FIXTURES / f"{REPLAYED_SUMMARY}.json").read_bytes()
+    )
+
+
+def test_a_scenario_replay_answers_by_scenario_and_landmark() -> None:
+    replay = DemoReplay(scenario="landfall")
+    asking = [{"role": "user", "content": '{"location":"Parliament Square"}'}]
+    briefing, summary = _body(Briefing), _body(ChangeSummary)
+    briefing["messages"] = summary["messages"] = asking
+
+    assert (
+        replay.answer("briefing", briefing).body
+        == (FIXTURES / "scenario-landfall-nassau.sse").read_bytes()
+    )
+    assert (
+        replay.answer("summary", summary).body
+        == (FIXTURES / "scenario-landfall-nassau-summary.json").read_bytes()
+    )
+    unnamed = _body(ChangeSummary)
+    assert (
+        replay.answer("summary", unnamed).body
+        == (FIXTURES / f"{REPLAYED_SUMMARY}.json").read_bytes()
+    )
 
 
 def test_baseline_and_switched_responses_serve_advisory_023_and_hurricane_warning() -> None:

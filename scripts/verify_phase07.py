@@ -1093,8 +1093,12 @@ def check_58_phase7_alarms_test_tracked() -> bool:
 
 
 def check_59_readme_status_names_phase_07_complete() -> bool:
-    """Check 59: README.md ## Status names Phase 7 complete and CHANGELOG.md documents Phase 7."""
-    status = markdown_section(read("README.md"), "## Status")
+    """Check 59: README.md ## Status names Phase 7 complete and CHANGELOG.md documents Phase 7.
+
+    The ``## Status`` block is read at ``v2.0.0-phase-7``: Phase 8 Step 1 moved the live
+    Status on to Phase 8. The ``CHANGELOG.md`` clause stays live.
+    """
+    status = markdown_section(tagged("README.md", tag=PHASE_7_TAG), "## Status")
     return (
         "Phase 7 (depth) are complete" in status
         and "Phase 8 (Release 2.0) is" in status

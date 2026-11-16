@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 8 — UI/UX redesign and visual dogfooding
+- Add five demonstration scenarios that put every level on screen while the
+  real tropics are quiet (Phase 8 Step 1):
+  - `scripts/demo_storm.py`: Hurricane Demo (`AL802026`, slot `AT1`; ATCF
+    reserves storm numbers 80 to 89 for test storms), a synthetic Atlantic
+    storm built from the recorded captures' field shapes in the live feeds' own
+    formats — the roster entry, the summary service's storm, display, and
+    wind-probability layers, both arrival-time KMZs, and the slot's TCP — at two
+    decimals and labelled synthetic in its own fields, for advisories 3
+    (`cone`), 6 (`watch`), and 8 (`landfall`).
+  - `scripts/demo_scenarios.py`: `SCENARIOS` (`quiet`, `outlook`, `cone`,
+    `watch`, `landfall`, with each public landmark's level and deciding rule),
+    the staged NWS alerts and outlook layers, the landfall scenario's seeded
+    history of three earlier advisories through `MonitorService.run_cycle`, and
+    the AI seeding of each landmark's briefing and the landfall escalation
+    summaries before the server binds.
+  - `scripts/serve_demo.py --scenario {quiet,outlook,cone,watch,landfall}`
+    serves one through the real fetch, engine, storage, API, and event path;
+    without it the default demonstration is unchanged, and `--scenario` with
+    `--switch-file` exits 2. `DemoReplay` answers a scenario's briefing and
+    summary by scenario and landmark.
+  - `scripts/record_ai_fixtures.py --scenario NAME|all` records each scenario's
+    briefings and the landfall summaries live, through the real services, after
+    a credential check, the request count and ceiling, and a yes; twelve
+    recordings (`tests/fixtures/ai/scenario-*`) cost $0.16 at list price.
+  - `frontend/playwright.config.ts` starts the `quiet` (8802) and `landfall`
+    (8806) servers, and `frontend/e2e/scenarios.spec.ts` checks both
+    dashboards' levels and the landfall map's cone.
+  - Tests: `tests/scripts/test_demo_storm.py` and
+    `tests/scripts/test_demo_scenarios.py`, and the new flag's cases in
+    `tests/scripts/test_serve_demo.py` and the recorder's tests.
+- `README.md`'s status names Phase 8 in progress and Phase 9 (Release 2.0)
+  next; `scripts/verify_phase07.py`'s check 59 reads the README at
+  `v2.0.0-phase-7`, with two mutation cases in
+  `tests/test_phase07_verification.py`.
+
 ### Phase 7 — Depth
 - Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),
   verifier unit tests (`tests/test_phase07_verification.py`), QA findings ledger
