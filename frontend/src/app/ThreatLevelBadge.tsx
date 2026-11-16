@@ -1,4 +1,6 @@
 // frontend/src/app/ThreatLevelBadge.tsx
+import { levelLabel } from "../assessment/vocabulary.ts";
+
 export type ThreatLevelNumber = 1 | 2 | 3 | 4 | 5;
 
 export interface ThreatLevelDescriptor {
@@ -68,35 +70,35 @@ export function describeThreatLevel(
     case 5:
       return {
         level: 5,
-        label: customLabel ?? "Hurricane Warning / Evacuation",
+        label: customLabel ?? levelLabel(5),
         badgeClassName:
           "border-threat-5-accent bg-threat-5-accent text-threat-5-on-accent",
       };
     case 4:
       return {
         level: 4,
-        label: customLabel ?? "Tropical Storm Warning / Hurricane Watch",
+        label: customLabel ?? levelLabel(4),
         badgeClassName:
           "border-threat-4-accent bg-threat-4-accent text-threat-4-on-accent",
       };
     case 3:
       return {
         level: 3,
-        label: customLabel ?? "Storm Watch",
+        label: customLabel ?? levelLabel(3),
         badgeClassName:
           "border-threat-3-accent bg-threat-3-accent text-threat-3-on-accent",
       };
     case 2:
       return {
         level: 2,
-        label: customLabel ?? "Awareness",
+        label: customLabel ?? levelLabel(2),
         badgeClassName:
           "border-threat-2-border bg-threat-2-surface text-threat-2-fg",
       };
     default:
       return {
         level: 1,
-        label: customLabel ?? "All Clear",
+        label: customLabel ?? levelLabel(1),
         badgeClassName:
           "border-threat-1-border bg-threat-1-surface text-threat-1-fg",
       };

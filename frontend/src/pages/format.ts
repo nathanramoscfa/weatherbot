@@ -87,6 +87,33 @@ export function formatBothTimes(
   return `${utc} (${local})`;
 }
 
+export function formatFriendlyLocal(
+  iso: string | null | undefined,
+  timeZone?: string | null,
+): string | null {
+  if (!iso) {
+    return null;
+  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  try {
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      ...(timeZone ? { timeZone } : { timeZone: "UTC" }),
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      ...(timeZone ? { timeZoneName: "short" } : {}),
+    });
+    const formatted = formatter.format(date);
+    return timeZone ? formatted : `${formatted} local time`;
+  } catch {
+    return null;
+  }
+}
+
 export function formatKm(km: number): string {
   return `${km.toFixed(1)} km`;
 }

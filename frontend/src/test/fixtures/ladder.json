@@ -1,0 +1,222 @@
+{
+  "codes": [
+    {
+      "code": "HWR",
+      "level": 5,
+      "name": "Hurricane Warning",
+      "rule": "hurricane_warning"
+    },
+    {
+      "code": "TWR",
+      "level": 4,
+      "name": "Tropical Storm Warning",
+      "rule": "tropical_storm_warning"
+    },
+    {
+      "code": "HWA",
+      "level": 4,
+      "name": "Hurricane Watch",
+      "rule": "hurricane_watch"
+    },
+    {
+      "code": "TWA",
+      "level": 3,
+      "name": "Tropical Storm Watch",
+      "rule": "tropical_storm_watch"
+    }
+  ],
+  "events": [
+    {
+      "event": "Hurricane Warning",
+      "level": 5,
+      "rule": "hurricane_warning"
+    },
+    {
+      "event": "Tropical Storm Warning",
+      "level": 4,
+      "rule": "tropical_storm_warning"
+    },
+    {
+      "event": "Hurricane Watch",
+      "level": 4,
+      "rule": "hurricane_watch"
+    },
+    {
+      "event": "Tropical Storm Watch",
+      "level": 3,
+      "rule": "tropical_storm_watch"
+    }
+  ],
+  "levels": [
+    {
+      "actions": "Normal activities",
+      "label": "All Clear",
+      "number": 1
+    },
+    {
+      "actions": "Monitor daily; review plans",
+      "label": "Tropical Storm Threat",
+      "number": 2
+    },
+    {
+      "actions": "Stock supplies; pack; set an exit plan",
+      "label": "Watch / Hurricane Threat",
+      "number": 3
+    },
+    {
+      "actions": "Evacuate vulnerable areas; secure transport; assume routes close",
+      "label": "Warning / Watch / Evacuation",
+      "number": 4
+    },
+    {
+      "actions": "Shelter if not evacuated; expect outages; follow local orders",
+      "label": "Hurricane Warning",
+      "number": 5
+    }
+  ],
+  "notice": "Informational only; never a substitute for official guidance. See DISCLAIMER.md.",
+  "rules": [
+    {
+      "id": "hurricane_warning",
+      "level": 5,
+      "order": 1,
+      "sentence": "A Hurricane Warning covers the location.",
+      "sources": [
+        "NWS alerts",
+        "NHC watch-warning segments"
+      ]
+    },
+    {
+      "id": "tropical_storm_warning",
+      "level": 4,
+      "order": 2,
+      "sentence": "A Tropical Storm Warning covers the location.",
+      "sources": [
+        "NWS alerts",
+        "NHC watch-warning segments"
+      ]
+    },
+    {
+      "id": "hurricane_watch",
+      "level": 4,
+      "order": 3,
+      "sentence": "A Hurricane Watch covers the location.",
+      "sources": [
+        "NWS alerts",
+        "NHC watch-warning segments"
+      ]
+    },
+    {
+      "id": "evacuation_order",
+      "level": 4,
+      "order": 4,
+      "sentence": "The operator's evacuation-order toggle is on.",
+      "sources": [
+        "the location's evacuation-order toggle"
+      ]
+    },
+    {
+      "id": "tropical_storm_watch",
+      "level": 3,
+      "order": 5,
+      "sentence": "A Tropical Storm Watch covers the location.",
+      "sources": [
+        "NWS alerts",
+        "NHC watch-warning segments"
+      ]
+    },
+    {
+      "id": "hurricane_cone",
+      "level": 3,
+      "order": 6,
+      "sentence": "The location is inside the cone of a storm that is a hurricane at or before its closest approach, and that approach comes within the cone horizon.",
+      "sources": [
+        "NHC cones",
+        "NHC forecast points"
+      ]
+    },
+    {
+      "id": "hurricane_wind_probability",
+      "level": 3,
+      "order": 7,
+      "sentence": "The location's 64-kt wind-speed probability band starts at or above the hurricane wind floor.",
+      "sources": [
+        "NHC 64-kt wind-speed probabilities"
+      ]
+    },
+    {
+      "id": "storm_cone",
+      "level": 2,
+      "order": 8,
+      "sentence": "The location is inside the cone of any active storm.",
+      "sources": [
+        "NHC cones",
+        "NHC forecast points"
+      ]
+    },
+    {
+      "id": "development_region",
+      "level": 2,
+      "order": 9,
+      "sentence": "The location is inside a seven-day potential development region whose chance is at least the development chance floor.",
+      "sources": [
+        "NHC tropical weather outlook development regions"
+      ]
+    },
+    {
+      "id": "tropical_storm_wind_probability",
+      "level": 2,
+      "order": 10,
+      "sentence": "The location's 34-kt wind-speed probability band starts at or above the tropical-storm wind floor.",
+      "sources": [
+        "NHC 34-kt wind-speed probabilities"
+      ]
+    },
+    {
+      "id": "all_clear",
+      "level": 1,
+      "order": 11,
+      "sentence": "No other rule matches.",
+      "sources": []
+    }
+  ],
+  "ruleset": "c241a7ff882909314d943f1a18c64f056fd3a8fed706f5328bb7fe9a6a404226",
+  "thresholds": [
+    {
+      "description": "How far a watch-warning segment reaches from its line.",
+      "name": "coastal_reach_km",
+      "unit": "km",
+      "value": 25.0
+    },
+    {
+      "description": "How far a segment reaches past its end.",
+      "name": "segment_end_tolerance_km",
+      "unit": "km",
+      "value": 5.0
+    },
+    {
+      "description": "How soon a hurricane's closest approach must come to be a threat.",
+      "name": "cone_horizon_h",
+      "unit": "h",
+      "value": 120
+    },
+    {
+      "description": "The lowest 64-kt band lower bound that is a threat.",
+      "name": "hurricane_wind_floor_pct",
+      "unit": "%",
+      "value": 10
+    },
+    {
+      "description": "The lowest 34-kt band lower bound that is a threat.",
+      "name": "tropical_storm_wind_floor_pct",
+      "unit": "%",
+      "value": 5
+    },
+    {
+      "description": "The lowest seven-day development chance that is a threat.",
+      "name": "development_chance_floor_pct",
+      "unit": "%",
+      "value": 0
+    }
+  ]
+}

@@ -9,12 +9,12 @@ import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { ThreatLevelBadge } from "../app/ThreatLevelBadge.tsx";
 import { EvidenceList } from "../assessment/EvidenceList.tsx";
-import {
-  LevelSummary,
-  UnavailableBanner,
-} from "../assessment/LevelSummary.tsx";
+import { LevelSummary } from "../assessment/LevelSummary.tsx";
+import { LocationHero } from "../assessment/LocationHero.tsx";
 import { OfficialProductList } from "../assessment/OfficialProductList.tsx";
 import { ThreatTable } from "../assessment/ThreatTable.tsx";
+import { WhyThisLevel } from "../assessment/WhyThisLevel.tsx";
+import { ArrivalTimeline } from "../charts/ArrivalTimeline.tsx";
 import {
   type ChartLevelPoint,
   LevelSparkline,
@@ -26,7 +26,6 @@ import {
 import {
   formatAgeSeconds,
   formatBothTimes,
-  formatBreakpointSpan,
   formatRouteError,
   formatUtc,
 } from "./format.ts";
@@ -351,7 +350,7 @@ export function Dashboard() {
         return `${item.name}: no stored assessment.`;
       }
       const prefix = item.assessment.complete ? "" : "At least ";
-      return `${item.name}: ${prefix}Level ${String(item.assessment.level.number)}, ${item.assessment.level.label}. Decided by ${item.assessment.rule}.`;
+      return `${item.name}: ${prefix}Level ${String(item.assessment.level.number)}, ${item.assessment.level.label}. ${item.assessment.rule_trigger}`;
     })
     .join(" ");
 
@@ -483,6 +482,7 @@ export function Dashboard() {
           <LocationLevelCard
             key={loc.name}
             item={loc}
+            ageSeconds={snapshot?.age_seconds ?? 0}
             includeBriefing={includeBriefing}
             evacPending={evacPendingName === loc.name}
             onToggleEvacuation={(nextOn) =>
@@ -542,11 +542,12 @@ function LocationComparisonRow({
         {assessment ? (
           <ThreatLevelBadge
             level={assessment.level.number}
+            label={assessment.level.label}
             atLeast={!assessment.complete}
             size="sm"
           />
         ) : (
-          <span className="text-sm text-slate-500 dark:text-slate-400">
+          <span className="text-sm text-slate-600 dark:text-slate-400">
             No stored assessment
           </span>
         )}
@@ -556,10 +557,7 @@ function LocationComparisonRow({
         <LevelSparkline location={item.name} points={points} />
         {assessment ? (
           <span>
-            Rule:{" "}
-            <code className="rounded bg-slate-100 px-1 py-0.5 font-mono dark:bg-slate-800">
-              {assessment.rule}
-            </code>
+            {assessment.level.label} — {assessment.rule_trigger}
           </span>
         ) : null}
       </div>
@@ -569,6 +567,7 @@ function LocationComparisonRow({
 
 interface LocationLevelCardProps {
   readonly item: LocationAssessmentResponse;
+  readonly ageSeconds: number;
   readonly includeBriefing: boolean;
   readonly evacPending: boolean;
   readonly onToggleEvacuation: (nextOn: boolean) => void;
@@ -576,12 +575,14 @@ interface LocationLevelCardProps {
 
 function LocationLevelCard({
   item,
+  ageSeconds,
   includeBriefing,
   evacPending,
   onToggleEvacuation,
 }: LocationLevelCardProps) {
   const { assessment, time_zone: timeZone } = item;
   const levelPoints = useLocationLevelPoints(item);
+  const leadThreat = assessment?.threats[0] ?? null;
 
   return (
     <Card
@@ -589,48 +590,36 @@ function LocationLevelCard({
       id={locationCardId(item.name)}
       aria-label={item.name}
     >
-      <div className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-start dark:border-slate-800">
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-base font-bold text-slate-900 sm:text-lg dark:text-slate-100">
-              {item.name}
-            </h2>
-            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-caption font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-              {item.inside_nws_coverage
-                ? "Inside NWS coverage"
-                : "Outside NWS coverage"}
-            </span>
-          </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Time zone: {timeZone ?? "UTC"} · Breakpoint span:{" "}
-            {formatBreakpointSpan(
-              assessment?.breakpoint_span ?? item.breakpoint_span,
-            )}
-          </p>
+      <div className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center dark:border-slate-800">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="text-base font-bold text-slate-900 sm:text-lg dark:text-slate-100">
+            {item.name}
+          </h2>
+          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-caption font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            {item.inside_nws_coverage
+              ? "Inside NWS coverage"
+              : "Outside NWS coverage"}
+          </span>
         </div>
 
         {assessment && (
-          <div className="flex flex-col items-start gap-1 sm:items-end">
-            <div className="flex flex-wrap items-center gap-2">
-              <ThreatLevelBadge
-                level={assessment.level.number}
-                atLeast={!assessment.complete}
-              />
-              <LevelSparkline location={item.name} points={levelPoints} />
-              <a
-                href={buildReportHref(item.name, includeBriefing)}
-                download
-                data-testid={`export-report-${item.name}`}
-                aria-label={`Export report for ${item.name}`}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-              >
-                <Download className="h-3 w-3" aria-hidden="true" />
-                <span>Export report</span>
-              </a>
-            </div>
-            <span className="text-caption text-slate-600 dark:text-slate-400">
-              Assessed: {formatBothTimes(assessment.as_of, timeZone)}
-            </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <ThreatLevelBadge
+              level={assessment.level.number}
+              label={assessment.level.label}
+              atLeast={!assessment.complete}
+            />
+            <LevelSparkline location={item.name} points={levelPoints} />
+            <a
+              href={buildReportHref(item.name, includeBriefing)}
+              download
+              data-testid={`export-report-${item.name}`}
+              aria-label={`Export report for ${item.name}`}
+              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            >
+              <Download className="h-3 w-3" aria-hidden="true" />
+              <span>Export report</span>
+            </a>
           </div>
         )}
       </div>
@@ -642,85 +631,27 @@ function LocationLevelCard({
         </p>
       ) : (
         <div className="mt-4 space-y-4">
-          <UnavailableBanner
-            complete={assessment.complete}
-            unavailable={assessment.unavailable}
+          <LocationHero
+            assessment={assessment}
+            timeZone={timeZone}
+            ageSeconds={ageSeconds}
+            evacuationOrderOn={item.evacuation_order.on}
+            origin="live"
           />
 
-          {assessment.toggle_changed && assessment.toggle_note && (
-            <div
-              role="note"
-              className="rounded-md border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-600 dark:bg-amber-950/60 dark:text-amber-100"
-            >
-              {assessment.toggle_note}
-            </div>
+          {leadThreat && (
+            <ArrivalTimeline
+              asOf={assessment.as_of}
+              stormName={leadThreat.storm_name}
+              earliest={leadThreat.earliest_arrival}
+              mostLikely={leadThreat.most_likely_arrival}
+            />
           )}
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <LevelSummary assessment={assessment}>
-              <EvidenceList
-                evidence={assessment.evidence}
-                timeZone={timeZone}
-              />
-            </LevelSummary>
-
-            <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">
-                    Evacuation-order toggle
-                  </p>
-                  <p className="mt-0.5 text-slate-600 dark:text-slate-300">
-                    State:{" "}
-                    <strong>
-                      {item.evacuation_order.on ? "On" : "Off"}
-                    </strong>
-                    {item.evacuation_order.set_at
-                      ? ` since ${formatBothTimes(item.evacuation_order.set_at, timeZone)}`
-                      : ""}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={item.evacuation_order.on}
-                  aria-label={`Evacuation order for ${item.name}`}
-                  disabled={evacPending}
-                  onClick={() =>
-                    onToggleEvacuation(!item.evacuation_order.on)
-                  }
-                  className={`rounded-md px-2.5 py-1 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 ${
-                    item.evacuation_order.on
-                      ? "bg-orange-600 text-white hover:bg-orange-700"
-                      : "border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  {item.evacuation_order.on ? "Turn off" : "Turn on"}
-                </button>
-              </div>
-              <p className="mt-2 text-slate-600 dark:text-slate-400">
-                When on, holds {item.name} at Level 4 (Warning / Watch /
-                Evacuation) or above on the next fetched snapshot.
-              </p>
-            </div>
-          </div>
 
           <BriefingPanel
             location={item.name}
             assessmentId={assessment.id}
             assessedAt={assessment.as_of}
-          />
-
-          <OfficialProductList
-            official={assessment.official}
-            timeZone={timeZone}
-          />
-
-          <ThreatTable
-            threats={assessment.threats}
-            windProbabilities={assessment.wind_probabilities}
-            asOf={assessment.as_of}
-            timeZone={timeZone}
           />
 
           {assessment.changes.length > 0 && (
@@ -737,6 +668,71 @@ function LocationLevelCard({
               </ul>
             </div>
           )}
+
+          <WhyThisLevel
+            assessment={assessment}
+            insideNwsCoverage={item.inside_nws_coverage}
+            timeZone={timeZone}
+            breakpointSpan={assessment.breakpoint_span ?? item.breakpoint_span}
+            controls={
+              <div className="rounded-md border border-line bg-surface-inset p-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="font-semibold text-ink">
+                      Evacuation-order toggle
+                    </p>
+                    <p className="mt-0.5 text-ink-muted">
+                      State:{" "}
+                      <strong>
+                        {item.evacuation_order.on ? "On" : "Off"}
+                      </strong>
+                      {item.evacuation_order.set_at
+                        ? ` since ${formatBothTimes(item.evacuation_order.set_at, timeZone)}`
+                        : ""}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={item.evacuation_order.on}
+                    aria-label={`Evacuation order for ${item.name}`}
+                    disabled={evacPending}
+                    onClick={() =>
+                      onToggleEvacuation(!item.evacuation_order.on)
+                    }
+                    className={`rounded-md px-2.5 py-1 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 ${
+                      item.evacuation_order.on
+                        ? "bg-orange-600 text-white hover:bg-orange-700"
+                        : "border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    {item.evacuation_order.on ? "Turn off" : "Turn on"}
+                  </button>
+                </div>
+                <p className="mt-2 text-ink-subtle">
+                  When on, holds {item.name} at Level 4 (Warning / Watch /
+                  Evacuation) or above on the next fetched snapshot.
+                </p>
+              </div>
+            }
+          >
+            <LevelSummary assessment={assessment}>
+              <EvidenceList
+                evidence={assessment.evidence}
+                timeZone={timeZone}
+              />
+            </LevelSummary>
+            <OfficialProductList
+              official={assessment.official}
+              timeZone={timeZone}
+            />
+            <ThreatTable
+              threats={assessment.threats}
+              windProbabilities={assessment.wind_probabilities}
+              asOf={assessment.as_of}
+              timeZone={timeZone}
+            />
+          </WhyThisLevel>
         </div>
       )}
     </Card>

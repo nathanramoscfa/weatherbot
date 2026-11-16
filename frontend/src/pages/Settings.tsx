@@ -11,6 +11,7 @@ import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { ThreatLevelBadge } from "../app/ThreatLevelBadge.tsx";
+import { levelLabel, useLadder } from "../assessment/vocabulary.ts";
 import {
   LocationManager,
   type PolygonKind,
@@ -32,89 +33,6 @@ export interface BundledLicenseEntry {
   readonly version?: string;
   readonly license?: string;
 }
-
-const LADDER_RULES: ReadonlyArray<{
-  readonly order: number;
-  readonly id: string;
-  readonly level: number;
-  readonly trigger: string;
-}> = [
-  {
-    order: 1,
-    id: "hurricane_warning",
-    level: 5,
-    trigger:
-      "A covering NWS Hurricane Warning or Extreme Wind Warning, or a covering NHC Hurricane Warning segment (HWR).",
-  },
-  {
-    order: 2,
-    id: "evacuation_order",
-    level: 4,
-    trigger: "The operator's evacuation-order toggle is on.",
-  },
-  {
-    order: 3,
-    id: "hurricane_watch",
-    level: 4,
-    trigger:
-      "A covering NWS Hurricane Watch, or a covering NHC Hurricane Watch segment (HWA).",
-  },
-  {
-    order: 4,
-    id: "tropical_storm_warning",
-    level: 4,
-    trigger:
-      "A covering NWS Tropical Storm Warning or Storm Surge Warning, or a covering NHC Tropical Storm Warning segment (TRW).",
-  },
-  {
-    order: 5,
-    id: "tropical_storm_watch",
-    level: 3,
-    trigger:
-      "A covering NWS Tropical Storm Watch or Storm Surge Watch, or a covering NHC Tropical Storm Watch segment (TRA).",
-  },
-  {
-    order: 6,
-    id: "hurricane_cone",
-    level: 3,
-    trigger:
-      "Inside an active storm's forecast cone within the cone horizon while the forecast track reaches hurricane intensity by closest approach.",
-  },
-  {
-    order: 7,
-    id: "hurricane_wind_probability",
-    level: 3,
-    trigger:
-      "64-kt (hurricane) 5 km wind-speed probability band meets or exceeds hurricane_wind_floor_pct.",
-  },
-  {
-    order: 8,
-    id: "tropical_storm_cone",
-    level: 2,
-    trigger:
-      "Inside an active storm's forecast cone within the cone horizon (below hurricane intensity by closest approach).",
-  },
-  {
-    order: 9,
-    id: "tropical_storm_wind_probability",
-    level: 2,
-    trigger:
-      "34-kt or 50-kt 5 km wind-speed probability band meets or exceeds tropical_storm_wind_floor_pct.",
-  },
-  {
-    order: 10,
-    id: "development_region",
-    level: 2,
-    trigger:
-      "Inside a 7-day graphical Tropical Weather Outlook development region meeting development_chance_floor_pct.",
-  },
-  {
-    order: 11,
-    id: "all_clear",
-    level: 1,
-    trigger: "No other rule matches.",
-  },
-];
 
 async function fetchSettings(): Promise<SettingsResponse> {
   const { data, response } = await apiClient.GET("/api/settings");
@@ -188,6 +106,8 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
     queryFn: fetchLicenses,
     ...(initialLicenses !== undefined ? { initialData: initialLicenses } : {}),
   });
+
+  const { ladder } = useLadder();
 
   if (settingsQuery.isError) {
     const status =
@@ -349,32 +269,77 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <ThreatLevelBadge level={1} />
-          <ThreatLevelBadge level={2} />
-          <ThreatLevelBadge level={3} />
-          <ThreatLevelBadge level={4} />
-          <ThreatLevelBadge level={5} />
+          {ladder.levels.map((lvl) => (
+            <ThreatLevelBadge
+              key={lvl.number}
+              level={lvl.number}
+              label={lvl.label}
+            />
+          ))}
         </div>
 
         <div className="mt-4 space-y-2 text-sm">
-          {LADDER_RULES.map((rule) => (
+          {ladder.rules.map((rule) => (
             <div
               key={rule.id}
-              className="flex flex-col justify-between gap-2 rounded-md border border-slate-200 bg-slate-50/60 p-2.5 sm:flex-row sm:items-center dark:border-slate-800 dark:bg-slate-800/30"
+              data-testid={`ladder-rule-${rule.id}`}
+              className="flex flex-col justify-between gap-2 rounded-md border border-line bg-surface-inset p-3 sm:flex-row sm:items-center"
             >
-              <div>
-                <span className="font-bold text-slate-900 dark:text-slate-100">
-                  {String(rule.order)}. <code>{rule.id}</code>
+              <div className="space-y-0.5">
+                <span className="font-bold text-ink">
+                  {String(rule.order)}. {rule.sentence}
                 </span>
-                <p className="mt-0.5 text-slate-600 dark:text-slate-300">
-                  {rule.trigger}
-                </p>
+                <span className="block text-caption text-ink-subtle">
+                  Rule: <code className="font-mono text-ink">{rule.id}</code> ·{" "}
+                  {rule.sources.length > 0
+                    ? `Reads: ${rule.sources.join(", ")}`
+                    : "Fallback when no earlier rule matches"}
+                </span>
               </div>
               <div className="shrink-0">
-                <ThreatLevelBadge level={rule.level} size="sm" />
+                <ThreatLevelBadge
+                  level={rule.level}
+                  label={levelLabel(rule.level, ladder)}
+                  size="sm"
+                />
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+          <div className="rounded-md border border-line bg-surface-inset p-3">
+            <h3 className="font-semibold text-ink">
+              NWS alert events read by the ladder
+            </h3>
+            <ul className="mt-1.5 space-y-1 text-ink-muted">
+              {ladder.events.map((ev) => (
+                <li key={ev.event}>
+                  <span className="font-medium text-ink">{ev.event}</span> →{" "}
+                  <code className="font-mono text-ink">{ev.rule}</code> (Level{" "}
+                  {String(ev.level)})
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-md border border-line bg-surface-inset p-3">
+            <h3 className="font-semibold text-ink">
+              NHC watch-warning segment codes read by the ladder
+            </h3>
+            <ul className="mt-1.5 space-y-1 text-ink-muted">
+              {ladder.codes.map((item) => (
+                <li key={item.code}>
+                  <code className="font-mono font-semibold text-ink">
+                    {item.code}
+                  </code>{" "}
+                  ({item.name}) →{" "}
+                  <code className="font-mono text-ink">{item.rule}</code> (Level{" "}
+                  {String(item.level)})
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </Card>
 

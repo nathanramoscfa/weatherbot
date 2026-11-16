@@ -70,6 +70,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/DESIGN.md` (tokens, primitives, type and vocabulary rules, the gate,
     layout, motion, accessibility, and CSP rules) and `docs/phase08-dogfood.md`
     (the ledger Steps 2 to 9 append to).
+- Serve the threat ladder from the engine and lead every assessment with plain
+  English while keeping official provenance in a disclosure (Phase 8 Step 3):
+  - `src/weatherbot/services/ladder.py`, `src/weatherbot/web/routes/ladder.py`,
+    and `LadderResponse`: add `ladder_reference(thresholds)` and sync `GET
+    /api/ladder` serving the five `AlertLevel` levels, the eleven `RULES` in
+    evaluation order with sentences and sources, the NWS alert events
+    (`LADDER_EVENTS`) and NHC watch-warning codes (`LADDER_CODES`), and the
+    running startup thresholds (`settings.engine.thresholds()`), exported to
+    `docs/api/openapi.json` and `frontend/src/test/fixtures/ladder.json`.
+  - `frontend/src/assessment/vocabulary.ts` and `ThreatLevelBadge.tsx`: pin the
+    frontend's fallback level and rule vocabulary to `ladder.json`, add
+    `useLadder()` over `queryKeys.ladder()` (`["settings", "ladder"]`),
+    `levelLabel`, and `ruleSentence`, and replace `ThreatLevelBadge`'s old
+    fallback names with the engine's while passing `level.label` at every
+    assessment call site.
+  - `frontend/src/assessment/ThreatMeter.tsx`, `LocationHero.tsx`, and
+    `WhyThisLevel.tsx`: add the five-step `ThreatMeter` ordered list
+    (`aria-current="step"`, visually hidden `Level N of 5`, `At least` marker),
+    `LocationHero` (`Level N — <engine name>`, deciding rule sentence,
+    recommended actions, relative assessed age with local time, and callouts for
+    incomplete floors, toggle changes, active evacuation orders, and historical
+    replay, with zero raw rule IDs, product codes, source IDs, zones, or UTC
+    timestamps), and `WhyThisLevel` (native `<details>` disclosure `"Why this
+    level / Official provenance & controls"`, closed by default, composing
+    `LevelSummary`, `EvidenceList`, `OfficialProductList`, and `ThreatTable`
+    with coverage, snapshot provenance, and the evacuation-order switch on `/`);
+    rebuild the `/settings` Alert Ladder reference from `useLadder()` and delete
+    `LADDER_RULES`.
+  - Tests: `tests/services/test_ladder_reference.py`,
+    `tests/web/test_ladder_route.py`, `frontend/src/assessment/vocabulary.test.ts`,
+    `ThreatMeter.test.tsx`, `LocationHero.test.tsx`, `WhyThisLevel.test.tsx`,
+    and `frontend/e2e/plain-english.spec.ts`.
 
 ### Phase 7 — Depth
 - Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),

@@ -28,6 +28,7 @@ def test_committed_openapi_schema_matches_fresh_export(
     assert str(doc["openapi"]).startswith("3.1.")
     paths = cast("dict[str, object]", doc["paths"])
     assert "/api/health" in paths
+    assert "/api/ladder" in paths
     assert "/api/events" in paths
     assert "/api/locations" in paths
     assert "/api/locations/search" in paths

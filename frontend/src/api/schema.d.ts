@@ -272,6 +272,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ladder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ladder
+         * @description Return the engine's levels, ordered rules, read products, and running startup thresholds.
+         */
+        get: operations["get_ladder_api_ladder_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/map": {
         parameters: {
             query?: never;
@@ -2361,6 +2381,139 @@ export interface components {
         /** @enum {string} */
         Horizon: "2d0" | "7d0";
         /**
+         * LadderCodeResponse
+         * @description An NHC coastal watch-warning code read by the ladder and the rule and level it sets.
+         */
+        LadderCodeResponse: {
+            /** @description NHC coastal watch-warning segment code (HWR, TWR, HWA, TWA). */
+            code: components["schemas"]["WatchWarningCode"];
+            /**
+             * Name
+             * @description Plain-English name of the NHC watch or warning code.
+             */
+            name: string;
+            /** @description Ladder rule triggered when a covering NHC segment carries this code. */
+            rule: components["schemas"]["RuleId"];
+            /**
+             * Level
+             * @description Threat level (1..5) set by that rule.
+             */
+            level: number;
+        };
+        /**
+         * LadderEventResponse
+         * @description An NWS alert event name read by the ladder and the rule and level it sets.
+         */
+        LadderEventResponse: {
+            /**
+             * Event
+             * @description Exact NWS alert event name read by the threat ladder.
+             */
+            event: string;
+            /** @description Ladder rule triggered when a covering NWS alert carries this event. */
+            rule: components["schemas"]["RuleId"];
+            /**
+             * Level
+             * @description Threat level (1..5) set by that rule.
+             */
+            level: number;
+        };
+        /**
+         * LadderResponse
+         * @description Response document for ``GET /api/ladder``.
+         */
+        LadderResponse: {
+            /**
+             * Levels
+             * @description The five threat levels (1..5) in AlertLevel order, with labels and actions.
+             */
+            levels: components["schemas"]["ThreatLevelResponse"][];
+            /**
+             * Rules
+             * @description The eleven ladder rules in fixed evaluation order.
+             */
+            rules: components["schemas"]["LadderRuleResponse"][];
+            /**
+             * Events
+             * @description The four NWS alert event names read by the ladder and the rule each triggers.
+             */
+            events: components["schemas"]["LadderEventResponse"][];
+            /**
+             * Codes
+             * @description The four NHC coastal watch-warning codes read by the ladder and their rules.
+             */
+            codes: components["schemas"]["LadderCodeResponse"][];
+            /**
+             * Thresholds
+             * @description The six engine thresholds currently running in this server process.
+             */
+            thresholds: components["schemas"]["LadderThresholdResponse"][];
+            /**
+             * Ruleset
+             * @description SHA-256 fingerprint of the rule order and running thresholds.
+             */
+            ruleset: string;
+            /**
+             * Notice
+             * @description One-line informational-only disclaimer notice.
+             */
+            notice: string;
+        };
+        /**
+         * LadderRuleResponse
+         * @description One of the eleven ladder rules in evaluation order returned by ``GET /api/ladder``.
+         */
+        LadderRuleResponse: {
+            /**
+             * Order
+             * @description Evaluation order of the rule (1..11); the first rule with a match decides.
+             */
+            order: number;
+            /** @description Engine identifier of the ladder rule. */
+            id: components["schemas"]["RuleId"];
+            /**
+             * Level
+             * @description Threat level (1..5) set when this rule matches.
+             */
+            level: number;
+            /**
+             * Sentence
+             * @description Plain-English sentence describing what triggers this rule.
+             */
+            sentence: string;
+            /**
+             * Sources
+             * @description Official product feeds or location inputs this rule reads.
+             */
+            sources: string[];
+        };
+        /**
+         * LadderThresholdResponse
+         * @description One running engine threshold reported by ``GET /api/ladder``.
+         */
+        LadderThresholdResponse: {
+            /**
+             * Name
+             * @description Engine threshold key in [engine] of weatherbot.toml.
+             */
+            name: string;
+            /**
+             * Value
+             * @description Running threshold value from startup settings.
+             */
+            value: number;
+            /**
+             * Unit
+             * @description Unit of the threshold value (km, h, or %).
+             */
+            unit: string;
+            /**
+             * Description
+             * @description Plain-English explanation of what the threshold bounds.
+             */
+            description: string;
+        };
+        /**
          * LocationAlertResponse
          * @description An active NWS alert associated with a watched location.
          */
@@ -3769,6 +3922,15 @@ export interface components {
              */
             editable: boolean;
         };
+        /**
+         * RuleId
+         * @description The eleven rules, in the order the engine evaluates them.
+         *
+         *     Within a level, official products precede the operator's toggle, and both precede
+         *     geometry and probability. ``all_clear`` decides when no other rule matches.
+         * @enum {string}
+         */
+        RuleId: "hurricane_warning" | "tropical_storm_warning" | "hurricane_watch" | "evacuation_order" | "tropical_storm_watch" | "hurricane_cone" | "hurricane_wind_probability" | "storm_cone" | "development_region" | "tropical_storm_wind_probability" | "all_clear";
         /**
          * RunRetentionRequest
          * @description Request body for ``POST /api/retention/run``.
@@ -5718,6 +5880,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DisclaimerResponse"];
+                };
+            };
+        };
+    };
+    get_ladder_api_ladder_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LadderResponse"];
                 };
             };
         };

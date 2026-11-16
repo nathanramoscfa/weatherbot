@@ -404,6 +404,7 @@ function TimelineEntryCard({
             {entry.level && (
               <ThreatLevelBadge
                 level={entry.level.number}
+                label={entry.level.label}
                 atLeast={entry.complete === false}
                 size="sm"
               />
@@ -455,7 +456,11 @@ function TimelineEntryCard({
             </span>
           )}
           {entry.level && (
-            <ThreatLevelBadge level={entry.level.number} size="sm" />
+            <ThreatLevelBadge
+              level={entry.level.number}
+              label={entry.level.label}
+              size="sm"
+            />
           )}
         </div>
         <span className="text-slate-600 dark:text-slate-400">

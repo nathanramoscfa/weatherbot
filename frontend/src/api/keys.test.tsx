@@ -55,5 +55,6 @@ describe("query keys vocabulary", () => {
     ]);
     expect(queryKeys.disclaimer()).toEqual(["disclaimer"]);
     expect(queryKeys.licenses()).toEqual(["licenses"]);
+    expect(queryKeys.ladder()).toEqual(["settings", "ladder"]);
   });
 });

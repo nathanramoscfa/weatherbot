@@ -10,6 +10,7 @@ import { createAppQueryClient } from "../main.tsx";
 import { BROWSER_NOTIFICATIONS_STORAGE_KEY } from "../notifications/notify.ts";
 import { aiStatus, TYPED_AI, TYPED_AI_CALLS } from "../test/ai.ts";
 import disclaimerFixture from "../test/fixtures/disclaimer.json";
+import ladderFixture from "../test/fixtures/ladder.json";
 import locationsFixture from "../test/fixtures/locations.json";
 import notificationChannelsFixture from "../test/fixtures/notification-channels.json";
 import notificationsFixture from "../test/fixtures/notifications.json";
@@ -51,6 +52,9 @@ const TYPED_CHANNELS = asSchema<
   notificationChannelsFixture satisfies JsonFixture<
     components["schemas"]["NotificationChannelsResponse"]
   >,
+);
+const TYPED_LADDER = asSchema<components["schemas"]["LadderResponse"]>(
+  ladderFixture satisfies JsonFixture<components["schemas"]["LadderResponse"]>,
 );
 
 const SAMPLE_LICENSES: BundledLicenseEntry[] = [
@@ -366,5 +370,54 @@ describe("Settings", () => {
       within(section).getByRole("button", { name: "Allow $1.00 more today" }),
     ).toBeDisabled();
     expect(within(section).getByText("No AI request is recorded yet.")).toBeInTheDocument();
+  });
+
+  it("renders the eleven ladder rules in engine evaluation order from ladder.json with their sentences, sources, events, and codes", () => {
+    const queryClient = createAppQueryClient();
+    queryClient.setQueryData(queryKeys.settings(), TYPED_SETTINGS);
+    queryClient.setQueryData(queryKeys.ladder(), TYPED_LADDER);
+    queryClient.setQueryData(queryKeys.retention(), TYPED_RETENTION);
+    queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
+    queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
+    queryClient.setQueryData(queryKeys.notificationChannels(), TYPED_CHANNELS);
+    queryClient.setQueryData(queryKeys.licenses(), SAMPLE_LICENSES);
+    queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
+    queryClient.setQueryData(queryKeys.aiCalls(), TYPED_AI_CALLS);
+
+    const { container } = render(
+      <QueryClientProvider client={queryClient}>
+        <Settings initialLicenses={SAMPLE_LICENSES} />
+      </QueryClientProvider>,
+    );
+
+    const ladderSection = screen.getByRole("region", {
+      name: /Alert Ladder/i,
+    });
+    for (const rule of TYPED_LADDER.rules) {
+      const row = within(ladderSection).getByTestId(`ladder-rule-${rule.id}`);
+      expect(row).toHaveTextContent(`${String(rule.order)}. ${rule.sentence}`);
+      expect(row).toHaveTextContent(rule.id);
+    }
+
+    for (const ev of TYPED_LADDER.events) {
+      expect(within(ladderSection).getAllByText(ev.event).length).toBeGreaterThan(
+        0,
+      );
+    }
+    for (const item of TYPED_LADDER.codes) {
+      expect(within(ladderSection).getByText(item.code)).toBeInTheDocument();
+    }
+
+    // Wrong rule name and non-ladder products never appear
+    const retiredNames = [
+      ["tropical_storm", "_cone"].join(""),
+      ["Extreme ", "Wind Warning"].join(""),
+      ["Storm Surge ", "Warning"].join(""),
+      ["Storm Surge ", "Watch"].join(""),
+    ];
+    for (const retired of retiredNames) {
+      expect(ladderSection.textContent ?? "").not.toContain(retired);
+    }
+    expect(container.querySelector("[style]")).toBeNull();
   });
 });

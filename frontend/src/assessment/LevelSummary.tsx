@@ -70,17 +70,19 @@ export interface LevelSummaryProps {
 
 export function LevelSummary({ assessment, children }: LevelSummaryProps) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40">
-      <p className="font-semibold text-slate-900 dark:text-slate-100">
-        Deciding rule:{" "}
-        <code className="rounded bg-slate-200/80 px-1 py-0.5 font-mono dark:bg-slate-700">
-          {assessment.rule}
-        </code>
-      </p>
-      <p className="mt-1 text-slate-700 dark:text-slate-300">
-        {assessment.rule_trigger}
-      </p>
-      <p className="mt-2 font-medium text-slate-900 dark:text-slate-100">
+    <div className="rounded-md border border-line bg-surface-inset p-3 text-sm">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="font-semibold text-ink">
+          {assessment.rule_trigger}
+        </p>
+        <span className="text-caption text-ink-subtle">
+          Rule ID:{" "}
+          <code className="rounded bg-surface-card px-1.5 py-0.5 font-mono text-ink">
+            {assessment.rule}
+          </code>
+        </span>
+      </div>
+      <p className="mt-1.5 text-ink-muted">
         Recommended actions: {assessment.level.actions}
       </p>
       {children}

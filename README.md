@@ -253,18 +253,24 @@ reloading the page and provides eight pages:
 
 - **Dashboard (`/`)**: when two or more locations are watched, a location
   comparison strip above the cards lists every location's level, stepped
-  `LevelSparkline` (`GET /api/charts`), and deciding rule, linking to its card;
-  each watched location's card shows its current threat level (`1` to `5`,
-  or `At least Level N` when an input was unavailable) beside its
-  `LevelSparkline`, deciding rule and
-  evidence, recommended actions, covering official products and county-zone
-  context alerts, per-storm threats (category, cone status, distance, bearing,
-  closest approach, 34-kt wind arrival times, and an SVG `ArrivalTimeline` bar
-  from the assessment's `as_of` to the earliest reasonable and most likely
-  arrival windows), 5 km wind-speed probabilities,
-  changes since the previous assessment, the evacuation-order toggle, and a
-  `Check now` button (`POST /api/cycles`) to run an on-demand manual cycle.
-  Beneath the evidence, each card's **AI briefing** panel shows the stored
+  `LevelSparkline` (`GET /api/charts`), and plain-English rule sentence, linking
+  to its card; each watched location's card leads with `LocationHero` (its
+  current threat level `Level N — <engine name>` or `At least Level N — <engine
+  name>` when an input was unavailable, the deciding rule's plain-English
+  sentence, recommended actions, the 5-step `ThreatMeter`, relative assessed age
+  with local time, and callouts for incomplete floors, toggle changes, or an
+  active evacuation order) beside its `LevelSparkline` and an SVG
+  `ArrivalTimeline` bar from the assessment's `as_of` to the earliest reasonable
+  and most likely 34-kt arrival windows, followed by the **AI briefing** panel,
+  changes since the previous assessment, and the native `<details>` disclosure
+  `WhyThisLevel` (**Why this level / Official provenance & controls**, holding
+  `LevelSummary` with the rule ID, `EvidenceList`, `OfficialProductList` with
+  covering official products and county-zone context alerts, `ThreatTable` with
+  per-storm threats and 5 km wind-speed probabilities, unavailable inputs,
+  coverage and breakpoint span, raw UTC timestamps and snapshot ID, and the
+  evacuation-order toggle), plus a `Check now` button (`POST /api/cycles`) to
+  run an on-demand manual cycle.
+  Each card's **AI briefing** panel shows the stored
   briefing with its sources, and `Brief me` streams a new one section by
   section (`POST /api/ai/briefings`); a withheld briefing shows only its
   reason, and a briefing written for an older assessment says so and offers
@@ -345,9 +351,9 @@ reloading the page and provides eight pages:
   sizes, oldest and newest snapshots, `[retention] history_days`, dry-run plan
   preview, and `Prune now` via `POST /api/retention/run` behind a confirmation),
   inspect effective settings and their origins (`default`, `file`,
-  `environment`), read the 11-rule alert ladder, read the full disclaimer
-  (`#disclaimer`), and view bundled frontend package licences
-  (`/licenses.json`).
+  `environment`), read the 11-rule alert ladder served from the engine (`GET
+  /api/ladder`), read the full disclaimer (`#disclaimer`), and view bundled
+  frontend package licences (`/licenses.json`).
 
 Every AI block is labeled with the model and the time and says it may be
 wrong; its text renders as plain text (never Markdown or HTML), and when AI is
