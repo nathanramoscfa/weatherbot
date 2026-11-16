@@ -1,10 +1,10 @@
 // frontend/src/pages/Dashboard.test.tsx
-import { QueryClientProvider } from "@tanstack/react-query";
+import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { apiClient } from "../api/client.ts";
+import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import {
@@ -18,10 +18,13 @@ import chartsFixture from "../test/fixtures/charts.json";
 import disclaimerFixture from "../test/fixtures/disclaimer.json";
 import healthFixture from "../test/fixtures/health.json";
 import locationsFixture from "../test/fixtures/locations.json";
+import mapFixture from "../test/fixtures/map.json";
 import { Dashboard } from "./Dashboard.tsx";
 import { asSchema, type JsonFixture } from "./format.ts";
 
-const TYPED_ASSESSMENTS = asSchema<components["schemas"]["AssessmentsResponse"]>(
+const TYPED_ASSESSMENTS = asSchema<
+  components["schemas"]["AssessmentsResponse"]
+>(
   assessmentsFixture satisfies JsonFixture<
     components["schemas"]["AssessmentsResponse"]
   >,
@@ -42,37 +45,49 @@ const TYPED_DISCLAIMER = asSchema<components["schemas"]["DisclaimerResponse"]>(
     components["schemas"]["DisclaimerResponse"]
   >,
 );
+const TYPED_MAP = asSchema<components["schemas"]["MapResponse"]>(
+  mapFixture satisfies JsonFixture<components["schemas"]["MapResponse"]>,
+);
+
+function seedDashboardClient(): QueryClient {
+  const queryClient = createAppQueryClient();
+  queryClient.setQueryData(queryKeys.assessments(), TYPED_ASSESSMENTS);
+  queryClient.setQueryData(
+    queryKeys.charts("Miami-Dade County Hall"),
+    TYPED_CHARTS,
+  );
+  queryClient.setQueryData(queryKeys.charts("Parliament Square"), {
+    ...TYPED_CHARTS,
+    location: "Parliament Square",
+    levels: [TYPED_CHARTS.levels[0]!],
+  });
+  queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
+  queryClient.setQueryData(queryKeys.health(), TYPED_HEALTH);
+  queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
+  queryClient.setQueryData(queryKeys.briefings(), TYPED_BRIEFINGS);
+  queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
+  queryClient.setQueryData(queryKeys.map(), TYPED_MAP);
+  return queryClient;
+}
 
 describe("Dashboard", () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      get: () => false,
+    });
   });
 
-  it("renders the level cards, county-zone context alerts, storm threats, and evacuation toggle from fixtures, and calls PUT /api/locations/evacuation", async () => {
+  it("renders the status bar, export popover, location switcher with one heading per name, featured location hero/tiles/briefing/disclosure, mini-map, and calls PUT /api/locations/evacuation", async () => {
     const user = userEvent.setup();
-    const queryClient = createAppQueryClient();
-    queryClient.setQueryData(queryKeys.assessments(), TYPED_ASSESSMENTS);
-    queryClient.setQueryData(
-      queryKeys.charts("Miami-Dade County Hall"),
-      TYPED_CHARTS,
-    );
-    queryClient.setQueryData(queryKeys.charts("Parliament Square"), {
-      ...TYPED_CHARTS,
-      location: "Parliament Square",
-      levels: [TYPED_CHARTS.levels[0]!],
-    });
-    queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
-    queryClient.setQueryData(queryKeys.health(), TYPED_HEALTH);
-    queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
-    queryClient.setQueryData(queryKeys.briefings(), TYPED_BRIEFINGS);
-    queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
+    const queryClient = seedDashboardClient();
 
-    const putSpy = vi
-      .spyOn(apiClient, "PUT")
-      .mockResolvedValue({
-        data: TYPED_LOCATIONS.locations[0]!,
-        response: new Response(null, { status: 200 }),
-      });
+    const putSpy = vi.spyOn(apiClient, "PUT").mockResolvedValue({
+      data: TYPED_LOCATIONS.locations[0]!,
+      response: new Response(null, { status: 200 }),
+    });
 
     render(
       <QueryClientProvider client={queryClient}>
@@ -83,42 +98,44 @@ describe("Dashboard", () => {
     );
 
     expect(
-      screen.getByRole("article", { name: "Miami-Dade County Hall" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("article", { name: "Parliament Square" }),
+      screen.getByRole("heading", { name: "Dashboard" }),
     ).toBeInTheDocument();
 
-    // Covering alert and county-zone context alert
+    // One heading per location name in the switcher
     expect(
-      screen.getAllByText(/Rip Current Statement/).length,
-    ).toBeGreaterThan(0);
+      screen.getAllByRole("heading", { name: "Miami-Dade County Hall" }),
+    ).toHaveLength(1);
     expect(
-      screen.getByText(
-        /County-zone alerts outside this location's zones \(context only; never sets the level\)/i,
-      ),
-    ).toBeInTheDocument();
+      screen.getAllByRole("heading", { name: "Parliament Square" }),
+    ).toHaveLength(1);
+
+    const switcher = screen.getByTestId("location-switcher");
+    expect(within(switcher).getAllByTestId("level-sparkline")).toHaveLength(2);
     expect(
-      screen.getAllByText(/Coastal Flood Statement/).length,
+      within(switcher).getByRole("link", { name: "Miami-Dade County Hall" }),
+    ).toHaveAttribute("href", "#location-miami-dade-county-hall");
+
+    // Featured location shows hero, stat tiles, arrival timeline, briefing, and disclosure
+    const featured = screen.getByTestId("featured-location");
+    const heroHeadline = within(featured).getByTestId("location-hero-headline");
+    expect(heroHeadline).toHaveTextContent("Level 1 — All Clear");
+
+    const tiles = within(featured).getByTestId("featured-stat-tiles");
+    expect(
+      within(tiles).getByRole("group", { name: "Closest approach" }),
+    ).toHaveTextContent("2667.0");
+    expect(
+      within(tiles).getByRole("group", { name: "Storm bearing" }),
+    ).toHaveTextContent("East");
+    expect(tiles.querySelectorAll(".tabular-nums").length).toBeGreaterThan(0);
+
+    expect(
+      within(featured).getAllByTestId("arrival-timeline").length,
     ).toBeGreaterThan(0);
 
-    // The AI briefing sits in each card after the hero headline
-    const miamiCard = screen.getByRole("article", {
-      name: "Miami-Dade County Hall",
-    });
-    const briefing = within(miamiCard).getByRole("region", {
+    const briefing = within(featured).getByRole("region", {
       name: "AI briefing for Miami-Dade County Hall",
     });
-    const level = within(miamiCard).getByText("Level 1");
-    const heroHeadline = within(miamiCard).getByTestId(
-      "location-hero-headline",
-    );
-    const disclosure = within(miamiCard).getByTestId("why-this-level");
-    expect(heroHeadline).toHaveTextContent("Level 1 — All Clear");
-    expect(disclosure).not.toHaveAttribute("open");
-    expect(
-      level.compareDocumentPosition(briefing) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
     expect(
       heroHeadline.compareDocumentPosition(briefing) &
         Node.DOCUMENT_POSITION_FOLLOWING,
@@ -126,15 +143,25 @@ describe("Dashboard", () => {
     expect(within(briefing).getByTestId("ai-label")).toHaveTextContent(
       "AI briefing · Claude Sonnet 5.5",
     );
-    expect(
-      within(
-        screen.getByRole("article", { name: "Parliament Square" }),
-      ).getByRole("region", { name: "AI briefing for Parliament Square" }),
-    ).toHaveTextContent("No briefing yet.");
 
-    // Storm threat with 0.1 km distance and integer degree bearing
+    const disclosure = within(featured).getByTestId("why-this-level");
+    expect(disclosure).not.toHaveAttribute("open");
+    expect(screen.getAllByText(/Rip Current Statement/).length).toBeGreaterThan(
+      0,
+    );
+    expect(
+      screen.getByText(
+        /County-zone alerts outside this location's zones \(context only; never sets the level\)/i,
+      ),
+    ).toBeInTheDocument();
     expect(screen.getAllByText(/2798\.0 km at 72 deg/i).length).toBeGreaterThan(
       0,
+    );
+
+    // Mini-map container is rendered inside the dashboard
+    expect(screen.getByTestId("mini-map-container")).toBeInTheDocument();
+    expect(screen.getByTestId("mini-map-caption")).toHaveTextContent(
+      "1 active storm · Snapshot 4 min old",
     );
 
     // Evacuation toggle interaction
@@ -143,25 +170,26 @@ describe("Dashboard", () => {
     });
     expect(miamiSwitch).toHaveAttribute("aria-checked", "false");
     await user.click(miamiSwitch);
-
     expect(putSpy).toHaveBeenCalledWith("/api/locations/evacuation", {
       body: { location: "Miami-Dade County Hall", on: true },
     });
 
-    // Comparison strip lists both locations with sparkline and link to card
-    const strip = screen.getByTestId("location-comparison-strip");
-    const miamiLink = within(strip).getByRole("link", {
-      name: "Miami-Dade County Hall",
-    });
-    expect(miamiLink).toHaveAttribute("href", "#location-miami-dade-county-hall");
-    expect(within(strip).getAllByTestId("level-sparkline").length).toBe(2);
-
-    // ArrivalTimeline rendered inside storm threats
-    expect(screen.getAllByTestId("arrival-timeline").length).toBeGreaterThan(0);
-
-    // Export report links and unticked "Include the AI briefing" checkbox
+    // Switch featured location via switcher link
+    await user.click(
+      within(switcher).getByRole("link", { name: "Parliament Square" }),
+    );
     expect(
-      screen.getByText(/opens offline anywhere and prints to PDF from the browser/i),
+      within(screen.getByTestId("featured-location")).getByRole("region", {
+        name: "AI briefing for Parliament Square",
+      }),
+    ).toHaveTextContent("No briefing yet.");
+
+    // Export popover contents and Include the AI briefing checkbox
+    await user.click(screen.getByRole("button", { name: "Export report" }));
+    expect(
+      screen.getByText(
+        /opens offline anywhere and prints to PDF from the browser/i,
+      ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -178,12 +206,10 @@ describe("Dashboard", () => {
       "export-report-Miami-Dade County Hall",
     );
     expect(exportAllLink).toHaveAttribute("href", "/api/report");
-    expect(exportAllLink).toHaveAttribute("download");
     expect(exportMiamiLink).toHaveAttribute(
       "href",
       "/api/report?location=Miami-Dade+County+Hall",
     );
-    expect(exportMiamiLink).toHaveAttribute("download");
 
     await user.click(briefingCheckbox);
     expect(briefingCheckbox).toBeChecked();
@@ -194,8 +220,131 @@ describe("Dashboard", () => {
     );
   });
 
+  it("features the highest-level location by default or the hash's location when specified, and renders dashes on stat tiles when inputs are absent", () => {
+    const queryClient = seedDashboardClient();
+    const loc0 = TYPED_ASSESSMENTS.locations[0]!;
+    const loc1 = TYPED_ASSESSMENTS.locations[1]!;
+    const elevatedAssessments: components["schemas"]["AssessmentsResponse"] = {
+      ...TYPED_ASSESSMENTS,
+      locations: [
+        {
+          ...loc0,
+          assessment: {
+            ...loc0.assessment!,
+            threats: [],
+            wind_probabilities: [],
+          },
+        },
+        {
+          ...loc1,
+          assessment: {
+            ...loc1.assessment!,
+            level: {
+              number: 4,
+              label: "Warning / Watch / Evacuation",
+              actions: "Prepare now",
+            },
+            rule: "tropical_storm_warning",
+            rule_trigger: "A Tropical Storm Warning covers the location.",
+            threats: [],
+            wind_probabilities: [],
+          },
+        },
+      ],
+    };
+    queryClient.setQueryData(queryKeys.assessments(), elevatedAssessments);
+
+    const { unmount } = render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/"]}>
+          <Dashboard />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Highest level (Parliament Square at Level 4) is featured by default
+    expect(screen.getByTestId("featured-location-name")).toHaveTextContent(
+      "Parliament Square",
+    );
+    expect(screen.getByTestId("location-hero-headline")).toHaveTextContent(
+      "Level 4 — Warning / Watch / Evacuation",
+    );
+
+    const tiles = screen.getByTestId("featured-stat-tiles");
+    expect(
+      within(tiles).getByRole("group", { name: "Closest approach" }),
+    ).toHaveTextContent("—");
+    expect(
+      within(tiles).getByRole("group", { name: "Storm bearing" }),
+    ).toHaveTextContent("—");
+
+    unmount();
+
+    // Explicit URL hash overrides default level priority
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/#location-miami-dade-county-hall"]}>
+          <Dashboard />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(screen.getByTestId("featured-location-name")).toHaveTextContent(
+      "Miami-Dade County Hall",
+    );
+    expect(screen.getByTestId("location-hero-headline")).toHaveTextContent(
+      "Level 1 — All Clear",
+    );
+  });
+
+  it("updates the next-product countdown at minute boundaries and pauses while document.hidden is true", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-13T02:18:30Z"));
+
+    const queryClient = seedDashboardClient();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <Dashboard />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    const countdown = screen.getByTestId("next-product-countdown");
+    expect(countdown).toHaveTextContent("Next NHC product in 42 min");
+
+    act(() => {
+      vi.advanceTimersByTime(30_000);
+    });
+    expect(screen.getByTestId("next-product-countdown")).toHaveTextContent(
+      "Next NHC product in 41 min",
+    );
+
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      get: () => true,
+    });
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+      vi.advanceTimersByTime(3 * 60_000);
+    });
+    expect(screen.getByTestId("next-product-countdown")).toHaveTextContent(
+      "Next NHC product in 41 min",
+    );
+
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      get: () => false,
+    });
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(screen.getByTestId("next-product-countdown")).toHaveTextContent(
+      "Next NHC product in 38 min",
+    );
+  });
+
   it("shows 'At least' with missing inputs when complete is false and escapes HTML in product and storm strings", () => {
-    const queryClient = createAppQueryClient();
+    const queryClient = seedDashboardClient();
     const baseLoc = TYPED_ASSESSMENTS.locations[0]!;
     const incompleteAssessments: components["schemas"]["AssessmentsResponse"] =
       {
@@ -222,10 +371,6 @@ describe("Dashboard", () => {
       };
 
     queryClient.setQueryData(queryKeys.assessments(), incompleteAssessments);
-    queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
-    queryClient.setQueryData(queryKeys.health(), TYPED_HEALTH);
-    queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
-    queryClient.setQueryData(queryKeys.briefings(), TYPED_BRIEFINGS);
 
     const { container } = render(
       <QueryClientProvider client={queryClient}>
@@ -236,9 +381,7 @@ describe("Dashboard", () => {
     );
 
     expect(screen.getAllByText(/At least Level 1/i).length).toBeGreaterThan(0);
-    expect(
-      screen.getByTestId("level-live-region"),
-    ).toHaveTextContent(
+    expect(screen.getByTestId("level-live-region")).toHaveTextContent(
       "Miami <script>alert(1)</script>: At least Level 1, All Clear. No other rule matches.",
     );
     expect(
@@ -248,29 +391,14 @@ describe("Dashboard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/nws-alerts-zone/)).toBeInTheDocument();
     expect(
-      screen.getByText("Miami <script>alert(1)</script>"),
-    ).toBeInTheDocument();
+      screen.getAllByText("Miami <script>alert(1)</script>").length,
+    ).toBeGreaterThan(0);
     expect(container.querySelector("script")).toBeNull();
   });
 
   it("disables 'Check now' while a cycle it started is running until a cycle event arrives, and shows plain messages on 409 and 429", async () => {
     const user = userEvent.setup();
-    const queryClient = createAppQueryClient();
-    queryClient.setQueryData(queryKeys.assessments(), TYPED_ASSESSMENTS);
-    queryClient.setQueryData(
-      queryKeys.charts("Miami-Dade County Hall"),
-      TYPED_CHARTS,
-    );
-    queryClient.setQueryData(queryKeys.charts("Parliament Square"), {
-      ...TYPED_CHARTS,
-      location: "Parliament Square",
-      levels: [TYPED_CHARTS.levels[0]!],
-    });
-    queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
-    queryClient.setQueryData(queryKeys.health(), TYPED_HEALTH);
-    queryClient.setQueryData(queryKeys.ai(), TYPED_AI);
-    queryClient.setQueryData(queryKeys.briefings(), TYPED_BRIEFINGS);
-
+    const queryClient = seedDashboardClient();
     const postSpy = vi.spyOn(apiClient, "POST");
 
     render(
@@ -283,7 +411,6 @@ describe("Dashboard", () => {
 
     const checkBtn = screen.getByRole("button", { name: /check now/i });
 
-    // 1. 202 Accepted disables button until cycle StreamEvent arrives
     postSpy.mockResolvedValueOnce({
       data: {
         status: "accepted",
@@ -337,46 +464,40 @@ describe("Dashboard", () => {
       expect(checkBtn).not.toBeDisabled();
     });
 
-    // 2. 409 Conflict shows plain message and re-enables button
     postSpy.mockResolvedValueOnce({
       data: undefined,
       response: new Response(null, { status: 409 }),
     });
     await user.click(checkBtn);
     expect(checkBtn).not.toBeDisabled();
-    expect(
-      screen.getByRole("alert"),
-    ).toHaveTextContent(
+    expect(screen.getByRole("alert")).toHaveTextContent(
       "Another monitor cycle is already running (/api/cycles returned HTTP 409).",
     );
 
-    // 3. 429 Too Many Requests shows plain message
     postSpy.mockResolvedValueOnce({
       data: undefined,
       response: new Response(null, { status: 429 }),
     });
     await user.click(checkBtn);
-    expect(
-      screen.getByRole("alert"),
-    ).toHaveTextContent(
+    expect(screen.getByRole("alert")).toHaveTextContent(
       "Please wait before starting another manual check (/api/cycles returned HTTP 429).",
     );
   });
 
-  it("renders the empty state with disclaimer essentials and a link to /settings when no locations are watched", () => {
-    const queryClient = createAppQueryClient();
-    queryClient.setQueryData(queryKeys.assessments(), {
+  it("renders the empty, loading, and error states", async () => {
+    const emptyClient = createAppQueryClient();
+    emptyClient.setQueryData(queryKeys.assessments(), {
       ...TYPED_ASSESSMENTS,
       locations: [],
     });
-    queryClient.setQueryData(queryKeys.locations(), {
+    emptyClient.setQueryData(queryKeys.locations(), {
       ...TYPED_LOCATIONS,
       locations: [],
     });
-    queryClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
+    emptyClient.setQueryData(queryKeys.disclaimer(), TYPED_DISCLAIMER);
 
-    render(
-      <QueryClientProvider client={queryClient}>
+    const { unmount: unmountEmpty } = render(
+      <QueryClientProvider client={emptyClient}>
         <MemoryRouter>
           <Dashboard />
         </MemoryRouter>
@@ -389,9 +510,45 @@ describe("Dashboard", () => {
     expect(
       screen.getByText(/Weatherbot is informational only/i),
     ).toBeInTheDocument();
-    const settingsLink = screen.getByRole("link", {
-      name: /Add your first location in Settings/i,
+    expect(
+      screen.getByRole("link", { name: /Add your first location in Settings/i }),
+    ).toHaveAttribute("href", "/settings");
+    unmountEmpty();
+
+    // Loading state
+    vi.spyOn(apiClient, "GET").mockImplementation(
+      () => new Promise(() => undefined),
+    );
+    const loadingClient = createAppQueryClient();
+    const { unmount: unmountLoading } = render(
+      <QueryClientProvider client={loadingClient}>
+        <MemoryRouter>
+          <Dashboard />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(
+      screen.getByText("Loading threat assessments…"),
+    ).toBeInTheDocument();
+    unmountLoading();
+
+    // Error state
+    vi.spyOn(apiClient, "GET").mockRejectedValue(
+      new ApiRequestError("/api/assessments", 503),
+    );
+    const errorClient = createAppQueryClient();
+    errorClient.setDefaultOptions({
+      queries: { retry: false },
     });
-    expect(settingsLink).toHaveAttribute("href", "/settings");
+    render(
+      <QueryClientProvider client={errorClient}>
+        <MemoryRouter>
+          <Dashboard />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Request to /api/assessments failed (HTTP 503).",
+    );
   });
 });

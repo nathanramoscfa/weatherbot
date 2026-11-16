@@ -251,36 +251,36 @@ type, contrast, line length, and no sideways scrolling.
 The dashboard refreshes live over Server-Sent Events (`GET /api/events`) without
 reloading the page and provides eight pages:
 
-- **Dashboard (`/`)**: when two or more locations are watched, a location
-  comparison strip above the cards lists every location's level, stepped
-  `LevelSparkline` (`GET /api/charts`), and plain-English rule sentence, linking
-  to its card; each watched location's card leads with `LocationHero` (its
-  current threat level `Level N — <engine name>` or `At least Level N — <engine
-  name>` when an input was unavailable, the deciding rule's plain-English
-  sentence, recommended actions, the 5-step `ThreatMeter`, relative assessed age
-  with local time, and callouts for incomplete floors, toggle changes, or an
-  active evacuation order) beside its `LevelSparkline` and an SVG
-  `ArrivalTimeline` bar from the assessment's `as_of` to the earliest reasonable
-  and most likely 34-kt arrival windows, followed by the **AI briefing** panel,
-  changes since the previous assessment, and the native `<details>` disclosure
-  `WhyThisLevel` (**Why this level / Official provenance & controls**, holding
-  `LevelSummary` with the rule ID, `EvidenceList`, `OfficialProductList` with
-  covering official products and county-zone context alerts, `ThreatTable` with
-  per-storm threats and 5 km wind-speed probabilities, unavailable inputs,
-  coverage and breakpoint span, raw UTC timestamps and snapshot ID, and the
-  evacuation-order toggle), plus a `Check now` button (`POST /api/cycles`) to
-  run an on-demand manual cycle.
-  Each card's **AI briefing** panel shows the stored
-  briefing with its sources, and `Brief me` streams a new one section by
-  section (`POST /api/ai/briefings`); a withheld briefing shows only its
-  reason, and a briefing written for an older assessment says so and offers
-  `Brief me again`. Above the cards and on each location card, **Export report**
-  (`<a href="/api/report?location=..." download>`) downloads the self-contained
-  HTML report (`GET /api/report?location=&briefing=`) with an unticked
-  **Include the AI briefing** checkbox explaining that briefing words quote NWS
-  alerts and can name a county or a forecast office; the exported HTML leaves
-  out coordinates, zone IDs, raw kilometre figures, and tokens, opens offline
-  anywhere, and prints to PDF directly from the browser.
+- **Dashboard (`/`)**: a command-center dashboard opening with a one-line
+  `StatusBar` (snapshot status and age, a minute countdown to the next NHC
+  product paused while the tab is hidden, `Check now` via `POST /api/cycles`,
+  and an `Export report` Radix `Popover` holding the all-locations and
+  per-location download links for `GET /api/report?location=&briefing=` plus the
+  unticked **Include the AI briefing** checkbox and county-name caveat; the
+  exported HTML leaves out coordinates, zone IDs, raw kilometre figures, and
+  tokens, opens offline anywhere, and prints to PDF from the browser). Beneath
+  the bar, interactive `LocationSwitcher` cards (the location switcher) show one
+  card and one heading per watched location with its engine threat-level badge,
+  plain-English deciding sentence, NWS coverage caption, stepped
+  `LevelSparkline` (`GET /api/charts`), and assessed age, linking to
+  `#location-<slug>` to feature that location (defaulting to the highest threat
+  level, then list order, with browser Back and Forward moving between
+  features). The featured location (`FeaturedLocation`) shows `LocationHero`
+  (`Level N — <engine name>` or `At least Level N — <engine name>`, the deciding
+  rule's sentence, recommended actions, the 5-step `ThreatMeter`, and callouts
+  for incomplete floors, toggle changes, or an active evacuation order), six
+  `tabular-nums` `StatTile`s (closest-approach distance and time, storm bearing
+  in compass words, earliest and most likely 34-kt arrival, 34-kt and 64-kt
+  120-hour wind probabilities, and storms tracked, each with its product caption
+  and a dash when absent), the lead storm's `ArrivalTimeline`, the **AI
+  briefing** panel (`Brief me` / `Brief me again` streaming via `POST
+  /api/ai/briefings`), changes since the previous assessment, and the native
+  `<details>` disclosure `WhyThisLevel` (**Why this level / Official provenance
+  & controls**, composing `LevelSummary`, `EvidenceList`, `OfficialProductList`,
+  and `ThreatTable` with the evacuation-order switch), alongside a live
+  situation `MiniMap` card drawing active cones, tracks, forecast points,
+  watches and warnings, and location markers from `GET /api/map` with a link to
+  `/map`.
 - **Map (`/map`)**: an interactive Leaflet map over OpenStreetMap tiles showing
   six default-on layers (storm cones, forecast tracks, forecast points, coastal
   watch and warning segments, Tropical Weather Outlook areas, and watched
