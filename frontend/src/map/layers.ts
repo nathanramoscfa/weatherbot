@@ -1228,13 +1228,18 @@ export function computeMapBounds(mapData: MapResponse): L.LatLngBounds | null {
   return L.latLngBounds(coords);
 }
 
-export function fitMapToPayload(map: L.Map, mapData: MapResponse): void {
+export function fitMapToPayload(
+  map: L.Map,
+  mapData: MapResponse,
+  options?: L.FitBoundsOptions,
+): void {
   const bounds = computeMapBounds(mapData);
   if (bounds && bounds.isValid()) {
     map.fitBounds(bounds, {
       animate: false,
       padding: [24, 24],
       maxZoom: 8,
+      ...options,
     });
     return;
   }

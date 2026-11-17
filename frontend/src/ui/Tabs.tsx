@@ -4,7 +4,9 @@ import {
   type KeyboardEvent,
   type ReactNode,
   useContext,
+  useEffect,
   useId,
+  useRef,
 } from "react";
 import { cx } from "./threat.ts";
 
@@ -159,11 +161,24 @@ export function Tab({
 }: TabProps) {
   const { baseId, value: activeValue, onValueChange } = useTabsContext();
   const isSelected = activeValue === value;
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const button = buttonRef.current;
+    const list = button?.closest<HTMLElement>('[role="tablist"]');
+    if (!isSelected || !button || !list) return;
+    // Reveal a hash-selected tab horizontally without scrolling the page.
+    const tabBox = button.getBoundingClientRect();
+    const listBox = list.getBoundingClientRect();
+    if (tabBox.left < listBox.left) list.scrollLeft -= listBox.left - tabBox.left + 6;
+    else if (tabBox.right > listBox.right) list.scrollLeft += tabBox.right - listBox.right + 6;
+  }, [isSelected]);
 
   return (
     <button
       type="button"
       role="tab"
+      ref={buttonRef}
       id={tabElementId(baseId, value)}
       aria-selected={isSelected}
       aria-controls={panelElementId(baseId, value)}

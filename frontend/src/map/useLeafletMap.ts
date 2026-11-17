@@ -84,6 +84,7 @@ export interface UseLeafletMapOptions {
   readonly overlays?: UseLeafletMapOverlays;
   readonly timeZone?: string | null;
   readonly viewModeKey?: string;
+  readonly fitOptions?: (container: HTMLElement) => L.FitBoundsOptions;
 }
 
 export interface UseLeafletMapResult {
@@ -187,6 +188,7 @@ export function useLeafletMap({
   overlays,
   timeZone,
   viewModeKey = "live",
+  fitOptions,
 }: UseLeafletMapOptions): UseLeafletMapResult {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -201,6 +203,11 @@ export function useLeafletMap({
   const userMovedRef = useRef(false);
   const lastFittedModeKeyRef = useRef<string | null>(null);
   const latestMapDataRef = useRef<MapResponse | null | undefined>(mapData);
+  const latestFitOptionsRef = useRef(fitOptions);
+
+  useEffect(() => {
+    latestFitOptionsRef.current = fitOptions;
+  }, [fitOptions]);
 
   useEffect(() => {
     onOverlayErrorRef.current = overlays?.onOverlayError;
@@ -228,7 +235,11 @@ export function useLeafletMap({
       try {
         map.invalidateSize({ animate: false });
         if (payload) {
-          fitMapToPayload(map, payload);
+          fitMapToPayload(
+            map,
+            payload,
+            latestFitOptionsRef.current?.(map.getContainer()),
+          );
         } else {
           map.setView(DEFAULT_ATLANTIC_CENTER, DEFAULT_ATLANTIC_ZOOM, {
             animate: false,
@@ -303,7 +314,11 @@ export function useLeafletMap({
               if (becameVisible) {
                 if (!userMovedRef.current) {
                   if (latestMapDataRef.current) {
-                    fitMapToPayload(map, latestMapDataRef.current);
+                    fitMapToPayload(
+                      map,
+                      latestMapDataRef.current,
+                      latestFitOptionsRef.current?.(container),
+                    );
                   } else {
                     map.setView(DEFAULT_ATLANTIC_CENTER, DEFAULT_ATLANTIC_ZOOM, {
                       animate: false,

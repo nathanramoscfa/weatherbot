@@ -48,6 +48,8 @@ describe("LevelHistoryChart", () => {
       name: /Threat level history for Miami-Dade County Hall: 3 assessments/i,
     });
     expect(svg).toBeInTheDocument();
+    expect(svg).toHaveTextContent("Level 5");
+    expect(svg).not.toHaveTextContent(/L5 Cat\.|L2 Aware|L4 Warn/);
     expect(screen.getByTestId("level-history-path")).toBeInTheDocument();
     expect(screen.getByTestId("level-change-marker-1")).toBeInTheDocument();
     expect(screen.getByTestId("level-change-marker-2")).toBeInTheDocument();

@@ -30,11 +30,11 @@ const PLOT_BOTTOM = 140;
 const MIN_MARKER_LABEL_GAP_X = 28;
 
 const LEVEL_AXIS_LABELS: Readonly<Record<number, string>> = {
-  1: "L1 Clear",
-  2: "L2 Aware",
-  3: "L3 Watch",
-  4: "L4 Warn",
-  5: "L5 Cat.",
+  1: "Level 1",
+  2: "Level 2",
+  3: "Level 3",
+  4: "Level 4",
+  5: "Level 5",
 };
 
 function levelAxisLabel(lvl: number): string {

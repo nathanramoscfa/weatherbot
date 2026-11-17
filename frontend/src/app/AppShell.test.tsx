@@ -227,7 +227,7 @@ describe("AppShell and routes", () => {
     vi.stubGlobal("EventSource", originalEventSource);
   });
 
-  it("renders the seven routes, keyboard navigation, threat level text+number badges, and footer notice", async () => {
+  it("renders the eight routes, keyboard navigation, threat level text+number badges, and footer notice", async () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
     seedFixtureCache(queryClient);
@@ -445,6 +445,7 @@ describe("AppShell and routes", () => {
     });
 
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Live event stream status")).toHaveTextContent("Live");
   });
 
   it("reads the CSP nonce property from the meta element and sets globalThis.__webpack_nonce__", () => {

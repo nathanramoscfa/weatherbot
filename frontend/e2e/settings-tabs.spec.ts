@@ -102,3 +102,17 @@ test("opens each Settings hash, follows the footer's disclaimer link while open,
   await expect(aboutTab).toHaveAttribute("aria-selected", "true");
   await expect(page).toHaveURL(/#about$/);
 });
+
+test("reveals each hash-selected Settings tab at phone width without moving the page", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const hash of ["ai", "retention", "about", "locations"]) {
+    await page.goto(`/settings#${hash}`);
+    const tab = page.getByRole("tab", { selected: true });
+    await expect(tab).toBeInViewport({ ratio: 1 });
+    const box = await tab.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  }
+});
