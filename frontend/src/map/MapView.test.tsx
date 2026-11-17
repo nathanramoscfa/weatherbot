@@ -1,6 +1,13 @@
 // frontend/src/map/MapView.test.tsx
 import { QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import * as L from "leaflet";
 import { StrictMode } from "react";
@@ -14,18 +21,20 @@ import { asSchema, type JsonFixture } from "../pages/format.ts";
 import healthFixture from "../test/fixtures/health.json";
 import locationsFixture from "../test/fixtures/locations.json";
 import mapFixture from "../test/fixtures/map.json";
-import replayFixture from "../test/fixtures/replay.json";
-import replayAdvisoryFixture from "../test/fixtures/replay-advisory.json";
 import {
   type AnnotatedLeafletLayer,
   DEFAULT_ATLANTIC_CENTER,
   DEFAULT_ATLANTIC_ZOOM,
   DEFAULT_ON_LAYER_KEYS,
+  LAYER_GROUPS,
   LAYER_TOGGLE_ITEMS,
+  MAP_LEGEND_SECTIONS,
   type MapAdvisoriesResponse,
   type MapDepthResponse,
   type MapLayerKey,
   type MapResponse,
+  NOWCOAST_RADAR_WMS_URL,
+  NOWCOAST_SATELLITE_WMS_URL,
   type WindProbabilityResponse,
 } from "./layers.ts";
 import { MapView } from "./MapView.tsx";
@@ -44,14 +53,6 @@ const TYPED_LOCATIONS = asSchema<components["schemas"]["LocationsResponse"]>(
 );
 const TYPED_HEALTH = asSchema<components["schemas"]["HealthResponse"]>(
   healthFixture satisfies JsonFixture<components["schemas"]["HealthResponse"]>,
-);
-const TYPED_REPLAY = asSchema<components["schemas"]["ReplayStormsResponse"]>(
-  replayFixture satisfies JsonFixture<
-    components["schemas"]["ReplayStormsResponse"]
-  >,
-);
-const TYPED_REPLAY_ADVISORY = asSchema<MapResponse>(
-  replayAdvisoryFixture satisfies JsonFixture<MapResponse>,
 );
 
 const SYNTHETIC_DEPTH: MapDepthResponse = {
@@ -238,6 +239,23 @@ function stubCanvasGetContext(): void {
   );
 }
 
+function stubMatchMedia(isDesktop: boolean): void {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    configurable: true,
+    value: (query: string): MediaQueryList => ({
+      matches: query.includes("min-width: 1024px") ? isDesktop : false,
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    }),
+  });
+}
+
 function collectOverlayCategories(map: L.Map): Map<MapLayerKey, number> {
   const counts = new Map<MapLayerKey, number>();
   map.eachLayer((layer) => {
@@ -252,6 +270,7 @@ function collectOverlayCategories(map: L.Map): Map<MapLayerKey, number> {
 describe("MapView", () => {
   beforeEach(() => {
     stubCanvasGetContext();
+    stubMatchMedia(true);
   });
 
   afterEach(() => {
@@ -289,8 +308,10 @@ describe("MapView", () => {
     const map = getLatestLeafletMap();
     expect(map).not.toBeNull();
 
-    // Replay panel is absent when health.corpus is false
-    expect(screen.queryByTestId("replay-panel")).toBeNull();
+    // Visually hidden h1 "Map" is present for route accessibility
+    expect(screen.getByRole("heading", { name: "Map", level: 1 })).toHaveClass(
+      "sr-only",
+    );
 
     // Visible OpenStreetMap attribution link
     const osmLink = screen.getByRole("link", {
@@ -303,7 +324,7 @@ describe("MapView", () => {
 
     const defaultOnSet = new Set<MapLayerKey>(DEFAULT_ON_LAYER_KEYS);
 
-    // All 6 default-on categories are present on the map instance; the 6 new depth/overlay categories are off
+    // All 6 default-on categories are present on the map instance; the 6 depth/overlay categories are off
     const initialCounts = collectOverlayCategories(map!);
     for (const item of LAYER_TOGGLE_ITEMS) {
       const checkbox = screen.getByRole("checkbox", {
@@ -342,7 +363,7 @@ describe("MapView", () => {
     expect(getActiveLeafletMaps().size).toBe(0);
   });
 
-  it("shows the replay panel when corpus is true, disables unavailable replay toggles with '(not in this corpus)', loads Irma advisory 036, and returns to live on 'Back to live'", async () => {
+  it("opens Layers and Legend panels by default on wide matchMedia and collapses them on narrow matchMedia, groups layer toggles into four headed groups, filters the legend to visible layers only, and links to /replay only when corpus is true", async () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
 
@@ -350,29 +371,97 @@ describe("MapView", () => {
     queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
     queryClient.setQueryData(queryKeys.health(), {
       ...TYPED_HEALTH,
-      corpus: true,
+      corpus: false,
     });
-    queryClient.setQueryData(queryKeys.replay(), TYPED_REPLAY);
     queryClient.setQueryData(queryKeys.mapAdvisories(), {
       limit: 96,
       steps: [],
       notice: TYPED_MAP.notice,
     } satisfies MapAdvisoriesResponse);
 
-    const getSpy = vi.spyOn(apiClient, "GET").mockImplementation((path) => {
-      if (path === "/api/replay/{atcf_id}/{advisory}") {
-        return Promise.resolve({
-          data: TYPED_REPLAY_ADVISORY,
-          response: new Response(null, { status: 200 }),
-        } as never);
+    // 1. Wide matchMedia (>= 1024px): panels mount open with aria-expanded="true"
+    stubMatchMedia(true);
+    const { unmount } = render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <MapView />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    const layersRegion = screen.getByRole("region", {
+      name: "Map layer toggles",
+    });
+    const legendRegion = screen.getByRole("region", {
+      name: "Map legend",
+    });
+
+    const layersButton = within(layersRegion).getByRole("button", {
+      name: /^Layers$/i,
+    });
+    const legendButton = within(legendRegion).getByRole("button", {
+      name: /^Legend$/i,
+    });
+    expect(layersButton).toHaveAttribute("aria-expanded", "true");
+    expect(legendButton).toHaveAttribute("aria-expanded", "true");
+
+    // Four headed groups inside Layers panel
+    for (const group of LAYER_GROUPS) {
+      expect(
+        within(layersRegion).getByRole("heading", {
+          name: group.title,
+          level: 3,
+        }),
+      ).toBeInTheDocument();
+    }
+
+    // Legend displays only the 6 default-on visible layers and hides the 6 off-by-default depth layers
+    const defaultOnSet = new Set<MapLayerKey>(DEFAULT_ON_LAYER_KEYS);
+    for (const section of MAP_LEGEND_SECTIONS) {
+      if (defaultOnSet.has(section.category)) {
+        expect(
+          within(legendRegion).getByRole("heading", { name: section.title }),
+        ).toBeInTheDocument();
+      } else {
+        expect(
+          within(legendRegion).queryByRole("heading", { name: section.title }),
+        ).toBeNull();
       }
-      if (path === "/api/replay/{atcf_id}/{advisory}/wind-probabilities") {
-        return Promise.resolve({
-          data: SYNTHETIC_PROBABILITIES,
-          response: new Response(null, { status: 200 }),
-        } as never);
-      }
-      return Promise.reject(new Error(`Unexpected GET ${String(path)}`));
+    }
+
+    // Unchecking "Storm cones" removes its legend section immediately
+    await user.click(
+      within(layersRegion).getByRole("checkbox", { name: "Storm cones" }),
+    );
+    expect(
+      within(legendRegion).queryByRole("heading", { name: "Storm cones" }),
+    ).toBeNull();
+
+    // Collapsing Layers and Legend via their buttons sets aria-expanded="false"
+    await user.click(layersButton);
+    expect(layersButton).toHaveAttribute("aria-expanded", "false");
+    expect(
+      within(layersRegion).queryByRole("checkbox", { name: "Forecast tracks" }),
+    ).toBeNull();
+
+    await user.click(legendButton);
+    expect(legendButton).toHaveAttribute("aria-expanded", "false");
+    expect(
+      within(legendRegion).queryByRole("heading", { name: "Forecast tracks" }),
+    ).toBeNull();
+
+    // No replay link when corpus is false
+    expect(
+      screen.queryByRole("link", { name: "Replay a past storm" }),
+    ).toBeNull();
+
+    unmount();
+
+    // 2. Narrow matchMedia (< 1024px) with corpus: true: panels mount collapsed and status chip links to /replay
+    stubMatchMedia(false);
+    queryClient.setQueryData(queryKeys.health(), {
+      ...TYPED_HEALTH,
+      corpus: true,
     });
 
     render(
@@ -383,81 +472,25 @@ describe("MapView", () => {
       </QueryClientProvider>,
     );
 
-    expect(screen.getByTestId("replay-panel")).toBeInTheDocument();
-    const map = getLatestLeafletMap()!;
-    const fitBoundsSpy = vi.spyOn(map, "fitBounds");
+    const narrowLayersBtn = screen.getByRole("button", { name: /^Layers$/i });
+    const narrowLegendBtn = screen.getByRole("button", { name: /^Legend$/i });
+    expect(narrowLayersBtn).toHaveAttribute("aria-expanded", "false");
+    expect(narrowLegendBtn).toHaveAttribute("aria-expanded", "false");
 
-    const stormSelect = screen.getByRole("combobox", {
-      name: "Replay storm",
+    const replayLink = screen.getByRole("link", {
+      name: "Replay a past storm",
     });
-    await user.selectOptions(stormSelect, "AL112017");
+    expect(replayLink).toHaveAttribute("href", "/replay");
 
-    const advisorySelect = screen.getByRole("combobox", {
-      name: "Replay advisory",
-    });
-    await user.selectOptions(advisorySelect, "036");
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("replay-not-live-banner"),
-      ).toHaveTextContent(
-        "Replay: Irma (AL112017) advisory 036, issued 2017-09-08 03:00 UTC — not live",
-      );
-    });
-
-    expect(getSpy).toHaveBeenCalledWith(
-      "/api/replay/{atcf_id}/{advisory}",
-      expect.objectContaining({
-        params: { path: { atcf_id: "AL112017", advisory: "036" } },
-      }),
-    );
-
-    // Replay disables wind_radii, past_track, peak_surge, radar, and satellite with "(not in this corpus)"
-    expect(screen.getAllByText("(not in this corpus)").length).toBe(5);
+    // Opening Layers on narrow viewport reveals the checkboxes
+    await user.click(narrowLayersBtn);
+    expect(narrowLayersBtn).toHaveAttribute("aria-expanded", "true");
     expect(
-      screen.getByRole("checkbox", { name: /Wind radii/i }),
-    ).toBeDisabled();
-
-    // Replay wind probabilities stay enabled and fetch the replay sibling route
-    const probCheckbox = screen.getByRole("checkbox", {
-      name: /Wind probabilities/i,
-    });
-    expect(probCheckbox).toBeEnabled();
-    await user.click(probCheckbox);
-    await waitFor(() => {
-      expect(getSpy).toHaveBeenCalledWith(
-        "/api/replay/{atcf_id}/{advisory}/wind-probabilities",
-        expect.objectContaining({
-          params: {
-            path: { atcf_id: "AL112017", advisory: "036" },
-            query: { threshold_kt: 34 },
-          },
-        }),
-      );
-    });
-    expect(
-      screen.getByText(/Extract coverage window outlined/i),
+      screen.getByRole("checkbox", { name: "Storm cones" }),
     ).toBeInTheDocument();
-
-    // Map layers now hold Irma's 26 watch-warning segments and native (D_Sphere) CRS
-    const replayCounts = collectOverlayCategories(map);
-    expect(replayCounts.get("watches_warnings")).toBe(
-      TYPED_REPLAY_ADVISORY.storms[0]!.watch_warnings.features.length,
-    );
-    expect(fitBoundsSpy).toHaveBeenCalled();
-
-    // Clicking "Back to live" restores /api/map and removes the "not live" banner
-    const backBtn = screen.getByRole("button", { name: /back to live/i });
-    await user.click(backBtn);
-
-    expect(screen.queryByTestId("replay-not-live-banner")).toBeNull();
-    const liveCounts = collectOverlayCategories(map);
-    expect(liveCounts.get("watches_warnings")).toBe(
-      TYPED_MAP.storms[0]!.watch_warnings.features.length,
-    );
   });
 
-  it("fetches /api/map/depth and /api/map/wind-probabilities only when toggled, shows 'Radar unavailable' on tileerror, and steps stored advisories without moving on background updates", async () => {
+  it("fetches /api/map/depth and /api/map/wind-probabilities only when toggled, shows radar and satellite unavailable banners in the Legend panel on tileerror, and steps stored advisories without moving on background updates", async () => {
     const user = userEvent.setup();
     const queryClient = createAppQueryClient();
 
@@ -471,7 +504,8 @@ describe("MapView", () => {
       limit: 96,
       steps: [
         {
-          snapshot_id: TYPED_MAP.snapshot_id ?? "00000000-0000-4000-8000-000000000001",
+          snapshot_id:
+            TYPED_MAP.snapshot_id ?? "00000000-0000-4000-8000-000000000001",
           as_of: "2026-10-12T21:01:00Z",
           atcf_id: "AL142026",
           storm_name: "Milton",
@@ -540,9 +574,10 @@ describe("MapView", () => {
     );
 
     const map = getLatestLeafletMap()!;
+    const legendRegion = screen.getByRole("region", { name: "Map legend" });
     expect(getSpy).not.toHaveBeenCalled();
 
-    // Toggle Wind Radii on -> fetches /api/map/depth
+    // Toggle Wind Radii on -> fetches /api/map/depth and adds its section to Map legend
     const radiiCheckbox = screen.getByRole("checkbox", {
       name: /Wind radii/i,
     });
@@ -556,6 +591,11 @@ describe("MapView", () => {
     await waitFor(() => {
       expect(collectOverlayCategories(map).get("wind_radii")).toBe(1);
     });
+    expect(
+      within(legendRegion).getByRole("heading", {
+        name: "Forecast & advisory wind radii",
+      }),
+    ).toBeInTheDocument();
 
     // Toggle Wind Speed Probabilities on -> fetches /api/map/wind-probabilities
     const probCheckbox = screen.getByRole("checkbox", {
@@ -573,6 +613,9 @@ describe("MapView", () => {
     expect(
       screen.getByText("Chance of winds at this speed within 120 hours"),
     ).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Extract coverage window outlined/i),
+    ).toBeInTheDocument();
 
     // Change threshold to 50 kt -> fetches threshold_kt=50
     const thresholdSelect = screen.getByRole("combobox", {
@@ -588,23 +631,38 @@ describe("MapView", () => {
       );
     });
 
-    // Toggle Radar on -> adds WMS layer; firing tileerror displays "Radar unavailable"
+    // Toggle Radar and Satellite on -> adds WMS layers; firing tileerror displays both unavailable banners in Legend
     const radarCheckbox = screen.getByRole("checkbox", {
       name: /Radar \(nowCOAST\)/i,
     });
+    const satelliteCheckbox = screen.getByRole("checkbox", {
+      name: /Satellite IR \(nowCOAST\)/i,
+    });
     await user.click(radarCheckbox);
-    expect(screen.getByTestId("nowcoast-age-note")).toBeInTheDocument();
+    await user.click(satelliteCheckbox);
+    expect(
+      within(legendRegion).getByTestId("nowcoast-age-note"),
+    ).toBeInTheDocument();
 
     act(() => {
       map.eachLayer((layer) => {
         if (layer instanceof L.TileLayer.WMS) {
-          layer.fire("tileerror");
+          const wmsUrl = (layer as L.TileLayer.WMS & { _url?: string })._url;
+          if (
+            wmsUrl === NOWCOAST_RADAR_WMS_URL ||
+            wmsUrl === NOWCOAST_SATELLITE_WMS_URL
+          ) {
+            layer.fire("tileerror");
+          }
         }
       });
     });
-    expect(screen.getByTestId("radar-unavailable-banner")).toHaveTextContent(
-      "Radar unavailable",
-    );
+    expect(
+      within(legendRegion).getByTestId("radar-unavailable-banner"),
+    ).toHaveTextContent("Radar unavailable");
+    expect(
+      within(legendRegion).getByTestId("satellite-unavailable-banner"),
+    ).toHaveTextContent("Satellite unavailable");
 
     // Step the advisory slider to the past step -> fetches /api/map?snapshot_id=...
     const slider = screen.getByRole("slider");
@@ -632,7 +690,8 @@ describe("MapView", () => {
             issued_at: "2026-10-13T00:00:00Z",
           },
           {
-            snapshot_id: TYPED_MAP.snapshot_id ?? "00000000-0000-4000-8000-000000000001",
+            snapshot_id:
+              TYPED_MAP.snapshot_id ?? "00000000-0000-4000-8000-000000000001",
             as_of: "2026-10-12T21:01:00Z",
             atcf_id: "AL142026",
             storm_name: "Milton",

@@ -102,6 +102,54 @@ export const LAYER_TOGGLE_ITEMS: readonly LayerToggleItem[] = [
   { key: "satellite", label: "Satellite IR (nowCOAST)" },
 ] as const;
 
+export type LayerGroupId =
+  | "forecast"
+  | "wind_surge"
+  | "observations"
+  | "locations";
+
+export interface LayerGroup {
+  readonly id: LayerGroupId;
+  readonly title: string;
+  readonly keys: readonly MapLayerKey[];
+}
+
+export const LAYER_GROUPS: readonly LayerGroup[] = [
+  {
+    id: "forecast",
+    title: "Forecast",
+    keys: [
+      "cone",
+      "track",
+      "points",
+      "past_track",
+      "watches_warnings",
+      "outlook",
+    ],
+  },
+  {
+    id: "wind_surge",
+    title: "Wind & surge",
+    keys: ["wind_radii", "wind_probabilities", "peak_surge"],
+  },
+  {
+    id: "observations",
+    title: "Observations",
+    keys: ["radar", "satellite"],
+  },
+  {
+    id: "locations",
+    title: "Locations",
+    keys: ["locations"],
+  },
+] as const;
+
+export function getLayerToggleItem(
+  key: MapLayerKey,
+): LayerToggleItem | undefined {
+  return LAYER_TOGGLE_ITEMS.find((item) => item.key === key);
+}
+
 export const DEFAULT_LAYER_VISIBILITY: LayerVisibility = {
   cone: true,
   track: true,
