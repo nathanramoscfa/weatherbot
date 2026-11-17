@@ -56,8 +56,37 @@ describe("Alerts", () => {
       ),
     ).toBeInTheDocument();
     expect(
+      screen.getByText(/Hurricane Warning — Simon for Parliament Square/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Alert codes, zones & provenance").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("Segment code, breakpoints & distance").length,
+    ).toBeGreaterThan(0);
+    expect(
       screen.getByText(/Hurricane Warning \(HWR\)/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/Hurricane Watch \(HWA\)/i)).toBeInTheDocument();
+  });
+
+  it("explains what will appear and when on an empty alerts response", () => {
+    const queryClient = createAppQueryClient();
+    queryClient.setQueryData(queryKeys.alerts(), {
+      ...TYPED_ALERTS,
+      locations: [],
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Alerts />
+      </QueryClientProvider>,
+    );
+
+    expect(
+      screen.getByText(
+        /Add a watched location in Settings to monitor official NWS alerts/i,
+      ),
+    ).toBeInTheDocument();
   });
 });

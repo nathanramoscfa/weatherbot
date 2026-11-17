@@ -49,24 +49,70 @@ describe("Ask", () => {
     vi.restoreAllMocks();
   });
 
-  it("shows the engine's level badge for every location, a location picker, and a bounded question box", async () => {
+  it("shows the engine's level badge for every location, four starter prompt chips that fill Your question and focus it without sending, and a bounded question box", async () => {
     const user = userEvent.setup();
+    const postSpy = vi.spyOn(apiClient, "POST");
     renderAsk();
 
     expect(screen.getByRole("heading", { name: "Ask" })).toBeInTheDocument();
     const levels = screen.getByRole("list", { name: "Engine levels" });
-    expect(within(levels).getByText("Miami-Dade County Hall")).toBeInTheDocument();
+    expect(
+      within(levels).getByText("Miami-Dade County Hall"),
+    ).toBeInTheDocument();
     expect(within(levels).getByText("Parliament Square")).toBeInTheDocument();
     expect(within(levels).getAllByText("Level 1")).toHaveLength(2);
+    // Two badges in Engine levels + two starter chips naming Level 1 (All Clear)
+    expect(screen.getAllByText(/Level 1/)).toHaveLength(4);
 
     const picker = screen.getByLabelText("About");
     expect(
       within(picker)
         .getAllByRole("option")
         .map((option) => option.textContent),
-    ).toEqual(["Every location", "Miami-Dade County Hall", "Parliament Square"]);
+    ).toEqual([
+      "Every location",
+      "Miami-Dade County Hall",
+      "Parliament Square",
+    ]);
+
+    const chip1 = screen.getByTestId("ask-chip-1");
+    const chip2 = screen.getByTestId("ask-chip-2");
+    const chip3 = screen.getByTestId("ask-chip-3");
+    const chip4 = screen.getByTestId("ask-chip-4");
+    expect(chip1).toHaveTextContent(
+      "Why is Miami-Dade County Hall at Level 1 (All Clear)?",
+    );
+    expect(chip2).toHaveTextContent(
+      "What should I do at Level 1 (All Clear) for Miami-Dade County Hall?",
+    );
+    expect(chip3).toHaveTextContent(
+      "When could tropical-storm-force winds arrive at Miami-Dade County Hall?",
+    );
+    expect(chip4).toHaveTextContent(
+      "What does the forecast cone mean for Miami-Dade County Hall?",
+    );
 
     const box = screen.getByLabelText("Your question");
+    await user.click(chip1);
+    expect(box).toHaveValue(
+      "Why is Miami-Dade County Hall at Level 1 (All Clear)?",
+    );
+    expect(box).toHaveFocus();
+    expect(postSpy).not.toHaveBeenCalled();
+
+    // Selecting Parliament Square updates the starter chips to name Parliament Square
+    await user.selectOptions(picker, "Parliament Square");
+    expect(chip4).toHaveTextContent(
+      "What does the forecast cone mean for Parliament Square?",
+    );
+    await user.click(chip4);
+    expect(box).toHaveValue(
+      "What does the forecast cone mean for Parliament Square?",
+    );
+    expect(box).toHaveFocus();
+    expect(postSpy).not.toHaveBeenCalled();
+
+    await user.clear(box);
     expect(box).toHaveAttribute("maxLength", String(QUESTION_LIMIT));
     expect(screen.getByText("0 / 2,000")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ask" })).toBeDisabled();
@@ -85,7 +131,11 @@ describe("Ask", () => {
       .mockResolvedValueOnce(
         streamAnswer(
           streamOf(
-            chatEvent({ kind: "started", conversation_id: "c-1", model: "claude-sonnet-5-5" }),
+            chatEvent({
+              kind: "started",
+              conversation_id: "c-1",
+              model: "claude-sonnet-5-5",
+            }),
             chatEvent({ kind: "text", text: "It is quiet." }),
             chatEvent({ kind: "done", call_ids: [3] }),
           ),
@@ -93,8 +143,14 @@ describe("Ask", () => {
       );
     renderAsk();
 
-    await user.selectOptions(screen.getByLabelText("About"), "Miami-Dade County Hall");
-    await user.type(screen.getByLabelText("Your question"), "Which storms are active?");
+    await user.selectOptions(
+      screen.getByLabelText("About"),
+      "Miami-Dade County Hall",
+    );
+    await user.type(
+      screen.getByLabelText("Your question"),
+      "Which storms are active?",
+    );
     expect(screen.getByText("24 / 2,000")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Ask" }));
 
@@ -126,20 +182,36 @@ describe("Ask", () => {
       sse.push(sseFrame(chatEvent({ kind: "tool", tool: "get_storms" })));
     });
     const transcript = await screen.findByRole("list", { name: "Transcript" });
-    expect(await within(transcript).findByText("Reading storms")).toBeInTheDocument();
+    expect(
+      await within(transcript).findByText("Reading storms"),
+    ).toBeInTheDocument();
     expect(within(transcript).getByText("Answering…")).toBeInTheDocument();
     expect(
       within(transcript).getByText("You asked about Miami-Dade County Hall"),
     ).toBeInTheDocument();
 
     act(() => {
-      sse.push(sseFrame(chatEvent({ kind: "text", text: "Simon is in the eastern Pacific." })));
+      sse.push(
+        sseFrame(
+          chatEvent({
+            kind: "text",
+            text: "Simon is in the eastern Pacific.",
+          }),
+        ),
+      );
     });
     const answer = await within(transcript).findByTestId("chat-answer");
     expect(answer).toHaveTextContent(/^Simon is in the eastern Pacific\.$/);
 
     act(() => {
-      sse.push(sseFrame(chatEvent({ kind: "text", text: "No storm threatens the location." })));
+      sse.push(
+        sseFrame(
+          chatEvent({
+            kind: "text",
+            text: "No storm threatens the location.",
+          }),
+        ),
+      );
       sse.push(sseFrame(chatEvent({ kind: "done", call_ids: [1, 2] })));
       sse.close();
     });
@@ -158,7 +230,11 @@ describe("Ask", () => {
     expect(postSpy).toHaveBeenLastCalledWith(
       "/api/ai/chat",
       expect.objectContaining({
-        body: { question: "And tomorrow?", conversation_id: "c-1", location: "Miami-Dade County Hall" },
+        body: {
+          question: "And tomorrow?",
+          conversation_id: "c-1",
+          location: "Miami-Dade County Hall",
+        },
       }),
     );
     expect(await screen.findByText("It is quiet.")).toBeInTheDocument();
@@ -171,7 +247,11 @@ describe("Ask", () => {
       .mockResolvedValueOnce(
         streamAnswer(
           streamOf(
-            chatEvent({ kind: "started", conversation_id: "c-2", model: "claude-sonnet-5-5" }),
+            chatEvent({
+              kind: "started",
+              conversation_id: "c-2",
+              model: "claude-sonnet-5-5",
+            }),
             chatEvent({ kind: "text", text: "The first sentence passed." }),
             chatEvent({
               kind: "withheld",
@@ -182,10 +262,15 @@ describe("Ask", () => {
           ),
         ),
       )
-      .mockResolvedValueOnce(refusalAnswer(429, "busy", "too many AI requests are running"));
+      .mockResolvedValueOnce(
+        refusalAnswer(429, "busy", "too many AI requests are running"),
+      );
     renderAsk();
 
-    await user.type(screen.getByLabelText("Your question"), "What is my level?");
+    await user.type(
+      screen.getByLabelText("Your question"),
+      "What is my level?",
+    );
     await user.click(screen.getByRole("button", { name: "Ask" }));
 
     expect(
@@ -195,7 +280,9 @@ describe("Ask", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("The first sentence passed.")).toBeInTheDocument();
     expect(
-      screen.getByText("This conversation is closed. Start a new conversation to ask again."),
+      screen.getByText(
+        "This conversation is closed. Start a new conversation to ask again.",
+      ),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Your question")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Ask" })).toBeDisabled();
@@ -225,7 +312,8 @@ describe("Ask", () => {
           chatEvent({
             kind: "unavailable",
             reason: "conversation_full",
-            detail: "the conversation reached its 20 questions; start a new one",
+            detail:
+              "the conversation reached its 20 questions; start a new one",
           }),
         ),
       ),
@@ -246,11 +334,16 @@ describe("Ask", () => {
 
   it("renders a sentence holding markup or a Markdown link as typed", async () => {
     const user = userEvent.setup();
-    const hostile = "<script>alert(1)</script> &amp; [click here](https://evil.example/x)";
+    const hostile =
+      "<script>alert(1)</script> &amp; [click here](https://evil.example/x)";
     vi.spyOn(apiClient, "POST").mockResolvedValue(
       streamAnswer(
         streamOf(
-          chatEvent({ kind: "started", conversation_id: "c-3", model: "claude-sonnet-5-5" }),
+          chatEvent({
+            kind: "started",
+            conversation_id: "c-3",
+            model: "claude-sonnet-5-5",
+          }),
           chatEvent({ kind: "text", text: hostile }),
           chatEvent({ kind: "done" }),
         ),
@@ -266,13 +359,16 @@ describe("Ask", () => {
     expect(screen.queryByRole("link", { name: "click here" })).toBeNull();
   });
 
-  it("shows the state banner and keeps Ask disabled when AI is not ready", async () => {
+  it("shows the state banner and disables starter chips and Ask when AI is not ready", async () => {
     const user = userEvent.setup();
     renderAsk(seeded(aiStatus({ state: "capped", reason: "capped" })));
 
     expect(screen.getByTestId("ai-state-banner")).toHaveTextContent(
       "AI paused: today's $1.00 cap is reached.",
     );
+    for (const id of [1, 2, 3, 4] as const) {
+      expect(screen.getByTestId(`ask-chip-${String(id)}`)).toBeDisabled();
+    }
     await user.type(screen.getByLabelText("Your question"), "Anything?");
     expect(screen.getByRole("button", { name: "Ask" })).toBeDisabled();
   });

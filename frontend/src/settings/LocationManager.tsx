@@ -6,6 +6,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
+import { levelLabel, useLadder } from "../assessment/vocabulary.ts";
 import {
   formatBothTimes,
   formatBreakpointSpan,
@@ -27,15 +28,7 @@ const DEFAULT_PREFERENCES: LocationPreferencesResponse = {
   phone_min_level: 2,
 };
 
-const PHONE_MIN_LEVEL_OPTIONS: ReadonlyArray<{
-  readonly level: number;
-  readonly label: string;
-}> = [
-  { level: 2, label: "Level 2 — Watch / Advisory" },
-  { level: 3, label: "Level 3 — Prepare" },
-  { level: 4, label: "Level 4 — Act Now" },
-  { level: 5, label: "Level 5 — Extreme Threat" },
-];
+const PHONE_MIN_LEVELS = [2, 3, 4, 5] as const;
 
 const SEARCH_COOLDOWN_MS = 2000;
 const DEFAULT_ATTRIBUTION =
@@ -90,6 +83,7 @@ export interface LocationManagerProps {
 
 export function LocationManager({ locations }: LocationManagerProps) {
   const queryClient = useQueryClient();
+  const { ladder } = useLadder();
 
   const [placeQuery, setPlaceQuery] = useState("");
   const [searching, setSearching] = useState(false);
@@ -529,7 +523,7 @@ export function LocationManager({ locations }: LocationManagerProps) {
                     >
                       Phone: {prefs.phone ? "On" : "Off"}
                     </button>
-                    <label className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                    <label className="flex max-w-full flex-wrap items-center gap-1.5 text-slate-700 dark:text-slate-300">
                       <span>Phone minimum level</span>
                       <select
                         aria-label="Phone minimum level"
@@ -541,11 +535,11 @@ export function LocationManager({ locations }: LocationManagerProps) {
                             phone_min_level: Number(e.target.value),
                           })
                         }
-                        className="rounded border border-slate-300 bg-white px-2 py-0.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                        className="max-w-full rounded border border-slate-300 bg-white px-2 py-0.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                       >
-                        {PHONE_MIN_LEVEL_OPTIONS.map((opt) => (
-                          <option key={opt.level} value={String(opt.level)}>
-                            {opt.label}
+                        {PHONE_MIN_LEVELS.map((lvl) => (
+                          <option key={lvl} value={String(lvl)}>
+                            Level {String(lvl)} — {levelLabel(lvl, ladder)}
                           </option>
                         ))}
                       </select>

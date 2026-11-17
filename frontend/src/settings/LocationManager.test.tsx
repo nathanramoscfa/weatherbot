@@ -326,6 +326,16 @@ describe("LocationManager", () => {
     expect(
       within(nassauCard).getByLabelText("Phone minimum level"),
     ).toBeDisabled();
+    expect(
+      within(miamiCard)
+        .getAllByRole("option")
+        .map((opt) => opt.textContent),
+    ).toEqual([
+      "Level 2 — Tropical Storm Threat",
+      "Level 3 — Watch / Hurricane Threat",
+      "Level 4 — Warning / Watch / Evacuation",
+      "Level 5 — Hurricane Warning",
+    ]);
 
     await user.click(within(miamiCard).getByRole("switch", { name: "Toast" }));
     expect(putSpy).toHaveBeenLastCalledWith("/api/locations/preferences", {

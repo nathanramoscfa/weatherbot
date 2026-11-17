@@ -76,10 +76,32 @@ const RENDERS: readonly Render[] = [
   { path: "/timeline", ready: (page) => heading(page, "Timeline") },
   { path: "/ask", ready: (page) => heading(page, "Ask") },
   {
-    path: "/settings",
+    path: "/settings#locations",
+    ready: (page) => heading(page, "Watched Locations"),
+  },
+  {
+    path: "/settings#notifications",
     ready: async (page) => {
-      await heading(page, "Watched Locations");
-      await heading(page, "Database & Retention");
+      await heading(page, "Notification Channels");
+      await heading(page, "Quiet Hours & Cooldown");
+    },
+  },
+  {
+    path: "/settings#ai",
+    ready: (page) => heading(page, "AI"),
+  },
+  {
+    path: "/settings#retention",
+    ready: (page) => heading(page, "Database & Retention"),
+  },
+  {
+    path: "/settings#about",
+    ready: async (page) => {
+      await heading(
+        page,
+        "Alert Ladder (11 Rules in Fixed Evaluation Order)",
+      );
+      await heading(page, "Full Disclaimer");
     },
   },
 ];

@@ -70,6 +70,9 @@ test.describe("Phase 7 end-to-end smoke", () => {
       );
 
       // 2. Open/inspect the channel view on /settings
+      await page
+        .getByRole("tab", { name: "Notifications & Quiet Hours" })
+        .click();
       await expect(
         page.getByRole("heading", { name: "Notification Channels" }),
       ).toBeVisible();
@@ -89,6 +92,7 @@ test.describe("Phase 7 end-to-end smoke", () => {
         page.getByText(/Saved .* to weatherbot\.toml/i),
       ).toBeVisible();
 
+      await page.getByRole("tab", { name: "History & Retention" }).click();
       await expect(
         page.getByRole("heading", { name: "Database & Retention" }),
       ).toBeVisible();

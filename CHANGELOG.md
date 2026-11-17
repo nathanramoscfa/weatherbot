@@ -171,6 +171,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `frontend/src/charts/LevelHistoryChart.test.tsx`, and
     `frontend/e2e/replay.spec.ts` (asserting 1440×900 first-viewport bounding
     boxes and 390×844 stacked order alongside the Dorian scrub flow).
+- Add the WAI-ARIA tabs primitive, five-tab Settings page with deep links, Ask
+  starter prompt chips and conversation bubbles, and the plain-English
+  disclosure hierarchy on Storms, Alerts, and Timeline (Phase 8 Step 7):
+  - `frontend/src/ui/Tabs.tsx`: add `Tabs`, `TabList`, `Tab`, and `TabPanel`
+    implementing the WAI-ARIA tabs pattern (`role="tablist"`, `role="tab"` with
+    `aria-selected`, `aria-controls`, and roving `tabIndex`, `role="tabpanel"`
+    with `aria-labelledby` and `tabIndex={0}`, `ArrowLeft`/`ArrowRight`/`Home`/`End`
+    keyboard navigation with automatic activation, unmounting inactive panels,
+    and setting no inline style).
+  - `frontend/src/pages/Settings.tsx`, `frontend/src/settings/LocationManager.tsx`,
+    and `frontend/src/settings/QuietHoursForm.tsx`: split `/settings` into five
+    tabs (**Locations** `#locations`, **Notifications & Quiet Hours**
+    `#notifications`, **AI & Budget** `#ai`, **History & Retention**
+    `#retention`, and **Threat Ladder & About** `#about`, with `#disclaimer`
+    selecting About and scrolling `#disclaimer` into view) derived from
+    `useLocation().hash` and updated via `useNavigate()` with `replace: true`
+    below the file-problem and restart banners; update `LocationManager`'s
+    phone minimum-level `<select>` and `QuietHoursForm`'s explanatory copy to
+    use `levelLabel(n, ladder)` from `GET /api/ladder`.
+  - `frontend/src/pages/Ask.tsx`: add four starter prompt chips (`ask-chip-1` to
+    `ask-chip-4`, built from the chosen location's stored assessment and naming
+    it only by its chosen name) that fill and focus `Your question` without
+    sending a request and disable when AI is not ready, and lay out the
+    transcript as question and answer bubbles with lookup chips under each
+    answer and `AiLabel` (`data-testid="ai-label"`).
+  - `frontend/src/pages/Storms.tsx`, `Alerts.tsx`, and `Timeline.tsx`: lead each
+    storm, alert, watch-warning segment, and timeline or notification-log entry
+    with plain-English words, relative age, and local time while moving raw
+    identifiers, advisory numbers, product counts, VTEC and segment codes,
+    zones, breakpoints, rule IDs, raw UTC timestamps, policy decisions, and
+    channel deliveries into native `Disclosure` sections, make `Filter by
+    location` the first control on `/timeline`, and expand empty states to
+    explain what will appear and when.
+  - Tests: `frontend/src/ui/Tabs.test.tsx`, `Settings.test.tsx`,
+    `Ask.test.tsx`, `Storms.test.tsx`, `Alerts.test.tsx`, `Timeline.test.tsx`,
+    `LocationManager.test.tsx`, `QuietHoursForm.test.tsx`, updated
+    `frontend/e2e/phase7.spec.ts`, `screens.spec.ts`, and `readability.spec.ts`
+    (one render per Settings tab, twelve routes total), and
+    `frontend/e2e/settings-tabs.spec.ts`.
 
 ### Phase 7 — Depth
 - Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),

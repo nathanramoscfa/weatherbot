@@ -1,7 +1,7 @@
 // frontend/src/pages/Ask.tsx
 import { useQuery } from "@tanstack/react-query";
-import { MessagesSquare, RotateCcw, Send, Wrench } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { MessagesSquare, RotateCcw, Send, Sparkles, Wrench } from "lucide-react";
+import { type FormEvent, useRef, useState } from "react";
 import { AiLabel } from "../ai/AiLabel.tsx";
 import { AiStateBanner } from "../ai/AiStateBanner.tsx";
 import { AiText } from "../ai/AiText.tsx";
@@ -14,14 +14,59 @@ import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { ThreatLevelBadge } from "../app/ThreatLevelBadge.tsx";
-import { formatBothTimes, formatRouteError } from "./format.ts";
 import { Card } from "../ui/Card.tsx";
+import { Chip } from "../ui/Chip.tsx";
 import { PageHeader } from "../ui/PageHeader.tsx";
+import { formatBothTimes, formatRouteError } from "./format.ts";
 
 export type AssessmentsResponse =
   components["schemas"]["AssessmentsResponse"];
+export type LocationAssessmentItem =
+  AssessmentsResponse["locations"][number];
 
 export const QUESTION_LIMIT = 2000;
+
+export interface StarterPromptChip {
+  readonly id: 1 | 2 | 3 | 4;
+  readonly testId:
+    | "ask-chip-1"
+    | "ask-chip-2"
+    | "ask-chip-3"
+    | "ask-chip-4";
+  readonly question: string;
+}
+
+export function buildStarterPrompts(
+  target: LocationAssessmentItem | null,
+): readonly StarterPromptChip[] {
+  const placeName = target?.name ?? "my watched location";
+  const levelPhrase = target?.assessment
+    ? `Level ${String(target.assessment.level.number)} (${target.assessment.level.label})`
+    : "its current threat level";
+
+  return [
+    {
+      id: 1,
+      testId: "ask-chip-1",
+      question: `Why is ${placeName} at ${levelPhrase}?`,
+    },
+    {
+      id: 2,
+      testId: "ask-chip-2",
+      question: `What should I do at ${levelPhrase} for ${placeName}?`,
+    },
+    {
+      id: 3,
+      testId: "ask-chip-3",
+      question: `When could tropical-storm-force winds arrive at ${placeName}?`,
+    },
+    {
+      id: 4,
+      testId: "ask-chip-4",
+      question: `What does the forecast cone mean for ${placeName}?`,
+    },
+  ];
+}
 
 async function fetchAssessments(): Promise<AssessmentsResponse> {
   const { data, response } = await apiClient.GET("/api/assessments");
@@ -93,10 +138,20 @@ export function Ask() {
   const chat = useChat();
   const [question, setQuestion] = useState("");
   const [location, setLocation] = useState("");
+  const questionInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const ai = status.data;
   const ready = ai?.state === "ready";
   const locations = assessmentsQuery.data?.locations ?? [];
+  const chosenLocationItem =
+    (location !== ""
+      ? locations.find((item) => item.name === location)
+      : locations[0]) ??
+    locations[0] ??
+    null;
+  const starterPrompts = buildStarterPrompts(chosenLocationItem);
+
+  const chipsDisabled = !ready || chat.busy || chat.closed !== null;
   const trimmed = question.trim();
   const canAsk =
     ready &&
@@ -104,6 +159,14 @@ export function Ask() {
     chat.closed === null &&
     trimmed.length > 0 &&
     question.length <= QUESTION_LIMIT;
+
+  const handleSelectChip = (promptText: string) => {
+    if (chipsDisabled) {
+      return;
+    }
+    setQuestion(promptText);
+    questionInputRef.current?.focus();
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -117,18 +180,15 @@ export function Ask() {
 
   return (
     <div className="space-y-5">
-      <Card
-        as="section"
-        aria-labelledby="ask-heading"
-      >
+      <Card as="section" aria-labelledby="ask-heading">
         <PageHeader
           title="Ask"
           titleId="ask-heading"
           summary={
             <>
-              Ask Claude about the stored assessments, alerts, storms, and outlook.
-              The levels below come from official NHC and NWS products; the answers
-              only explain them.
+              Ask Claude about the stored assessments, alerts, storms, and
+              outlook. The levels below come from official NHC and NWS products;
+              the answers only explain them.
             </>
           }
         />
@@ -180,15 +240,15 @@ export function Ask() {
 
       <section
         aria-labelledby="chat-heading"
-        className="space-y-3 rounded-lg border border-violet-200 bg-white p-4 text-sm shadow-xs sm:p-5 dark:border-violet-900/70 dark:bg-slate-900"
+        className="space-y-4 rounded-card border border-line bg-surface-card p-4 text-sm shadow-card sm:p-5"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2
             id="chat-heading"
-            className="inline-flex items-center gap-2 text-base font-bold text-slate-900 dark:text-slate-100"
+            className="inline-flex items-center gap-2 text-base font-bold text-ink"
           >
             <MessagesSquare
-              className="h-5 w-5 shrink-0 text-violet-700 dark:text-violet-300"
+              className="h-5 w-5 shrink-0 text-brand"
               aria-hidden="true"
             />
             Conversation
@@ -196,7 +256,7 @@ export function Ask() {
           <button
             type="button"
             onClick={chat.reset}
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            className="inline-flex min-h-6 items-center gap-1.5 rounded-control border border-line-strong bg-surface-card px-2.5 py-1.5 text-sm font-semibold text-ink hover:bg-surface-inset focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
             New conversation
@@ -212,48 +272,62 @@ export function Ask() {
         ) : null}
 
         {chat.turns.length === 0 ? (
-          <p className="text-slate-600 dark:text-slate-400">
-            No questions yet. Try “What does my level mean?” or “Which storms
-            are active?”
+          <p className="text-ink-muted">
+            No questions yet. Choose a starter prompt below or type your own
+            question, then press <strong className="text-ink">Ask</strong>.
           </p>
         ) : (
-          <ol aria-label="Transcript" aria-live="polite" className="space-y-3">
+          <ol aria-label="Transcript" aria-live="polite" className="space-y-4">
             {chat.turns.map((turn) => (
               <li
                 key={turn.id}
-                className="space-y-2 rounded-md border border-slate-200 p-3 dark:border-slate-800"
+                className="space-y-2.5 rounded-card border border-line bg-surface-page p-3.5"
               >
-                <div>
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">
+                <div className="ml-auto max-w-measure rounded-card border border-line-strong bg-surface-inset px-3.5 py-2.5 text-ink">
+                  <p className="font-semibold text-ink">
                     You asked
                     {turn.location ? ` about ${turn.location}` : ""}
                   </p>
-                  <p className="whitespace-pre-line text-slate-800 dark:text-slate-200">
+                  <p className="mt-1 whitespace-pre-line text-ink">
                     {turn.question}
                   </p>
                 </div>
-                {turn.tools.length > 0 ? (
-                  <ul aria-label="Lookups" className="flex flex-wrap gap-1.5">
-                    {turn.tools.map((tool, idx) => (
-                      <li
-                        key={`${tool}-${String(idx)}`}
-                        className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-violet-900 dark:border-violet-800 dark:bg-violet-950/50 dark:text-violet-200"
-                      >
-                        <Wrench className="h-3.5 w-3.5" aria-hidden="true" />
-                        <span className="text-caption">{toolChipText(tool)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                {turn.sentences.length > 0 ? (
-                  <div
-                    data-testid="chat-answer"
-                    className="rounded-md bg-violet-50/60 px-3 py-2 text-slate-800 dark:bg-violet-950/20 dark:text-slate-200"
-                  >
-                    <AiText text={turn.sentences.join(" ")} />
-                  </div>
-                ) : null}
-                <TurnOutcome turn={turn} capMicroUsd={ai?.today.cap_micro_usd} />
+
+                <div className="max-w-measure space-y-2">
+                  {turn.sentences.length > 0 ? (
+                    <div
+                      data-testid="chat-answer"
+                      className="rounded-card border border-line bg-surface-card px-3.5 py-2.5 text-ink shadow-card"
+                    >
+                      <AiText text={turn.sentences.join(" ")} />
+                    </div>
+                  ) : null}
+
+                  {turn.tools.length > 0 ? (
+                    <ul aria-label="Lookups" className="flex flex-wrap gap-1.5">
+                      {turn.tools.map((tool, idx) => (
+                        <li key={`${tool}-${String(idx)}`}>
+                          <Chip
+                            tone="ai"
+                            icon={
+                              <Wrench
+                                className="h-3.5 w-3.5"
+                                aria-hidden="true"
+                              />
+                            }
+                          >
+                            {toolChipText(tool)}
+                          </Chip>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+
+                  <TurnOutcome
+                    turn={turn}
+                    capMicroUsd={ai?.today.cap_micro_usd}
+                  />
+                </div>
               </li>
             ))}
           </ol>
@@ -268,11 +342,11 @@ export function Ask() {
           </p>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-3 border-t border-line pt-3">
           <div className="flex flex-wrap items-center gap-2">
             <label
               htmlFor="ask-location"
-              className="font-medium text-slate-700 dark:text-slate-300"
+              className="font-medium text-ink"
             >
               About
             </label>
@@ -280,7 +354,7 @@ export function Ask() {
               id="ask-location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className="rounded-control border border-line-strong bg-surface-card px-2.5 py-1.5 text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               <option value="">Every location</option>
               {locations.map((item) => (
@@ -290,14 +364,41 @@ export function Ask() {
               ))}
             </select>
           </div>
+
+          <div className="space-y-1.5">
+            <span className="inline-flex items-center gap-1.5 text-caption font-semibold text-ink-subtle">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              Starter prompts (fills your question without sending)
+            </span>
+            <div
+              role="group"
+              aria-label="Starter prompts"
+              className="flex flex-wrap gap-2"
+            >
+              {starterPrompts.map((chip) => (
+                <button
+                  key={chip.id}
+                  type="button"
+                  data-testid={chip.testId}
+                  disabled={chipsDisabled}
+                  onClick={() => handleSelectChip(chip.question)}
+                  className="inline-flex min-h-6 items-center rounded-pill border border-line-strong bg-surface-inset px-3 py-1.5 text-left text-sm font-medium text-ink transition-colors hover:bg-surface-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {chip.question}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label
               htmlFor="ask-question"
-              className="block font-medium text-slate-700 dark:text-slate-300"
+              className="block font-medium text-ink"
             >
               Your question
             </label>
             <textarea
+              ref={questionInputRef}
               id="ask-question"
               value={question}
               maxLength={QUESTION_LIMIT}
@@ -305,11 +406,11 @@ export function Ask() {
               disabled={chat.closed !== null}
               onChange={(e) => setQuestion(e.target.value)}
               aria-describedby="ask-question-count"
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className="mt-1 w-full rounded-control border border-line-strong bg-surface-card px-2.5 py-1.5 text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-60"
             />
             <span
               id="ask-question-count"
-              className="block text-right text-caption tabular-nums text-slate-600 dark:text-slate-400"
+              className="block text-right text-caption tabular-nums text-ink-subtle"
             >
               {formatCount(question.length)} / {formatCount(QUESTION_LIMIT)}
             </span>
@@ -317,7 +418,7 @@ export function Ask() {
           <button
             type="submit"
             disabled={!canAsk}
-            className="inline-flex items-center gap-1.5 rounded-md bg-violet-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-violet-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:text-slate-950 dark:hover:bg-violet-400"
+            className="inline-flex min-h-6 items-center gap-1.5 rounded-control bg-brand px-3.5 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Send className="h-3.5 w-3.5" aria-hidden="true" />
             Ask
