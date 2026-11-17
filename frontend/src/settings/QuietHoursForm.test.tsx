@@ -49,7 +49,9 @@ describe("QuietHoursForm", () => {
     );
 
     expect(
-      screen.getByText(/Level 1 \(All Clear\) and Level 2 \(Monitor\)/i),
+      screen.getByText(
+        /Level 1 \(All Clear\) and Level 2 \(Tropical Storm Threat\)/i,
+      ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/any upward escalation always arrive immediately/i),

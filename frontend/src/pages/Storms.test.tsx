@@ -58,12 +58,19 @@ describe("Storms", () => {
     expect(
       screen.getByRole("heading", { name: "Storms" }),
     ).toBeInTheDocument();
+    const simonCard = screen.getByRole("article", { name: "Simon (EP202026)" });
+    expect(simonCard).toBeInTheDocument();
     expect(
-      screen.getByRole("article", { name: "Simon (EP202026)" }),
+      within(simonCard).getByRole("heading", { name: "Simon — Hurricane" }),
     ).toBeInTheDocument();
     expect(screen.getByText("85 kt")).toBeInTheDocument();
     expect(screen.getByText("969 mb")).toBeInTheDocument();
     expect(screen.getByText("300 deg at 3 mph")).toBeInTheDocument();
+    expect(
+      within(simonCard).getByText(
+        "Storm identifiers, advisory & snapshot products",
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/earliest reasonable arrival times/i),
     ).toBeInTheDocument();

@@ -5,6 +5,7 @@ import { type FormEvent, useState } from "react";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
+import { levelLabel, useLadder } from "../assessment/vocabulary.ts";
 import { formatRouteError } from "../pages/format.ts";
 import { Card } from "../ui/Card.tsx";
 
@@ -40,6 +41,7 @@ function extractErrorDetail(error: unknown, fallbackStatus: number): string {
 
 export function QuietHoursForm() {
   const queryClient = useQueryClient();
+  const { ladder } = useLadder();
   const settingsQuery = useQuery({
     queryKey: queryKeys.settings(),
     queryFn: fetchSettings,
@@ -226,11 +228,15 @@ export function QuietHoursForm() {
 
       <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
         Quiet hours hold routine{" "}
-        <strong>Level 1 (All Clear) and Level 2 (Monitor)</strong>{" "}
+        <strong>
+          Level 1 ({levelLabel(1, ladder)}) and Level 2 (
+          {levelLabel(2, ladder)})
+        </strong>{" "}
         notifications until the quiet window ends.{" "}
         <strong>
-          Level 3 (Watch), Level 4 (Warning), Level 5 (Extreme Threat), and any
-          upward escalation always arrive immediately.
+          Level 3 ({levelLabel(3, ladder)}), Level 4 ({levelLabel(4, ladder)}),
+          Level 5 ({levelLabel(5, ladder)}), and any upward escalation always
+          arrive immediately.
         </strong>{" "}
         Changes saved here apply on the <strong>next monitor cycle</strong>{" "}
         without restarting <code>weatherbot serve</code>.

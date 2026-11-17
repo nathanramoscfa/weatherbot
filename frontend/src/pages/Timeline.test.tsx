@@ -73,6 +73,14 @@ describe("Timeline", () => {
         "Miami-Dade County Hall: level 4, Warning / Watch / Evacuation",
       ).length,
     ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("Rule ID & official timestamps").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(
+        "Policy decisions, channel deliveries & timestamps",
+      ).length,
+    ).toBeGreaterThan(0);
 
     // Filter by Parliament Square
     const filterSelect = screen.getByLabelText("Filter by location");

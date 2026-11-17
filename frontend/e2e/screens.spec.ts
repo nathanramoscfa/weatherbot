@@ -84,14 +84,22 @@ test("captures dashboard, map, replay, and settings screenshots at 1280x800 and 
       await expect(
         page.getByRole("heading", { name: "Watched Locations" }),
       ).toBeVisible();
+      await page
+        .getByRole("tab", { name: "Notifications & Quiet Hours" })
+        .click();
       await expect(
         page.getByRole("heading", { name: "Notification Channels" }),
       ).toBeVisible();
       await expect(
         page.getByRole("heading", { name: "Quiet Hours & Cooldown" }),
       ).toBeVisible();
+      await page.getByRole("tab", { name: "History & Retention" }).click();
       await expect(
         page.getByRole("heading", { name: "Database & Retention" }),
+      ).toBeVisible();
+      await page.getByRole("tab", { name: "Locations" }).click();
+      await expect(
+        page.getByRole("heading", { name: "Watched Locations" }),
       ).toBeVisible();
 
       await page.screenshot({

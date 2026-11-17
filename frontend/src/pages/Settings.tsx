@@ -6,6 +6,8 @@ import {
   FileText,
   Sliders,
 } from "lucide-react";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { AiSettingsSection } from "../ai/AiSettingsSection.tsx";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
@@ -19,14 +21,57 @@ import {
 import { NotificationChannels } from "../settings/NotificationChannels.tsx";
 import { QuietHoursForm } from "../settings/QuietHoursForm.tsx";
 import { RetentionPanel } from "../settings/RetentionPanel.tsx";
-import { formatRouteError } from "./format.ts";
 import { Card } from "../ui/Card.tsx";
 import { PageHeader } from "../ui/PageHeader.tsx";
+import { Tab, TabList, TabPanel, Tabs } from "../ui/Tabs.tsx";
+import { formatRouteError } from "./format.ts";
 
 export type SettingsResponse = components["schemas"]["SettingsResponse"];
 export type DisclaimerResponse = components["schemas"]["DisclaimerResponse"];
 export type LocationsResponse = components["schemas"]["LocationsResponse"];
 export type { PolygonKind };
+
+export type SettingsTabId =
+  | "locations"
+  | "notifications"
+  | "ai"
+  | "retention"
+  | "about";
+
+export const SETTINGS_TABS: ReadonlyArray<{
+  readonly id: SettingsTabId;
+  readonly label: string;
+  readonly hash: string;
+}> = [
+  { id: "locations", label: "Locations", hash: "#locations" },
+  {
+    id: "notifications",
+    label: "Notifications & Quiet Hours",
+    hash: "#notifications",
+  },
+  { id: "ai", label: "AI & Budget", hash: "#ai" },
+  { id: "retention", label: "History & Retention", hash: "#retention" },
+  { id: "about", label: "Threat Ladder & About", hash: "#about" },
+];
+
+export function resolveSettingsTab(hash: string): SettingsTabId {
+  const normalized = hash.replace(/^#/, "").trim().toLowerCase();
+  switch (normalized) {
+    case "locations":
+      return "locations";
+    case "notifications":
+      return "notifications";
+    case "ai":
+      return "ai";
+    case "retention":
+      return "retention";
+    case "about":
+    case "disclaimer":
+      return "about";
+    default:
+      return "locations";
+  }
+}
 
 export interface BundledLicenseEntry {
   readonly name: string;
@@ -81,180 +126,40 @@ async function fetchLicenses(): Promise<BundledLicenseEntry[]> {
   }
 }
 
-export interface SettingsProps {
-  readonly initialLicenses?: BundledLicenseEntry[];
-}
-
-export function Settings({ initialLicenses }: SettingsProps = {}) {
-  const settingsQuery = useQuery({
-    queryKey: queryKeys.settings(),
-    queryFn: fetchSettings,
-  });
-
-  const disclaimerQuery = useQuery({
-    queryKey: queryKeys.disclaimer(),
-    queryFn: fetchDisclaimer,
-  });
-
+function LocationsTabContent() {
   const locationsQuery = useQuery({
     queryKey: queryKeys.locations(),
     queryFn: fetchLocations,
   });
+  const locations = locationsQuery.data?.locations ?? [];
+  return <LocationManager locations={locations} />;
+}
 
+function AboutTabContent({
+  settingsData,
+  initialLicenses,
+}: {
+  readonly settingsData: SettingsResponse | undefined;
+  readonly initialLicenses: BundledLicenseEntry[] | undefined;
+}) {
+  const disclaimerQuery = useQuery({
+    queryKey: queryKeys.disclaimer(),
+    queryFn: fetchDisclaimer,
+  });
   const licensesQuery = useQuery({
     queryKey: queryKeys.licenses(),
     queryFn: fetchLicenses,
     ...(initialLicenses !== undefined ? { initialData: initialLicenses } : {}),
   });
-
   const { ladder } = useLadder();
 
-  if (settingsQuery.isError) {
-    const status =
-      settingsQuery.error instanceof ApiRequestError
-        ? settingsQuery.error.status
-        : undefined;
-    return (
-      <div
-        role="alert"
-        className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
-      >
-        {formatRouteError("/api/settings", status)}
-      </div>
-    );
-  }
-
-  const settingsData = settingsQuery.data;
-  const locations = locationsQuery.data?.locations ?? [];
   const disclaimer = disclaimerQuery.data;
   const licenses = licensesQuery.data ?? [];
 
   return (
     <div className="space-y-6">
-      <Card as="section">
-        <PageHeader
-          title="Settings"
-          summary={
-            <>
-              Manage watched locations, browser notifications, the AI, effective
-              configuration, the alert ladder, and the full disclaimer.
-            </>
-          }
-        />
-      </Card>
-
-      {settingsData?.settings_file_problem && (
-        <div
-          role="alert"
-          className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
-        >
-          <p className="font-semibold">
-            Configuration file problem — running on last valid settings
-          </p>
-          <p className="mt-0.5 font-mono">
-            {settingsData.settings_file_problem}
-          </p>
-        </div>
-      )}
-
-      {(settingsData?.restart_keys?.length ?? 0) > 0 && (
-        <div
-          role="alert"
-          className="rounded-lg border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-600 dark:bg-amber-950/70 dark:text-amber-100"
-        >
-          <div className="flex items-start gap-2.5">
-            <AlertTriangle
-              className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400"
-              aria-hidden="true"
-            />
-            <div>
-              <p className="font-semibold">
-                Configuration file modified since monitor start
-              </p>
-              <p className="mt-0.5">
-                Restart <code>weatherbot serve</code> (or the{" "}
-                <code>\Weatherbot\serve</code> scheduled task) to apply:{" "}
-                <code>{settingsData?.restart_keys.join(", ")}</code>.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <LocationManager locations={locations} />
-
-      <NotificationChannels />
-
-      <QuietHoursForm />
-
-      <AiSettingsSection />
-
-      <RetentionPanel />
-
-      {/* Effective Settings */}
-      <Card
-        as="section"
-        aria-labelledby="effective-settings-heading"
-      >
-        <div className="flex items-center gap-2">
-          <Sliders
-            className="h-5 w-5 shrink-0 text-sky-600 dark:text-sky-400"
-            aria-hidden="true"
-          />
-          <h2
-            id="effective-settings-heading"
-            className="text-base font-bold text-slate-900 dark:text-slate-100"
-          >
-            Effective Settings
-          </h2>
-        </div>
-
-        {settingsData && (
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            Configuration file: <code>{settingsData.settings_file}</code> (
-            {settingsData.settings_file_exists ? "present" : "not created"})
-          </p>
-        )}
-
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-400">
-                <th className="py-2 pr-3 font-semibold">Setting</th>
-                <th className="py-2 pr-3 font-semibold">Value</th>
-                <th className="py-2 pr-3 font-semibold">Origin</th>
-                <th className="py-2 font-semibold">Environment variable</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {(settingsData?.settings ?? []).map((item) => (
-                <tr key={`${item.table}.${item.key}`}>
-                  <td className="py-1.5 pr-3 font-mono text-slate-900 dark:text-slate-100">
-                    [{item.table}] {item.key}
-                  </td>
-                  <td className="py-1.5 pr-3 font-mono text-slate-800 dark:text-slate-200">
-                    {String(item.value)}
-                  </td>
-                  <td className="py-1.5 pr-3">
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                      {item.origin}
-                    </span>
-                  </td>
-                  <td className="py-1.5 font-mono text-slate-500 dark:text-slate-400">
-                    {item.variable}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
       {/* Alert Ladder Reference */}
-      <Card
-        as="section"
-        aria-labelledby="ladder-heading"
-      >
+      <Card as="section" aria-labelledby="ladder-heading">
         <div className="flex items-center gap-2">
           <BookOpen
             className="h-5 w-5 shrink-0 text-sky-600 dark:text-sky-400"
@@ -343,12 +248,64 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
         </div>
       </Card>
 
+      {/* Effective Settings */}
+      <Card as="section" aria-labelledby="effective-settings-heading">
+        <div className="flex items-center gap-2">
+          <Sliders
+            className="h-5 w-5 shrink-0 text-sky-600 dark:text-sky-400"
+            aria-hidden="true"
+          />
+          <h2
+            id="effective-settings-heading"
+            className="text-base font-bold text-slate-900 dark:text-slate-100"
+          >
+            Effective Settings
+          </h2>
+        </div>
+
+        {settingsData && (
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Configuration file: <code>{settingsData.settings_file}</code> (
+            {settingsData.settings_file_exists ? "present" : "not created"})
+          </p>
+        )}
+
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-400">
+                <th className="py-2 pr-3 font-semibold">Setting</th>
+                <th className="py-2 pr-3 font-semibold">Value</th>
+                <th className="py-2 pr-3 font-semibold">Origin</th>
+                <th className="py-2 font-semibold">Environment variable</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+              {(settingsData?.settings ?? []).map((item) => (
+                <tr key={`${item.table}.${item.key}`}>
+                  <td className="py-1.5 pr-3 font-mono text-slate-900 dark:text-slate-100">
+                    [{item.table}] {item.key}
+                  </td>
+                  <td className="py-1.5 pr-3 font-mono text-slate-800 dark:text-slate-200">
+                    {String(item.value)}
+                  </td>
+                  <td className="py-1.5 pr-3">
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      {item.origin}
+                    </span>
+                  </td>
+                  <td className="py-1.5 font-mono text-slate-500 dark:text-slate-400">
+                    {item.variable}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
       {/* Full Disclaimer */}
-      <Card
-        as="section"
-        id="disclaimer"
-        aria-labelledby="disclaimer-heading"
-      >
+      <Card as="section" id="disclaimer" aria-labelledby="disclaimer-heading">
         <div className="flex items-center gap-2">
           <FileText
             className="h-5 w-5 shrink-0 text-sky-600 dark:text-sky-400"
@@ -383,10 +340,7 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
       </Card>
 
       {/* Bundled Dependency Licences */}
-      <Card
-        as="section"
-        aria-labelledby="licenses-heading"
-      >
+      <Card as="section" aria-labelledby="licenses-heading">
         <h2
           id="licenses-heading"
           className="text-base font-bold text-slate-900 dark:text-slate-100"
@@ -419,6 +373,163 @@ export function Settings({ initialLicenses }: SettingsProps = {}) {
           </ul>
         )}
       </Card>
+    </div>
+  );
+}
+
+export interface SettingsProps {
+  readonly initialLicenses?: BundledLicenseEntry[];
+}
+
+export function Settings({ initialLicenses }: SettingsProps = {}) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const settingsQuery = useQuery({
+    queryKey: queryKeys.settings(),
+    queryFn: fetchSettings,
+  });
+
+  useEffect(() => {
+    const syncFromWindowHash = () => {
+      if (window.location.hash !== location.hash) {
+        void navigate(
+          { pathname: location.pathname, hash: window.location.hash },
+          { replace: true },
+        );
+      }
+    };
+    window.addEventListener("hashchange", syncFromWindowHash);
+    return () => {
+      window.removeEventListener("hashchange", syncFromWindowHash);
+    };
+  }, [location.hash, location.pathname, navigate]);
+
+  const activeTab = resolveSettingsTab(location.hash);
+
+  useEffect(() => {
+    const normalized = location.hash.replace(/^#/, "").trim().toLowerCase();
+    if (normalized === "disclaimer") {
+      const target = document.getElementById("disclaimer");
+      target?.scrollIntoView?.();
+    }
+  }, [location.hash, activeTab]);
+
+  const handleTabChange = (nextValue: string) => {
+    const nextTab = resolveSettingsTab(nextValue);
+    void navigate(
+      { pathname: location.pathname, hash: `#${nextTab}` },
+      { replace: true },
+    );
+  };
+
+  if (settingsQuery.isError) {
+    const status =
+      settingsQuery.error instanceof ApiRequestError
+        ? settingsQuery.error.status
+        : undefined;
+    return (
+      <div
+        role="alert"
+        className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
+      >
+        {formatRouteError("/api/settings", status)}
+      </div>
+    );
+  }
+
+  const settingsData = settingsQuery.data;
+
+  return (
+    <div className="space-y-6">
+      <Card as="section">
+        <PageHeader
+          title="Settings"
+          summary={
+            <>
+              Manage watched locations, notification channels and quiet hours,
+              AI budget controls, database retention, the alert ladder, and the
+              full disclaimer.
+            </>
+          }
+        />
+      </Card>
+
+      {settingsData?.settings_file_problem && (
+        <div
+          role="alert"
+          className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
+        >
+          <p className="font-semibold">
+            Configuration file problem — running on last valid settings
+          </p>
+          <p className="mt-0.5 font-mono">
+            {settingsData.settings_file_problem}
+          </p>
+        </div>
+      )}
+
+      {(settingsData?.restart_keys?.length ?? 0) > 0 && (
+        <div
+          role="alert"
+          className="rounded-lg border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-600 dark:bg-amber-950/70 dark:text-amber-100"
+        >
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle
+              className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400"
+              aria-hidden="true"
+            />
+            <div>
+              <p className="font-semibold">
+                Configuration file modified since monitor start
+              </p>
+              <p className="mt-0.5">
+                Restart <code>weatherbot serve</code> (or the{" "}
+                <code>\Weatherbot\serve</code> scheduled task) to apply:{" "}
+                <code>{settingsData?.restart_keys.join(", ")}</code>.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        idPrefix="settings"
+      >
+        <TabList aria-label="Settings sections">
+          {SETTINGS_TABS.map((tab) => (
+            <Tab key={tab.id} value={tab.id}>
+              {tab.label}
+            </Tab>
+          ))}
+        </TabList>
+
+        <TabPanel value="locations">
+          <LocationsTabContent />
+        </TabPanel>
+
+        <TabPanel value="notifications">
+          <NotificationChannels />
+          <QuietHoursForm />
+        </TabPanel>
+
+        <TabPanel value="ai">
+          <AiSettingsSection />
+        </TabPanel>
+
+        <TabPanel value="retention">
+          <RetentionPanel />
+        </TabPanel>
+
+        <TabPanel value="about">
+          <AboutTabContent
+            settingsData={settingsData}
+            initialLicenses={initialLicenses}
+          />
+        </TabPanel>
+      </Tabs>
     </div>
   );
 }

@@ -316,46 +316,64 @@ reloading the page and provides eight pages:
   hero's headline in the first viewport at 1440×900; below 1280 px they stack in
   order (pickers, banner, map, scrubber, hero, chart, disclosure). Scrubbing
   writes nothing to SQLite, sends no notification, and calls no AI endpoint.
-- **Storms (`/storms`)**: active cyclones and their advisories, graphical
-  Tropical Weather Outlook areas with NHC's six official outlook graphics from
-  the stored snapshot (and, with `[ai] outlook_narration` on, an
+- **Storms (`/storms`)**: active cyclones leading each card with its name,
+  classification in words, intensity, and movement direction, with its ATCF
+  identifier, advisory number, and snapshot products in a `Disclosure`,
+  graphical Tropical Weather Outlook areas with NHC's six official outlook
+  graphics from the stored snapshot (and, with `[ai] outlook_narration` on, an
   `Interpret (AI)` narration labeled "AI interpretation of the official
-  graphic" beneath each), and 5 km wind-speed probability summaries.
+  graphic" beneath each), and 5 km wind-speed probability summaries, with empty
+  states explaining what will appear and when.
 - **Alerts (`/alerts`)**: per-location covering NWS alerts, county-zone context
-  alerts, and NHC coastal watch and warning segments.
+  alerts, and NHC coastal watch and warning segments, each leading with the
+  event or watch/warning name, the location it covers, and its expiry or issue
+  time as a relative age with the local time, while keeping codes, VTEC, zones,
+  breakpoints, distances, and how the alert was found in a `Disclosure`.
 - **Timeline (`/timeline`)**: chronological assessment and notification history
-  with a location filter (choosing a location shows its stepped
-  `LevelHistoryChart` and 34/50/64 kt `WindProbabilityChart` bands above the
-  feed via `GET /api/charts`), cursor-based `"Show older"` pagination (`GET
-  /api/timeline?before=`), change events (each with its labeled AI change
-  summary when one is stored), and per-channel delivery outcomes (`log`,
-  `toast`, `browser`, `ntfy`, including `muted` deliveries).
+  opening with the location filter as the first control (choosing a location
+  shows its stepped `LevelHistoryChart` and 34/50/64 kt `WindProbabilityChart`
+  bands above the feed via `GET /api/charts`), leading each entry with the
+  threat-level change in the engine's words, relative age, and local time while
+  keeping the rule ID, raw timestamps, policy decisions, and per-channel
+  delivery outcomes (`log`, `toast`, `browser`, `ntfy`, including `muted`
+  deliveries) in a `Disclosure`, alongside cursor-based `"Show older"`
+  pagination (`GET /api/timeline?before=`) and labeled AI change summaries.
 - **Ask (`/ask`)**: a grounded chat with Claude beneath the engine's level
-  badges for every location: a location picker, a question box of at most
-  2,000 characters, each lookup shown as a chip (`Reading storms`), the answer
-  streamed sentence by sentence (`POST /api/ai/chat`), and `New conversation`;
-  a withheld or unavailable answer closes the conversation.
-- **Settings (`/settings`)**: search for a place (`POST /api/locations/search`)
-  or enter coordinates to add a watched location (`POST /api/locations`) with a
-  short typed label, configure per-location notification preferences (`PUT
-  /api/locations/preferences`: `Toast`, `Browser`, `Phone`, and `Phone from`
-  level `2`–`5`), remove a watched location (`POST /api/locations/remove`)
-  along with its stored history behind a confirmation,
-  inspect notification channel states (`GET /api/notifications/channels`) and
-  enable or test browser, toast, and phone notifications (`POST
-  /api/notifications/test`), edit quiet hours and notification cooldown (`PUT
-  /api/settings`, applied at the next cycle without a restart), the AI section
-  (`#ai`: the state, the credential's source but never its value,
-  the models, today's spend against the cap, editable daily cap and feature
-  switches, the recent requests,
-  `Pause AI`/`Resume AI`, and `Allow $X more today` behind a confirmation),
-  configure database history retention (`GET /api/retention`: database and WAL
-  sizes, oldest and newest snapshots, `[retention] history_days`, dry-run plan
-  preview, and `Prune now` via `POST /api/retention/run` behind a confirmation),
-  inspect effective settings and their origins (`default`, `file`,
-  `environment`), read the 11-rule alert ladder served from the engine (`GET
-  /api/ladder`), read the full disclaimer (`#disclaimer`), and view bundled
-  frontend package licences (`/licenses.json`).
+  badges for every location: a location picker, four starter prompt chips
+  (`ask-chip-1` to `ask-chip-4`, built from the chosen location's stored
+  assessment and filling `Your question` without sending a request, disabled
+  while AI is not ready), a question box of at most 2,000 characters,
+  conversation bubbles with each lookup shown as a chip (`Reading storms`) under
+  the answer and the AI label on every answer, the answer streamed sentence by
+  sentence (`POST /api/ai/chat`), and `New conversation`; a withheld or
+  unavailable answer closes the conversation.
+- **Settings (`/settings`)**: five WAI-ARIA Settings tabs (`Tabs` in
+  `frontend/src/ui/Tabs.tsx`) bound to the URL hash via React Router
+  (`useLocation` and `useNavigate` with `replace: true`) below the file-problem
+  and restart banners — **Locations** (`#locations`, the default: search for a
+  place via `POST /api/locations/search` or enter coordinates to add a watched
+  location via `POST /api/locations` with a short typed label, configure
+  per-location notification preferences via `PUT /api/locations/preferences` for
+  `Toast`, `Browser`, `Phone`, and `Phone minimum level` `2`–`5` in the engine's
+  level names, and remove a watched location via `POST /api/locations/remove`
+  along with its stored history behind a confirmation), **Notifications & Quiet
+  Hours** (`#notifications`: inspect notification channel states via `GET
+  /api/notifications/channels`, enable or test browser, toast, and phone
+  notifications via `POST /api/notifications/test`, and edit quiet hours and
+  notification cooldown via `PUT /api/settings`, applied at the next cycle
+  without a restart), **AI & Budget** (`#ai`: the AI state, the credential's
+  source but never its value, the models, today's spend against the cap,
+  editable daily cap and feature switches, recent requests, `Pause AI`/`Resume
+  AI`, and `Allow $X more today` behind a confirmation), **History & Retention**
+  (`#retention`: configure database history retention via `GET /api/retention`
+  with database and WAL sizes, oldest and newest snapshots, `[retention]
+  history_days`, dry-run plan preview, and `Prune now` via `POST
+  /api/retention/run` behind a confirmation), and **Threat Ladder & About**
+  (`#about`, also opened and scrolled to the disclaimer by `#disclaimer`: read
+  the 11-rule alert ladder served from the engine via `GET /api/ladder`, inspect
+  effective settings and their origins `default`, `file`, and `environment`,
+  read the full disclaimer, and view bundled frontend package licences from
+  `/licenses.json`).
 
 Every AI block is labeled with the model and the time and says it may be
 wrong; its text renders as plain text (never Markdown or HTML), and when AI is
