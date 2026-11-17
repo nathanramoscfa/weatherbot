@@ -84,7 +84,9 @@ for (const server of SERVERS) {
           test.setTimeout(360_000);
           await page.setViewportSize(viewport);
           await page.addInitScript((choice) => {
-            window.localStorage.setItem("weatherbot.theme", choice);
+            if (window.location.protocol === "http:") {
+              window.localStorage.setItem("weatherbot.theme", choice);
+            }
           }, theme);
           const findings: (ReadabilityFinding & { render: string })[] = [];
           // Only the constant scenario/viewport/theme tuples above form this path.
