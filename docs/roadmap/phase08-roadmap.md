@@ -4707,9 +4707,9 @@ less eye across five pages. The conversation is new, per phase-boundary hygiene.
 
 ---
 
-## Step 8 — Loop 1: the AI visual dogfood
+## Step 8 — Loop 1: the AI visual dogfood ✅
 
-**Status:** Not started
+**Status:** Complete — PR #119 (2026-11-17)
 
 > **Goal:** Look at every page the way a reader will, and fix what looks wrong
 > until a whole round is clean. `frontend/e2e/dogfood.spec.ts`, tagged
@@ -4753,6 +4753,8 @@ Ranked for multimodal, high complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level.
 
 **Conversation:** New
+
+> Ran 2026-11-17: Quality Runner-up — GPT-6.1 Sol · XHigh.
 
 **Model rationale:** Step 8 is multimodal with a coding secondary category —
 investigating screenshots and fixing the layouts they show, the selector's own
@@ -6455,7 +6457,7 @@ workflow above maps directly to the corresponding row below.
 | 5    | Immersive map                  | Gemini 4 Argon | Complete — PR #116 |
 | 6    | Replay workbench               | Gemini 4 Argon | Complete — PR #117 |
 | 7    | Settings tabs + pages          | Gemini 4 Argon | Complete — PR #118 |
-| 8    | Loop 1: AI dogfood             | Sonnet 5.5     | Not started        |
+| 8    | Loop 1: AI dogfood             | Sonnet 5.5     | Complete — PR #119 |
 | 9    | Loop 2: operator dogfood       | Opus 5.5       | Not started        |
 | 10   | QA + verify_phase08.py         | GPT-6.1 Sol    | Not started        |
 | V1   | Scenarios + recordings         | CI             | --                 |
