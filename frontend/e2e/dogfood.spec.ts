@@ -91,6 +91,9 @@ for (const server of SERVERS) {
           // eslint-disable-next-line security/detect-non-literal-fs-filename
           mkdirSync(`test-results/dogfood/${folder}`, { recursive: true });
           for (const view of VIEWS) {
+            // Hash-only Settings navigation reuses the document and its cached
+            // health query. Start each capture from a fresh document instead.
+            await page.goto("about:blank");
             const healthReady = page.waitForResponse((response) =>
               new URL(response.url()).pathname === "/api/health" && response.ok());
             await page.goto(view.path);
