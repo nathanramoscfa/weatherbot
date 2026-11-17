@@ -5621,23 +5621,23 @@ peel to the merge commit.
 
 Settings — ladder (`roadmodel ladder --category coding --complexity medium`):
 
-|               |          | Cost               | Balanced           | Quality            |
-| ------------- | -------- | ------------------ | ------------------ | ------------------ |
-| **Pick**      | Model    | **GPT-6.1 Sol**    | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
-|               | Platform | Codex              | Codex              | Antigravity        |
-|               | Level    | Medium             | High               | High               |
-|               | AA       | 47.8               | 50.2               | 52.6               |
-|               | Price    | $2.50/1M           | $2.86/1M           | $6.13/1M           |
-| **Runner‑up** | Model    | **Sonnet 5.5**     | **Sonnet 5.5**     | **Opus 5.5**       |
-|               | Platform | Claude Code        | Claude Code        | Claude Code        |
-|               | Level    | Medium             | High               | High               |
-|               | AA       | 40.8               | 46.8               | 53.6               |
-|               | Price    | $3.18/1M           | $3.40/1M           | $6.76/1M           |
-| **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
-|               | Platform | Antigravity        | Antigravity        | Codex              |
-|               | Level    | Low                | Medium             | High               |
-|               | AA       | ≈45.2              | ≈49.8              | 50.2               |
-|               | Price    | $2.31/1M           | $2.37/1M           | $2.86/1M           |
+|               |          | Cost               | Balanced             | Quality            |
+| ------------- | -------- | ------------------ | -------------------- | ------------------ |
+| **Pick**      | Model    | **GPT-6.1 Sol**    | **GPT-6.1 Sol**      | **Gemini 4 Argon** |
+|               | Platform | Codex              | Codex                | Antigravity        |
+|               | Level    | Medium             | High                 | High               |
+|               | AA       | 47.8               | 50.2                 | 52.6               |
+|               | Price    | $2.50/1M           | $2.86/1M             | $6.13/1M           |
+| **Runner‑up** | Model    | **Sonnet 5.5**     | **Gemini 4 Carbon**  | **Opus 5.5**       |
+|               | Platform | Claude Code        | Google AI Studio API | Claude Code        |
+|               | Level    | High               | Medium               | High               |
+|               | AA       | 46.8               | ≈50.8                | 53.6               |
+|               | Price    | $3.40/1M           | ≈$3.50/1M            | $6.76/1M           |
+| **Backup**    | Model    | **Gemini 4 Argon** | **Opus 5.5**         | **GPT-6.1 Sol**    |
+|               | Platform | Antigravity        | Claude Code          | Codex              |
+|               | Level    | Low                | Medium               | High               |
+|               | AA       | ≈45.2              | 51.2                 | 50.2               |
+|               | Price    | $2.31/1M           | $6.39/1M             | $2.86/1M           |
 
 Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
@@ -5645,16 +5645,18 @@ estimated from the model's measured levels or its previous version's.
 
 **Conversation:** New
 
+> Settings updated 2026-11-17 (refresh): Cost Runner-up was Sonnet 5.5 · Medium, Balanced Runner-up
+> was Sonnet 5.5 · High, Balanced Backup was Gemini 4 Argon · Medium. Re-ranked against the current
+> roadmodel catalog.
+
 **Model rationale:** Step 10 is coding with an agentic secondary category at
 Medium complexity, not novel: a mechanical translation of this roadmap's
 acceptance criteria into a verification script, a matrix entry, and a findings
 rollup, on a template six phases old, with one long nested sweep to run and
 time. On the step alone, the Balanced Pick fits best: GPT-6.1 Sol on Codex at
-Intelligence High, funded by the ChatGPT subscription, handles a long,
-enumerated translation reliably at a moderate price. The Quality Pick, Gemini 4
-Argon at High, has depth a known pattern does not need, and the Cost Pick,
-GPT-6.1 Sol at Medium, has less margin over sixty checks and their mutation
-cases. The conversation is new, per phase-boundary hygiene.
+High. It balances the reasoning demands of this classification with estimated
+token cost. The Cost Pick is GPT-6.1 Sol on Codex at Medium, and the Quality
+Pick is Gemini 4 Argon on Antigravity at High.
 
 ```xml
 <task>
@@ -6612,18 +6614,16 @@ the operator's time is the scarce input.
 
 PROMPT: Step 10 — QA + verify_phase08.py
 MODEL: GPT-6.1 Sol
-BACKUP: Gemini 4 Argon
+BACKUP: Opus 5.5 — Claude Code · Effort Medium
 PLATFORM: Codex
 EFFORT: High
-THINKING: On
 CONVERSATION: New
-RATIONALE: TASK: mechanical translation of this roadmap's
-acceptance criteria into a verification script, a matrix entry,
-and a findings rollup. PICK: known pattern, no novel reasoning —
-GPT-6.1 Sol on Codex (AA 50.2 at High), the ladder's Balanced
-pick; Runner-up Sonnet 5.5 at High. EFFORT: High is the level the
-ladder prints for this column; enumerated checks whose content
-this roadmap writes down need no more.
+RATIONALE: TASK: mechanical translation of this roadmap's acceptance criteria
+into a verification script, a matrix entry, and a findings rollup. On the step
+alone, the Balanced Pick fits best: GPT-6.1 Sol on Codex at High. It balances
+the reasoning demands of this classification with estimated token cost. The Cost
+Pick is GPT-6.1 Sol on Codex at Medium, and the Quality Pick is Gemini 4 Argon
+on Antigravity at High.
 ```
 
 ---
