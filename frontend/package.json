@@ -17,7 +17,8 @@
     "licenses:check": "node scripts/check-licenses.mjs",
     "audit": "npm audit --audit-level=high",
     "e2e": "playwright test",
-    "e2e:idle": "playwright test --grep @idle"
+    "e2e:idle": "playwright test --grep @idle",
+    "e2e:dogfood": "playwright test --grep @dogfood"
   },
   "dependencies": {
     "@tanstack/react-query": "5.104.5",

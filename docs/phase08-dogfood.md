@@ -25,3 +25,59 @@ scenario, the viewport, and the theme; `any` means every value.
 ## Idle CPU measurements
 
 - **Step 4 (Command-center dashboard):** `idle measurement: window=600.1s server_cpu=0.3229% (1.938s) tab_cpu=0.0087% (0.052s) roster_polls=0 cycles=0 ai_state=ready change_summaries=on budget=<0.5%`
+
+## Loop 1 rubric
+
+Judge every full-page render, including its footer; inspect interactive states in
+`phase8.spec.ts` and the alarm proofs below. A pass needs every applicable item.
+
+| Item | Pass | Fail |
+| --- | --- | --- |
+| Hierarchy | One primary headline per card; level and name legible within a second | Competing headlines, buried level, unexplained figure |
+| Vocabulary | Engine words lead; provenance behind disclosure | Code, source ID, or raw timestamp leads a card |
+| Colour | Threat tint marks threat, with number and words | Colour alone conveys a level or a neutral card mimics one |
+| Type | Token scale; prose >=14 px, captions >=13 px; AA contrast | Small or faint explanation, inconsistent heading sizes |
+| Spacing and alignment | Consistent padding, gaps, and aligned controls | Crowding, uneven gutters, clipped content |
+| Density | Scannable groups and disclosures; comfortable phone wrapping | Wall of text, squeezed controls, long empty card |
+| Empty, loading, error | Says what is absent, loading, or failed and what happens next | Blank card, false all-clear, silent failure, stuck spinner |
+| Phone | No overlap or horizontal clipping; targets >=24 px | Cut-off text, overlapping controls, undersized target |
+| Dark parity | Same information, hierarchy, and contrast in both themes | Missing border, unreadable text, unintended bright surface |
+| Map panels | Storm and map controls remain visible; panels collapse | Panel hides storm, attribution, zoom, or another control |
+| Focus | Keyboard focus has a visible outline and follows control order | Lost or invisible focus, inaccessible control |
+| Disclaimer | Informational-only notice and full-text link present | Missing notice or inaccessible full text |
+
+Severities: **blocker** = wrong or missing information or an unusable control;
+**major** = a reader misreads or struggles; **minor** = visibly off but readable;
+**polish** = taste. Exit requires a complete 240-image round with zero audit
+findings and no blocker, major, or minor defect. Polish is fixed or listed for
+Step 9's operator review.
+
+Run `npm --prefix frontend run e2e:dogfood`. Keys are
+`scenario-WIDTHxHEIGHT-theme/view`; twelve views, five scenarios, two sizes,
+two themes. `frontend/test-results/dogfood/audit.json` records the source commit
+and an entry for every render, including those without findings. The screenshot
+path is in each entry. Preserve a round's ignored evidence before another run
+(the default Playwright run clears `test-results/`). No pixels are committed.
+
+### Round log
+
+| Round | Date | Source commit | Renders judged | Audit findings | Blocker / major / minor / polish |
+| --- | --- | --- | --- | --- | --- |
+
+### Defects
+
+| ID | Screenshot key | Rubric item | Severity | What was wrong | Fix commit or owning issue |
+| --- | --- | --- | --- | --- | --- |
+
+### Alarm proofs in the redesigned shell
+
+| Alarm | Proof |
+| --- | --- |
+| Stale monitor (`role="alert"`, names stale heartbeats and ages) | `frontend/src/app/AppShell.test.tsx`: staleness banner test |
+| Reconnecting chip, recovery to Live | `frontend/src/app/AppShell.test.tsx`: same test emits stream error/open |
+| AI daily cap | `frontend/e2e/ai.spec.ts`: capped demonstration server, `ai-state-banner` |
+| Radar unavailable | `frontend/e2e/phase7.spec.ts`: aborted nowCOAST route, `radar-unavailable-banner` |
+| Radar and satellite unavailable | `frontend/src/map/MapView.test.tsx`: both unavailable banner cases |
+| Notification toast | `frontend/e2e/dashboard.spec.ts`: event-driven warning toast |
+
+## Loop 2 ? operator dogfood

@@ -4,6 +4,7 @@ import { defineConfig } from "@playwright/test";
 const port = Number(process.env.E2E_PORT ?? "8799");
 const baseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${String(port)}`;
 const isIdleRun = process.argv.some((arg) => arg.includes("@idle"));
+const isDogfoodRun = process.argv.some((arg) => arg.includes("@dogfood"));
 
 // The AI smoke's other two demonstration servers (frontend/e2e/ai.spec.ts):
 // one whose tiny cap reads "capped", one whose every AI answer is a 401.
@@ -33,7 +34,8 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 120_000,
-  grepInvert: isIdleRun ? undefined : /@idle/,
+  grepInvert: isIdleRun || isDogfoodRun ? undefined : /@idle|@dogfood/,
+  globalSetup: isDogfoodRun ? "./e2e/dogfood-setup.ts" : undefined,
   reporter: [["list"]],
   use: {
     baseURL,
@@ -52,5 +54,12 @@ export default defineConfig({
         demoServer(authPort, "--ai-fail-auth"),
         demoServer(quietPort, "--scenario quiet"),
         demoServer(landfallPort, "--scenario landfall"),
+        ...(isDogfoodRun
+          ? [
+              demoServer(Number(process.env.E2E_OUTLOOK_PORT ?? "8803"), "--scenario outlook"),
+              demoServer(Number(process.env.E2E_CONE_PORT ?? "8804"), "--scenario cone"),
+              demoServer(Number(process.env.E2E_WATCH_PORT ?? "8805"), "--scenario watch"),
+            ]
+          : []),
       ],
 });
