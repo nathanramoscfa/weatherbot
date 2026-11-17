@@ -64,10 +64,21 @@ path is in each entry. Preserve a round's ignored evidence before another run
 | Round | Date | Source commit | Renders judged | Audit findings | Blocker / major / minor / polish |
 | --- | --- | --- | --- | --- | --- |
 
+Preflight on 2026-11-17: UI baseline `7742a81`, harness `275250e`.
+It generated 196 images (48 judged); four outlook tests stopped because the
+first SVG path was outside the map's fitted viewport. This was an incomplete
+harness run, not an exit round. The ready marker now selects nondegenerate
+visible geometry; the complete round below supersedes these preliminary captures.
+
 ### Defects
 
 | ID | Screenshot key | Rubric item | Severity | What was wrong | Fix commit or owning issue |
 | --- | --- | --- | --- | --- | --- |
+| DF-01 | `any/replay` | Vocabulary | Major | Axis said `L5 Cat.`, `L2 Aware`, and `L4 Warn`, confusing threat levels with hurricane categories | Pending fix commit: neutral `Level N` ticks; regression in `LevelHistoryChart.test.tsx` |
+| DF-02 | `any/settings-ai` | Density / alignment | Minor | Checkbox text and configuration keys split into separate flex fragments | Pending fix commit: group label text; put keys on a caption line |
+| DF-03 | `quiet-1440x900-light/settings-locations` | Evidence completeness | Major | Capture ended before the location form finished expanding | Pending fix commit: wait for Add location, fonts, and two layout frames |
+| DF-04 | `any-390x844-any/settings-{ai,retention,about}` | Phone controls | Major | Hash-selected tab stayed outside the visible tab strip | Pending fix commit: reveal selection horizontally; browser regression in `settings-tabs.spec.ts` |
+| DF-05 | `any-390x844-any/settings-ai` | Density | Minor | Request table squeezed numbers and model names into narrow fragments | Pending fix commit: minimum table width within its existing scroller |
 
 ### Alarm proofs in the redesigned shell
 

@@ -27,7 +27,7 @@ const VIEWS = [
   } },
   { key: "map", path: "/map", ready: async (page: Page) => {
     await expect(page.getByTestId("map-status-chip")).toContainText("live");
-    await expect(page.locator(".leaflet-overlay-pane svg path").first()).toBeVisible();
+    await expect(page.locator('.leaflet-overlay-pane svg path:not([d="M0 0"])').first()).toBeVisible();
   } },
   { key: "replay", path: "/replay", ready: async (page: Page) => {
     await page.getByLabel("Replay storm").selectOption("AL052019");
@@ -44,7 +44,10 @@ const VIEWS = [
     await heading(page, "Ask");
     await expect(page.getByLabel("Your question")).toBeVisible();
   } },
-  { key: "settings-locations", path: "/settings#locations", ready: (page: Page) => heading(page, "Watched Locations") },
+  { key: "settings-locations", path: "/settings#locations", ready: async (page: Page) => {
+    await heading(page, "Watched Locations");
+    await expect(page.getByRole("button", { name: "Add location", exact: true })).toBeVisible();
+  } },
   { key: "settings-notifications", path: "/settings#notifications", ready: (page: Page) => heading(page, "Quiet Hours & Cooldown") },
   { key: "settings-ai", path: "/settings#ai", ready: (page: Page) => heading(page, "AI") },
   { key: "settings-retention", path: "/settings#retention", ready: (page: Page) => heading(page, "Database & Retention") },
@@ -86,6 +89,11 @@ for (const server of SERVERS) {
             await expect(page.getByText(/^Loading\b/)).toHaveCount(0);
             await expect(page.locator("html")).toHaveClass(theme === "dark" ? /\bdark\b/ : /^(?!.*\bdark\b)/);
             await expect(page.locator("footer")).toContainText("Informational only");
+            // Wait for async layout expansion before measuring the full page.
+            await page.evaluate(async () => {
+              await document.fonts.ready;
+              await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+            });
             for (const text of await page.locator('[aria-label^="AI briefing"] p').allTextContents()) {
               recordAiText(page, text);
             }

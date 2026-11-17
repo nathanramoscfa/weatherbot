@@ -536,7 +536,7 @@ export function AiSettingsSection() {
               </p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left">
+                <table className="w-full min-w-[48rem] border-collapse text-left">
                   <thead>
                     <tr className="border-b border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-400">
                       <th className="py-1.5 pr-3 font-semibold">Kind</th>
@@ -591,7 +591,7 @@ export function AiSettingsSection() {
           <div className="space-y-1">
             <label
               htmlFor="ai-enabled-input"
-              className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200"
+              className="flex min-h-6 items-center gap-2 font-semibold text-slate-800 dark:text-slate-200"
             >
               <input
                 id="ai-enabled-input"
@@ -601,7 +601,7 @@ export function AiSettingsSection() {
                 onChange={(event) => setEnabledInput(event.target.checked)}
                 className="h-3.5 w-3.5 rounded border-slate-300 text-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700"
               />
-              AI enabled (<code>[ai] enabled</code>)
+              <span>AI enabled (<code>[ai] enabled</code>)</span>
             </label>
             {enabledEnv && enabledSetting && (
               <p className="text-sm text-amber-800 dark:text-amber-300">
@@ -638,7 +638,7 @@ export function AiSettingsSection() {
           <div className="space-y-1">
             <label
               htmlFor="ai-change-summaries-input"
-              className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200"
+              className="flex min-h-6 items-center gap-2 font-semibold text-slate-800 dark:text-slate-200"
             >
               <input
                 id="ai-change-summaries-input"
@@ -648,7 +648,7 @@ export function AiSettingsSection() {
                 onChange={(event) => setSummariesInput(event.target.checked)}
                 className="h-3.5 w-3.5 rounded border-slate-300 text-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700"
               />
-              Change summaries (<code>[ai] change_summaries</code>)
+              <span>Change summaries <span className="block text-caption text-ink-subtle"><code>[ai] change_summaries</code></span></span>
             </label>
             {summariesEnv && summariesSetting && (
               <p className="text-sm text-amber-800 dark:text-amber-300">
@@ -660,7 +660,7 @@ export function AiSettingsSection() {
           <div className="space-y-1">
             <label
               htmlFor="ai-outlook-narration-input"
-              className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200"
+              className="flex min-h-6 items-center gap-2 font-semibold text-slate-800 dark:text-slate-200"
             >
               <input
                 id="ai-outlook-narration-input"
@@ -670,7 +670,7 @@ export function AiSettingsSection() {
                 onChange={(event) => setNarrationInput(event.target.checked)}
                 className="h-3.5 w-3.5 rounded border-slate-300 text-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700"
               />
-              Outlook narration (<code>[ai] outlook_narration</code>)
+              <span>Outlook narration <span className="block text-caption text-ink-subtle"><code>[ai] outlook_narration</code></span></span>
             </label>
             {narrationEnv && narrationSetting && (
               <p className="text-sm text-amber-800 dark:text-amber-300">

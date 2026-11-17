@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Add a 240-render visual dogfood harness, readability audit and rubric,
+  whole-phase browser smoke, alarm proofs, and idle CPU receipt (Phase 8 Step 8).
+
 ### Phase 8 — UI/UX redesign and visual dogfooding
 - Add five demonstration scenarios that put every level on screen while the
   real tropics are quiet (Phase 8 Step 1):
