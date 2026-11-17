@@ -296,22 +296,26 @@ reloading the page and provides eight pages:
   at the bottom (`GET /api/map?snapshot_id=`, with a `"Stored advisory: … — not
   the latest"` banner and `"Back to latest"`). Historical storm replay lives on
   `/replay`.
-- **Replay (`/replay`)**: historical storm scrubber against watched locations
-  when `serve --corpus DIR` or `[web] corpus` is configured: a storm picker and
-  a watched-location picker, a stepped `LevelHistoryChart` across the storm's
-  advisories with an active-step marker (`GET
-  /api/replay/{atcf_id}/timeline?location=`), `AdvisorySlider` and a `Play`
-  button (stepping one advisory every 1.5 seconds and stopping at the end, on
-  user input, or when the tab hides), the advisory's Leaflet map (`GET
-  /api/replay/{atcf_id}/{advisory}`, with `level: null` on location markers),
-  and the replayed assessment card (`GET
-  /api/replay/{atcf_id}/{advisory}/assessment?location=`, sharing
-  `LevelSummary`, `EvidenceList`, `OfficialProductList`, and `ThreatTable` with
-  the live dashboard, with `origin: "replay"`, no `id` or `stored_at`, no AI
-  panel, and no evacuation-order switch) plus `notes` explaining omitted archival
-  inputs and a non-dismissible `"Replay: <storm> advisory <n>, issued <instant>
-  — not live"` banner. Scrubbing writes nothing to SQLite, sends no notification,
-  and calls no AI endpoint.
+- **Replay (`/replay`)**: a side-by-side replay workbench against watched
+  locations when `serve --corpus DIR` or `[web] corpus` is configured: at 1280 px
+  and wider (`xl:grid-cols-2`), the left column holds the advisory's Leaflet map
+  (`min-h-[60vh]`, `GET /api/replay/{atcf_id}/{advisory}`, never hidden with
+  `display: none` while mounted and fitted via `ResizeObserver`), the
+  `AdvisorySlider` scrubber with `Play`/`Pause` (stepping one advisory every 1.5
+  seconds and stopping at the end, on user input, or when the tab hides), and the
+  stepped `LevelHistoryChart` across the storm's advisories (`GET
+  /api/replay/{atcf_id}/timeline?location=`); the right sticky column holds the
+  storm and watched-location pickers, the non-dismissible `"Replay: <storm>
+  advisory <n>, issued <instant> — not live"` banner, and the replayed assessment
+  card (`GET /api/replay/{atcf_id}/{advisory}/assessment?location=`) with
+  `LocationHero` (`origin: "replay"`, noting that the evacuation-order toggle is
+  off for a past storm) and `WhyThisLevel` (sharing `LevelSummary`,
+  `EvidenceList`, `OfficialProductList`, and `ThreatTable` with the live
+  dashboard alongside `notes` explaining omitted archival inputs, with no AI
+  panel and no evacuation-order switch), keeping the map, the scrubber, and the
+  hero's headline in the first viewport at 1440×900; below 1280 px they stack in
+  order (pickers, banner, map, scrubber, hero, chart, disclosure). Scrubbing
+  writes nothing to SQLite, sends no notification, and calls no AI endpoint.
 - **Storms (`/storms`)**: active cyclones and their advisories, graphical
   Tropical Weather Outlook areas with NHC's six official outlook graphics from
   the stored snapshot (and, with `[ai] outlook_narration` on, an

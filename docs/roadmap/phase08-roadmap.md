@@ -3852,9 +3852,9 @@ hygiene.
 
 ---
 
-## Step 6 — The replay workbench
+## Step 6 — The replay workbench ✅
 
-**Status:** Not started
+**Status:** Complete — PR #117 (2026-11-16)
 
 > **Goal:** Let a past storm be read side by side. At 1280 px and wider
 > `/replay` becomes two columns — the map, at least 60 percent of the viewport
@@ -3893,6 +3893,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity medium`):
 Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
 estimated from the model's measured levels or its previous version's.
+
+> Ran 2026-11-16: Quality Pick — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6449,7 +6451,7 @@ workflow above maps directly to the corresponding row below.
 | 3    | Plain English + ladder route   | Opus 5.5       | Complete — PR #113 |
 | 4    | Command-center dashboard       | Gemini 4 Argon | Complete — PR #115 |
 | 5    | Immersive map                  | Gemini 4 Argon | Complete — PR #116 |
-| 6    | Replay workbench               | Gemini 4 Argon | Not started        |
+| 6    | Replay workbench               | Gemini 4 Argon | Complete — PR #117 |
 | 7    | Settings tabs + pages          | Gemini 4 Argon | Not started        |
 | 8    | Loop 1: AI dogfood             | Sonnet 5.5     | Not started        |
 | 9    | Loop 2: operator dogfood       | Opus 5.5       | Not started        |

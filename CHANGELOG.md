@@ -150,6 +150,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests: `frontend/src/map/layers.test.ts`, `MapView.test.tsx`, and
     `frontend/e2e/map.spec.ts` rewritten in place on the `landfall` scenario
     server.
+- Rebuild `/replay` as a side-by-side two-column workbench (Phase 8 Step 6):
+  - `frontend/src/pages/Replay.tsx`: lay out `/replay` as an `xl:grid-cols-2`
+    workbench at 1280 px and wider (left column: `min-h-[60vh]` advisory map
+    with a loading overlay rather than `display: none` so Leaflet never measures
+    zero, the `AdvisorySlider` scrubber with `Play`/`Pause`, and
+    `LevelHistoryChart` beneath it; right sticky column: storm and location
+    pickers, the non-dismissible `replay-banner`, and `replay-assessment-card`
+    with `LocationHero` and `WhyThisLevel` holding `replay-notes` and the four
+    shared assessment components) keeping the map, the scrubber, and the hero's
+    headline in the first viewport at 1440×900, and stacking in order (pickers,
+    banner, map, scrubber, hero, chart, disclosure) below 1280 px; restyle the
+    corpus-disabled and no-locations states with `Callout`.
+  - `frontend/src/charts/LevelHistoryChart.tsx` and
+    `frontend/src/map/AdvisorySlider.tsx`: suppress crowded (`< 28` SVG units)
+    and duplicate same-level change-marker text labels on `LevelHistoryChart`
+    while preserving every `level-change-marker-{id}` circle, and tighten
+    `AdvisorySlider` card padding (`padding="sm"`).
+  - Tests: `frontend/src/pages/Replay.test.tsx`,
+    `frontend/src/charts/LevelHistoryChart.test.tsx`, and
+    `frontend/e2e/replay.spec.ts` (asserting 1440×900 first-viewport bounding
+    boxes and 390×844 stacked order alongside the Dorian scrub flow).
 
 ### Phase 7 — Depth
 - Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),
