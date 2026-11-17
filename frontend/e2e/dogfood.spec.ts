@@ -46,12 +46,19 @@ const VIEWS = [
   } },
   { key: "settings-locations", path: "/settings#locations", ready: async (page: Page) => {
     await heading(page, "Watched Locations");
+    await expect(page.getByRole("main").getByText("simulated Miami-Dade", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Remove", exact: true })).toHaveCount(2);
     await expect(page.getByRole("button", { name: "Add location", exact: true })).toBeVisible();
   } },
   { key: "settings-notifications", path: "/settings#notifications", ready: (page: Page) => heading(page, "Quiet Hours & Cooldown") },
   { key: "settings-ai", path: "/settings#ai", ready: (page: Page) => heading(page, "AI") },
   { key: "settings-retention", path: "/settings#retention", ready: (page: Page) => heading(page, "Database & Retention") },
-  { key: "settings-about", path: "/settings#about", ready: (page: Page) => heading(page, "Full Disclaimer") },
+  { key: "settings-about", path: "/settings#about", ready: async (page: Page) => {
+    await heading(page, "Full Disclaimer");
+    await expect(page.locator("#disclaimer pre")).toContainText("WEATHERBOT LEGAL DISCLAIMER");
+    await expect(page.getByRole("cell", { name: "[logging] level", exact: true })).toBeVisible();
+    await expect(page.getByText(/^react v\d/)).toBeVisible();
+  } },
 ] as const;
 
 interface RenderAudit {
@@ -84,11 +91,14 @@ for (const server of SERVERS) {
           // eslint-disable-next-line security/detect-non-literal-fs-filename
           mkdirSync(`test-results/dogfood/${folder}`, { recursive: true });
           for (const view of VIEWS) {
+            const healthReady = page.waitForResponse((response) =>
+              new URL(response.url()).pathname === "/api/health" && response.ok());
             await page.goto(view.path);
+            await (await healthReady).finished();
             await view.ready(page);
             await expect(page.getByText(/^Loading\b/)).toHaveCount(0);
             await expect(page.locator("html")).toHaveClass(theme === "dark" ? /\bdark\b/ : /^(?!.*\bdark\b)/);
-            await expect(page.locator("footer")).toContainText("Informational only");
+            await expect(page.locator("footer")).toContainText("See DISCLAIMER.md.");
             // Wait for async layout expansion before measuring the full page.
             await page.evaluate(async () => {
               await document.fonts.ready;

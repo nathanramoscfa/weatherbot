@@ -1,5 +1,6 @@
 // frontend/src/map/MapView.tsx
 import { useQuery } from "@tanstack/react-query";
+import type { FitBoundsOptions } from "leaflet";
 import { useCallback, useMemo, useState } from "react";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
@@ -29,6 +30,29 @@ export { PROBABILITY_THRESHOLDS, type ProbabilityThresholdKt };
 
 export type HealthResponse = components["schemas"]["HealthResponse"];
 export type LocationsResponse = components["schemas"]["LocationsResponse"];
+
+// Fit into the unobscured canvas, using the rendered HUD dimensions in either
+// layout. Replay and dashboard maps keep the hook's ordinary full-canvas fit.
+function mapHudFitOptions(container: HTMLElement): FitBoundsOptions {
+  const frame = container.getBoundingClientRect();
+  const hud = container.parentElement;
+  const status = hud?.querySelector('[data-testid="map-status-chip"]')?.getBoundingClientRect();
+  const layers = hud?.querySelector('[data-map-hud="layers"]')?.getBoundingClientRect();
+  const legend = hud?.querySelector('[data-map-hud="legend"]')?.getBoundingClientRect();
+  const history = hud?.querySelector('[data-map-hud="history"]')?.getBoundingClientRect();
+  const desktop = isDefaultDesktopViewport();
+  const left = desktop && layers ? layers.right - frame.left + 16 : 24;
+  const right = desktop && legend ? frame.right - legend.left + 16 : 24;
+  const top = status ? status.bottom - frame.top + 16 : 24;
+  const bottom = desktop
+    ? (history ? frame.bottom - history.top + 16 : 28)
+    : frame.bottom - Math.min(layers?.top ?? frame.bottom, legend?.top ?? frame.bottom, history?.top ?? frame.bottom) + 16;
+  return {
+    padding: [0, 0],
+    paddingTopLeft: [Math.min(left, frame.width * 0.4), Math.min(top, frame.height * 0.4)],
+    paddingBottomRight: [Math.min(right, frame.width * 0.4), Math.min(bottom, frame.height * 0.45)],
+  };
+}
 
 async function fetchMap(snapshotId?: string): Promise<MapResponse> {
   const { data, response } = await apiClient.GET("/api/map", {
@@ -295,6 +319,7 @@ export function MapView() {
     },
     timeZone: primaryTimeZone,
     viewModeKey,
+    fitOptions: mapHudFitOptions,
   });
 
   const advisoriesSteps = advisoriesQuery.data?.steps ?? [];
@@ -384,7 +409,7 @@ export function MapView() {
         </div>
 
         <div className="pointer-events-none absolute inset-x-2.5 bottom-7 z-10 flex flex-col gap-2 lg:inset-0">
-          <div className="pointer-events-auto lg:absolute lg:top-28 lg:left-3 lg:w-64 xl:w-72">
+          <div data-map-hud="layers" className="pointer-events-auto lg:absolute lg:top-28 lg:left-3 lg:w-64 xl:w-72">
             <MapLayersPanel
               open={layersOpen}
               onToggleOpen={setLayersOpen}
@@ -399,7 +424,7 @@ export function MapView() {
             />
           </div>
 
-          <div className="pointer-events-auto lg:absolute lg:top-3 lg:right-3 lg:w-64 xl:w-72">
+          <div data-map-hud="legend" className="pointer-events-auto lg:absolute lg:top-3 lg:right-3 lg:w-64 xl:w-72">
             <MapLegendPanel
               open={legendOpen}
               onToggleOpen={setLegendOpen}
@@ -410,7 +435,7 @@ export function MapView() {
           </div>
 
           {advisoriesSteps.length > 1 && (
-            <div className="pointer-events-auto lg:absolute lg:right-72 lg:bottom-7 lg:left-72 xl:right-80 xl:left-80">
+            <div data-map-hud="history" className="pointer-events-auto lg:absolute lg:right-72 lg:bottom-7 lg:left-72 xl:right-80 xl:left-80">
               <AdvisorySlider
                 steps={advisoriesSteps}
                 selectedSnapshotId={selectedSnapshotId}

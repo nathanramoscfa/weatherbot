@@ -48,6 +48,20 @@ test.describe("immersive map on landfall scenario", () => {
     const locationMarkerPaths = overlaySvg.locator('path[d*="a8,8"]');
     await expect(locationMarkerPaths).toHaveCount(2);
 
+    // DF-07: each plotted point must remain in the exposed canvas, including
+    // the current storm position near the right edge of the landfall track.
+    const pointsClearOfHud = () => page.evaluate(() => {
+      const points = document.querySelectorAll('.leaflet-overlay-pane path[d*="a7,7"], .leaflet-overlay-pane path[d*="a6,6"], .leaflet-overlay-pane path[d*="a5,5"], .leaflet-overlay-pane path[d*="a8,8"]');
+      return points.length >= 7 && [...points].every((point) => {
+        const box = point.getBoundingClientRect();
+        const target = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+        return target?.closest(".leaflet-container") !== null && target !== null;
+      });
+    });
+    await expect.poll(pointsClearOfHud).toBe(true);
+    await page.getByRole("button", { name: "Fit", exact: true }).click();
+    await expect.poll(pointsClearOfHud).toBe(true);
+
     const togglesRegion = page.getByRole("region", {
       name: "Map layer toggles",
     });

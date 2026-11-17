@@ -63,6 +63,7 @@ path is in each entry. Preserve a round's ignored evidence before another run
 
 | Round | Date | Source commit | Renders judged | Audit findings | Blocker / major / minor / polish |
 | --- | --- | --- | --- | --- | --- |
+| 1 | 2026-11-17 | `7b3ceef` | 240 / 240 | 0 | 0 / 2 / 0 / 0 (DF-06, DF-07) |
 
 Preflight on 2026-11-17: UI baseline `7742a81`, harness `275250e`.
 It generated 196 images (48 judged); four outlook tests stopped because the
@@ -74,11 +75,13 @@ visible geometry; the complete round below supersedes these preliminary captures
 
 | ID | Screenshot key | Rubric item | Severity | What was wrong | Fix commit or owning issue |
 | --- | --- | --- | --- | --- | --- |
-| DF-01 | `any/replay` | Vocabulary | Major | Axis said `L5 Cat.`, `L2 Aware`, and `L4 Warn`, confusing threat levels with hurricane categories | Pending fix commit: neutral `Level N` ticks; regression in `LevelHistoryChart.test.tsx` |
-| DF-02 | `any/settings-ai` | Density / alignment | Minor | Checkbox text and configuration keys split into separate flex fragments | Pending fix commit: group label text; put keys on a caption line |
-| DF-03 | `quiet-1440x900-light/settings-locations` | Evidence completeness | Major | Capture ended before the location form finished expanding | Pending fix commit: wait for Add location, fonts, and two layout frames |
-| DF-04 | `any-390x844-any/settings-{ai,retention,about}` | Phone controls | Major | Hash-selected tab stayed outside the visible tab strip | Pending fix commit: reveal selection horizontally; browser regression in `settings-tabs.spec.ts` |
-| DF-05 | `any-390x844-any/settings-ai` | Density | Minor | Request table squeezed numbers and model names into narrow fragments | Pending fix commit: minimum table width within its existing scroller |
+| DF-01 | `any/replay` | Vocabulary | Major | Axis said `L5 Cat.`, `L2 Aware`, and `L4 Warn`, confusing threat levels with hurricane categories | `7b3ceef`: neutral `Level N` ticks; regression in `LevelHistoryChart.test.tsx` |
+| DF-02 | `any/settings-ai` | Density / alignment | Minor | Checkbox text and configuration keys split into separate flex fragments | `7b3ceef`: group label text; put keys on a caption line |
+| DF-03 | `quiet-1440x900-light/settings-locations` | Evidence completeness | Major | Capture ended before the location form finished expanding | `7b3ceef`: wait for Add location, fonts, and two layout frames |
+| DF-04 | `any-390x844-any/settings-{ai,retention,about}` | Phone controls | Major | Hash-selected tab stayed outside the visible tab strip | `7b3ceef`: reveal selection horizontally; browser regression in `settings-tabs.spec.ts` |
+| DF-05 | `any-390x844-any/settings-ai` | Density | Minor | Request table squeezed numbers and model names into narrow fragments | `7b3ceef`: minimum table width within its existing scroller |
+| DF-06 | `cone-1440x900-dark/settings-locations` | Evidence completeness | Major | Capture had the form but no watched-location cards; async queries were still pending | Pending fix commit: await both landmark cards, health notice, and complete About content |
+| DF-07 | `{cone,watch,landfall}-1440x900-any/map` | Map panels | Major | Fit used the entire canvas, leaving the current position or forecast points behind the open panels | Pending fix commit: fit within measured HUD insets; browser point-occlusion regression in `map.spec.ts` |
 
 ### Alarm proofs in the redesigned shell
 
@@ -91,4 +94,4 @@ visible geometry; the complete round below supersedes these preliminary captures
 | Radar and satellite unavailable | `frontend/src/map/MapView.test.tsx`: both unavailable banner cases |
 | Notification toast | `frontend/e2e/dashboard.spec.ts`: event-driven warning toast |
 
-## Loop 2 ? operator dogfood
+## Loop 2 — operator dogfood
