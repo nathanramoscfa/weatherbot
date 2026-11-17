@@ -14,6 +14,9 @@ import {
   DEFAULT_ATLANTIC_ZOOM,
   forecastPointStyle,
   formatCrs,
+  getLayerToggleItem,
+  LAYER_GROUPS,
+  LAYER_TOGGLE_ITEMS,
   MAP_LEGEND_SECTIONS,
   type MapDepthResponse,
   type MapResponse,
@@ -154,6 +157,42 @@ describe("map/layers", () => {
       "satellite",
       "locations",
     ]);
+
+    // LAYER_GROUPS organizes all twelve toggle keys into the four headed groups
+    expect(LAYER_GROUPS.map((g) => ({ id: g.id, title: g.title, keys: g.keys }))).toEqual([
+      {
+        id: "forecast",
+        title: "Forecast",
+        keys: [
+          "cone",
+          "track",
+          "points",
+          "past_track",
+          "watches_warnings",
+          "outlook",
+        ],
+      },
+      {
+        id: "wind_surge",
+        title: "Wind & surge",
+        keys: ["wind_radii", "wind_probabilities", "peak_surge"],
+      },
+      {
+        id: "observations",
+        title: "Observations",
+        keys: ["radar", "satellite"],
+      },
+      {
+        id: "locations",
+        title: "Locations",
+        keys: ["locations"],
+      },
+    ]);
+    const groupedKeys = LAYER_GROUPS.flatMap((g) => g.keys);
+    expect(new Set(groupedKeys)).toEqual(
+      new Set(LAYER_TOGGLE_ITEMS.map((item) => item.key)),
+    );
+    expect(getLayerToggleItem("cone")?.label).toBe("Storm cones");
   });
 
   it("styles wind radii, past track, peak surge (known range, unknown range neutral, and markup in name), and probability bands with crsText on every built item", () => {

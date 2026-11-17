@@ -281,23 +281,21 @@ reloading the page and provides eight pages:
   situation `MiniMap` card drawing active cones, tracks, forecast points,
   watches and warnings, and location markers from `GET /api/map` with a link to
   `/map`.
-- **Map (`/map`)**: an interactive Leaflet map over OpenStreetMap tiles showing
-  six default-on layers (storm cones, forecast tracks, forecast points, coastal
-  watch and warning segments, Tropical Weather Outlook areas, and watched
-  locations, with each geometry's CRS in its popup) and six off-by-default depth
-  layers fetched only when toggled on: wind radii and past track/points (`GET
-  /api/map/depth`), peak storm surge polygons and lines coloured by surge range,
-  cumulative 120-hour wind-speed probability bands at 34, 50, or 64 kt (`GET
-  /api/map/wind-probabilities`, simplified for display and rendered on a Leaflet
-  canvas), and live NOAA nowCOAST radar (`conus_base_reflectivity_mosaic`) and
-  GOES longwave satellite (`goes_longwave_imagery`) WMS overlays. When more than
-  one stored advisory exists (`GET /api/map/advisories`), an advisory slider
-  steps through stored past advisories (`GET /api/map?snapshot_id=`) with a
-  `"Stored advisory: … — not the latest"` banner and `"Back to latest"`; when
-  `serve --corpus DIR` is configured, the historical storm and advisory replay
-  picker (`not live` banner) renders replayed advisories and their landmark
-  wind-probability windows (`GET
-  /api/replay/{atcf_id}/{advisory}/wind-probabilities`).
+- **Map (`/map`)**: a tall immersive Leaflet canvas (`min-h-[70vh]`) over
+  OpenStreetMap tiles with floating opaque HUD panels (`MapPanels`) positioned as
+  siblings of the map container — a status chip (`as_of` time, origin, active
+  storm count, `Fit`, and when `serve --corpus DIR` is configured a `"Replay a
+  past storm"` link to `/replay`), a collapsible **Layers** panel (`aria-expanded`,
+  open by default at 1024 px and wider and collapsed on phones, grouping the six
+  default-on layers and six off-by-default depth layers under **Forecast**, **Wind
+  & surge**, **Observations**, and **Locations** with the 34/50/64 kt
+  wind-probability threshold selector), a collapsible **Legend** panel showing
+  only the currently visible layers' sections alongside the nowCOAST age note and
+  `Radar unavailable` / `Satellite unavailable` banners, and when more than one
+  stored advisory exists (`GET /api/map/advisories`) the `AdvisorySlider` docked
+  at the bottom (`GET /api/map?snapshot_id=`, with a `"Stored advisory: … — not
+  the latest"` banner and `"Back to latest"`). Historical storm replay lives on
+  `/replay`.
 - **Replay (`/replay`)**: historical storm scrubber against watched locations
   when `serve --corpus DIR` or `[web] corpus` is configured: a storm picker and
   a watched-location picker, a stepped `LevelHistoryChart` across the storm's

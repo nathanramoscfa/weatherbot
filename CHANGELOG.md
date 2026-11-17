@@ -134,6 +134,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     rewritten `frontend/src/pages/Dashboard.test.tsx`, updated Playwright specs,
     `frontend/e2e/command-center.spec.ts`, and 600 s idle CPU measurement
     (`window=600.1s server_cpu=0.3229% (1.938s) tab_cpu=0.0087% (0.052s) roster_polls=0 cycles=0 ai_state=ready change_summaries=on budget=<0.5%`).
+- Rebuild `/map` as a tall immersive canvas with floating HUD panels and move
+  replay exclusively to `/replay` (Phase 8 Step 5):
+  - `frontend/src/map/layers.ts`, `MapPanels.tsx`, and `MapView.tsx`: add
+    `LAYER_GROUPS` organizing the twelve `LAYER_TOGGLE_ITEMS` into four headed
+    groups (**Forecast**, **Wind & surge**, **Observations**, **Locations**)
+    while preserving `DEFAULT_LAYER_VISIBILITY` and `MAP_LEGEND_SECTIONS`;
+    expand `leaflet-map-container` to a `min-h-[70vh]` viewport-filling canvas
+    with a visually hidden `<h1>Map</h1>` and floating opaque sibling panels
+    (`MapStatusChip` with `Fit` and a `"Replay a past storm"` link to `/replay`
+    when `corpus` is enabled, `MapLayersPanel` and `MapLegendPanel` with
+    `aria-expanded` header toggles open by default at 1024 px and wider and
+    collapsed on narrow viewports, visible-only legend sections, and the bottom
+    `AdvisorySlider` dock); remove the duplicate replay panel from `/map`.
+  - Tests: `frontend/src/map/layers.test.ts`, `MapView.test.tsx`, and
+    `frontend/e2e/map.spec.ts` rewritten in place on the `landfall` scenario
+    server.
 
 ### Phase 7 — Depth
 - Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),
