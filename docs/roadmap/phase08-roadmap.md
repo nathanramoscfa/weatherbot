@@ -4249,9 +4249,9 @@ conversation is new, per phase-boundary hygiene.
 
 ---
 
-## Step 7 — Sectioned settings and the secondary pages
+## Step 7 — Sectioned settings and the secondary pages ✅
 
-**Status:** Not started
+**Status:** Complete — PR #118 (2026-11-16)
 
 > **Goal:** Finish the pages a reader visits second. `frontend/src/ui/Tabs.tsx`
 > implements the WAI-ARIA tabs pattern without Radix; `/settings` becomes five
@@ -4292,6 +4292,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
+
+> Ran 2026-11-16: Balanced Pick or Quality Runner-up — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6452,7 +6454,7 @@ workflow above maps directly to the corresponding row below.
 | 4    | Command-center dashboard       | Gemini 4 Argon | Complete — PR #115 |
 | 5    | Immersive map                  | Gemini 4 Argon | Complete — PR #116 |
 | 6    | Replay workbench               | Gemini 4 Argon | Complete — PR #117 |
-| 7    | Settings tabs + pages          | Gemini 4 Argon | Not started        |
+| 7    | Settings tabs + pages          | Gemini 4 Argon | Complete — PR #118 |
 | 8    | Loop 1: AI dogfood             | Sonnet 5.5     | Not started        |
 | 9    | Loop 2: operator dogfood       | Opus 5.5       | Not started        |
 | 10   | QA + verify_phase08.py         | GPT-6.1 Sol    | Not started        |
