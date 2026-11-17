@@ -25,6 +25,7 @@ scenario, the viewport, and the theme; `any` means every value.
 ## Idle CPU measurements
 
 - **Step 4 (Command-center dashboard):** `idle measurement: window=600.1s server_cpu=0.3229% (1.938s) tab_cpu=0.0087% (0.052s) roster_polls=0 cycles=0 ai_state=ready change_summaries=on budget=<0.5%`
+- **Step 8 (after the last fix, `4b4ca28`):** `idle measurement: window=600.0s server_cpu=0.2682% (1.609s) tab_cpu=0.0057% (0.034s) roster_polls=0 cycles=0 ai_state=ready change_summaries=on budget=<0.5%`
 
 ## Loop 1 rubric
 
@@ -64,12 +65,29 @@ path is in each entry. Preserve a round's ignored evidence before another run
 | Round | Date | Source commit | Renders judged | Audit findings | Blocker / major / minor / polish |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 2026-11-17 | `7b3ceef` | 240 / 240 | 0 | 0 / 2 / 0 / 0 (DF-06, DF-07) |
+| 2 | 2026-11-17 | `4b4ca28` | 240 / 240 | 0 | 0 / 0 / 0 / 0 |
 
 Preflight on 2026-11-17: UI baseline `7742a81`, harness `275250e`.
 It generated 196 images (48 judged); four outlook tests stopped because the
 first SVG path was outside the map's fitted viewport. This was an incomplete
 harness run, not an exit round. The ready marker now selects nondegenerate
-visible geometry; the complete round below supersedes these preliminary captures.
+visible geometry; the complete rounds supersede these preliminary captures.
+
+Before the completed second round, two incomplete attempts exposed harness
+navigation problems: a hash-only Settings navigation reused the health query,
+and a fresh `about:blank` document rejected the theme storage write. `217fb8c`
+and `4b4ca28` fix those waits and scope theme setup to the demonstration origin.
+The page-error guard caught the latter; it remains unchanged. Neither attempt
+counts as a full round.
+
+Round 2 opened and judged every image against all applicable rubric items,
+including the full-page footer. Its 240 unique review keys match the manifest
+and 240 PNGs. Both themes and sizes show the corrected chart vocabulary, AI
+labels, selected Settings tabs, complete location cards, and exposed map points.
+Tables and tab strips intentionally scroll horizontally; chart internals keep
+Decision 6's accessible-table exemption. No polish items remain for Loop 2.
+Ignored evidence is preserved locally in `.roadmodel/dogfood-round1/` and
+`.roadmodel/dogfood-round2/`, each with its audit and complete review record.
 
 ### Defects
 
@@ -80,8 +98,8 @@ visible geometry; the complete round below supersedes these preliminary captures
 | DF-03 | `quiet-1440x900-light/settings-locations` | Evidence completeness | Major | Capture ended before the location form finished expanding | `7b3ceef`: wait for Add location, fonts, and two layout frames |
 | DF-04 | `any-390x844-any/settings-{ai,retention,about}` | Phone controls | Major | Hash-selected tab stayed outside the visible tab strip | `7b3ceef`: reveal selection horizontally; browser regression in `settings-tabs.spec.ts` |
 | DF-05 | `any-390x844-any/settings-ai` | Density | Minor | Request table squeezed numbers and model names into narrow fragments | `7b3ceef`: minimum table width within its existing scroller |
-| DF-06 | `cone-1440x900-dark/settings-locations` | Evidence completeness | Major | Capture had the form but no watched-location cards; async queries were still pending | Pending fix commit: await both landmark cards, health notice, and complete About content |
-| DF-07 | `{cone,watch,landfall}-1440x900-any/map` | Map panels | Major | Fit used the entire canvas, leaving the current position or forecast points behind the open panels | Pending fix commit: fit within measured HUD insets; browser point-occlusion regression in `map.spec.ts` |
+| DF-06 | `cone-1440x900-dark/settings-locations` | Evidence completeness | Major | Capture had the form but no watched-location cards; async queries were still pending | `01e0b6b`: await both landmark cards, health notice, and complete About content |
+| DF-07 | `{cone,watch,landfall}-1440x900-any/map` | Map panels | Major | Fit used the entire canvas, leaving the current position or forecast points behind the open panels | `01e0b6b`: fit within measured HUD insets; browser point-occlusion regression in `map.spec.ts` |
 
 ### Alarm proofs in the redesigned shell
 
@@ -93,5 +111,16 @@ visible geometry; the complete round below supersedes these preliminary captures
 | Radar unavailable | `frontend/e2e/phase7.spec.ts`: aborted nowCOAST route, `radar-unavailable-banner` |
 | Radar and satellite unavailable | `frontend/src/map/MapView.test.tsx`: both unavailable banner cases |
 | Notification toast | `frontend/e2e/dashboard.spec.ts`: event-driven warning toast |
+
+### Validation receipt
+
+After the final fix on 2026-11-17: the default Playwright run passed all 32
+tests, including `phase8.spec.ts`, the alarm browser proofs, map-point
+visibility, phone hash tabs, and the existing readability gate. Vitest passed
+50 files / 155 tests; build, typecheck, lint, and the 49-package license check
+passed. Phase 5, 6, and 7 `--fast` passed 53, 51, and 65 checks respectively.
+All 19 hooks in the local all-files pre-commit gate passed, including
+secret/personal-data scanning, SAST, and both dependency audits. All captures
+use the demonstration servers; no screenshot or audit file is committed.
 
 ## Loop 2 — operator dogfood
