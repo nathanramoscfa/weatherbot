@@ -159,10 +159,11 @@ export function AdvisorySlider({
   return (
     <Card
       as="section"
+      padding="sm"
       aria-label="Advisory history"
       data-testid="advisory-slider-panel"
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <label
           htmlFor="advisory-history-slider"
           className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200"
@@ -192,7 +193,7 @@ export function AdvisorySlider({
         )}
       </div>
 
-      <div className="mt-2">
+      <div className="mt-1.5">
         <input
           id="advisory-history-slider"
           type="range"

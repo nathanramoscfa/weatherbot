@@ -75,4 +75,68 @@ describe("LevelHistoryChart", () => {
     ).toBeInTheDocument();
     expect(container.querySelector("[style]")).toBeNull();
   });
+
+  it("suppresses crowded and same-level marker labels while preserving every change marker circle", () => {
+    const crowdedPoints: readonly ChartLevelPoint[] = [
+      {
+        id: 1,
+        as_of: "2019-08-24T15:00:00Z",
+        as_of_local: null,
+        level: 1,
+        label: "All Clear",
+        rule: "all_clear",
+        complete: false,
+      },
+      {
+        id: 2,
+        as_of: "2019-08-26T09:00:00Z",
+        as_of_local: null,
+        level: 3,
+        label: "Watch / Hurricane Threat",
+        rule: "hurricane_cone",
+        complete: false,
+      },
+      {
+        id: 3,
+        as_of: "2019-08-26T15:00:00Z",
+        as_of_local: null,
+        level: 3,
+        label: "Watch / Hurricane Threat",
+        rule: "tropical_storm_watch",
+        complete: false,
+      },
+      {
+        id: 4,
+        as_of: "2019-09-03T15:00:00Z",
+        as_of_local: null,
+        level: 5,
+        label: "Hurricane Warning",
+        rule: "hurricane_warning",
+        complete: false,
+      },
+    ];
+
+    const { container } = render(
+      <LevelHistoryChart location="Parliament Square" points={crowdedPoints} />,
+    );
+
+    expect(screen.getByTestId("level-change-marker-1")).toBeInTheDocument();
+    expect(screen.getByTestId("level-change-marker-2")).toBeInTheDocument();
+    expect(screen.getByTestId("level-change-marker-3")).toBeInTheDocument();
+    expect(screen.getByTestId("level-change-marker-4")).toBeInTheDocument();
+
+    const markerLabelPositions = Array.from(
+      container.querySelectorAll('[data-testid^="level-change-marker-"] text'),
+    ).map((node) => ({
+      text: node.textContent,
+      x: Number(node.getAttribute("x")),
+    }));
+
+    expect(markerLabelPositions.map((m) => m.text)).toEqual(["L1", "L3", "L5"]);
+    for (let i = 1; i < markerLabelPositions.length; i += 1) {
+      const cur = markerLabelPositions.at(i)!;
+      const prev = markerLabelPositions.at(i - 1)!;
+      expect(Math.abs(cur.x - prev.x)).toBeGreaterThanOrEqual(28);
+    }
+  });
 });

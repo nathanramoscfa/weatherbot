@@ -1,8 +1,16 @@
 // frontend/src/pages/Replay.test.tsx
 import { QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
 import { createAppQueryClient } from "../main.tsx";
@@ -15,7 +23,7 @@ import replayAdvisoryFixture from "../test/fixtures/replay-advisory.json";
 import replayAssessmentFixture from "../test/fixtures/replay-assessment.json";
 import replayTimelineFixture from "../test/fixtures/replay-timeline.json";
 import { asSchema, type JsonFixture } from "./format.ts";
-import { Replay } from "./Replay.tsx";
+import { Replay, WORKBENCH_MEDIA_QUERY } from "./Replay.tsx";
 
 const TYPED_HEALTH = asSchema<components["schemas"]["HealthResponse"]>(
   healthFixture satisfies JsonFixture<components["schemas"]["HealthResponse"]>,
@@ -47,6 +55,23 @@ const TYPED_REPLAY_ASSESSMENT = asSchema<
     components["schemas"]["ReplayAssessmentResponse"]
   >,
 );
+
+function stubMatchMedia(isWide: boolean): void {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    configurable: true,
+    value: (query: string): MediaQueryList => ({
+      matches: query === WORKBENCH_MEDIA_QUERY ? isWide : false,
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    }),
+  });
+}
 
 function buildShortTimeline(): components["schemas"]["ReplayTimelineResponse"] {
   const step0 = TYPED_REPLAY_TIMELINE.steps.find(
@@ -86,6 +111,7 @@ function buildStepAssessment(
 
 describe("Replay page", () => {
   afterEach(() => {
+    stubMatchMedia(false);
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
@@ -106,6 +132,9 @@ describe("Replay page", () => {
       </QueryClientProvider>,
     );
 
+    expect(
+      screen.getByRole("heading", { name: "Replay" }),
+    ).toBeInTheDocument();
     const disabledBox = screen.getByTestId("replay-corpus-disabled");
     expect(disabledBox).toHaveTextContent("[web] corpus");
     expect(disabledBox).toHaveTextContent("tests/fixtures/replay");
@@ -133,12 +162,16 @@ describe("Replay page", () => {
       </QueryClientProvider>,
     );
 
+    expect(
+      screen.getByRole("heading", { name: "Replay" }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("replay-no-locations")).toHaveTextContent(
       /No watched locations stored/i,
     );
   });
 
-  it("renders storm and location pickers, scrubber, banner, notes, assessment card without AI or evacuation switch", () => {
+  it("renders workbench structure with hero and disclosure in the card, banner, scrubber, chart, and no AI or evacuation switch", () => {
+    stubMatchMedia(true);
     const queryClient = createAppQueryClient();
     const shortTimeline = buildShortTimeline();
     queryClient.setQueryData(queryKeys.health(), {
@@ -211,13 +244,19 @@ describe("Replay page", () => {
       );
     }
 
-    render(
+    const { container } = render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
           <Replay />
         </MemoryRouter>
       </QueryClientProvider>,
     );
+
+    const nonLeafletStyles = Array.from(
+      container.querySelectorAll("[style]"),
+    ).filter((el) => !el.closest('[data-testid="replay-leaflet-map"]'));
+    expect(nonLeafletStyles).toEqual([]);
+    expect(screen.getByTestId("replay-workbench")).toHaveClass("xl:grid-cols-2");
 
     // Non-dismissible banner at initial step (advisory 1)
     const banner = screen.getByTestId("replay-banner");
@@ -226,15 +265,38 @@ describe("Replay page", () => {
     );
     expect(within(banner).queryByRole("button")).toBeNull();
 
-    // Notes block
-    const notes = screen.getByTestId("replay-notes");
+    // Assessment card holds LocationHero and WhyThisLevel (with replay-notes)
+    const card = screen.getByTestId("replay-assessment-card");
+    const hero = within(card).getByTestId("location-hero");
+    expect(hero).toBeInTheDocument();
+    expect(
+      within(hero).getByTestId("location-hero-replay-callout"),
+    ).toHaveTextContent(/evacuation-order toggle is off for a past storm/i);
+
+    const disclosure = within(card).getByTestId("why-this-level");
+    expect(disclosure).toBeInTheDocument();
+    const notes = within(disclosure).getByTestId("replay-notes");
     expect(notes).toHaveTextContent(/Replayed assessments lack/i);
     expect(notes).toHaveTextContent(/evacuation-order toggle/i);
 
-    // Active marker on LevelHistoryChart
+    // Active marker on LevelHistoryChart (outside card in left column at >= 1280px)
     expect(
       screen.getByTestId("level-history-active-marker"),
     ).toBeInTheDocument();
+    expect(within(card).queryByTestId("level-history-chart")).toBeNull();
+
+    // Map layer disclosure toggles open and closed
+    const layersButton = within(
+      screen.getByTestId("replay-map-section"),
+    ).getByRole("button", { name: "Layers" });
+    expect(layersButton).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(layersButton);
+    expect(layersButton).toHaveAttribute("aria-expanded", "true");
+    expect(
+      within(screen.getByTestId("replay-map-section")).getByLabelText(
+        "Storm cones",
+      ),
+    ).toBeChecked();
 
     // Scrub slider to step index 1 (024 -> Level 4) then index 2 (026 -> Level 5 with HWR)
     const slider = screen.getByRole("slider", { name: /Advisory history/i });
@@ -243,19 +305,22 @@ describe("Replay page", () => {
     expect(screen.getByTestId("replay-banner")).toHaveTextContent(
       /Replay: Dorian advisory 24, issued .* — not live/i,
     );
-    const card = screen.getByTestId("replay-assessment-card");
-    expect(within(card).getAllByText(/Level 4/).length).toBeGreaterThan(0);
+    expect(
+      within(card).getByTestId("location-hero-headline"),
+    ).toHaveTextContent(/Level 4/);
 
     fireEvent.change(slider, { target: { value: "2" } });
     fireEvent.mouseUp(slider);
     expect(screen.getByTestId("replay-banner")).toHaveTextContent(
       /Replay: Dorian advisory 26, issued .* — not live/i,
     );
-    expect(within(card).getAllByText(/Level 5/).length).toBeGreaterThan(0);
     expect(
-      within(card).getAllByText(/hurricane_warning/).length,
+      within(card).getByTestId("location-hero-headline"),
+    ).toHaveTextContent(/Level 5/);
+    expect(
+      within(disclosure).getAllByText(/hurricane_warning/).length,
     ).toBeGreaterThan(0);
-    expect(within(card).getAllByText(/HWR/).length).toBeGreaterThan(0);
+    expect(within(disclosure).getAllByText(/HWR/).length).toBeGreaterThan(0);
 
     // No AI panel and no evacuation switch anywhere on the Replay page
     expect(screen.queryByTestId("ai-label")).toBeNull();
@@ -378,7 +443,7 @@ describe("Replay page", () => {
     });
   });
 
-  it("invalidates Leaflet map size and fits bounds when the replay map container transitions from hidden (0x0) to visible", () => {
+  it("never hides the mounted map container with display:none while loading and invalidates Leaflet size via ResizeObserver", async () => {
     let resizeCallback: ResizeObserverCallback | null = null;
     const OriginalResizeObserver = globalThis.ResizeObserver;
     class MockResizeObserver {
@@ -392,6 +457,9 @@ describe("Replay page", () => {
     vi.stubGlobal("ResizeObserver", MockResizeObserver);
 
     try {
+      vi.spyOn(apiClient, "GET").mockImplementation(
+        () => new Promise(() => undefined),
+      );
       const queryClient = createAppQueryClient();
       const shortTimeline = buildShortTimeline();
       queryClient.setQueryData(queryKeys.health(), {
@@ -401,7 +469,7 @@ describe("Replay page", () => {
       queryClient.setQueryData(queryKeys.locations(), TYPED_LOCATIONS);
       queryClient.setQueryData(queryKeys.replay(), TYPED_REPLAY);
 
-      // Render while timeline is not yet resolved so the map wrapper is hidden (0x0)
+      // Render while timeline is still loading: map container is mounted with loading overlay, never display:none
       render(
         <QueryClientProvider client={queryClient}>
           <MemoryRouter>
@@ -411,18 +479,21 @@ describe("Replay page", () => {
       );
 
       const mapContainer = screen.getByTestId("replay-leaflet-map");
+      expect(mapContainer.closest(".hidden")).toBeNull();
+      expect(screen.getByTestId("replay-map-loading")).toBeInTheDocument();
+
       const leafletMap = getLeafletMapForContainer(mapContainer);
       expect(leafletMap).not.toBeNull();
       const invalidateSpy = vi.spyOn(leafletMap!, "invalidateSize");
 
-      // Populate timeline and advisory data and simulate container becoming visible
+      // Populate timeline and advisory data and simulate container resizing
       Object.defineProperty(mapContainer, "clientWidth", {
         configurable: true,
         get: () => 580,
       });
       Object.defineProperty(mapContainer, "clientHeight", {
         configurable: true,
-        get: () => 384,
+        get: () => 540,
       });
 
       act(() => {
@@ -447,6 +518,9 @@ describe("Replay page", () => {
         resizeCallback?.([], {} as ResizeObserver);
       });
 
+      await waitFor(() => {
+        expect(screen.queryByTestId("replay-map-loading")).toBeNull();
+      });
       expect(invalidateSpy).toHaveBeenCalledWith({ animate: false });
     } finally {
       if (OriginalResizeObserver) {

@@ -1,8 +1,7 @@
 // frontend/src/pages/Replay.tsx
 import { useQuery } from "@tanstack/react-query";
-import { Pause, Play, ShieldAlert } from "lucide-react";
+import { ChevronDown, Layers, Maximize2, Pause, Play } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router";
 import { ApiRequestError, apiClient } from "../api/client.ts";
 import { queryKeys } from "../api/keys.ts";
 import type { components } from "../api/schema.ts";
@@ -29,11 +28,13 @@ import {
   type MapResponse,
 } from "../map/layers.ts";
 import { useLeafletMap } from "../map/useLeafletMap.ts";
-import {
-  formatRouteError,
-  formatUtc,
-} from "./format.ts";
+import { Button, LinkButton } from "../ui/Button.tsx";
+import { Callout } from "../ui/Callout.tsx";
 import { Card } from "../ui/Card.tsx";
+import { Chip } from "../ui/Chip.tsx";
+import { PageHeader } from "../ui/PageHeader.tsx";
+import { cx } from "../ui/threat.ts";
+import { formatRouteError, formatUtc } from "./format.ts";
 
 export type HealthResponse = components["schemas"]["HealthResponse"];
 export type LocationsResponse = components["schemas"]["LocationsResponse"];
@@ -45,6 +46,17 @@ export type ReplayAssessmentResponse =
   components["schemas"]["ReplayAssessmentResponse"];
 
 const PLAY_INTERVAL_MS = 1500;
+export const WORKBENCH_MEDIA_QUERY = "(min-width: 1280px)";
+
+export function isDefaultWideWorkbench(): boolean {
+  if (typeof window === "undefined") {
+    return true;
+  }
+  if (typeof window.matchMedia === "function") {
+    return window.matchMedia(WORKBENCH_MEDIA_QUERY).matches;
+  }
+  return window.innerWidth >= 1280;
+}
 
 async function fetchHealth(): Promise<HealthResponse> {
   const { data, response } = await apiClient.GET("/api/health");
@@ -182,9 +194,33 @@ export function Replay() {
     null,
   );
   const [playing, setPlaying] = useState(false);
+  const [layersOpen, setLayersOpen] = useState(false);
   const [visibility, setVisibility] = useState<LayerVisibility>(
     DEFAULT_LAYER_VISIBILITY,
   );
+  const [isWideWorkbench, setIsWideWorkbench] = useState<boolean>(() =>
+    isDefaultWideWorkbench(),
+  );
+
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      typeof window.matchMedia !== "function"
+    ) {
+      return undefined;
+    }
+    const mql = window.matchMedia(WORKBENCH_MEDIA_QUERY);
+    const syncLayout = () => {
+      setIsWideWorkbench(mql.matches);
+    };
+    syncLayout();
+    mql.addEventListener("change", syncLayout);
+    window.addEventListener("resize", syncLayout);
+    return () => {
+      mql.removeEventListener("change", syncLayout);
+      window.removeEventListener("resize", syncLayout);
+    };
+  }, []);
 
   const healthQuery = useQuery({
     queryKey: queryKeys.health(),
@@ -197,6 +233,7 @@ export function Replay() {
   });
 
   const corpusEnabled = healthQuery.data?.corpus ?? false;
+  const corpusExplicitlyDisabled = healthQuery.data?.corpus === false;
 
   const replayStormsQuery = useQuery({
     queryKey: queryKeys.replay(),
@@ -308,7 +345,7 @@ export function Replay() {
       activeLocationName !== null,
   });
 
-  const { containerRef: mapContainerRef } = useLeafletMap({
+  const { containerRef: mapContainerRef, fitToData } = useLeafletMap({
     mapData: replayMapQuery.data,
     visibility,
     timeZone: timeline?.time_zone ?? null,
@@ -437,372 +474,463 @@ export function Replay() {
   const replayLayerItems = LAYER_TOGGLE_ITEMS.filter((item) =>
     REPLAY_LAYER_KEYS.has(item.key),
   );
+  const noLocationsStored =
+    corpusEnabled && locations.length === 0 && !locationsQuery.isLoading;
 
-  return (
-    <div className="space-y-5">
-      <Card as="section">
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Replay
-            </h1>
-            <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">
-              Scrub archived NHC storm advisories against your watched locations
-              without storing history or triggering notifications.
-            </p>
-          </div>
-
-          {corpusEnabled && storms.length > 0 && locations.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-1.5 text-sm">
-                <label
-                  htmlFor="replay-storm-picker"
-                  className="font-semibold text-slate-700 dark:text-slate-300"
-                >
-                  Storm
-                </label>
-                <select
-                  id="replay-storm-picker"
-                  aria-label="Replay storm"
-                  value={activeStorm?.atcf_id ?? ""}
-                  onChange={(e) => {
-                    setPlaying(false);
-                    setSelectedStormId(e.target.value);
-                    setSelectedAdvisoryId(null);
-                  }}
-                  className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm text-slate-900 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                >
-                  {storms.map((storm) => (
-                    <option key={storm.atcf_id} value={storm.atcf_id}>
-                      {storm.name} ({storm.atcf_id}) · {storm.advisory_count}{" "}
-                      advisories
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-1.5 text-sm">
-                <label
-                  htmlFor="replay-location-picker"
-                  className="font-semibold text-slate-700 dark:text-slate-300"
-                >
-                  Location
-                </label>
-                <select
-                  id="replay-location-picker"
-                  aria-label="Replay location"
-                  value={activeLocationName ?? ""}
-                  onChange={(e) => {
-                    setPlaying(false);
-                    setSelectedLocation(e.target.value);
-                  }}
-                  className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-sm text-slate-900 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                >
-                  {locations.map((loc) => (
-                    <option key={loc.name} value={loc.name}>
-                      {loc.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {!corpusEnabled && (
-        <section
+  if (corpusExplicitlyDisabled) {
+    return (
+      <div className="space-y-4">
+        <PageHeader
+          title="Replay"
+          summary="Scrub archived NHC storm advisories against your watched locations without storing history or triggering notifications."
+        />
+        <Callout
+          tone="warning"
+          role="note"
           aria-label="Replay corpus configuration"
           data-testid="replay-corpus-disabled"
-          className="rounded-lg border border-amber-300 bg-amber-50/90 p-5 text-sm text-amber-950 dark:border-amber-700/80 dark:bg-amber-950/50 dark:text-amber-100"
+          title="No historical replay corpus is configured"
         >
-          <div className="flex items-start gap-3">
-            <ShieldAlert
-              className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400"
-              aria-hidden="true"
-            />
-            <div className="space-y-2">
-              <h2 className="font-semibold">
-                No historical replay corpus is configured
-              </h2>
-              <p className="text-sm leading-relaxed">
-                To scrub historical storms in the UI, set{" "}
-                <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
-                  [web] corpus
-                </code>{" "}
-                in{" "}
-                <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
-                  weatherbot.toml
-                </code>{" "}
-                (or pass{" "}
-                <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
-                  weatherbot serve --corpus DIR
-                </code>
-                ) naming a checkout&apos;s{" "}
-                <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
-                  tests/fixtures/replay
-                </code>{" "}
-                directory, or a{" "}
-                <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
-                  convert --full
-                </code>{" "}
-                output directory built with{" "}
-                <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
-                  uv run python scripts/fetch_replay_corpus.py convert --full
-                  --out DIR
-                </code>
-                .
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
+          <p className="text-sm leading-relaxed">
+            To scrub historical storms in the UI, set{" "}
+            <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
+              [web] corpus
+            </code>{" "}
+            in{" "}
+            <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
+              weatherbot.toml
+            </code>{" "}
+            (or pass{" "}
+            <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
+              weatherbot serve --corpus DIR
+            </code>
+            ) naming a checkout&apos;s{" "}
+            <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
+              tests/fixtures/replay
+            </code>{" "}
+            directory, or a{" "}
+            <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
+              convert --full
+            </code>{" "}
+            output directory built with{" "}
+            <code className="rounded bg-amber-200/70 px-1 py-0.5 font-mono dark:bg-amber-900/60">
+              uv run python scripts/fetch_replay_corpus.py convert --full --out
+              DIR
+            </code>
+            .
+          </p>
+        </Callout>
+      </div>
+    );
+  }
 
-      {corpusEnabled && locations.length === 0 && !locationsQuery.isLoading && (
-        <section
+  if (noLocationsStored) {
+    return (
+      <div className="space-y-4">
+        <PageHeader
+          title="Replay"
+          summary="Scrub archived NHC storm advisories against your watched locations without storing history or triggering notifications."
+        />
+        <Callout
+          tone="note"
+          role="note"
           aria-label="No stored locations for replay"
           data-testid="replay-no-locations"
-          className="rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+          title="No watched locations stored"
         >
-          <p className="font-semibold text-slate-900 dark:text-slate-100">
-            No watched locations stored
-          </p>
-          <p className="mt-1 text-sm">
+          <p className="text-sm">
             Add a watched location in Settings to scrub historical storm
             timelines against it.
           </p>
-          <div className="mt-3">
-            <Link
-              to="/settings"
-              className="inline-flex items-center rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover"
-            >
+          <div className=" pt-1.5">
+            <LinkButton to="/settings" variant="primary" size="sm">
               Add a location in Settings
-            </Link>
+            </LinkButton>
           </div>
-        </section>
-      )}
+        </Callout>
+      </div>
+    );
+  }
 
+  const mapIsLoading =
+    !timeline || !activeStep || replayMapQuery.isLoading;
+
+  return (
+    <div className="space-y-4">
       {timelineQuery.isError && (
-        <div
-          role="alert"
-          className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/60 dark:text-red-200"
-        >
-          {formatRouteError(
-            `/api/replay/${activeStorm?.atcf_id ?? ""}/timeline`,
-            timelineQuery.error instanceof ApiRequestError
-              ? timelineQuery.error.status
-              : undefined,
-          )}
-        </div>
+        <Callout tone="error" role="alert">
+          <p>
+            {formatRouteError(
+              `/api/replay/${activeStorm?.atcf_id ?? ""}/timeline`,
+              timelineQuery.error instanceof ApiRequestError
+                ? timelineQuery.error.status
+                : undefined,
+            )}
+          </p>
+        </Callout>
       )}
 
-      {corpusEnabled && timeline && activeStep && (
-        <>
-          <div
-            role="status"
-            data-testid="replay-banner"
-            className="rounded-lg border border-amber-400 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-950 dark:border-amber-600/80 dark:bg-amber-950/70 dark:text-amber-100"
+      <div
+        data-testid="replay-workbench"
+        className="grid grid-cols-1 gap-3.5 xl:grid-cols-2 xl:items-start"
+      >
+        <div className="max-xl:contents xl:col-start-1 xl:row-start-1 xl:space-y-3">
+          <Card
+            as="section"
+            padding="sm"
+            aria-label="Replay advisory map"
+            data-testid="replay-map-section"
+            className="order-3 space-y-2"
           >
-            Replay: {timeline.name} advisory {activeStep.advisory}, issued{" "}
-            {formatUtc(activeStep.issued_at)} — not live
-          </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-ink">Advisory map</h2>
 
-          <section
-            aria-label="Replay advisory scrubber"
-            className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <button
-                  ref={playButtonRef}
-                  type="button"
-                  aria-label={isPlaying ? "Pause" : "Play"}
-                  onClick={handleTogglePlay}
-                  disabled={steps.length <= 1}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isPlaying ? (
-                    <>
-                      <Pause className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>Pause</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>Play</span>
-                    </>
-                  )}
-                </button>
-                <span className="text-caption text-slate-600 tabular-nums dark:text-slate-400">
-                  Step {String(activeStepIndex + 1)} of {String(steps.length)} ·
-                  Advisory {activeStep.advisory} ({activeStep.advisory_id})
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <ThreatLevelBadge
-                  level={activeStep.level.number}
-                  label={activeStep.level.label}
-                  atLeast={!activeStep.complete}
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="secondary" size="sm" onClick={fitToData}>
+                  <Maximize2
+                    className="h-3.5 w-3.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span>Fit</span>
+                </Button>
+                <Button
+                  variant="secondary"
                   size="sm"
-                />
-                <span className="text-caption text-slate-600 dark:text-slate-400">
-                  {activeStep.rule_trigger}
-                </span>
+                  aria-expanded={layersOpen}
+                  aria-controls="replay-map-layers"
+                  onClick={() => setLayersOpen((prev) => !prev)}
+                >
+                  <Layers
+                    className="h-3.5 w-3.5 shrink-0 text-brand"
+                    aria-hidden="true"
+                  />
+                  <span>Layers</span>
+                  <ChevronDown
+                    className={cx(
+                      "h-3.5 w-3.5 shrink-0 text-ink-subtle transition-transform",
+                      layersOpen ? "rotate-180" : "",
+                    )}
+                    aria-hidden="true"
+                  />
+                </Button>
               </div>
             </div>
 
-            <AdvisorySlider
-              steps={sliderSteps}
-              selectedSnapshotId={activeStep.advisory_id}
-              onSelectSnapshotId={(id) => {
-                setPlaying(false);
-                setSelectedAdvisoryId(id);
-              }}
-              order="oldest-first"
-              showStoredBanner={false}
-            />
+            {layersOpen && (
+              <div
+                id="replay-map-layers"
+                className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-control border border-line bg-surface-inset px-3 py-2 text-sm text-ink"
+              >
+                {replayLayerItems.map((layer) => (
+                  <label
+                    key={layer.key}
+                    className="inline-flex min-h-6 cursor-pointer items-center gap-1.5 text-sm text-ink"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isLayerVisible(visibility, layer.key)}
+                      onChange={() => handleToggleLayer(layer.key)}
+                      className="h-4 w-4 rounded border-line-strong text-brand focus:ring-brand"
+                    />
+                    <span>{layer.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
 
+            <div className="relative isolate">
+              <div
+                ref={mapContainerRef}
+                data-testid="replay-leaflet-map"
+                className="relative z-0 h-[60vh] min-h-[60vh] w-full rounded-control border border-line"
+              />
+              {mapIsLoading && (
+                <div
+                  role="status"
+                  data-testid="replay-map-loading"
+                  className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-control bg-surface-page/40 p-4"
+                >
+                  <span className="rounded-pill border border-line bg-surface-card px-3.5 py-1.5 text-sm font-medium text-ink shadow-card">
+                    Loading replay advisory map…
+                  </span>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {timeline && activeStep && (
+            <Card
+              as="section"
+              padding="sm"
+              aria-label="Replay advisory scrubber"
+              data-testid="replay-scrubber"
+              className="order-4 space-y-2"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    ref={playButtonRef}
+                    type="button"
+                    aria-label={isPlaying ? "Pause" : "Play"}
+                    onClick={handleTogglePlay}
+                    disabled={steps.length <= 1}
+                    className="inline-flex min-h-6 items-center gap-1.5 rounded-control bg-brand px-3 py-1 text-sm font-semibold text-on-brand hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isPlaying ? (
+                      <>
+                        <Pause className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span>Pause</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span>Play</span>
+                      </>
+                    )}
+                  </button>
+                  <span className="text-caption text-ink-subtle tabular-nums">
+                    Step {String(activeStepIndex + 1)} of{" "}
+                    {String(steps.length)} · Advisory {activeStep.advisory} (
+                    {activeStep.advisory_id}) ·{" "}
+                    {formatUtc(activeStep.issued_at)}
+                  </span>
+                </div>
+              </div>
+
+              <AdvisorySlider
+                steps={sliderSteps}
+                selectedSnapshotId={activeStep.advisory_id}
+                onSelectSnapshotId={(id) => {
+                  setPlaying(false);
+                  setSelectedAdvisoryId(id);
+                }}
+                order="oldest-first"
+                showStoredBanner={false}
+              />
+            </Card>
+          )}
+
+          {isWideWorkbench && timeline && activeStep && (
             <LevelHistoryChart
               location={timeline.location}
               timeZone={timeline.time_zone}
               points={chartPoints}
               activeAsOf={activeStep.issued_at}
             />
-          </section>
-
-          {timeline.notes.length > 0 && (
-            <section
-              aria-label="Replay notes"
-              data-testid="replay-notes"
-              className="rounded-lg border border-amber-300 bg-amber-50/70 p-3.5 text-sm text-amber-950 dark:border-amber-700/70 dark:bg-amber-950/40 dark:text-amber-100"
-            >
-              <h2 className="font-semibold">Replay notes</h2>
-              <ul className="mt-1 list-disc space-y-1 pl-4">
-                {timeline.notes.map((note, idx) => (
-                  <li key={`note-${String(idx)}`} className="max-w-measure">
-                    {note}
-                  </li>
-                ))}
-              </ul>
-            </section>
           )}
-        </>
-      )}
+        </div>
 
-      <div
-        className={
-          corpusEnabled && timeline && activeStep
-            ? "grid grid-cols-1 gap-5 lg:grid-cols-2"
-            : "hidden"
-        }
-      >
-        <section
-          aria-label="Replay advisory map"
-          className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Advisory map
-            </h2>
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              {replayLayerItems.map((layer) => (
-                <label
-                  key={layer.key}
-                  className="inline-flex cursor-pointer items-center gap-1 text-slate-700 dark:text-slate-300"
-                >
-                  <input
-                    type="checkbox"
-                    checked={isLayerVisible(visibility, layer.key)}
-                    onChange={() => handleToggleLayer(layer.key)}
-                    className="rounded border-slate-300 text-sky-600 focus:ring-sky-500 dark:border-slate-700"
-                  />
-                  <span>{layer.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div
-            ref={mapContainerRef}
-            data-testid="replay-leaflet-map"
-            className="h-96 w-full rounded-md border border-slate-200 dark:border-slate-800"
-          />
-        </section>
-
-        {assessment && (
-          <article
-            aria-label={`Replayed assessment for ${assessment.location}`}
-            data-testid="replay-assessment-card"
-            className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 shadow-xs sm:p-5 dark:border-slate-800 dark:bg-slate-900"
+        <div className="max-xl:contents xl:col-start-2 xl:row-start-1 xl:sticky xl:top-4 xl:space-y-3">
+          <Card
+            as="section"
+            padding="sm"
+            aria-label="Replay controls"
+            data-testid="replay-pickers"
+            className="order-1 space-y-2.5"
           >
-            <div className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center dark:border-slate-800">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-base font-bold text-slate-900 sm:text-lg dark:text-slate-100">
-                  {assessment.location}
-                </h2>
-                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-caption font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                  {assessment.inside_nws_coverage
-                    ? "Inside NWS coverage"
-                    : "Outside NWS coverage"}
-                </span>
-              </div>
-
-              <ThreatLevelBadge
-                level={assessment.level.number}
-                label={assessment.level.label}
-                atLeast={!assessment.complete}
-              />
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h1 className="text-lg font-bold text-ink sm:text-xl">Replay</h1>
+              <span className="text-caption text-ink-subtle">
+                Historical archive · not live
+              </span>
             </div>
+            <p className="text-sm text-ink-muted">
+              Scrub archived NHC storm advisories against your watched locations
+              without storing history or triggering notifications.
+            </p>
 
-            <LocationHero
-              assessment={assessment}
-              timeZone={assessment.time_zone}
-              origin="replay"
-            />
+            {corpusEnabled && storms.length > 0 && locations.length > 0 && (
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                <div className="flex flex-col gap-1 text-sm">
+                  <label
+                    htmlFor="replay-storm-picker"
+                    className="font-semibold text-ink"
+                  >
+                    Storm
+                  </label>
+                  <select
+                    id="replay-storm-picker"
+                    aria-label="Replay storm"
+                    value={activeStorm?.atcf_id ?? ""}
+                    onChange={(e) => {
+                      setPlaying(false);
+                      setSelectedStormId(e.target.value);
+                      setSelectedAdvisoryId(null);
+                    }}
+                    className="min-h-6 rounded-control border border-line-strong bg-surface-card px-2.5 py-1.5 text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  >
+                    {storms.map((storm) => (
+                      <option key={storm.atcf_id} value={storm.atcf_id}>
+                        {storm.name} ({storm.atcf_id}) · {storm.advisory_count}{" "}
+                        advisories
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {assessment.changes.length > 0 && (
-              <div className="space-y-1 text-sm">
-                <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                  Changes at this advisory
-                </h3>
-                <ul className="list-disc space-y-0.5 pl-4 text-slate-700 dark:text-slate-300">
-                  {assessment.changes.map((chg, idx) => (
-                    <li key={`${chg.kind}-${String(idx)}`} className="max-w-measure">
-                      {chg.detail}
-                    </li>
-                  ))}
-                </ul>
+                <div className="flex flex-col gap-1 text-sm">
+                  <label
+                    htmlFor="replay-location-picker"
+                    className="font-semibold text-ink"
+                  >
+                    Location
+                  </label>
+                  <select
+                    id="replay-location-picker"
+                    aria-label="Replay location"
+                    value={activeLocationName ?? ""}
+                    onChange={(e) => {
+                      setPlaying(false);
+                      setSelectedLocation(e.target.value);
+                    }}
+                    className="min-h-6 rounded-control border border-line-strong bg-surface-card px-2.5 py-1.5 text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  >
+                    {locations.map((loc) => (
+                      <option key={loc.name} value={loc.name}>
+                        {loc.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
+          </Card>
 
-            <WhyThisLevel
-              assessment={assessment}
-              insideNwsCoverage={assessment.inside_nws_coverage}
-              timeZone={assessment.time_zone}
-              breakpointSpan={assessment.breakpoint_span}
+          {timeline && activeStep && (
+            <Callout
+              tone="warning"
+              role="status"
+              data-testid="replay-banner"
+              className="order-2 font-semibold"
             >
-              <LevelSummary assessment={assessment}>
-                <EvidenceList
-                  evidence={assessment.evidence}
+              <p>
+                Replay: {timeline.name} advisory {activeStep.advisory}, issued{" "}
+                {formatUtc(activeStep.issued_at)} — not live
+              </p>
+            </Callout>
+          )}
+
+          {assessment ? (
+            <Card
+              as="article"
+              padding="sm"
+              aria-label={`Replayed assessment for ${assessment.location}`}
+              data-testid="replay-assessment-card"
+              className="order-5 space-y-3.5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-base font-bold text-ink sm:text-lg">
+                    {assessment.location}
+                  </h2>
+                  <Chip tone="neutral">
+                    {assessment.inside_nws_coverage
+                      ? "Inside NWS coverage"
+                      : "Outside NWS coverage"}
+                  </Chip>
+                </div>
+
+                <ThreatLevelBadge
+                  level={assessment.level.number}
+                  label={assessment.level.label}
+                  atLeast={!assessment.complete}
+                />
+              </div>
+
+              <LocationHero
+                assessment={assessment}
+                timeZone={assessment.time_zone}
+                origin="replay"
+              />
+
+              {assessment.changes.length > 0 && (
+                <div className="space-y-1 text-sm">
+                  <h3 className="font-semibold text-ink">
+                    Changes at this advisory
+                  </h3>
+                  <ul className="list-disc space-y-0.5 pl-4 text-ink-muted">
+                    {assessment.changes.map((chg, idx) => (
+                      <li
+                        key={`${chg.kind}-${String(idx)}`}
+                        className="max-w-measure"
+                      >
+                        {chg.detail}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {!isWideWorkbench && timeline && activeStep && (
+                <LevelHistoryChart
+                  location={timeline.location}
+                  timeZone={timeline.time_zone}
+                  points={chartPoints}
+                  activeAsOf={activeStep.issued_at}
+                />
+              )}
+
+              <WhyThisLevel
+                assessment={assessment}
+                insideNwsCoverage={assessment.inside_nws_coverage}
+                timeZone={assessment.time_zone}
+                breakpointSpan={assessment.breakpoint_span}
+              >
+                {timeline && timeline.notes.length > 0 && (
+                  <Callout
+                    tone="warning"
+                    role="note"
+                    aria-label="Replay notes"
+                    data-testid="replay-notes"
+                    title="Replay notes"
+                  >
+                    <ul className="list-disc space-y-1 pl-4">
+                      {timeline.notes.map((note, idx) => (
+                        <li
+                          key={`note-${String(idx)}`}
+                          className="max-w-measure"
+                        >
+                          {note}
+                        </li>
+                      ))}
+                    </ul>
+                  </Callout>
+                )}
+
+                <LevelSummary assessment={assessment}>
+                  <EvidenceList
+                    evidence={assessment.evidence}
+                    timeZone={assessment.time_zone}
+                  />
+                </LevelSummary>
+
+                <OfficialProductList
+                  official={assessment.official}
                   timeZone={assessment.time_zone}
                 />
-              </LevelSummary>
 
-              <OfficialProductList
-                official={assessment.official}
-                timeZone={assessment.time_zone}
-              />
-
-              <ThreatTable
-                threats={assessment.threats}
-                windProbabilities={assessment.wind_probabilities}
-                asOf={assessment.as_of}
-                timeZone={assessment.time_zone}
-              />
-            </WhyThisLevel>
-          </article>
-        )}
+                <ThreatTable
+                  threats={assessment.threats}
+                  windProbabilities={assessment.wind_probabilities}
+                  asOf={assessment.as_of}
+                  timeZone={assessment.time_zone}
+                />
+              </WhyThisLevel>
+            </Card>
+          ) : (
+            timeline &&
+            activeStep &&
+            replayAssessmentQuery.isLoading && (
+              <Card
+                as="section"
+                padding="sm"
+                className="order-5 text-sm text-ink-muted"
+              >
+                <p>Loading replay assessment…</p>
+              </Card>
+            )
+          )}
+        </div>
       </div>
     </div>
   );

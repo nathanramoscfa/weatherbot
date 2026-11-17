@@ -27,6 +27,7 @@ const PLOT_LEFT = 92;
 const PLOT_RIGHT = 536;
 const PLOT_TOP = 20;
 const PLOT_BOTTOM = 140;
+const MIN_MARKER_LABEL_GAP_X = 28;
 
 const LEVEL_AXIS_LABELS: Readonly<Record<number, string>> = {
   1: "L1 Clear",
@@ -120,6 +121,67 @@ export function LevelHistoryChart({
     return prev === undefined || prev.level !== pt.level || prev.rule !== pt.rule;
   });
 
+  const markerCoords = changeMarkers.map((pt) => ({
+    pt,
+    cx:
+      ordered.length === 1
+        ? roundSvg((PLOT_LEFT + PLOT_RIGHT) / 2)
+        : roundSvg(xScale(pt.as_of)),
+    cy: roundSvg(yScale(pt.level)),
+  }));
+
+  const labeledMarkers: {
+    readonly id: number;
+    readonly cx: number;
+    readonly level: number;
+    readonly isFirst: boolean;
+  }[] = [];
+
+  for (const [idx, current] of markerCoords.entries()) {
+    const isFirst = idx === 0;
+    const isLast = idx === markerCoords.length - 1;
+    const prevKept = labeledMarkers.at(-1);
+
+    if (!isFirst && !isLast && prevKept?.level === current.pt.level) {
+      continue;
+    }
+
+    if (
+      prevKept !== undefined &&
+      Math.abs(current.cx - prevKept.cx) < MIN_MARKER_LABEL_GAP_X
+    ) {
+      if (
+        !prevKept.isFirst &&
+        (isLast || current.pt.level > prevKept.level)
+      ) {
+        labeledMarkers.pop();
+        const earlierKept = labeledMarkers.at(-1);
+        if (
+          earlierKept !== undefined &&
+          Math.abs(current.cx - earlierKept.cx) < MIN_MARKER_LABEL_GAP_X
+        ) {
+          continue;
+        }
+        labeledMarkers.push({
+          id: current.pt.id,
+          cx: current.cx,
+          level: current.pt.level,
+          isFirst,
+        });
+      }
+      continue;
+    }
+
+    labeledMarkers.push({
+      id: current.pt.id,
+      cx: current.cx,
+      level: current.pt.level,
+      isFirst,
+    });
+  }
+
+  const labeledMarkerIds = new Set<number>(labeledMarkers.map((m) => m.id));
+
   const xTicks = ticksFor([firstMs, lastMs], ordered.length === 1 ? 1 : 3);
   const titleText = `Threat level history for ${location}: ${String(ordered.length)} assessment${ordered.length === 1 ? "" : "s"}, latest Level ${String(last?.level ?? 1)} (${last?.label ?? "All Clear"})`;
 
@@ -208,13 +270,18 @@ export function LevelHistoryChart({
           />
         ) : null}
 
-        {changeMarkers.map((pt) => {
-          const cx =
-            ordered.length === 1
-              ? roundSvg((PLOT_LEFT + PLOT_RIGHT) / 2)
-              : roundSvg(xScale(pt.as_of));
-          const cy = roundSvg(yScale(pt.level));
+        {markerCoords.map(({ pt, cx, cy }, idx) => {
           const markerStyle = levelSvgClasses(pt.level);
+          const showLabel = labeledMarkerIds.has(pt.id);
+          const prevMarker = idx > 0 ? markerCoords.at(idx - 1) : undefined;
+          const nextMarker = markerCoords.at(idx + 1);
+          const isDip =
+            pt.level > 1 &&
+            prevMarker !== undefined &&
+            nextMarker !== undefined &&
+            prevMarker.pt.level > pt.level &&
+            nextMarker.pt.level > pt.level;
+          const labelY = isDip ? cy + 16 : cy - 8;
           return (
             <g
               key={pt.id}
@@ -227,14 +294,16 @@ export function LevelHistoryChart({
                 strokeWidth={1.5}
                 className={`${markerStyle.fill} stroke-white dark:stroke-slate-900`}
               />
-              <text
-                x={cx}
-                y={cy - 8}
-                textAnchor="middle"
-                className="fill-slate-800 text-caption font-semibold dark:fill-slate-200"
-              >
-                {`L${String(pt.level)}`}
-              </text>
+              {showLabel ? (
+                <text
+                  x={cx}
+                  y={labelY}
+                  textAnchor="middle"
+                  className="fill-slate-800 text-caption font-semibold dark:fill-slate-200"
+                >
+                  {`L${String(pt.level)}`}
+                </text>
+              ) : null}
             </g>
           );
         })}
