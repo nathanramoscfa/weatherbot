@@ -15,7 +15,7 @@
     "api:generate": "openapi-typescript ../docs/api/openapi.json -o src/api/schema.d.ts",
     "api:check": "openapi-typescript ../docs/api/openapi.json -o src/api/schema.d.ts --check",
     "licenses:check": "node scripts/check-licenses.mjs",
-    "audit": "npm audit --audit-level=high",
+    "audit": "npm audit --audit-level=high --omit=dev",
     "e2e": "playwright test",
     "e2e:idle": "playwright test --grep @idle",
     "e2e:dogfood": "playwright test --grep @dogfood"

@@ -1,6 +1,8 @@
 // frontend/e2e/replay.spec.ts
 import { expect, test } from "./guard.ts";
 
+const quietPort = Number(process.env.E2E_QUIET_PORT ?? "8802");
+
 interface TimelineStep {
   readonly advisory_id: string;
   readonly advisory: string;
@@ -11,6 +13,10 @@ interface TimelineDoc {
 }
 
 test.describe("Replay scrubber page", () => {
+  // Run against the quiet demonstration server (no 1-minute switch-file roster
+  // poll), so a background live cycle on 8799 never inserts a notification row
+  // between beforeNotifIds and afterNotifIds while Dorian scrubs.
+  test.use({ baseURL: `http://127.0.0.1:${String(quietPort)}` });
   test("shows map, scrubber, and hero headline in the first 1440×900 (1440x900) viewport, scrubs Dorian at Parliament Square to advisories 24 and 26 without AI or notification events, and stacks in order at 390×844 (390x844)", async ({
     page,
   }) => {

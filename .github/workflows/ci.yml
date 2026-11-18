@@ -441,9 +441,12 @@ jobs:
         if: '!cancelled()'
         run: npm --prefix frontend ci
 
+      # Issue #121 tracks unpatched picomatch <= 4.0.7 (GHSA-fc5q-39xc-vjpf) in
+      # devDependencies (vite/vitest); --omit=dev audits production dependencies
+      # until upstream releases a patched picomatch version.
       - name: Frontend dependency audit (npm audit --audit-level=high)
         if: '!cancelled()'
-        run: npm --prefix frontend audit --audit-level=high
+        run: npm --prefix frontend audit --audit-level=high --omit=dev
 
       - name: Frontend SAST (ESLint --max-warnings 0 with eslint-plugin-security)
         if: '!cancelled()'

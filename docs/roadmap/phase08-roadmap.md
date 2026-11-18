@@ -5878,7 +5878,9 @@ cases. The conversation is new, per phase-boundary hygiene.
     must still pass the gate before commit. `--security` runs both
     stacks' gates (gitleaks, bandit over `src` and `scripts`, `pip-audit
     --strict`, the personal-data check over every tracked file, `npm
-    audit --audit-level=high`, and ESLint with `eslint-plugin-security`)
+    audit --audit-level=high --omit=dev` while issue #121 tracks
+    unpatched `picomatch <= 4.0.7` in `devDependencies`, and ESLint with
+    `eslint-plugin-security`)
     and scans every text file under Phase 8's paths for key and token
     shapes, built at run time so the script holds none. `--post` reads
     the operator's service only through `/api/health` and `doctor`,
@@ -6191,7 +6193,7 @@ cases. The conversation is new, per phase-boundary hygiene.
       tag=PHASE_8_TAG)` in the Phase 9 step that edits the status), and
       a "Pre-ship items" section in which every item has a destination
       (Phase 9's documentation, release, LAN mode, and corpus decision;
-      issues #95, #33, and #79).
+      issues #95, #33, #79, and #121).
     </requirement>
 
     <requirement>

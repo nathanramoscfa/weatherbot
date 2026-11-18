@@ -112,9 +112,12 @@ repos:
         pass_filenames: false
         require_serial: true
 
+      # Issue #121 tracks unpatched picomatch <= 4.0.7 (GHSA-fc5q-39xc-vjpf) in
+      # devDependencies (vite/vitest); --omit=dev audits production dependencies
+      # until upstream releases a patched picomatch version.
       - id: npm-audit
         name: npm audit --audit-level=high over frontend/package-lock.json
-        entry: npm --prefix frontend audit --audit-level=high
+        entry: npm --prefix frontend audit --audit-level=high --omit=dev
         language: system
         files: ^frontend/package(-lock)?\.json$
         pass_filenames: false

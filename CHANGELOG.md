@@ -7,9 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Add a 240-render visual dogfood harness, readability audit and rubric,
-  whole-phase browser smoke, alarm proofs, and idle CPU receipt (Phase 8 Step 8).
-
 ### Phase 8 — UI/UX redesign and visual dogfooding
 - Add five demonstration scenarios that put every level on screen while the
   real tropics are quiet (Phase 8 Step 1):
@@ -213,6 +210,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `frontend/e2e/phase7.spec.ts`, `screens.spec.ts`, and `readability.spec.ts`
     (one render per Settings tab, twelve routes total), and
     `frontend/e2e/settings-tabs.spec.ts`.
+- Add a 240-render visual dogfood harness, readability audit and rubric,
+  whole-phase browser smoke, alarm proofs, and idle CPU receipt (Phase 8 Step 8).
+- Complete Loop 2 operator dogfood walkthrough across all six demonstration
+  servers (`8799` default and `8802`–`8806` scenarios) and all routes, record
+  the operator's dated sign-off in `docs/phase08-dogfood.md`, and deploy and
+  verify the redesigned build on the operator's machine (Phase 8 Step 9).
 
 ### Phase 7 — Depth
 - Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),
