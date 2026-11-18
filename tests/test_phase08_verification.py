@@ -1,6 +1,7 @@
 # tests/test_phase08_verification.py
 """Phase 8 verifier integration and failure-reporting regressions."""
 
+import os
 import re
 import subprocess
 import sys
@@ -30,6 +31,7 @@ def test_fast_verification_passes_all_static_checks_within_thirty_seconds() -> N
         encoding="utf-8",
         timeout=30,
         check=False,
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert len(re.findall(r"^\[PASS\] \d{2}: ", result.stdout, re.MULTILINE)) == STATIC_COUNT

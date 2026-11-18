@@ -1358,7 +1358,7 @@ STATIC_CHECKS: Final[tuple[Check, ...]] = (
         check_49_no_extra_tracked_images_under_frontend,
     ),
     (
-        "AppShell.test.tsx covers the stale-monitor banner and Reconnecting… status chip",
+        "AppShell.test.tsx covers the stale-monitor banner and Reconnecting status chip",
         check_50_appshell_test_covers_stale_banner_and_reconnecting_chip,
     ),
     (
