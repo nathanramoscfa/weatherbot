@@ -2025,7 +2025,7 @@ def phase_five_post() -> bool:
         re.findall(r"^  (passed|failed|skipped|total)\s+(\d+)$", result.stdout, re.MULTILINE)
     )
     for line in result.stdout.splitlines():
-        if line.startswith(("[FAIL]", "[SKIP]")) or "verify_phase0" in line:
+        if line.lstrip().startswith(("[FAIL]", "[SKIP]")) or "verify_phase0" in line:
             print(f"    {line}")
     print(
         f"  verify_phase05.py --post: {totals or 'no summary'} in {elapsed:.1f}s; "

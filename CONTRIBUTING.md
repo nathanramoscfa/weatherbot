@@ -227,10 +227,44 @@ flags (`--fast`, `--py`, `--node`, `--ui`, `--live`, `--security`, `--all`, and
   `GET /api/notifications/channels`, and `doctor --json` against your running
   service. Findings are in [the Phase 7 QA ledger](docs/phase07-qa-findings.md).
 
+Phase 8's is `uv run python scripts/verify_phase08.py`, with the same eight
+flags (`--fast`, `--py`, `--node`, `--ui`, `--live`, `--security`, `--all`, and
+`--post`):
+
+- `--fast`: 60 numbered, independent checks, offline and standard-library only.
+- `--py`: static checks, lint, formatting, types (Windows and `--pythonplatform
+  Linux`), import contracts, the offline tests with the engine, policy, AI
+  context, and AI validator branch-coverage floors (the coverage data file goes
+  to a temporary directory), `export_schemas.py --check`,
+  `export_openapi.py --check`, `export_api_fixtures.py --check`, and the
+  installed-wheel smoke (`scripts/smoke_installed_web.py`).
+- `--node`: static checks and, in `frontend/`, `npm ci`, `npm audit signatures`,
+  `api:check`, `lint`, `typecheck`, Vitest with a JUnit reporter, `build`, and
+  `licenses:check`.
+- `--ui`: static checks and the default Playwright Chromium smoke
+  (`scenarios.spec.ts`, `readability.spec.ts`, `readability.unit.spec.ts`,
+  `plain-english.spec.ts`, `command-center.spec.ts`, `settings-tabs.spec.ts`,
+  and `phase8.spec.ts` included; `@dogfood` and `@idle` excluded) with a JUnit
+  reporter.
+- `--live`: static checks and `pytest -m live` (landmarks only).
+- `--security`: static checks and the security gate over both stacks (gitleaks,
+  bandit, `scripts/audit_deps.py`, `scripts/check_personal_data.py`,
+  `npm audit --audit-level=high --omit=dev`, ESLint at `--max-warnings 0`, and a
+  secret shape scan for `sk-ant-` and `tk_` over the phase's paths).
+- `--all`: the Python, Node, UI, live, and security suites together.
+- `--post`: the canonical 98-check pre-tag sweep: the 38-row V1-V10 matrix from
+  one offline pytest run, one frontend/Vitest run, one Playwright run, and one
+  live run, GitHub readbacks, Phase 7's own `--post` (107 checks, nesting Phases
+  6 to 1), the 240-render `e2e:dogfood` readability audit, the 600-second idle
+  CPU measurement (`scripts/measure_idle.py`), and `GET /api/health`
+  (`ui.index_sha256` matching the built `index.html`) plus `doctor --offline
+  --json` against your running service. Findings are in
+  [the Phase 8 QA ledger](docs/phase08-qa-findings.md).
+
 Both `gate` and `phase-verify` are required on protected `main`. The latter
 aggregates the `phase-verify (01)`, `phase-verify (02)`, `phase-verify (03)`,
-`phase-verify (04)`, `phase-verify (05)`, `phase-verify (06)`, and
-`phase-verify (07)` matrix jobs;
+`phase-verify (04)`, `phase-verify (05)`, `phase-verify (06)`, `phase-verify (07)`,
+and `phase-verify (08)` matrix jobs;
 later phases append their entries and retain the aggregate name. Both workflows
 run on every pull request.
 

@@ -216,6 +216,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   servers (`8799` default and `8802`–`8806` scenarios) and all routes, record
   the operator's dated sign-off in `docs/phase08-dogfood.md`, and deploy and
   verify the redesigned build on the operator's machine (Phase 8 Step 9).
+- Add the Phase 8 repeatable verification script (`scripts/verify_phase08.py`),
+  verifier unit tests (`tests/test_phase08_verification.py`), QA findings ledger
+  (`docs/phase08-qa-findings.md`), and `"08"` matrix leg in
+  `.github/workflows/phase-verify.yml` (Phase 8 Step 10):
+  - `scripts/verify_phase08.py`: 60 static checks (54 for Steps 1–9 and 6
+    self-checks) and 38 V1–V10 post-implementation verification matrix rows
+    (`98` total checks in `--post`) across `--fast`, `--py`, `--node`, `--ui`,
+    `--live`, `--security`, `--all`, and `--post` (nesting `verify_phase07.py
+    --post`'s 107 checks, the 240-render `e2e:dogfood` readability audit, the
+    600 s idle CPU measurement, and `/api/health` + `doctor --offline --json`
+    readbacks against the operator's service).
+  - `tests/test_phase08_verification.py`: test `--fast` execution under 30 s,
+    `"08"` in `.github/workflows/phase-verify.yml`, single-deliverable red-check
+    isolation across Steps 1–10 (including Check 52's two mutation cases),
+    fail-closed skipped JUnit evidence, and post probe failure handling.
+  - `.github/workflows/phase-verify.yml`: append `"08"` to the `phase` matrix
+    with dedicated Node 24 setup and `npm --prefix frontend ci` steps under
+    `if: "!cancelled() && matrix.phase == '08'"`.
+  - `docs/phase08-qa-findings.md`: record the Phase 8 roadmap and Steps 1–10
+    PRs (#110–#122), the Loop 1 and Loop 2 dogfood summary with the operator's
+    dated sign-off, 600 s idle CPU receipts, live and browser smoke runs, the
+    measured nested `--post` sweep duration, exact vs. growth-proof checks for
+    Phase 9, and pre-ship item dispositions.
 
 ### Phase 7 — Depth
 - Add the Phase 7 repeatable verification script (`scripts/verify_phase07.py`),
