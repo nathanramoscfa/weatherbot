@@ -12,8 +12,8 @@ specifies both in [the project brief](docs/brief/weatherbot-v2-brief.md).
 Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
 discovery), Phase 2 (sources and persistence), Phase 3 (the threat engine),
 Phase 4 (monitoring and notifications), Phase 5 (the web app MVP), Phase 6
-(the Claude layer), and Phase 7 (depth) are complete; Phase 8 (UI/UX redesign
-and visual dogfooding) is in progress, and Phase 9 (Release 2.0) is next. AI is
+(the Claude layer), Phase 7 (depth), and Phase 8 (UI/UX redesign and visual
+dogfooding) are complete; Phase 9 (Release 2.0) is next. AI is
 optional: it
 needs an Anthropic credential, and everything else works without one (see
 [docs/AI.md](docs/AI.md)). No version 2 package is released.
