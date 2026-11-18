@@ -124,3 +124,42 @@ secret/personal-data scanning, SAST, and both dependency audits. All captures
 use the demonstration servers; no screenshot or audit file is committed.
 
 ## Loop 2 — operator dogfood
+
+The operator walked the redesigned web app in their own browser on 2026-11-17
+against the six offline demonstration servers started from
+`feature/phase08-step9-operator-dogfood` (`7248531`, in temporary data
+directories with only the two public landmarks and the synthetic storm):
+
+- Default (`http://127.0.0.1:8799`, PID `8992`)
+- `quiet` (`http://127.0.0.1:8802`, PID `90072`)
+- `outlook` (`http://127.0.0.1:8803`, PID `45468`)
+- `cone` (`http://127.0.0.1:8804`, PID `93876`)
+- `watch` (`http://127.0.0.1:8805`, PID `48512`)
+- `landfall` (`http://127.0.0.1:8806`, PID `26916`)
+
+### Loop 2 round log
+
+| Round | Date | Source commit | Scenarios & pages walked | Feedback items | Disposition |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 2026-11-17 | `7248531` | Default (`8799`) and `quiet`, `outlook`, `cone`, `watch`, `landfall` (`8802`–`8806`) across `/`, `/map`, `/replay`, `/storms`, `/alerts`, `/timeline`, `/ask`, and `/settings` (`#locations`, `#notifications`, `#ai`, `#retention`, `#about`, `#disclaimer`) | 0 | Accepted as-is; operator signed off |
+
+### Operator feedback
+
+| Round | Page / scenario | Operator feedback (verbatim) | Disposition |
+| --- | --- | --- | --- |
+| 1 | All pages (`/`, `/map`, `/replay`, `/storms`, `/alerts`, `/timeline`, `/ask`, `/settings`) and all scenarios (`default`, `quiet`, `outlook`, `cone`, `watch`, `landfall`) | `"I have walked the pages and scenarios — the web app is ready to release (sign off Loop 2)"` | Signed off with no changes requested (`7248531`) |
+
+### Demonstration server cleanup and idle status
+
+- All six background demonstration servers started for Loop 2 (`PID 8992` on
+  `8799`, `PID 90072` on `8802`, `PID 45468` on `8803`, `PID 93876` on `8804`,
+  `PID 48512` on `8805`, and `PID 26916` on `8806`) were stopped immediately
+  after sign-off and verified absent by process ID check (`remaining_pids=0`)
+  and loopback port check.
+- Because `/` was unchanged in Loop 2, Step 8's post-fix 600-second idle CPU
+  receipt (`window=600.0s server_cpu=0.2682% (1.609s) tab_cpu=0.0057% (0.034s) roster_polls=0 cycles=0 ai_state=ready change_summaries=on budget=<0.5%`)
+  remains the current measurement for the merged dashboard build.
+
+### Sign-off
+
+- **Operator sign-off (2026-11-17):** `"I have walked the pages and scenarios — the web app is ready to release (sign off Loop 2)"`

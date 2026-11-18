@@ -1934,11 +1934,14 @@ def security_suites() -> list[Outcome]:
         )
         for mode in ("--all", "--self-test")
     )
+    # Issue #121 tracks unpatched picomatch <= 4.0.7 (GHSA-fc5q-39xc-vjpf) in
+    # devDependencies (vite/vitest); --omit=dev audits production dependencies
+    # until upstream releases a patched picomatch version.
     results.append(
         run_command(
             "sec.npm_audit",
-            "npm --prefix frontend audit --audit-level=high",
-            ["npm", "--prefix", FRONTEND, "audit", "--audit-level=high"],
+            "npm --prefix frontend audit --audit-level=high --omit=dev",
+            ["npm", "--prefix", FRONTEND, "audit", "--audit-level=high", "--omit=dev"],
         )
     )
     results.append(
