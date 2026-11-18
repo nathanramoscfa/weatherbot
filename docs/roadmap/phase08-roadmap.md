@@ -5169,9 +5169,9 @@ per phase-boundary hygiene.
 
 ---
 
-## Step 9 — Loop 2: the operator's dogfood
+## Step 9 — Loop 2: the operator's dogfood ✅
 
-**Status:** Not started
+**Status:** Complete — PR #122 (2026-11-17)
 
 > **Goal:** Put the redesign in front of the person it is for and keep at it
 > until they say it is ready. The operator walks every page in their own browser
@@ -5216,6 +5216,8 @@ the output part scaled by the tokens the model writes at that level. ≈ estimat
 from the model's measured levels or its previous version's.
 
 **Conversation:** New
+
+> Ran 2026-11-17: Quality Runner-up — Gemini 4 Argon · High.
 
 **Model rationale:** Step 9 is agentic with a coding secondary category — a long
 session paced by the operator, several rounds of judgement on feedback that is
@@ -6460,7 +6462,7 @@ workflow above maps directly to the corresponding row below.
 | 6    | Replay workbench               | Gemini 4 Argon | Complete — PR #117 |
 | 7    | Settings tabs + pages          | Gemini 4 Argon | Complete — PR #118 |
 | 8    | Loop 1: AI dogfood             | Sonnet 5.5     | Complete — PR #119 |
-| 9    | Loop 2: operator dogfood       | Opus 5.5       | Not started        |
+| 9    | Loop 2: operator dogfood       | Opus 5.5       | Complete — PR #122 |
 | 10   | QA + verify_phase08.py         | GPT-6.1 Sol    | Not started        |
 | V1   | Scenarios + recordings         | CI             | --                 |
 | V2   | Design system + type gate      | CI             | --                 |
