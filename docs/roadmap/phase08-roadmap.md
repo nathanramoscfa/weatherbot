@@ -1,6 +1,6 @@
-# Phase 8 Roadmap — UI/UX Redesign and Visual Dogfooding
+# Phase 8 Roadmap — UI/UX Redesign and Visual Dogfooding ✅
 
-**Status:** In progress
+**Status:** Complete — 2026-11-18
 
 ## Overview
 
@@ -5597,9 +5597,9 @@ conversation is new, per phase-boundary hygiene.
 
 ---
 
-## Step 10 — QA & Verification Script
+## Step 10 — QA & Verification Script ✅
 
-**Status:** Not started
+**Status:** Complete — PR #123 (2026-11-18)
 
 > **Goal:** Package the verification matrix into `scripts/verify_phase08.py`
 > (with `--fast`, `--py`, `--node`, `--ui`, `--live`, `--security`, `--all`, and
@@ -5644,6 +5644,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity medium`):
 Ranked for coding, medium complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
 estimated from the model's measured levels or its previous version's.
+
+> Ran 2026-11-18: Quality Pick — Gemini 4 Argon · High.
 
 **Conversation:** New
 
@@ -6463,7 +6465,7 @@ workflow above maps directly to the corresponding row below.
 | 7    | Settings tabs + pages          | Gemini 4 Argon | Complete — PR #118 |
 | 8    | Loop 1: AI dogfood             | Sonnet 5.5     | Complete — PR #119 |
 | 9    | Loop 2: operator dogfood       | Opus 5.5       | Complete — PR #122 |
-| 10   | QA + verify_phase08.py         | GPT-6.1 Sol    | Not started        |
+| 10   | QA + verify_phase08.py         | GPT-6.1 Sol    | Complete — PR #123 |
 | V1   | Scenarios + recordings         | CI             | --                 |
 | V2   | Design system + type gate      | CI             | --                 |
 | V3   | Plain English + ladder route   | CI             | --                 |
