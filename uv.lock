@@ -1579,14 +1579,14 @@ wheels = [
 
 [[package]]
 name = "roadmodel"
-version = "0.2.116"
+version = "0.2.117"
 source = { registry = "https://pkgs.safetycli.com/repository/nr-capital-management/pypi/simple/" }
 dependencies = [
     { name = "click" },
 ]
-sdist = { url = "https://pkgs.safetycli.com/package/nr-capital-management/pypi/packages/4c/29/75dc0f39ee13c3d7d9e4918f0d88c46c4b16c70e18a384b4f1eed4a39e85/roadmodel-0.2.116.tar.gz", hash = "sha256:8b54f67489e712d5402467b855ea45506cc1983aecb0a53afa8b70104aee3870", size = 612458, upload-time = "2026-11-16T22:50:40.392Z" }
+sdist = { url = "https://pkgs.safetycli.com/package/nr-capital-management/pypi/packages/21/47/309ed8fe378d7fa5833efdb54eaf62f90f055a415686fdac32b783098b09/roadmodel-0.2.117.tar.gz", hash = "sha256:ffdea244be515989e51423622978b3e451dfffb9793c5b015520ae15f04637a3", size = 615274, upload-time = "2026-11-19T03:18:47.143Z" }
 wheels = [
-    { url = "https://pkgs.safetycli.com/package/nr-capital-management/pypi/packages/07/ab/92f6a2d43cab9556d6f138c46508237a6dbd74e944fad8be8759f9bc7bc7/roadmodel-0.2.116-py3-none-any.whl", hash = "sha256:074a56a5894f7ca4a2eb2ab77eba6c6a87f5e99d6b97e43bc730e9ed51f3fc71", size = 431497, upload-time = "2026-11-16T22:50:38.729Z" },
+    { url = "https://pkgs.safetycli.com/package/nr-capital-management/pypi/packages/6a/7b/5c85a83d690574e7be695470c20af3570d5a64e8a41e4e919b93dc93c74c/roadmodel-0.2.117-py3-none-any.whl", hash = "sha256:22d5ab4fd558dbb9ae7f18374bddf92f8b355a9d56458602647803e1fa3fb809", size = 433530, upload-time = "2026-11-19T03:18:45.704Z" },
 ]
 
 [[package]]
