@@ -1434,6 +1434,31 @@ Phase 9 keeps every earlier phase's verification green (`"01"` through `"08"`
 in `phase-verify.yml`). Note that `verify_phase07.py` Check 25 pins
 `EDITABLE`'s 12 keys and forbidden tables — `web`, including any Phase 9
 LAN/bearer-token settings, must remain non-editable via `PUT /api/settings`.
+The phase roadmap's audit supersedes this note: three exact checks convert to
+tagged reads in the steps that change what they read (Phase 8's check 52 and
+Phase 6's check 1 in Step 1, Phase 8's check 54 in Step 4), and three version
+checks become version-agnostic before the first version bump
+(`phase09-roadmap.md`, Decision 15).
+
+The phase roadmap (written 2026-11-18) settles six points this section leaves
+open or words differently. 2.0.0 supports CPython 3.13 to 3.15: the locked
+pywinrt 3.2.1 has no wheel for 3.15, the current Python, while a fresh install
+already resolves pywinrt 4 untested, so Step 1 moves to pywinrt 4, tests 3.13
+and 3.15 on both runners, and caps every runtime dependency at 1.0 or later
+below its next major (Decision 2). Two release candidates go to TestPyPI:
+`2.0.0rc2` is the patch in the yank-and-patch rehearsal, and no pre-release
+reaches PyPI (Decision 6). The fresh-install smoke is
+`scripts/release_smoke.py`, which runs `serve` through
+`scripts/smoke_installed_web.py`, rather than a new `serve --check` flag. The
+replay corpus ships beside the release as a checksummed archive on the GitHub
+Release, never in the wheel (Decision 7). The published package gains a health
+signal, a weekly install canary whose failure email is the alarm (Decision 8).
+And LAN mode is a second listener on one LAN address with the token in
+`WEATHERBOT_WEB_TOKEN`, a session cookie for the browser, and loopback
+unchanged; it is documented as supported only after Step 6 has served the
+operator's phone (Decisions 9 and 10). Yanking 1.0.0, which still resolves for
+pip on Python 3.11 and 3.12, is recommended and done only with the operator's
+yes (Decision 17).
 
 #### 9.1 Documentation
 - User guide, configuration reference, `docs/DATA_SOURCES.md` and
@@ -1716,6 +1741,7 @@ Rules that apply to every worktree:
 | `v2.0.0-phase-7`     | Depth: charts, layers, replay UI, Nassau, ntfy                |
 | `v2.0.0-phase-8`     | UI/UX redesign, demonstration scenarios, dogfood sign-off     |
 | `v2.0.0rc1`          | Release candidate on TestPyPI                                 |
+| `v2.0.0rc2`          | Release candidate on TestPyPI; the yank-and-patch rehearsal   |
 | `v2.0.0`             | Public release on PyPI                                        |
 
 Package versions on `main` between phases read `2.0.0.devN`; only the
@@ -1980,6 +2006,7 @@ every row.
 | Notification delivery            | Delivery result per notification row; `GET /api/notifications/channels` | Notification log page; the settings page's channels; `notify test`; `doctor`'s `ntfy` check | A failed channel is shown in the log and in `doctor` |
 | History retention (Phase 7, when on) | The `retention` watch heartbeat; `GET /api/retention`             | `doctor`'s `heartbeat` check; the settings page   | The staleness banner when older than twice its cadence; a failed run is logged and shown |
 | CI and release workflows         | Workflow status on `main` and on tags                                  | GitHub Actions; the fresh-install smoke job       | GitHub's failure email to the operator              |
+| Published package (PyPI, from Phase 9) | A fresh, unpinned `uv tool install weatherbot` passes the release smoke | `install-canary.yml`, weekly and on dispatch | GitHub's failure email to the operator              |
 
 #### Rules
 
