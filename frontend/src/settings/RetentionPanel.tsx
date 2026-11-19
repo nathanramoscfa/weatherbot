@@ -238,7 +238,7 @@ export function RetentionPanel() {
   return (
     <Card
       as="section"
-      id="retention"
+      id="retention-settings"
       aria-labelledby="retention-heading"
     >
       <div className="flex items-center gap-2">
