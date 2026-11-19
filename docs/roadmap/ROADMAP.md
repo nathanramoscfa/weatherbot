@@ -1405,9 +1405,9 @@ publishing; the LAN mode token
 |               | Price    | $2.50/1M           | $6.76/1M           | $40.08/1M          |
 | **Runner‑up** | Model    | **Sonnet 5.5**     | **GPT-6.1 Sol**    | **Gemini 4 Argon** |
 |               | Platform | Claude Code        | Codex              | Antigravity        |
-|               | Level    | High               | XHigh              | High               |
-|               | AA       | 46.8               | 51                 | 52.6               |
-|               | Price    | $3.40/1M           | $4.00/1M           | $6.13/1M           |
+|               | Level    | High               | High               | High               |
+|               | AA       | 46.8               | 50.2               | 52.6               |
+|               | Price    | $3.40/1M           | $2.86/1M           | $6.13/1M           |
 | **Backup**    | Model    | **Gemini 4 Argon** | **Gemini 4 Argon** | **GPT-6.1 Sol**    |
 |               | Platform | Antigravity        | Antigravity        | Codex              |
 |               | Level    | Low                | Medium             | Max                |
@@ -1416,19 +1416,20 @@ publishing; the LAN mode token
 
 Ranked for planning, high complexity. Price: list $ per 1M tokens (3 in : 1
 out), the output part scaled by the tokens the model writes at that level. ≈
-estimated from the model's measured levels.
+estimated from the model's measured levels or its previous version's.
 
 **Conversation:** New
 
+> Settings updated 2026-11-17 (refresh): Balanced Runner-up was GPT-6.1 Sol · XHigh. Re-ranked
+> against the current roadmodel catalog.
+
 > Settings updated 2026-10-29 (refresh): was Opus 5.5 · Max. The single-column table becomes the ranked ladder; the Quality Pick it runs is unchanged, and its Backup GPT-6 Astra — Codex · Intelligence Max gives way to Runner-up Gemini 4 Argon — Antigravity · Max and Backup GPT-6.1 Sol — Codex · Max.
 
-The release phase owns the irreversible cutovers (a public 2.0.0 and
-the first non-loopback bind) and their readiness gates. Opus 5.5 at
-`Max` on Claude Code (Max subscription), the Quality Pick and the
-PRIMARY `roadmodel score` names; Gemini 4 Argon on Antigravity, then
-GPT-6.1 Sol on Codex, each at `Max`, if its pool is short. The
-conversation is new: the roadmap is written once, from this roadmap and
-`main` as Phase 8 leaves it.
+On the roadmap-writing session alone, the Quality Pick fits best: Opus 5.5 on
+Claude Code at Max. A phase roadmap defines scope, sequencing, acceptance
+criteria and settings for every step, so the strongest planning option at its
+deepest supported level fits this session. The Cost Pick is GPT-6.1 Sol on Codex
+at Medium, and the Balanced Pick is Opus 5.5 on Claude Code at High.
 
 Phase 9 keeps every earlier phase's verification green (`"01"` through `"08"`
 in `phase-verify.yml`). Note that `verify_phase07.py` Check 25 pins
