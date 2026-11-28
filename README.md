@@ -13,10 +13,9 @@ Version 2 is a from-scratch rewrite in progress. Phase 1 (foundation and
 discovery), Phase 2 (sources and persistence), Phase 3 (the threat engine),
 Phase 4 (monitoring and notifications), Phase 5 (the web app MVP), Phase 6
 (the Claude layer), Phase 7 (depth), and Phase 8 (UI/UX redesign and visual
-dogfooding) are complete; Phase 9 (Release 2.0) is next. AI is
-optional: it
-needs an Anthropic credential, and everything else works without one (see
-[docs/AI.md](docs/AI.md)). No version 2 package is released.
+dogfooding) are complete; Phase 9 (Release 2.0) is in progress. AI is
+optional: it needs an Anthropic credential, and everything else works without
+one (see [docs/AI.md](docs/AI.md)). No version 2 package is released.
 The commands below read the official products, and `status` decides each
 location's level from them alone, with the evidence behind it, and notifies you
 of a change through the in-app log, a Windows toast, the browser, and optional

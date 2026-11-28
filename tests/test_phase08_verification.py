@@ -301,7 +301,7 @@ def test_a_changed_deliverable_turns_exactly_its_check_red(
     assert failed == [check]
 
 
-def test_the_live_status_moves_check_52_until_phase_9_converts_it(
+def test_the_live_status_no_longer_moves_check_52(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     original = verification.read
@@ -312,7 +312,7 @@ def test_the_live_status_moves_check_52_until_phase_9_converts_it(
             assert "## Status" in text
             return re.sub(
                 r"^## Status$.*?(?=^## )",
-                "## Status\n\nPhase 8 (UI/UX redesign and visual dogfooding) is in progress.\n\n",
+                "## Status\n\nPhase 10 (a later phase) is in progress.\n\n",
                 text,
                 count=1,
                 flags=re.MULTILINE | re.DOTALL,
@@ -322,10 +322,31 @@ def test_the_live_status_moves_check_52_until_phase_9_converts_it(
     monkeypatch.setattr(verification, "read", edited)
     failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
 
+    assert failed == []
+
+
+def test_the_tagged_status_still_decides_check_52(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original = verification.tagged
+
+    def edited(
+        relative: str, root: Path = verification.REPO_ROOT, *, tag: str = verification.PHASE_7_TAG
+    ) -> str:
+        text = original(relative, root, tag=tag)
+        if relative == "README.md" and tag == verification.PHASE_8_TAG:
+            old = "Phase 9 (Release 2.0) is next"
+            assert old in text
+            return text.replace(old, "Phase 9 (Release 2.0) is planned")
+        return text
+
+    monkeypatch.setattr(verification, "tagged", edited)
+    failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
+
     assert failed == ["52"]
 
 
-def test_the_changelog_phase_08_heading_decides_check_52(
+def test_the_live_changelog_phase_08_heading_still_decides_check_52(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     original = verification.read

@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 9 — Release 2.0
+- Make what a clean install resolves the set CI tests, on every Python a clean
+  install can pick (Phase 9 Step 1):
+  - pywinrt 4: `winrt-runtime>=4.2.1,<5` and the four projections at
+    `>=4!10.0.28000.2957,<5!0`, each on Windows only, replace pywinrt 3.2.1,
+    which had no wheel for Python 3.15. `services/toast.py` calls
+    `create_toast_notifier` and reads pywinrt 4's `HResult` as the integer it
+    is, and still loads pywinrt on the first toast only; one real toast was
+    shown on the operator's desktop on Python 3.13.
+  - `uv lock --upgrade` brings every locked package current (among them
+    anthropic 2.13.0, FastAPI 0.165.0, Typer 0.29.2, ruff 0.17.6, pytest 9.2.0,
+    and import-linter 2.17). An HTTP 503 from Anthropic now reads `overloaded`:
+    the SDK raises `ServiceUnavailableError` for it, which
+    `services/ai/errors.py` already mapped there.
+  - Every runtime requirement locked at 1.0 or later is capped below its next
+    major (`alembic<2`, `anthropic<3`, `platformdirs<5`, `pyproj<4`, `rich<16`,
+    `shapely<3`, and `starlette<2`, beside `pydantic<3` and `sqlalchemy<3`);
+    `tzdata` and the requirements below 1.0 keep floors only, and
+    `requires-python` stays `>=3.13`.
+  - Python 3.15: `ci.yml`'s `test` and `package` jobs run Python 3.13 and 3.15
+    on both runners (the 3.13 entries keep their names), and the classifiers
+    name Python 3.13, 3.14, and 3.15.
+  - `tests/test_dependency_policy.py` holds the policy: the caps, the floors,
+    `requires-python`, the classifiers, and a Python 3.13 and 3.15 wheel for
+    every compiled package in the lock's runtime closure on each platform its
+    markers allow.
+  - The frontend takes Dependabot's minor and patch updates (Playwright 1.65.1,
+    Vite 8.3.8, Vitest 5.1.1, ESLint 10.15.0, TanStack Query 5.108.2, and nine
+    more), every workflow pins `astral-sh/setup-uv` v10.4.0, and the build
+    backend moves to `uv_build>=0.13.8,<0.14`, which writes the same wheel and
+    sdist file lists.
+  - Phase 6's check 1 reads `anthropic>=2.3.0` at `v2.0.0-phase-6` and requires
+    a live `anthropic>=` requirement capped below 3, and Phase 8's check 52
+    reads the README's `## Status` at `v2.0.0-phase-8`.
+  - `scripts/measure_idle.py` reads a process's CPU times through a small
+    protocol: the new `types-psutil` stubs declare no Windows `pcputimes`.
+
 ### Phase 8 — UI/UX redesign and visual dogfooding
 - Add five demonstration scenarios that put every level on screen while the
   real tropics are quiet (Phase 8 Step 1):
