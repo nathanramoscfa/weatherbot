@@ -11,21 +11,21 @@ from typer.testing import CliRunner
 import weatherbot
 from weatherbot.cli import app
 
-EXPECTED_VERSION = "2.0.0.dev0"
-
 ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
 
 
 def test_version_matches_the_project_version() -> None:
-    assert weatherbot.__version__ == EXPECTED_VERSION
-    assert version("weatherbot") == EXPECTED_VERSION
+    expected = version("weatherbot")
+    assert expected
+    assert weatherbot.__version__ == expected
 
 
 def test_version_option_prints_the_version_alone() -> None:
+    expected = version("weatherbot")
     result = CliRunner().invoke(app, ["--version"])
 
     assert result.exit_code == 0
-    assert result.stdout == f"{EXPECTED_VERSION}\n"
+    assert result.stdout == f"{expected}\n"
 
 
 def test_help_works() -> None:
@@ -37,6 +37,7 @@ def test_help_works() -> None:
 
 
 def test_module_entry_point_prints_the_version() -> None:
+    expected = version("weatherbot")
     completed = subprocess.run(
         [sys.executable, "-m", "weatherbot", "--version"],
         capture_output=True,
@@ -46,4 +47,4 @@ def test_module_entry_point_prints_the_version() -> None:
     )
 
     assert completed.returncode == 0, completed.stderr
-    assert completed.stdout.strip() == EXPECTED_VERSION
+    assert completed.stdout.strip() == expected

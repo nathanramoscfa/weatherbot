@@ -1658,9 +1658,9 @@ at XHigh.
 
 ---
 
-## Step 2 — The release pipeline
+## Step 2 — The release pipeline ✅
 
-**Status:** Not started
+**Status:** Complete — PR #131 (2026-11-28)
 
 > **Goal:** Build everything a release needs and prove it without publishing
 > (Decisions 3 to 8 and 13). `scripts/set_version.py` sets the version
@@ -1713,6 +1713,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
+
+> Ran 2026-11-28: Quality Runner-up — Gemini 4 Neon · XHigh (Antigravity; ladder printed Gemini (web / app) from the 2026-11-19 refresh).
 
 **Conversation:** New
 
@@ -5793,7 +5795,7 @@ workflow above maps directly to the corresponding row below.
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
 | 1    | Tested dependencies, Pythons   | Gemini 4 Hydrogen | Complete — PR #129 |
-| 2    | Release pipeline               | Opus 5.5       | Not started        |
+| 2    | Release pipeline               | Opus 5.5       | Complete — PR #131 |
 | 3    | LAN mode                       | Opus 5.5       | Not started        |
 | 4    | Documentation                  | Opus 5.5       | Not started        |
 | 5    | Release candidate (TestPyPI)   | Gemini 4 Hydrogen | Not started        |
