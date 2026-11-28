@@ -1409,7 +1409,7 @@
             provider="google" billing="subscription-included"
             provider-jurisdiction="us"
             requires="google-ai-pro-or-ultra-subscription"
-            supports-models="gemini-3.8-flash,claude-sonnet-5-5,gpt-oss-120b,gemini-4-argon,gemini-4-hydrogen,gemini-4-neon"
+            supports-models="gemini-3.8-flash,claude-sonnet-5-5,gpt-oss-120b,gemini-4-argon,gemini-4-carbon,gemini-4-hydrogen,gemini-4-neon"
             exposes-max-mode="no" exposes-thinking="yes"
             exposes-orchestration="no"
             best-for="Google's agent-first coding surface: the Antigravity desktop IDE, its VS Code panel and the `agy` CLI, which replaced the Gemini CLI for personal Google accounts on 2026-06-18. Google AI Pro and Ultra pay for it: quota refreshes every five hours up to a weekly limit (the free tier refreshes weekly), and both can buy AI credits for overage. It serves the Gemini models and, on Google's quota, Claude Sonnet 4.6 and Claude Opus 4.6 with thinking and gpt-oss-120b (antigravity.google/docs/models); Claude Opus 4.6 is not in this catalog. Gemini models take a Low / Medium / High reasoning level, set in the model id (`<model>-low` / `-medium` / `-high`) or with `agy --effort`; the Claude and GPT-OSS models carry their own thinking setting. It bills a Google AI plan or a Google Cloud project, not a Gemini API key." />
