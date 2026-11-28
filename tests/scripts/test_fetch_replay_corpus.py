@@ -607,6 +607,46 @@ def test_a_manifest_names_the_day_its_originals_were_recorded(tmp_path: Path) ->
 
 
 @pytest.mark.parametrize(
+    "user_agent",
+    [
+        "weatherbot/2.0.0.dev0 (+https://github.com/nathanramoscfa/weatherbot)",
+        "weatherbot/2.0.0rc1 (+https://github.com/nathanramoscfa/weatherbot)",
+        "weatherbot/2.0.0 (+https://github.com/nathanramoscfa/weatherbot)",
+    ],
+)
+def test_load_manifest_accepts_any_pep440_weatherbot_user_agent(
+    tmp_path: Path, user_agent: str
+) -> None:
+    manifest = replace(staged_manifest(tmp_path), user_agent=user_agent)
+    path = tmp_path / "manifest.json"
+    corpus.write_manifest(manifest, path)
+
+    loaded = corpus.load_manifest(path)
+    assert loaded.user_agent == user_agent
+
+
+@pytest.mark.parametrize(
+    "user_agent",
+    [
+        "weatherbot/not-a-version (+https://github.com/nathanramoscfa/weatherbot)",
+        "otherbot/2.0.0 (+https://github.com/nathanramoscfa/weatherbot)",
+        "weatherbot/2.0.0 (+https://example.org/weatherbot)",
+        "weatherbot/2.0.0",
+        "",
+    ],
+)
+def test_load_manifest_rejects_unexpected_user_agent_shapes(
+    tmp_path: Path, user_agent: str
+) -> None:
+    manifest = replace(staged_manifest(tmp_path), user_agent=user_agent)
+    path = tmp_path / "manifest.json"
+    corpus.write_manifest(manifest, path)
+
+    with pytest.raises(RecorderError, match="schema or coordinate policy"):
+        corpus.load_manifest(path)
+
+
+@pytest.mark.parametrize(
     "argv",
     [
         ["fetch", "--full"],

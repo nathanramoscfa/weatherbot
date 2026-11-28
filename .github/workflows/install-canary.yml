@@ -1,0 +1,59 @@
+# .github/workflows/install-canary.yml
+# Weekly health signal for the published PyPI package (Phase 9 Decision 8).
+# Runs an unpinned `uv tool install weatherbot` and `scripts/release_smoke.py`
+# on clean GitHub-hosted Ubuntu and Windows runners. While PyPI holds only 1.x,
+# the smoke reports that no 2.0.0+ release is live and exits 0 without installing.
+# GitHub disables a public repository's schedules after 60 days without activity;
+# see docs/RELEASING.md for how to check and re-enable it.
+name: install-canary
+run-name: ${{ inputs.simulate_failure && 'install-canary (simulated failure)' || 'install-canary' }}
+
+on:
+  schedule:
+    - cron: "41 9 * * 2"
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: Prove the failure alarm after the install smoke
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: install-canary-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    name: canary (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          enable-cache: true
+
+      - name: Smoke-test the latest unpinned PyPI release
+        run: uv run --no-project python scripts/release_smoke.py --latest --min-version 2.0.0
+
+      - name: Prove the failure alarm
+        if: github.event_name == 'workflow_dispatch' && inputs.simulate_failure
+        run: |
+          echo "Intentional alarm proof: install-canary smoke passed."
+          exit 1

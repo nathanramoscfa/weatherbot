@@ -41,6 +41,7 @@ from urllib.parse import urljoin, urlsplit
 import httpx
 import shapefile  # pyright: ignore[reportMissingTypeStubs] - pyshp has inline types, no py.typed
 import shapely
+from packaging.version import InvalidVersion, Version
 from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box, mapping, shape
 from shapely.geometry.base import BaseGeometry
 
@@ -94,6 +95,23 @@ FULL_RULE = (
     "product unclipped, and every arrival-time KMZ as received."
 )
 MANIFEST_NAME = "corpus-manifest.json"
+USER_AGENT_SHAPE = re.compile(
+    r"^weatherbot/(?P<version>\S+) \(\+https://github\.com/nathanramoscfa/weatherbot\)$"
+)
+
+
+def valid_user_agent(value: object) -> bool:
+    """Return whether ``value`` matches Weatherbot's User-Agent shape with any PEP 440 version."""
+    if not isinstance(value, str):
+        return False
+    match = USER_AGENT_SHAPE.fullmatch(value)
+    if match is None:
+        return False
+    try:
+        Version(match["version"])
+    except InvalidVersion:
+        return False
+    return True
 
 
 def subset_rule(forecast_rule: str) -> str:
@@ -272,7 +290,7 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> Manifest:
     obj = as_object(parse_json(path.read_bytes(), "corpus manifest"), "corpus manifest")
     if (
         obj.get("schema") != 1
-        or obj.get("user_agent") != USER_AGENT
+        or not valid_user_agent(obj.get("user_agent"))
         or obj.get("coordinate_policy") != COORDINATE_POLICY
         or obj.get("float_decimals") != FLOAT_DECIMALS
     ):
@@ -337,7 +355,14 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> Manifest:
     names = [entry.file for entry in files]
     if not files or len(set(names)) != len(names):
         fail("empty inventory or duplicate cache filenames")
-    return Manifest(storms, files, subset, text_value(obj.get("subset_rule")), recorded_day(obj))
+    return Manifest(
+        storms,
+        files,
+        subset,
+        text_value(obj.get("subset_rule")),
+        recorded_day(obj),
+        user_agent=text_value(obj.get("user_agent")),
+    )
 
 
 def atomic_write(path: Path, body: bytes) -> None:

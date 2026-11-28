@@ -196,7 +196,7 @@ uv tool install --from . weatherbot
 ```
 
 After each merge that changes the monitor, reinstall the tool copy with
-`--reinstall` — the development version stays `2.0.0.dev0`, so a plain
+`--reinstall` — the development version stays unchanged between merges, so a plain
 `uv tool install` of the same version changes nothing:
 
 ```sh
@@ -410,7 +410,7 @@ Weatherbot uses [uv](https://docs.astral.sh/uv/), Python 3.13, and Node 24
 uv sync                                # create .venv and install the locked dependencies
 npm --prefix frontend ci               # install the locked frontend dependencies
 npm --prefix frontend run build        # build the web UI into src/weatherbot/web/static/
-uv run weatherbot --version            # prints 2.0.0.dev0
+uv run weatherbot --version            # prints the version
 uv run pytest                          # run the tests
 ```
 

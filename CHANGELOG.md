@@ -44,6 +44,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     reads the README's `## Status` at `v2.0.0-phase-8`.
   - `scripts/measure_idle.py` reads a process's CPU times through a small
     protocol: the new `types-psutil` stubs declare no Windows `pcputimes`.
+- Build and verify the release pipeline without publishing (Phase 9 Step 2):
+  - `scripts/set_version.py` sets or checks the single PEP 440 version
+    (`X.Y.Z`, `X.Y.ZrcN`, or `X.Y.Z.devN`) across `pyproject.toml` (including
+    the `Development Status` classifier), `uv.lock`, `docs/api/openapi.json`,
+    `frontend/src/api/schema.d.ts`, `frontend/src/test/fixtures/health.json`,
+    `docs/DATA_SOURCES.md`'s `## User-Agent` block, and `README.md`'s
+    `blob/`/`raw/` links; `tests/test_release_metadata.py` holds every copy in
+    sync, while `tests/test_cli.py`, `tests/contract/test_recorded_fixtures.py`,
+    and `scripts/fetch_replay_corpus.py`'s `load_manifest` become
+    version-agnostic.
+  - `scripts/check_dist.py` (standard library only, wired into `ci.yml`'s
+    `package` job and `release.yml`'s `build` job) enforces the wheel and sdist
+    allowlists, metadata, size cap, absence of synthetic storm markers, and
+    extracted personal-data scanning, with unit tests in
+    `tests/scripts/test_check_dist.py`.
+  - `scripts/release_smoke.py` (standard library only) runs isolated fresh
+    installs (`--wheel`, `--index testpypi|pypi`, and `--latest --min-version`)
+    without Node on `PATH` and without `ANTHROPIC_*`/`WEATHERBOT_*`, verifying
+    `--version`, `doctor --offline --json`, `smoke_installed_web.py`, and
+    Windows pywinrt 4 toast XML loading, with offline tests in
+    `tests/scripts/test_release_smoke.py`.
+  - `.github/workflows/release.yml` (tag-triggered OIDC trusted publishing
+    behind protected `testpypi` and `pypi` environments, built-wheel and
+    post-publish matrix smokes across Ubuntu/Windows and Python 3.13/3.15, and
+    GitHub Release creation with the checksummed replay corpus archive) and
+    `.github/workflows/install-canary.yml` (weekly unpinned PyPI install health
+    check with `simulate_failure`), guarded by `tests/test_release_workflow.py`.
+  - Configured the GitHub `testpypi` and `pypi` environments (required reviewer,
+    tags `v*` only, self-review allowed), active `refs/tags/v*` tag protection
+    ruleset, and OIDC Trusted Publishers on PyPI and TestPyPI; added
+    `docs/RELEASING.md`, `docs/release-readiness-2.0.0.md`, and a Releasing
+    section in `CONTRIBUTING.md`.
 
 ### Phase 8 — UI/UX redesign and visual dogfooding
 - Add five demonstration scenarios that put every level on screen while the

@@ -23,6 +23,7 @@ from fixture_support import (
     register_rows,
     register_user_agent,
 )
+from packaging.version import InvalidVersion, Version
 
 import check_personal_data as checker
 import record_fixtures as recorder
@@ -61,6 +62,22 @@ HARVESTED_OUTLOOK_DATES = (
     "2025-10-23",
 )
 HARVESTED_FROM = re.compile(r"reports/hurricane_threat_analysis_(\d{4})(\d{2})(\d{2})_\d{6}\.html")
+USER_AGENT_SHAPE = re.compile(
+    r"^weatherbot/(?P<version>\S+) \(\+https://github\.com/nathanramoscfa/weatherbot\)$"
+)
+
+
+def _is_valid_manifest_user_agent(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    match = USER_AGENT_SHAPE.fullmatch(value)
+    if match is None:
+        return False
+    try:
+        Version(match["version"])
+    except InvalidVersion:
+        return False
+    return True
 
 
 def test_the_recorded_tree_holds_only_capture_directories_and_the_notice() -> None:
@@ -84,7 +101,8 @@ def test_the_manifest_matches_the_schema(directory: CaptureDirectory) -> None:
     assert manifest["source"] in {row.source_id for row in register_rows()}
     assert TIMESTAMP.fullmatch(str(manifest["recorded_at"]))
     assert manifest["recorder"] == recorder.RECORDER_PATH
-    assert manifest["user_agent"] == recorder.USER_AGENT == register_user_agent()
+    assert _is_valid_manifest_user_agent(manifest["user_agent"]), manifest["user_agent"]
+    assert register_user_agent() == recorder.USER_AGENT
     assert directory.entries, "a capture directory records at least one file"
     for entry in directory.entries:
         harvested = str(entry["origin"]).startswith("harvest:")

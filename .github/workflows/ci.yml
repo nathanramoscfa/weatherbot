@@ -239,6 +239,11 @@ jobs:
       - name: Build the sdist and the wheel
         run: uv build
 
+      - name: Verify built distributions against the allowlist
+        run: |
+          expected="$(uv version --short | tr -d '\r')"
+          uv run --no-project python scripts/check_dist.py dist --version "$expected"
+
       - name: The sdist carries the disclaimer
         run: |
           shopt -s nullglob

@@ -14,7 +14,7 @@ Weatherbot uses [uv](https://docs.astral.sh/uv/) and Python 3.13.
 git clone https://github.com/nathanramoscfa/weatherbot.git
 cd weatherbot
 uv sync                      # creates .venv from uv.lock (and installs Python 3.13 if needed)
-uv run weatherbot --version  # prints 2.0.0.dev0
+uv run weatherbot --version  # prints the version
 ```
 
 `uv sync` installs the `dev` and `planning` dependency groups by default.
@@ -1297,6 +1297,16 @@ Work follows the phase roadmaps in `docs/roadmap/`:
 3. Open a pull request against `main`. `main` is protected: it takes
    squash merges only, through a pull request, once the required checks pass.
 4. One step per pull request; never bundle two.
+
+## Releasing
+
+Release candidates (`2.0.0rcN`) and public releases (`2.0.0`) follow the
+runbook in [docs/RELEASING.md](docs/RELEASING.md) and are gated by the
+evidence checklist in [docs/release-readiness-2.0.0.md](docs/release-readiness-2.0.0.md).
+Set the version everywhere through `uv run python scripts/set_version.py <version>`,
+verify consistency with `--check`, and never create or store a long-lived PyPI token:
+`.github/workflows/release.yml` publishes through OIDC trusted publishing behind the
+`testpypi` and `pypi` deployment environments.
 
 ## Reporting issues
 
