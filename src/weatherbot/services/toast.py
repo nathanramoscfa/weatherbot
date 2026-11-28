@@ -284,7 +284,7 @@ if sys.platform == "win32":
                 ToastNotificationManager,
             )
 
-            self._notifier = ToastNotificationManager.create_toast_notifier_with_id(APP_ID)
+            self._notifier = ToastNotificationManager.create_toast_notifier(APP_ID)
 
         def setting(self) -> int:
             return int(self._notifier.setting)
@@ -301,7 +301,7 @@ if sys.platform == "win32":
             toast = ToastNotification(document)
 
             def failed(_: ToastNotification, args: ToastFailedEventArgs) -> None:
-                on_failed(args.error_code.value)
+                on_failed(int(args.error_code))  # pywinrt 4's HResult is the int itself
 
             token = toast.add_failed(failed)
             self._notifier.show(toast)

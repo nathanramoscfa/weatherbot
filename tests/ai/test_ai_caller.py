@@ -259,7 +259,9 @@ def test_a_prompt_past_the_limit_is_too_large_and_never_sent(engine: Engine) -> 
     [
         (RecordedAnswer.error(429, "rate_limit_error"), "rate_limited"),
         (RecordedAnswer.error(529, "overloaded_error"), "overloaded"),
-        (RecordedAnswer.error(503, "api_error"), "server_error"),
+        # The SDK raises ServiceUnavailableError for a 503 (2.3.0 raised InternalServerError).
+        (RecordedAnswer.error(503, "api_error"), "overloaded"),
+        (RecordedAnswer.error(502, "api_error"), "server_error"),
         (RecordedAnswer.error(500, "api_error"), "server_error"),
         (RecordedAnswer.error(400, "invalid_request_error"), "bad_request"),
         (RecordedAnswer.error(403, "permission_error"), "permission"),

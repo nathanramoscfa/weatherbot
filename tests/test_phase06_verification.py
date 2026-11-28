@@ -332,6 +332,78 @@ def test_the_tagged_status_still_decides_check_44(monkeypatch: pytest.MonkeyPatc
     assert failed == ["44"]
 
 
+def _live_anthropic(monkeypatch: pytest.MonkeyPatch, requirement: str) -> None:
+    """Replace the live anthropic requirement in pyproject.toml with ``requirement``."""
+    original = verification.read
+
+    def edited(path: str, root: Path = verification.REPO_ROOT) -> str:
+        text = original(path, root)
+        if path == "pyproject.toml":
+            live = re.search(r'^    "(anthropic[^"]*)",$', text, re.MULTILINE)
+            assert live is not None
+            return text.replace(f'"{live[1]}"', f'"{requirement}"', 1)
+        return text
+
+    monkeypatch.setattr(verification, "read", edited)
+
+
+@pytest.mark.parametrize(
+    "requirement",
+    [
+        "anthropic>=2.3.0,<3",
+        "anthropic>=2.13.0,<3",
+        "anthropic>=2.3.0,<3.0",
+        "anthropic>=2.3,<2.99",
+    ],
+)
+def test_a_live_anthropic_floor_capped_below_3_passes_check_1(
+    monkeypatch: pytest.MonkeyPatch, requirement: str
+) -> None:
+    _live_anthropic(monkeypatch, requirement)
+    failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
+
+    assert failed == []
+
+
+@pytest.mark.parametrize(
+    "requirement",
+    [
+        "anthropic>=2.3.0",
+        "anthropic>=2.3.0,<4",
+        "anthropic>=2.3.0,<3.1",
+        "anthropic>=2.3.0,<=3",
+        "anthropic~=2.3",
+        "anthropic==2.13.0",
+        "anthropic<3,>=2.3.0",
+    ],
+)
+def test_a_live_anthropic_requirement_without_a_cap_below_3_fails_check_1(
+    monkeypatch: pytest.MonkeyPatch, requirement: str
+) -> None:
+    _live_anthropic(monkeypatch, requirement)
+    failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
+
+    assert failed == ["01"]
+
+
+def test_the_tagged_anthropic_floor_still_decides_check_1(monkeypatch: pytest.MonkeyPatch) -> None:
+    original = verification.tagged
+
+    def edited(
+        relative: str, root: Path = verification.REPO_ROOT, *, tag: str = verification.PHASE_5_TAG
+    ) -> str:
+        text = original(relative, root, tag=tag)
+        if relative == "pyproject.toml" and tag == verification.PHASE_6_TAG:
+            assert '"anthropic>=2.3.0",' in text
+            return text.replace('"anthropic>=2.3.0",', '"anthropic>=2.2.0",')
+        return text
+
+    monkeypatch.setattr(verification, "tagged", edited)
+    failed = [o.item_id for o in verification.run_static_checks() if o.status == "FAIL"]
+
+    assert failed == ["01"]
+
+
 @pytest.mark.parametrize(
     ("head", "ancestor", "expected"),
     [
