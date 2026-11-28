@@ -1,6 +1,6 @@
 # Weatherbot — Roadmap to the Second Draft: a CLI and a Local Web App
 
-> **Status:** Phase 8 Complete — 2026-11-18; PR #123; v2.0.0-phase-8; phase08-roadmap.md. Phase 9 (Release 2.0) is next.
+> **Status:** Phase 8 Complete — 2026-11-18; PR #123; v2.0.0-phase-8; phase08-roadmap.md. Phase 9 (Release 2.0) is in progress (phase09-roadmap.md).
 > **Owner:** Nathan Ramos, sole maintainer and sole user
 > **Audience:** Maintainer and the AI coding agents that write the phase
 > roadmaps and execute their steps; public, because the repository is
@@ -1382,7 +1382,7 @@ build the operator has not approved (`phase08-roadmap.md`, Decisions 17 and 19).
 
 ### Phase 9 — Release 2.0
 
-**Status:** Not started
+**Status:** In progress — phase09-roadmap.md
 
 **Goal:** Weatherbot 2.0.0 on PyPI with complete documentation, a
 verified fresh-install experience on Windows and Ubuntu, an always-on
@@ -2121,4 +2121,4 @@ The following are deliberately deferred to a future version:
 | 6     | Claude layer                                  | High       | Complete |
 | 7     | Depth                                         | Medium     | Complete |
 | 8     | UI/UX redesign and visual dogfooding          | High       | Complete |
-| 9     | Release 2.0                                   | Medium     | Not started |
+| 9     | Release 2.0                                   | Medium     | In progress |
