@@ -1025,8 +1025,12 @@ def check_51_dogfood_loop_2_round_and_dated_sign_off() -> bool:
 
 
 def check_52_readme_status_names_phase_08_complete_and_changelog_documents_it() -> bool:
-    """Check 52: README.md Status names Phase 8 complete and Phase 9 next, and CHANGELOG has it."""
-    status = markdown_section(read("README.md"), "## Status")
+    """Check 52: README.md Status names Phase 8 complete and Phase 9 next, and CHANGELOG has it.
+
+    The ``## Status`` block is read at ``v2.0.0-phase-8``: Phase 9 Step 1 moved the live
+    Status on to Phase 9. The ``CHANGELOG.md`` clause stays live.
+    """
+    status = markdown_section(tagged("README.md", tag=PHASE_8_TAG), "## Status")
     return (
         "Phase 8 (UI/UX redesign and visual\ndogfooding) are complete" in status
         and "Phase 9 (Release 2.0) is next" in status

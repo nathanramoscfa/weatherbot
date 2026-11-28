@@ -27,7 +27,7 @@ import time
 from dataclasses import dataclass, field
 from http import HTTPStatus
 from pathlib import Path
-from typing import Final, cast
+from typing import Final, Protocol, cast
 
 import psutil
 
@@ -176,8 +176,20 @@ def _stop_process(process: subprocess.Popen[str]) -> None:
         process.stdout.close()
 
 
+class _CpuTimes(Protocol):
+    """The two fields of ``psutil.Process.cpu_times()`` this script reads."""
+
+    @property
+    def user(self) -> float: ...
+
+    @property
+    def system(self) -> float: ...
+
+
 def _cpu_seconds(proc: psutil.Process) -> float:
-    times = proc.cpu_times()
+    # types-psutil 7.2.2.20261122 declares no `pcputimes` for win32, so on Windows the
+    # stub's return type is unknown; psutil returns the same named tuple on every platform.
+    times = cast("_CpuTimes", proc.cpu_times())
     return float(times.user + times.system)
 
 

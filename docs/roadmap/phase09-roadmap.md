@@ -1,6 +1,6 @@
 # Phase 9 Roadmap — Release 2.0
 
-**Status:** Not started
+**Status:** In progress
 
 ## Overview
 
@@ -117,7 +117,7 @@ committed `planning/`, and this roadmap's pull request pins it in `uv.lock`.
 
 **Dependency:** No phase follows: the project roadmap ends at Phase 9. What
 inherits this phase's work is the 2.0.x line — fixes, dependency updates, and
-the issues still open (#33, #79, #95, #121) — released through the pipeline and
+the issues still open (#33, #95, #121) — released through the pipeline and
 the runbook this phase leaves, under the install canary's watch.
 
 **Design rationale (decisions and clarifications of the brief and the project
@@ -368,12 +368,13 @@ them.
     than 64 members and the wheel holds 186); gitleaks over the full history;
     the dependency audits (`pip-audit --strict` over the lock, `npm audit
     --omit=dev`, the bundled-licence check), with the development-only
-    advisories (#79, #121) named as not shipped; each disclaimer surface tied to
-    the test that proves it; the documentation complete; every source
-    re-verified live by `live-smoke.yml` within seven days of the tag; the
-    synthetic scenarios and recordings confirmed absent from both files; each
-    release candidate's smokes and its soak on the operator's service (24 hours
-    or more, `doctor` passing, no stale heartbeat); the LAN gate; the rollback
+    advisory (#121; Step 1's lock closed #79) named as not shipped; each
+    disclaimer surface tied to the test that proves it; the documentation
+    complete; every source re-verified live by `live-smoke.yml` within seven
+    days of the tag; the synthetic scenarios and recordings confirmed absent
+    from both files; each release candidate's smokes and its soak on the
+    operator's service (24 hours or more, `doctor` passing, no stale
+    heartbeat); the LAN gate; the rollback
     rehearsal and its durations; every open issue and pull request with its
     disposition; and the operator's sign-off with its date.
 14. *Phase 9's own checks read the release at its tag.* `v2.0.0` is this phase's
@@ -1106,9 +1107,9 @@ no steps in parallel, and the Worktree rule permits no concurrent steps.
 
 ---
 
-## Step 1 — What ships is what CI tests
+## Step 1 — What ships is what CI tests ✅
 
-**Status:** Not started
+**Status:** Complete — PR #129 (2026-11-28)
 
 > **Goal:** Make the dependency set a clean install resolves the one CI tests,
 > on every Python a clean install can pick (Decision 2), and open the phase.
@@ -1157,6 +1158,8 @@ Settings — ladder (`roadmodel ladder --category coding --complexity high`):
 Ranked for coding, high complexity. Price: list $ per 1M tokens (3 in : 1 out),
 the output part scaled by the tokens the model writes at that level. ≈ estimated
 from the model's measured levels or its previous version's.
+
+> Ran 2026-11-28: Quality Pick or Balanced Runner-up — Opus 5.5 · XHigh or High.
 
 **Conversation:** New
 
@@ -4813,9 +4816,10 @@ Sonnet 5.5 on Claude Code at XHigh.
       the web footer and every assessment view, the report, `README.md`, and
       `DISCLAIMER.md` in both files; earlier phases' tests prove each.
     - Open issues: #33 (the operator's question about surge and extreme-wind
-      products; no ladder change in 2.0.0), #79 and #121 (development-only
-      advisories), #95 (the conditional tile proxy). Any Dependabot pull
-      request opened since Step 1 needs a disposition too.
+      products; no ladder change in 2.0.0), #121 (a development-only
+      advisory; Step 1's lock, minimatch 11.0.9, closed #79 in PR #129), #95
+      (the conditional tile proxy). Any Dependabot pull request opened since
+      Step 1 needs a disposition too.
     - PyPI's 1.0.0 declares `Requires-Python >=3.11` (Decision 17).
 
     Files to read (every file before drafting):
@@ -4844,8 +4848,8 @@ Sonnet 5.5 on Claude Code at XHigh.
       full history (exit 0); `uv run python scripts/check_personal_data.py
       --all` with the operator's denylist (exit 0); `scripts/audit_deps.py`,
       `npm --prefix frontend audit --audit-level=high --omit=dev`, and `npm
-      --prefix frontend run licenses:check` (exit 0, with #79 and #121 named
-      as development-only, absent from the wheel); each disclaimer surface
+      --prefix frontend run licenses:check` (exit 0, with #121 named as
+      development-only, absent from the wheel); each disclaimer surface
       with the test that proves it; dispatch `live-smoke.yml` on `main` and,
       when it passes, refresh the `Verified` date of each register row whose
       source it exercised; confirm from `scripts/check_dist.py`'s rules and
@@ -5788,7 +5792,7 @@ workflow above maps directly to the corresponding row below.
 
 | Step | Scope                          | Model          | Status             |
 | ---- | ------------------------------ | -------------- | ------------------ |
-| 1    | Tested dependencies, Pythons   | Gemini 4 Hydrogen | Not started        |
+| 1    | Tested dependencies, Pythons   | Gemini 4 Hydrogen | Complete — PR #129 |
 | 2    | Release pipeline               | Opus 5.5       | Not started        |
 | 3    | LAN mode                       | Opus 5.5       | Not started        |
 | 4    | Documentation                  | Opus 5.5       | Not started        |
@@ -5955,7 +5959,7 @@ Additionally not in scope for this phase:
   application (Decision 7).
 - A version after 2.0.0 (`2.0.1.dev0` or later). The first change after the
   release sets it, through `scripts/set_version.py`.
-- Issues #79 and #121 (development-only advisories, absent from the wheel), #95
+- Issue #121 (a development-only advisory, absent from the wheel), #95
   (the tile proxy, conditional on a refusal that has not come), and new
   Dependabot pull requests after Step 7. They belong to the 2.0.x line.
 - Removing version 1 from the operator's `PATH`. The operator's housekeeping;

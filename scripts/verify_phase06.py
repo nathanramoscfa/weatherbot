@@ -416,13 +416,41 @@ def _lf_sha256(relative: str, root: Path = REPO_ROOT) -> str:
 # Step 1 static checks (1-12) ---------------------------------------------------------------
 
 
+def _capped_below(requirement: str, major: int) -> bool:
+    """Whether a requirement carries an exclusive upper bound at or below ``<major>``."""
+    specifiers = requirement.split(";", 1)[0].split(",")
+    for specifier in (item.strip() for item in specifiers):
+        match = re.fullmatch(r"<\s*(\d+(?:\.\d+)*)", specifier)
+        if match is None:
+            continue
+        bound = tuple(int(part) for part in match[1].split("."))
+        if bound <= (major, *(0,) * (len(bound) - 1)):
+            return True
+    return False
+
+
 def check_01_ai_dependencies(root: Path = REPO_ROOT) -> bool:
-    """Check 1: pyproject.toml lists anthropic>=2.3.0 in dependencies and httpx2 only in dev."""
+    """Check 1: anthropic>=2.3.0 at v2.0.0-phase-6, a capped live anthropic, httpx2 dev-only.
+
+    The ``anthropic>=2.3.0`` clause is read at ``v2.0.0-phase-6``: Phase 9 Step 1 capped the
+    live requirement below its next major, so the live clause requires exactly one
+    requirement starting ``anthropic>=`` with an upper bound below 3. The ``httpx2`` clauses
+    stay live.
+    """
+    tagged_deps = array_of(
+        toml_value(
+            tagged("pyproject.toml", root=root, tag=PHASE_6_TAG), ("project", "dependencies")
+        )
+    )
     deps = [str(item) for item in array_of(config("project", "dependencies", root=root))]
     dev_deps = [str(item) for item in array_of(config("dependency-groups", "dev", root=root))]
     plan_deps = [str(item) for item in array_of(config("dependency-groups", "planning", root=root))]
+    anthropic = [dep for dep in deps if dep.startswith("anthropic")]
     return (
-        "anthropic>=2.3.0" in deps
+        "anthropic>=2.3.0" in [str(item) for item in tagged_deps]
+        and len(anthropic) == 1
+        and anthropic[0].startswith("anthropic>=")
+        and _capped_below(anthropic[0], 3)
         and not any(dep.startswith("httpx2") for dep in deps)
         and any(dep.startswith("httpx2>=") for dep in dev_deps)
         and not any(dep.startswith("httpx2") for dep in plan_deps)
@@ -1320,7 +1348,7 @@ def check_51_security_gate_and_no_key_shapes(root: Path = REPO_ROOT) -> bool:
 STATIC_CHECKS: tuple[Check, ...] = (
     # Step 1 — The Claude client, the ledger, and the cap (1-12)
     (
-        "pyproject.toml lists anthropic>=2.3.0 in dependencies and httpx2 only in dev group",
+        "anthropic>=2.3.0 at v2.0.0-phase-6, live anthropic capped below 3, httpx2 dev-only",
         check_01_ai_dependencies,
     ),
     (

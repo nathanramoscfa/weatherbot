@@ -625,8 +625,8 @@ class, a setting's name, or what to run, never the notification's text.
 beside the log, so the toast never replaces the log.
 
 `weatherbot.services.toast.ToastChannel` shows a notification as a Windows
-toast through pywinrt (`winrt-Windows.UI.Notifications` 3.2.1 and four
-sibling packages, installed on Windows only): the title, the first two body
+toast through pywinrt 4 (`winrt-runtime` and four projection packages at
+`4!10.0.28000.2957`, installed on Windows only): the title, the first two body
 lines, and the disclaimer's notice as its attribution. It reads Windows'
 notification setting first (anything but `Enabled` is `disabled`, with the
 setting's name), shows the toast, and waits up to two seconds for Windows to
