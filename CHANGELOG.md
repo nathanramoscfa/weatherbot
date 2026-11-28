@@ -17,10 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     is, and still loads pywinrt on the first toast only; one real toast was
     shown on the operator's desktop on Python 3.13.
   - `uv lock --upgrade` brings every locked package current (among them
-    anthropic 2.13.0, FastAPI 0.165.0, Typer 0.29.2, ruff 0.17.6, pytest 9.2.0,
-    and import-linter 2.17). An HTTP 503 from Anthropic now reads `overloaded`:
-    the SDK raises `ServiceUnavailableError` for it, which
-    `services/ai/errors.py` already mapped there.
+    anthropic 2.14.0, FastAPI 0.165.0, httpx 0.29.0, Typer 0.29.3, uvicorn
+    0.55.0, ruff 0.17.6, pytest 9.2.0, and import-linter 2.17). An HTTP 503
+    from Anthropic now reads `overloaded`: the SDK raises
+    `ServiceUnavailableError` for it, which `services/ai/errors.py` already
+    mapped there.
   - Every runtime requirement locked at 1.0 or later is capped below its next
     major (`alembic<2`, `anthropic<3`, `platformdirs<5`, `pyproj<4`, `rich<16`,
     `shapely<3`, and `starlette<2`, beside `pydantic<3` and `sqlalchemy<3`);
